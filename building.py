@@ -13,6 +13,7 @@ class Building:
             "unit_name": self.unit_name,
         }
     
+    @staticmethod
     def from_json(json: dict) -> "Building":
         return Building(
             unit_template=UnitTemplate.from_json(UNITS[json["unit_name"]]),

@@ -3,8 +3,8 @@ from settings import BASE_CITY_HEALTH
 
 
 class City:
-    def __init__(self, player_num: int):
-        self.player_num = player_num
+    def __init__(self, civ: Civ):
+        self.civ = civ
         self.name = generate_random_city_name()
         self.population = 1
         self.buildings: list[Building] = []
@@ -16,7 +16,7 @@ class City:
 
     def to_json(self) -> dict:
         return {
-            "player_num": self.player_num,
+            "civ": self.civ.to_json(),
             "name": self.name,
             "population": self.population,
             "buildings": [building.to_json() for building in self.buildings],
@@ -30,7 +30,7 @@ class City:
     @staticmethod
     def from_json(json: dict) -> "City":
         city = City(
-            player_num=json["player_num"],
+            civ=Civ.from_json(json["civ"]),
         )
         city.name = json["name"]
         city.population = json["population"]

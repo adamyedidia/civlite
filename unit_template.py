@@ -1,5 +1,6 @@
 from typing import Union
 
+from ability import Ability
 from abilities_list import ABILITIES
 
 class UnitTemplate:
@@ -13,7 +14,7 @@ class UnitTemplate:
         self.movement = movement
         self.range = range
         self.armor = armor
-        self.abilities = ABILITIES[abilities[0]](*abilities[1])  # type: ignore
+        self.abilities: list[Ability] = ABILITIES[abilities[0]](*abilities[1])  # type: ignore
 
     def to_json(self) -> dict:
         return {
