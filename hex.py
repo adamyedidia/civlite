@@ -14,3 +14,26 @@ class Hex:
         self.units: list[Unit] = []
         self.city: Optional[City] = None
 
+    def to_json(self) -> dict:
+        return {
+            "q": self.q,
+            "r": self.r,
+            "s": self.s,
+            "yields": self.yields.to_json(),
+            "units": [unit.to_json() for unit in self.units],
+            "city": self.city.to_json() if self.city else None,
+        }
+    
+    @staticmethod
+    def from_json(json: dict) -> "Hex":
+        hex = Hex(
+            q=json["q"],
+            r=json["r"],
+            s=json["s"],
+            yields=Yields.from_json(json["yields"]),
+        )
+        hex.units = [Unit.from_json(unit_json) for unit_json in json["units"]]
+        if json["city"]:
+            hex.city = City.from_json(json["city"])
+
+        return hex
