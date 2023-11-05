@@ -7,27 +7,31 @@ from settings import BASE_CITY_HEALTH
 class City:
     def __init__(self, civ: Civ):
         self.civ = civ
+        self.original_civ_id = civ.id
         self.name = generate_random_city_name()
         self.population = 1
         self.buildings: list[Building] = []
         self.food = 0
         self.metal = 0
-        self.stone = 0
+        self.wood = 0
         self.science = 0
         self.health = BASE_CITY_HEALTH
         self.target: Optional[str] = None
+        self.was_occupied_by_civ_id: Optional[str] = None
 
     def to_json(self) -> dict:
         return {
             "civ": self.civ.to_json(),
+            "original_civ_id": self.original_civ_id,
             "name": self.name,
             "population": self.population,
             "buildings": [building.to_json() for building in self.buildings],
             "food": self.food,
             "metal": self.metal,
-            "stone": self.stone,
+            "wood": self.wood,
             "science": self.science,
             "health": self.health,
+            "was_occupied_by_civ_id": self.was_occupied_by_civ_id,
         }
 
     @staticmethod
@@ -35,14 +39,16 @@ class City:
         city = City(
             civ=Civ.from_json(json["civ"]),
         )
+        city.original_civ_id = json["original_civ_id"]
         city.name = json["name"]
         city.population = json["population"]
         city.buildings = [Building.from_json(building) for building in json["buildings"]]
         city.food = json["food"]
         city.metal = json["metal"]
-        city.stone = json["stone"]
+        city.wood = json["wood"]
         city.science = json["science"]
         city.health = json["health"]
+        city.was_occupied_by_civ_id = json["was_occupied_by_civ_id"]
 
         return city
 

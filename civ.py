@@ -10,12 +10,14 @@ class Civ:
         self.id = generate_unique_id()
         self.player_num = player_num
         self.template = civ_template
+        self.science = 0
 
     def to_json(self) -> dict:
         return {
             "id": self.id,
             "player_num": self.player_num,
             "name": self.template.name,
+            "science": self.science,
         }
 
     @staticmethod
@@ -25,5 +27,6 @@ class Civ:
             player_num=json["player_num"],
         )
         civ.id = json["id"]
+        civ.science = json["science"]
 
         return civ

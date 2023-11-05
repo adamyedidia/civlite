@@ -4,11 +4,11 @@ from ability import Ability
 from abilities_list import ABILITIES
 
 class UnitTemplate:
-    def __init__(self, name: str, building_name: str, metal_cost: int, stone_cost: int, strength: int, ranged_attacker: bool, movement: int, range: int, abilities: list[list[Union[str, list]]], type: str) -> None:
+    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, ranged_attacker: bool, movement: int, range: int, abilities: list[list[Union[str, list]]], type: str) -> None:
         self.name = name
         self.building_name = building_name
         self.metal_cost = metal_cost
-        self.stone_cost = stone_cost
+        self.wood_cost = wood_cost
         self.strength = strength
         self.ranged_attacker = ranged_attacker
         self.movement = movement
@@ -21,7 +21,7 @@ class UnitTemplate:
             "name": self.name,
             "building_name": self.building_name,
             "metal_cost": self.metal_cost,
-            "stone_cost": self.stone_cost,
+            "wood_cost": self.wood_cost,
             "strength": self.strength,
             "ranged_attacker": self.ranged_attacker,
             "movement": self.movement,
@@ -36,7 +36,7 @@ class UnitTemplate:
             name=json["name"],
             building_name=json["building_name"],
             metal_cost=json["metal_cost"],
-            stone_cost=json["stone_cost"],
+            wood_cost=json["wood_cost"],
             strength=json["strength"],
             ranged_attacker=json["ranged_attacker"],
             movement=json["movement"],

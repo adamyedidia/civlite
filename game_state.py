@@ -48,6 +48,11 @@ class GameState:
         for unit in units_copy:
             unit.attack(self, sess)
 
+        cities_copy = self.cities[:]
+        random.shuffle(cities_copy)
+        for city in cities_copy:
+            city.roll_turn(self, sess)
+
         self.turn_num += 1
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ]) -> None:

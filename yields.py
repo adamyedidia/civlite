@@ -1,17 +1,17 @@
 
 
 class Yields:
-    def __init__(self, food: int, metal: int, stone: int, science: int) -> None:
+    def __init__(self, food: int, metal: int, wood: int, science: int) -> None:
         self.food = food
         self.metal = metal
-        self.stone = stone
+        self.wood = wood
         self.science = science
 
     def to_json(self) -> dict:
         return {
             "food": self.food,
             "metal": self.metal,
-            "stone": self.stone,
+            "wood": self.wood,
             "science": self.science,
         }
     
@@ -20,6 +20,6 @@ class Yields:
         return Yields(
             food=json["food"],
             metal=json["metal"],
-            stone=json["stone"],
+            wood=json["wood"],
             science=json["science"],
         )
