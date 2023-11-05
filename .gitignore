@@ -1,0 +1,6 @@
+__pycache__/
+local_settings.py
+.DS_Store
+node_modules/
+app.log
+*/__pycache__/*

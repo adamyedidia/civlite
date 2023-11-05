@@ -2,6 +2,7 @@ UNITS = {
     "Warrior": {
         "name": "Warrior",
         "building_name": "War Hut",
+        "type": "military",
         "metal_cost": 1,
         "stone_cost": 1,
         "attack": 1,

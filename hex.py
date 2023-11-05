@@ -16,6 +16,12 @@ class Hex:
         self.city: Optional[City] = None
         self.coords = coords_str((q, r, s))
 
+    def distance_to(self, other: "Hex") -> int:
+        return max(abs(self.q - other.q), abs(self.r - other.r), abs(self.s - other.s))
+
+    def is_occupied(self, unit_type: str) -> bool:
+        return any(unit.template.type == unit_type for unit in self.units)
+
     def to_json(self) -> dict:
         return {
             "q": self.q,

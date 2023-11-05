@@ -35,8 +35,9 @@ class GameState:
         hexes = {key: Hex.from_json(hex_json) for key, hex_json in json["hexes"].items()}
         return GameState(hexes=hexes)
     
-    def roll_turn(self) -> None:
+    def roll_turn(self, animations: list[dict]) -> None:
         units_copy = self.units[:]
         random.shuffle(units_copy)
         for unit in units_copy:
-            unit.act()
+            # unit.act(animations, self)
+            pass
