@@ -18,6 +18,7 @@ class AnimationFrame(Base):
     frame_num = Column(Integer, nullable=False)
 
     game_state = Column(JSONB)
+    data = Column(JSONB)
 
     __table_args__ = (
         Index("animation_frame_idx_game_turn_num_player_num_frame_num", 
