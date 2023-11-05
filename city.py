@@ -1,4 +1,6 @@
+from typing import Optional
 from building import Building
+from civ import Civ
 from settings import BASE_CITY_HEALTH
 
 
@@ -13,6 +15,7 @@ class City:
         self.stone = 0
         self.science = 0
         self.health = BASE_CITY_HEALTH
+        self.target: Optional[str] = None
 
     def to_json(self) -> dict:
         return {

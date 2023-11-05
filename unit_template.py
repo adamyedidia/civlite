@@ -4,7 +4,7 @@ from ability import Ability
 from abilities_list import ABILITIES
 
 class UnitTemplate:
-    def __init__(self, name: str, building_name: str, metal_cost: int, stone_cost: int, attack: int, health: int, movement: int, range: int, armor: int, abilities: list[list[Union[str, list]]]) -> None:
+    def __init__(self, name: str, building_name: str, metal_cost: int, stone_cost: int, attack: int, health: int, movement: int, range: int, armor: int, abilities: list[list[Union[str, list]]], type: str) -> None:
         self.name = name
         self.building_name = building_name
         self.metal_cost = metal_cost
@@ -15,6 +15,7 @@ class UnitTemplate:
         self.range = range
         self.armor = armor
         self.abilities: list[Ability] = ABILITIES[abilities[0]](*abilities[1])  # type: ignore
+        self.type = type
 
     def to_json(self) -> dict:
         return {
@@ -28,6 +29,7 @@ class UnitTemplate:
             "range": self.range,
             "armor": self.armor,
             "abilities": [ability.to_json() for ability in self.abilities],
+            "type": self.type,
         }
     
     @staticmethod
@@ -43,4 +45,5 @@ class UnitTemplate:
             range=json["range"],
             armor=json["armor"],
             abilities=[[ability["name"], ability["numbers"]] for ability in json["abilities"]],
+            type=json["type"],
         )

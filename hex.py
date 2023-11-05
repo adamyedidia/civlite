@@ -1,5 +1,6 @@
 from typing import Optional
 from unit import Unit
+from utils import coords_str
 from yields import Yields
 from city import City
 
@@ -13,6 +14,7 @@ class Hex:
         self.yields = yields
         self.units: list[Unit] = []
         self.city: Optional[City] = None
+        self.coords = coords_str((q, r, s))
 
     def to_json(self) -> dict:
         return {
