@@ -14,6 +14,6 @@ BUILDINGS: dict[str, Any] = {
         "cost": 80,
         "abilities": [],
         "is_wonder": True,
-        "vp_reward": 10,
+        "vp_reward": 5,
     },
 }

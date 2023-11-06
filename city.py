@@ -15,13 +15,13 @@ if TYPE_CHECKING:
 class City:
     def __init__(self, civ: Civ):
         self.civ = civ
-        self.original_civ_id = ''
+        self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True}
         self.name = generate_random_city_name()
         self.population = 1
         self.buildings: list[Building] = []
-        self.food = 0
-        self.metal = 0
-        self.wood = 0
+        self.food = 0.0
+        self.metal = 0.0
+        self.wood = 0.0
         self.focus = 'food'
         self.target: Optional['Hex'] = None
         self.under_siege_by_civ: Optional[Civ] = None
@@ -33,24 +33,26 @@ class City:
     def harvest_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
             return
+        
+        vitality = self.civ.vitality
 
         for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
-            self.food += hex.yields.food
-            self.metal += hex.yields.metal
-            self.wood += hex.yields.wood
-            self.civ.science += hex.yields.science
+            self.food += hex.yields.food * vitality
+            self.metal += hex.yields.metal * vitality
+            self.wood += hex.yields.wood * vitality
+            self.civ.science += hex.yields.science * vitality
         
-        self.civ.science += self.population
-        self.food += 2
+        self.civ.science += self.population * vitality
+        self.food += 2 * vitality
 
         if self.focus == 'food':
-            self.food += self.population
+            self.food += self.population * vitality
         elif self.focus == 'metal':
-            self.metal += self.population
+            self.metal += self.population * vitality
         elif self.focus == 'wood':
-            self.wood += self.population
+            self.wood += self.population * vitality
         elif self.focus == 'science':
-            self.civ.science += self.population
+            self.civ.science += self.population * vitality
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.harvest_yields(game_state)
@@ -191,8 +193,9 @@ class City:
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         self.civ = civ
 
-        if civ.game_player:
+        if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
             civ.game_player.score += CITY_CAPTURE_REWARD
+            self.ever_controlled_by_civ_ids[civ.id] = True
 
         if self.hex:
             game_state.add_animation_frame(sess, {
@@ -204,7 +207,7 @@ class City:
     def to_json(self) -> dict:
         return {
             "civ": self.civ.to_json(),
-            "original_civ_id": self.original_civ_id,
+            "ever_controlled_by_civ_ids": self.ever_controlled_by_civ_ids,
             "name": self.name,
             "population": self.population,
             "buildings": [building.to_json() for building in self.buildings],
@@ -223,7 +226,7 @@ class City:
         city = City(
             civ=Civ.from_json(json["civ"]),
         )
-        city.original_civ_id = json["original_civ_id"]
+        city.ever_controlled_by_civ_ids = json["ever_controlled_by_civ_ids"].copy()
         city.name = json["name"]
         city.population = json["population"]
         city.buildings = [Building.from_json(building) for building in json["buildings"]]

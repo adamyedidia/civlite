@@ -13,9 +13,10 @@ class Civ:
         self.id = generate_unique_id()
         self.game_player = game_player
         self.template = civ_template
-        self.science = 0
+        self.science = 0.0
         self.tech_queue: list[TechTemplate] = []
         self.techs: dict[str, bool] = {}
+        self.vitality = 1.0
 
     def to_json(self) -> dict:
         return {
@@ -25,6 +26,7 @@ class Civ:
             "science": self.science,
             "tech_queue": [tech_template.to_json() for tech_template in self.tech_queue],
             "techs": self.techs,
+            "vitality": self.vitality,
         }
 
     @staticmethod
@@ -37,5 +39,6 @@ class Civ:
         civ.science = json["science"]
         civ.tech_queue = [TechTemplate.from_json(tech_template) for tech_template in json["tech_queue"]]
         civ.techs = json["techs"].copy()
+        civ.vitality = json["vitality"]
 
         return civ
