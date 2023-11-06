@@ -1,3 +1,6 @@
+import os
+
+
 CITY_CAPTURE_REWARD = 5
 UNIT_KILL_REWARD = 1
 
@@ -10,3 +13,8 @@ VITALITY_DECAY_RATE = 0.95
 MAP_HOMOGENEITY_LEVEL = 1000
 
 DATABASE_URL = "postgresql://cl:cl@localhost:5432/cl"
+
+LOCAL = False
+
+if os.path.exists('local_settings.py'):
+    from local_settings import *

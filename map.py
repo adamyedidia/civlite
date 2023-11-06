@@ -1,7 +1,7 @@
 from random import random
 from hex import Hex
 from settings import MAP_HOMOGENEITY_LEVEL
-from utils import get_all_coords_up_to_n
+from utils import coords_str, get_all_coords_up_to_n
 from yields import Yields
 
 TERRAIN_CHANCES: dict[str, float] = {
@@ -33,17 +33,17 @@ def pick_random_terrain() -> str:
     return terrain
 
 
-def create_hex_map(map_size: int) -> list[Hex]:
+def create_hex_map(map_size: int) -> dict[str, Hex]:
     coords = get_all_coords_up_to_n(map_size)
 
-    hexes = []
+    hexes: dict[str, Hex] = {}
 
     for q, r, s in coords:
         terrain = pick_random_terrain()
-        hexes.append(Hex(q, r, s, terrain, TERRAIN_TO_YIELDS[terrain].copy()))
+        hexes[coords_str((q, r, s))] = Hex(q, r, s, terrain, TERRAIN_TO_YIELDS[terrain].copy())
 
     for _ in range(MAP_HOMOGENEITY_LEVEL):
-        hex_to_propagate = random.choice(hexes)
+        hex_to_propagate = random.choice(hexes.values())
         random_neighbor_of_hex = random.choice(hex_to_propagate.get_neighbors(hexes))
         random_neighbor_of_hex.terrain = hex_to_propagate.terrain
         random_neighbor_of_hex.yields = hex_to_propagate.yields.copy()
