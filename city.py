@@ -142,6 +142,10 @@ class City:
 
         self.buildings.append(Building(unit_template=unit_template, building_template=building_template))
 
+        if building_template is not None and building_template.is_wonder:
+            assert isinstance(building_template, BuildingTemplate)
+            game_state.handle_wonder_built(sess, self.civ, building_template)
+
 
     def to_json(self) -> dict:
         return {
@@ -157,6 +161,8 @@ class City:
             "was_occupied_by_civ_id": self.was_occupied_by_civ_id,
             "hex": self.hex.coords if self.hex else None,
             "autobuild_unit": self.autobuild_unit.name if self.autobuild_unit else None,
+            "units_queue": [unit.name for unit in self.units_queue],
+            "buildings_queue": [building.name for building in self.buildings_queue],
         }
 
     @staticmethod

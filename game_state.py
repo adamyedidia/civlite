@@ -1,5 +1,6 @@
 from typing import Any, Optional
 from animation_frame import AnimationFrame
+from building_template import BuildingTemplate
 from city import City
 from civ import Civ
 from game_player import GamePlayer
@@ -32,6 +33,7 @@ class GameState:
         self.civs: list[Civ] = []
         self.turn_num = 1
         self.game_players: list[GamePlayer] = []
+        self.wonders_built: dict[str, bool] = {}
 
     def set_unit_and_city_hexes(self) -> None:
         for hex in self.hexes.values():
@@ -58,6 +60,25 @@ class GameState:
             city.roll_turn(self, sess)
 
         self.turn_num += 1
+
+    def handle_wonder_built(self, sess, civ: Civ, building_template: BuildingTemplate) -> None:
+        self.wonders_built[building_template.name] = True
+        
+        if (game_player := civ.game_player) is not None and (vp_reward := building_template.vp_reward) is not None:
+            game_player.score += vp_reward
+
+        for city in self.cities:
+            for i, building in enumerate(city.buildings_queue):
+                if i > 0 and building.name == building_template.name:
+                    city.buildings_queue = [building for building in city.buildings_queue if building.name != building_template.name]
+                    break
+
+        for civ_to_announce in self.civs:
+            self.add_animation_frame_for_civ(sess, {
+                'type': 'WonderBuilt',
+                'civ': civ.template.name,
+                'wonder': building_template.name,
+            }, civ_to_announce)
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ]) -> None:
         if civ is not None and (game_player := civ.game_player) is not None:
@@ -88,7 +109,7 @@ class GameState:
                 self.add_animation_frame_for_civ(sess, data, civ)
 
         sess.commit()
-        
+    
     def to_json(self, from_civ_perspective: Optional[Civ] = None) -> dict:
         return {
             "game_id": self.game_id,

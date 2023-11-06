@@ -1,12 +1,15 @@
-from typing import Union
+from typing import Optional, Union
 
 
 class BuildingTemplate:
-    def __init__(self, name: str, type: str, cost: int, abilities: list[list[Union[str, list]]]):
+    def __init__(self, name: str, type: str, cost: int, abilities: list[list[Union[str, list]]], is_wonder: bool = False, vp_reward: Optional[int] = None):
         self.name = name
         self.type = type
         self.cost = cost
         self.abilities: list[Ability] = ABILITIES[abilities[0]](*abilities[1])  # type: ignore
+        self.is_wonder = is_wonder
+        self.vp_reward = vp_reward
+
 
     def to_json(self) -> dict:
         return {
@@ -14,6 +17,8 @@ class BuildingTemplate:
             "type": self.type,
             "cost": self.cost,
             "abilities": [ability.to_json() for ability in self.abilities],
+            **({"is_wonder": self.is_wonder,
+            "vp_reward": self.vp_reward,} if self.is_wonder else {}),
         }
     
     @staticmethod
@@ -23,4 +28,6 @@ class BuildingTemplate:
             type=json["type"],
             cost=json["cost"],
             abilities=[[ability["name"], ability["numbers"]] for ability in json["abilities"]],
+            is_wonder=json.get("is_wonder", False),
+            vp_reward=json.get("vp_reward", None),
         )
