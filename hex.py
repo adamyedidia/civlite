@@ -112,8 +112,8 @@ class Hex:
         else:
             raise Exception("Invalid range")
 
-    def is_occupied(self, unit_type: str) -> bool:
-        return any(unit.template.type == unit_type for unit in self.units)
+    def is_occupied(self, unit_type: str, civ: Civ) -> bool:
+        return any(unit.template.type == unit_type or unit.civ.template.name != civ.template.name for unit in self.units)
 
     def to_json(self, from_civ_perspective: Optional[Civ] = None) -> dict:
         return {

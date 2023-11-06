@@ -142,7 +142,7 @@ class Unit:
                     neighboring_hex_distance_to_target = neighboring_hex.distance_to(self.target)
                     is_better_distance = neighboring_hex_distance_to_target < my_distance_to_target
 
-                if is_better_distance and not neighboring_hex.is_occupied(self.template.type):
+                if is_better_distance and not neighboring_hex.is_occupied(self.template.type, self.civ):
                     self.take_one_step_to_hex(neighboring_hex)
                     coord_strs.append(neighboring_hex.coords)
 

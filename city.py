@@ -1,8 +1,9 @@
+from collections import defaultdict
 from typing import TYPE_CHECKING, Optional, Union
 from building import Building
 from building_template import BuildingTemplate
 from civ import Civ
-from settings import BASE_CITY_HEALTH
+from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
 
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
 class City:
     def __init__(self, civ: Civ):
         self.civ = civ
-        self.original_civ_id = civ.id
+        self.original_civ_id = ''
         self.name = generate_random_city_name()
         self.population = 1
         self.buildings: list[Building] = []
@@ -22,9 +23,8 @@ class City:
         self.metal = 0
         self.wood = 0
         self.focus = 'food'
-        self.health = BASE_CITY_HEALTH
         self.target: Optional['Hex'] = None
-        self.was_occupied_by_civ_id: Optional[str] = None
+        self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
         self.autobuild_unit: Optional[UnitTemplate] = None
         self.units_queue: list[UnitTemplate] = []
@@ -54,8 +54,29 @@ class City:
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.harvest_yields(game_state)
+        self.grow()
         self.build_units(sess, game_state)
         self.build_buildings(sess, game_state)
+        self.handle_siege(sess, game_state)
+
+    def grow(self) -> None:
+        while self.food >= self.growth_cost():
+            self.food -= self.growth_cost()
+            self.population += 1
+
+    def growth_cost(self) -> int:
+        return BASE_FOOD_COST_OF_POP + self.population * ADDITIONAL_PER_POP_FOOD_COST
+
+    def handle_siege(self, sess, game_state: 'GameState') -> None:
+        siege_state = self.get_siege_state(game_state)
+
+        if self.under_siege_by_civ is None:
+            self.under_siege_by_civ = siege_state
+        else:
+            if siege_state is None or siege_state.id != self.under_siege_by_civ.id:
+                self.under_siege_by_civ = siege_state
+            else:
+                self.capture(sess, siege_state, game_state)
 
     def build_units(self, sess, game_state: 'GameState') -> None:
         if self.autobuild_unit is not None:
@@ -75,7 +96,7 @@ class City:
         if not self.hex:
             return False
 
-        if not self.hex.is_occupied(unit.type):
+        if not self.hex.is_occupied(unit.type, self.civ):
             self.spawn_unit_on_hex(sess, game_state, unit, self.hex)
             return True
 
@@ -83,7 +104,7 @@ class City:
         best_hex_distance_from_target = 10000
 
         for hex in self.hex.get_neighbors(game_state.hexes):
-            if not hex.is_occupied(unit.type):
+            if not hex.is_occupied(unit.type, self.civ):
                 distance_from_target = hex.distance_to(self.target or self.hex)
                 if distance_from_target < best_hex_distance_from_target:
                     best_hex = hex
@@ -91,7 +112,7 @@ class City:
 
         if best_hex is None:
             for hex in self.hex.get_distance_2_hexes(game_state.hexes):
-                if not hex.is_occupied(unit.type):
+                if not hex.is_occupied(unit.type, self.civ):
                     distance_from_target = hex.distance_to(self.target or self.hex)
                     if distance_from_target < best_hex_distance_from_target:
                         best_hex = hex
@@ -146,6 +167,39 @@ class City:
             assert isinstance(building_template, BuildingTemplate)
             game_state.handle_wonder_built(sess, self.civ, building_template)
 
+    def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
+        if self.hex is None:
+            return None
+
+        for unit in self.hex.units:
+            if unit.civ.id != self.civ.id and unit.template.type == 'military':
+                return unit.civ
+
+        num_neighboring_units_by_civ_name = defaultdict(int)
+
+        for hex in self.hex.get_neighbors(game_state.hexes):
+            for unit in hex.units:
+                if unit.template.type == 'military':
+                    num_neighboring_units_by_civ_name[unit.civ.id] += 1
+
+        for civ_name, num_neighboring_units in num_neighboring_units_by_civ_name.items():
+            if num_neighboring_units >= 4:
+                return game_state.get_civ_by_name(civ_name)
+
+        return None
+
+    def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
+        self.civ = civ
+
+        if civ.game_player:
+            civ.game_player.score += CITY_CAPTURE_REWARD
+
+        if self.hex:
+            game_state.add_animation_frame(sess, {
+                "type": "CityCapture",
+                "civ": civ.template.name,
+                "city": self.name,
+            }, hexes_must_be_visible=[self.hex])
 
     def to_json(self) -> dict:
         return {
@@ -157,8 +211,7 @@ class City:
             "food": self.food,
             "metal": self.metal,
             "wood": self.wood,
-            "health": self.health,
-            "was_occupied_by_civ_id": self.was_occupied_by_civ_id,
+            "under_siege_by_civ": self.under_siege_by_civ.to_json() if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
             "autobuild_unit": self.autobuild_unit.name if self.autobuild_unit else None,
             "units_queue": [unit.name for unit in self.units_queue],
@@ -177,8 +230,7 @@ class City:
         city.food = json["food"]
         city.metal = json["metal"]
         city.wood = json["wood"]
-        city.health = json["health"]
-        city.was_occupied_by_civ_id = json["was_occupied_by_civ_id"]
+        city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
 
         return city
 

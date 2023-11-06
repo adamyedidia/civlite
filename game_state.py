@@ -109,6 +109,12 @@ class GameState:
                 self.add_animation_frame_for_civ(sess, data, civ)
 
         sess.commit()
+
+    def get_civ_by_name(self, civ_name: str) -> Civ:
+        for civ in self.civs:
+            if civ.template.name == civ_name:
+                return civ
+        raise Exception("Civ not found")
     
     def to_json(self, from_civ_perspective: Optional[Civ] = None) -> dict:
         return {
