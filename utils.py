@@ -12,3 +12,12 @@ def coords_str(coords: tuple[int, int, int]) -> str:
 
 def generate_unique_id() -> str:
     return secrets.token_hex(10)
+
+
+def get_all_coords_up_to_n(n) -> list[tuple[int, int, int]]:
+    all_coords = []
+    for q in range(-n, n + 1):
+        for r in range(max(-n, -q - n), min(n, -q + n) + 1):
+            all_coords.append((q, r, -q - r))
+
+    return all_coords

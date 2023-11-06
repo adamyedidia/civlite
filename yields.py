@@ -7,6 +7,14 @@ class Yields:
         self.wood = wood
         self.science = science
 
+    def copy(self) -> "Yields":
+        return Yields(
+            food=self.food,
+            metal=self.metal,
+            wood=self.wood,
+            science=self.science,
+        )
+
     def to_json(self) -> dict:
         return {
             "food": self.food,
