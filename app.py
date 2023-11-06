@@ -5,8 +5,9 @@ import traceback
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from flask_socketio import SocketIO
+from flask_socketio import SocketIO, join_room, leave_room
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from animation_frame import AnimationFrame
 from database import SessionLocal
 from game import Game
@@ -144,6 +145,8 @@ def join_game(sess):
     sess.add(player)
     sess.commit()
 
+    socketio.emit('update', room=game.id)  # type: ignore
+
     return jsonify(game.to_json())
 
 
@@ -203,10 +206,25 @@ def launch_game(sess):
     
     _launch_game_inner(sess, game)
 
+    socketio.emit('update', room=game.id)  # type: ignore
+
     return jsonify(game.to_json())
 
 
-@app.route('/api/game_state', methods=['GET'])
+@app.route('/api/players_in_game/<game_id>', methods=['GET'])
+@api_endpoint
+def get_players_in_game(sess, game_id: str):
+    players = (
+        sess.query(Player)
+        .options(joinedload(Player.user))
+        .filter(Player.game_id == game_id)
+        .all()
+    )
+
+    return jsonify([player.user.username for player in players])
+
+
+@app.route('/api/game_state/<game_id>', methods=['GET'])
 @api_endpoint
 def get_game_state(sess):
     game_id = request.args.get('game_id')
@@ -248,3 +266,21 @@ def get_game_state(sess):
     
     return GameState.from_json(game_state).to_json()
 
+
+@socketio.on('connect')
+def on_connect():
+    pass
+
+@socketio.on('join')
+def on_join(data):
+    username = data['username'] if 'username' in data else 'anonymous'
+    room = data['room']
+    join_room(room)
+    logger.info(f'{username} joined {room}')
+    
+@socketio.on('leave')
+def on_leave(data):
+    username = data['username'] if 'username' in data else 'anonymous'
+    room = data['room']
+    leave_room(room)
+    logger.info(f'{username} left {room}') 
