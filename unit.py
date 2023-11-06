@@ -3,6 +3,7 @@ from random import random
 from typing import TYPE_CHECKING, Optional
 from animation_frame import AnimationFrame
 from civ import Civ
+from settings import UNIT_KILL_REWARD
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
@@ -105,27 +106,40 @@ class Unit:
         # This is a very scientific formula
         return int(round(40 ** sqrt(ratio_of_strengths)))
 
-    def punch(self, target: 'Unit') -> None:
+    def punch(self, game_state: 'GameState', target: 'Unit') -> None:
         self.effective_strength = self.template.strength * (1 + self.health / 100)
         target.effective_strength = target.template.strength
 
         target.health = max(0, target.health - self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength))
 
+        if target.health == 0:
+            target.die(game_state)
+            if (game_player := self.civ.game_player) is not None:
+                game_player.score += UNIT_KILL_REWARD
+
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
         if self.hex is None or target.hex is None:
             return
 
-        self.punch(target)
+        self.punch(game_state, target)
         if self.template.ranged_attacker:
             target.target = self.hex
         else:
-            target.punch(self)
+            target.punch(game_state, self)
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
             "start_coords": self.hex.coords,
             "end_coords": target.hex.coords,
         }, hexes_must_be_visible=[self.hex, target.hex])
+
+    def die(self, game_state: 'GameState'):
+        if self.hex is None:
+            return
+
+        self.hex.units = [unit for unit in self.hex.units if unit.id != self.id]
+        game_state.units = [unit for unit in game_state.units if unit.id != self.id]
+        self.hex = None
 
     def move_one_step(self, game_state: 'GameState', coord_strs: list[str], sensitive: bool = False) -> bool:
         if self.hex is not None and self.target is not None:
