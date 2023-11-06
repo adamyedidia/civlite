@@ -2,6 +2,7 @@ from typing import Any, Optional
 from animation_frame import AnimationFrame
 from city import City
 from civ import Civ
+from game_player import GamePlayer
 from hex import Hex
 from unit import Unit
 import random
@@ -28,13 +29,16 @@ class GameState:
         self.game_id = game_id
         self.units = get_all_units(hexes)
         self.cities = get_all_cities(hexes)
-        self.civs = []
+        self.civs: list[Civ] = []
         self.turn_num = 1
+        self.game_players: list[GamePlayer] = []
 
-    def set_unit_hexes(self) -> None:
+    def set_unit_and_city_hexes(self) -> None:
         for hex in self.hexes.values():
             for unit in hex.units:
                 unit.hex = hex
+            if hex.city:
+                hex.city.hex = hex
 
     def roll_turn(self, sess) -> None:
         units_copy = self.units[:]
@@ -56,25 +60,26 @@ class GameState:
         self.turn_num += 1
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ]) -> None:
-        highest_existing_frame_num = (
-            sess.query(AnimationFrame.frame_num)
-            .filter(AnimationFrame.game_id == self.game_id)
-            .filter(AnimationFrame.turn_num == self.turn_num)
-            .filter(AnimationFrame.player_num == (civ.player_num if civ is not None else None))
-            .order_by(AnimationFrame.frame_num.desc())
-            .first()
-        ) or 0
+        if civ is not None and (game_player := civ.game_player) is not None:
+            highest_existing_frame_num = (
+                sess.query(AnimationFrame.frame_num)
+                .filter(AnimationFrame.game_id == self.game_id)
+                .filter(AnimationFrame.turn_num == self.turn_num)
+                .filter(AnimationFrame.player_num == game_player.player_num)
+                .order_by(AnimationFrame.frame_num.desc())
+                .first()
+            ) or 0
 
-        frame = AnimationFrame(
-            game_id=self.game_id,
-            turn_num=self.turn_num,
-            frame_num=highest_existing_frame_num + 1,
-            player_num=civ.player_num if civ is not None else None,
-            data=data,
-            game_state=self.to_json(from_civ_perspective=civ),
-        )
+            frame = AnimationFrame(
+                game_id=self.game_id,
+                turn_num=self.turn_num,
+                frame_num=highest_existing_frame_num + 1,
+                player_num=game_player.player_num,
+                data=data,
+                game_state=self.to_json(from_civ_perspective=civ),
+            )
 
-        sess.add(frame)
+            sess.add(frame)
 
     def add_animation_frame(self, sess, data: dict[str, Any], hexes_must_be_visible: Optional[list[Hex]] = None) -> None:
         self.add_animation_frame_for_civ(sess, data, None)
@@ -89,6 +94,7 @@ class GameState:
             "game_id": self.game_id,
             "hexes": {key: hex.to_json(from_civ_perspective=from_civ_perspective) for key, hex in self.hexes.items()},
             "civs": [civ.to_json() for civ in self.civs],
+            "game_players": [game_player.to_json() for game_player in self.game_players],
         }
     
     @staticmethod
@@ -96,5 +102,6 @@ class GameState:
         hexes = {key: Hex.from_json(hex_json) for key, hex_json in json["hexes"].items()}
         game_state = GameState(game_id=json["game_id"], hexes=hexes)
         game_state.civs = [Civ.from_json(civ_json) for civ_json in json["civs"]]
-        game_state.set_unit_hexes()
+        game_state.game_players = [GamePlayer.from_json(game_player_json) for game_player_json in json["game_players"]]
+        game_state.set_unit_and_city_hexes()
         return game_state

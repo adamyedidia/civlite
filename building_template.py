@@ -2,7 +2,7 @@ from typing import Union
 
 
 class BuildingTemplate:
-    def __init__(self, name: str, type: str, cost: str, abilities: list[list[Union[str, list]]]):
+    def __init__(self, name: str, type: str, cost: int, abilities: list[list[Union[str, list]]]):
         self.name = name
         self.type = type
         self.cost = cost

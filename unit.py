@@ -33,28 +33,38 @@ class Unit:
             return
         should_move_sensitively = sensitive
         starting_hex = self.hex
-        starting_coords = starting_hex.coords
+        coord_strs = [starting_hex.coords]
         for _ in range(self.template.movement):
-            if self.move_one_step(game_state, sensitive=should_move_sensitively):
+            if self.move_one_step(game_state, coord_strs, sensitive=should_move_sensitively):
                 self.has_moved = True
                 should_move_sensitively = True
 
         if self.has_moved:
             new_hex = self.hex
-            new_coords = new_hex.coords
 
             self.update_nearby_hexes_visibility(game_state)
 
             game_state.add_animation_frame(sess, {
                 "type": "UnitMovement",
-                "starting_coords": starting_coords,
-                "new_coords": new_coords,
+                "coords": coord_strs,
             }, hexes_must_be_visible=[starting_hex, new_hex])
+
+            if new_hex.coords == self.target.coords and (target := self.get_best_target(new_hex.get_hexes_within_range(game_state.hexes, 2))) is not None:
+                self.target = target.hex
 
     def attack(self, sess, game_state: 'GameState') -> None:
         if self.hex is None or self.target is None:
             return
         hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
+
+        best_target = self.get_best_target(hexes_to_check)
+
+        if best_target is not None:
+            self.fight(sess, game_state, best_target)
+
+    def get_best_target(self, hexes_to_check: list['Hex']) -> Optional['Unit']:
+        if self.hex is None or self.target is None:
+            return None
 
         type_scores = {
             'military': 1,
@@ -87,8 +97,7 @@ class Unit:
                             best_target_type_score = type_scores[unit.template.type]
                             best_target_strength = unit.template.strength
 
-        if best_target is not None:
-            self.fight(sess, game_state, best_target)
+        return best_target
 
     def get_damage_to_deal_from_effective_strengths(self, effective_strength: float, target_effective_strength: float) -> int:
         ratio_of_strengths = effective_strength / target_effective_strength
@@ -107,16 +116,18 @@ class Unit:
             return
 
         self.punch(target)
-        if not self.template.ranged_attacker:
+        if self.template.ranged_attacker:
+            target.target = self.hex
+        else:
             target.punch(self)
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
-            "attacker_coords": self.hex.coords,
-            "target_coords": target.hex.coords,
+            "start_coords": self.hex.coords,
+            "end_coords": target.hex.coords,
         }, hexes_must_be_visible=[self.hex, target.hex])
 
-    def move_one_step(self, game_state: 'GameState', sensitive: bool = False) -> bool:
+    def move_one_step(self, game_state: 'GameState', coord_strs: list[str], sensitive: bool = False) -> bool:
         if self.hex is not None and self.target is not None:
             neighbors = self.hex.get_neighbors(game_state.hexes)
             random.shuffle(neighbors)
@@ -133,6 +144,7 @@ class Unit:
 
                 if is_better_distance and not neighboring_hex.is_occupied(self.template.type):
                     self.take_one_step_to_hex(neighboring_hex)
+                    coord_strs.append(neighboring_hex.coords)
 
                     return True
                 
