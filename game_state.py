@@ -46,18 +46,21 @@ class GameState:
         units_copy = self.units[:]
         random.shuffle(units_copy)
         for unit in units_copy:
-            unit.move(self, sess)
+            unit.move(sess, self)
         random.shuffle(units_copy)
         for unit in units_copy:
-            unit.move(self, sess, sensitive=True)
+            unit.move(sess, self, sensitive=True)
         random.shuffle(units_copy)
         for unit in units_copy:
-            unit.attack(self, sess)
+            unit.attack(sess, self)
 
         cities_copy = self.cities[:]
         random.shuffle(cities_copy)
         for city in cities_copy:
-            city.roll_turn(self, sess)
+            city.roll_turn(sess, self)
+
+        for civ in self.civs:
+            civ.roll_turn(sess, self)
 
         self.turn_num += 1
 

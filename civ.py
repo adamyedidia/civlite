@@ -1,11 +1,15 @@
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from civ_template import CivTemplate
 from civ_templates_list import CIVS
 from game_player import GamePlayer
+from settings import FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE
 from tech import Tech
 from tech_template import TechTemplate
 from utils import generate_unique_id
+
+if TYPE_CHECKING:
+    from game_state import GameState
 
 
 class Civ:
@@ -28,6 +32,22 @@ class Civ:
             "techs": self.techs,
             "vitality": self.vitality,
         }
+
+    def roll_turn(self, sess, game_state: 'GameState') -> None:
+        while self.tech_queue and self.tech_queue[0].cost <= self.science:
+            self.science -= self.tech_queue[0].cost
+            self.techs[self.tech_queue[0].name] = True
+            self.tech_queue.pop(0)
+
+            game_state.add_animation_frame_for_civ(sess, {
+                "type": "TechResearched",
+                "tech": self.tech_queue[0].name,
+            }, self)
+
+        if self.vitality > 1:
+            self.vitality *= FAST_VITALITY_DECAY_RATE
+        else:
+            self.vitality *= VITALITY_DECAY_RATE
 
     @staticmethod
     def from_json(json: dict) -> "Civ":
