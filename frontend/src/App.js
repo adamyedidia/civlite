@@ -4,16 +4,21 @@ import { HexGrid, Layout, Hexagon, Text, Pattern, Path, Hex, GridGenerator } fro
 import './App.css';
 import { Typography } from '@mui/material';
 import { css } from '@emotion/react';
+import LobbyPage from './LobbyPage';
+import GamePage from './GamePage';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 
 import { SocketProvider } from './SocketContext';
 
-function App() {
+export default function App() {
   return (
     <SocketProvider>
-      <Routes>
-        <Route exact path="/" element={<LobbyPage />} />
-        <Route path="/game/:gameId" element={<GamePage />} />
-      </Routes>
+      <Router>
+        <Routes>
+          <Route exact path="/" element={<LobbyPage />} />
+          <Route path="/game/:gameId" element={<GamePage />} />
+        </Routes>
+      </Router>
     </SocketProvider>
   )
 }

@@ -12,11 +12,14 @@ class Game(Base):
 
     map_size = Column(Integer, nullable=False)
 
+    name = Column(String, nullable=False)
+
     launched = Column(Boolean, nullable=False, default=False, server_default='f')
 
     def to_json(self):
         return {
             "id": self.id,
+            "name": self.name,
             "map_size": self.map_size,
             "created_at": self.created_at.timestamp(),
         }

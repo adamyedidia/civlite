@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from functools import wraps
 import logging
 from logging.handlers import RotatingFileHandler
@@ -16,7 +17,7 @@ from map import create_hex_map
 from player import Player
 
 from settings import LOCAL
-from user import add_or_get_user
+from user import User, add_or_get_user
 from utils import generate_unique_id
 
 # Create a logger
@@ -87,6 +88,7 @@ def host_game(sess):
 
     game = Game(
         id=generate_unique_id(),
+        name=f'{username}\'s game',
         map_size=map_size,
     )
 
@@ -102,12 +104,14 @@ def host_game(sess):
     sess.add(player)
     sess.commit()
 
+    socketio.emit('updateGames', room='lobby')  # type: ignore
+
     return jsonify(game.to_json())
 
 
-@app.route('/api/join_game', methods=['POST'])
+@app.route('/api/join_game/<game_id>', methods=['POST'])
 @api_endpoint
-def join_game(sess):
+def join_game(sess, game_id: str):
     data = request.json
 
     if not data:
@@ -117,11 +121,6 @@ def join_game(sess):
 
     if not username:
         return jsonify({"error": "Username is required"}), 400
-
-    game_id = data.get('game_id')
-
-    if not game_id:
-        return jsonify({"error": "Game ID is required"}), 400
 
     user = add_or_get_user(sess, username)
 
@@ -147,7 +146,7 @@ def join_game(sess):
 
     socketio.emit('update', room=game.id)  # type: ignore
 
-    return jsonify(game.to_json())
+    return jsonify({'game': game.to_json(), 'player_num': player.player_num})
 
 
 def _launch_game_inner(sess, game: Game) -> None:
@@ -207,6 +206,7 @@ def launch_game(sess):
     _launch_game_inner(sess, game)
 
     socketio.emit('update', room=game.id)  # type: ignore
+    socketio.emit('updateGames', room='lobby')  # type: ignore
 
     return jsonify(game.to_json())
 
@@ -226,15 +226,11 @@ def get_players_in_game(sess, game_id: str):
 
 @app.route('/api/game_state/<game_id>', methods=['GET'])
 @api_endpoint
-def get_game_state(sess):
-    game_id = request.args.get('game_id')
-
-    if not game_id:
-        return jsonify({"error": "Game ID is required"}), 400
+def get_game_state(sess, game_id):
 
     player_num = request.args.get('player_num')
 
-    if not player_num:
+    if player_num is None:
         return jsonify({"error": "Player number is required"}), 400
 
     turn_num = request.args.get('turn_num')
@@ -257,6 +253,25 @@ def get_game_state(sess):
     )
 
     if animation_frame is None:
+        game = (
+            sess.query(Game)
+            .filter(Game.id == game_id)
+            .one_or_none()
+        )
+
+        if game is None:
+            return jsonify({"error": "Game not found"}), 404
+        
+        if not game.launched:
+            players = (
+                sess.query(Player)
+                .options(joinedload(Player.user))
+                .filter(Player.game_id == game_id)
+                .all()
+            )
+
+            return jsonify({'players': [player.user.username for player in players]})
+
         return jsonify({"error": "Animation frame not found"}), 404
     
     game_state = animation_frame.game_state
@@ -264,7 +279,40 @@ def get_game_state(sess):
     if game_state is None:
         return jsonify({"error": "Game state not found"}), 404
     
-    return GameState.from_json(game_state).to_json()
+    return {'game_state': GameState.from_json(game_state).to_json()}
+
+
+@app.route('/api/open_games', methods=['GET'])
+@api_endpoint
+def get_open_games(sess):
+    username = request.args.get('username')
+
+    if not username:
+        return jsonify({"error": "Username is required"}), 400
+
+    user = (
+        sess.query(User)
+        .filter(User.username == username)
+        .one_or_none()
+    )
+
+    if user:
+        user_filters = [Player.user_id != user.id]
+    else:
+        user_filters = []
+
+    print(user)
+
+    games = (
+        sess.query(Game)
+        .join(Player)
+        .filter(*user_filters)
+        .filter(~Game.launched)
+        .filter(Game.created_at > datetime.now() - timedelta(hours=3))
+        .all()
+    )
+
+    return jsonify([game.to_json() for game in games])
 
 
 @socketio.on('connect')
@@ -273,6 +321,7 @@ def on_connect():
 
 @socketio.on('join')
 def on_join(data):
+    print(data)
     username = data['username'] if 'username' in data else 'anonymous'
     room = data['room']
     join_room(room)
@@ -280,7 +329,15 @@ def on_join(data):
     
 @socketio.on('leave')
 def on_leave(data):
+    print(data)
     username = data['username'] if 'username' in data else 'anonymous'
     room = data['room']
     leave_room(room)
     logger.info(f'{username} left {room}') 
+
+
+if __name__ == '__main__':
+    if LOCAL:
+        socketio.run(app, host='0.0.0.0', port=5001, debug=True)  # type: ignore
+    else:
+        socketio.run(app, host='0.0.0.0', port=5015)  # type: ignore
