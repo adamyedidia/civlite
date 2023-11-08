@@ -8,6 +8,10 @@ import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
 import { Button } from '@mui/material';
+import foodImg from './images/food.png';
+import woodImg from './images/wood.png';
+import metalImg from './images/metal.png';
+import scienceImg from './images/science.png';
 
 export default function GamePage() {
 
@@ -30,6 +34,38 @@ export default function GamePage() {
 
     console.log(gameState);
 
+    const YieldImages = ({ yields }) => {
+        let imageCounter = 0; // Counter to track the total number of images
+
+        let totalCount = yields.food + yields.wood + yields.metal + yields.science;
+    
+        const renderImages = (img, count) => {
+            let images = [];
+            for (let i = 0; i < count; i++) {
+                images.push(
+                    <image 
+                        key={`${img}-${imageCounter}`} 
+                        href={img} 
+                        x={(1.5 * (imageCounter * (totalCount / (totalCount - 1)) + 0.1) - totalCount * 1.5) / (totalCount * 0.7)} 
+                        y={-1} 
+                        height={2} 
+                        width={2}
+                    />
+                );
+                imageCounter++; // Increment counter for each image
+            }
+            return images;
+        };
+    
+        return (
+            <g>
+                {renderImages(foodImg, yields.food)}
+                {renderImages(woodImg, yields.wood)}
+                {renderImages(metalImg, yields.metal)}
+                {renderImages(scienceImg, yields.science)}
+            </g>
+        );
+    };
     const hexStyle = (terrain) => {
         switch (terrain) {
             case 'forest':
@@ -60,15 +96,6 @@ export default function GamePage() {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes)
         return (
-            // <div
-            //     className="basic-example "
-            //     css={css`
-            //     margin: 0;
-            //     padding: 1em;
-            //     font-family: sans-serif;
-            //     background: #f0f0f0;
-            //     `}
-            // >
             <div className="basic-example">
                 <h1>Basic example of HexGrid usage.</h1>
                 <HexGrid width={5000} height={5000}>
@@ -77,7 +104,7 @@ export default function GamePage() {
                         <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
                                  cellStyle={hexStyle(hex.terrain)} 
                                  onClick={() => console.log('hello')}>
-                            {/* Your Text components */}
+                            <YieldImages yields={hex.yields} />
                         </Hexagon>
                     ))}
                 </Layout>
