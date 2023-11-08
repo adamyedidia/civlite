@@ -10,8 +10,6 @@ class Game(Base):
 
     created_at = Column(DateTime, nullable=False, server_default=func.now(), index=True)
 
-    map_size = Column(Integer, nullable=False)
-
     name = Column(String, nullable=False)
 
     launched = Column(Boolean, nullable=False, default=False, server_default='f')
@@ -20,6 +18,5 @@ class Game(Base):
         return {
             "id": self.id,
             "name": self.name,
-            "map_size": self.map_size,
             "created_at": self.created_at.timestamp(),
         }

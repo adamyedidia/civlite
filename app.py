@@ -82,17 +82,11 @@ def host_game(sess):
     if not username:
         return jsonify({"error": "Username is required"}), 400
     
-    map_size = data.get('map_size')
-
-    if not map_size:
-        return jsonify({"error": "Map size is required"}), 400
-    
     user = add_or_get_user(sess, username)
 
     game = Game(
         id=generate_unique_id(),
         name=f'{username}\'s game',
-        map_size=map_size,
     )
 
     sess.add(game)
@@ -165,7 +159,7 @@ def _launch_game_inner(sess, game: Game) -> None:
 
     map_size = infer_map_size_from_num_players(num_players)
 
-    hexes = create_hex_map(game.map_size)  # type: ignore
+    hexes = create_hex_map(map_size)  # type: ignore
 
     game_state = GameState(game_id, hexes)  # type: ignore
 
