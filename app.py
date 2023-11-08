@@ -185,19 +185,9 @@ def _launch_game_inner(sess, game: Game) -> None:
     sess.commit()
 
 
-@app.route('/api/launch_game', methods=['POST'])
+@app.route('/api/launch_game/<game_id>', methods=['POST'])
 @api_endpoint
-def launch_game(sess):
-    data = request.json
-
-    if not data:
-        return jsonify({"error": "Invalid data"}), 400
-    
-    game_id = data.get('game_id')
-
-    if not game_id:
-        return jsonify({"error": "Game ID is required"}), 400
-
+def launch_game(sess, game_id):
     game = sess.query(Game).filter(Game.id == game_id).first()
 
     if not game:
