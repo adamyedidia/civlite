@@ -34,6 +34,7 @@ class GameState:
         self.turn_num = 1
         self.game_players: list[GamePlayer] = []
         self.wonders_built: dict[str, bool] = {}
+        self.special_mode: Optional[str] = 'starting_location'
 
     def set_unit_and_city_hexes(self) -> None:
         for hex in self.hexes.values():
@@ -41,6 +42,16 @@ class GameState:
                 unit.hex = hex
             if hex.city:
                 hex.city.hex = hex
+
+    def refresh_visibility_by_civ(self) -> None:
+        for hex in self.hexes.values():
+            hex.visibility_by_civ = {}
+
+        for unit in self.units:
+            unit.update_nearby_hexes_visibility(self)
+
+        for city in self.cities:
+            city.update_nearby_hexes_visibility(self)
 
     def roll_turn(self, sess) -> None:
         units_copy = self.units[:]
@@ -100,7 +111,7 @@ class GameState:
                 frame_num=highest_existing_frame_num + 1,
                 player_num=game_player.player_num,
                 data=data,
-                game_state=self.to_json(from_civ_perspective=civ),
+                game_state=self.to_json(from_civ_perspectives=[civ]),
             )
 
             sess.add(frame)
@@ -119,12 +130,15 @@ class GameState:
                 return civ
         raise Exception("Civ not found")
     
-    def to_json(self, from_civ_perspective: Optional[Civ] = None) -> dict:
+    def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         return {
             "game_id": self.game_id,
-            "hexes": {key: hex.to_json(from_civ_perspective=from_civ_perspective) for key, hex in self.hexes.items()},
+            "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
             "civs": [civ.to_json() for civ in self.civs],
             "game_players": [game_player.to_json() for game_player in self.game_players],
+            "turn_num": self.turn_num,
+            "wonders_built": self.wonders_built,
+            "special_mode": self.special_mode,
         }
     
     @staticmethod
@@ -133,5 +147,8 @@ class GameState:
         game_state = GameState(game_id=json["game_id"], hexes=hexes)
         game_state.civs = [Civ.from_json(civ_json) for civ_json in json["civs"]]
         game_state.game_players = [GamePlayer.from_json(game_player_json) for game_player_json in json["game_players"]]
+        game_state.turn_num = json["turn_num"]
+        game_state.wonders_built = json["wonders_built"].copy()
+        game_state.special_mode = json["special_mode"]
         game_state.set_unit_and_city_hexes()
         return game_state

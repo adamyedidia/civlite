@@ -26,7 +26,8 @@ class Unit:
     def update_nearby_hexes_visibility(self, game_state: 'GameState') -> None:
         if self.hex is None:
             return
-        for nearby_hex in self.hex.get_neighbors(game_state.hexes):
+        self.hex.visibility_by_civ[self.civ.id] = True
+        for nearby_hex in self.hex.get_hexes_within_distance_2(game_state.hexes):
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:

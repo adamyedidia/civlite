@@ -38,21 +38,31 @@ class City:
 
         for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
             self.food += hex.yields.food * vitality
+            self.civ.city_power += hex.yields.food * vitality
             self.metal += hex.yields.metal * vitality
             self.wood += hex.yields.wood * vitality
             self.civ.science += hex.yields.science * vitality
         
         self.civ.science += self.population * vitality
         self.food += 2 * vitality
+        self.civ.city_power += 2 * vitality
 
         if self.focus == 'food':
             self.food += self.population * vitality
+            self.food += self.civ.city_power * vitality
         elif self.focus == 'metal':
             self.metal += self.population * vitality
         elif self.focus == 'wood':
             self.wood += self.population * vitality
         elif self.focus == 'science':
             self.civ.science += self.population * vitality
+
+    def update_nearby_hexes_visibility(self, game_state: 'GameState') -> None:
+        if self.hex is None:
+            return
+        self.hex.visibility_by_civ[self.civ.id] = True
+        for nearby_hex in self.hex.get_hexes_within_distance_2(game_state.hexes):
+            nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.harvest_yields(game_state)

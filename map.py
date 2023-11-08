@@ -1,6 +1,6 @@
 import random
 from hex import Hex
-from settings import MAP_HOMOGENEITY_LEVEL
+from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA
 from utils import coords_str, get_all_coords_up_to_n
 from yields import Yields
 
@@ -28,6 +28,17 @@ TERRAIN_TO_YIELDS: dict[str, Yields] = {
     "marsh": Yields(food=1, metal=0, wood=0, science=1),
 }
 
+
+def infer_map_size_from_num_players(num_players: int) -> int:
+    for map_size in range(100):
+        num_hexes_for_map_size = 3 * map_size * (map_size + 1) + 1
+
+        if num_hexes_for_map_size >= num_players * PER_PLAYER_AREA:
+            return map_size
+
+    raise Exception('Uh oh')
+
+
 def pick_random_terrain() -> str:
     terrain = random.choices(list(TERRAIN_CHANCES.keys()), list(TERRAIN_CHANCES.values()))[0]
     return terrain
@@ -49,3 +60,24 @@ def create_hex_map(map_size: int) -> dict[str, Hex]:
         random_neighbor_of_hex.yields = hex_to_propagate.yields.copy()
 
     return hexes
+
+
+def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
+
+    starting_locations = []
+
+    while len(starting_locations) < n:
+        starting_location = random.choice(list(hexes.values()))
+
+        if len(starting_location.get_neighbors(hexes)) >= 6:
+            too_close = False
+
+            for other_starting_location in starting_locations:
+                if other_starting_location.distance_to(starting_location) < 3:
+                    too_close = True
+                    break
+            
+            if not too_close:
+                starting_locations.append(starting_location)
+
+    return starting_locations

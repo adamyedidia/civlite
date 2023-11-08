@@ -10,10 +10,13 @@ from flask_socketio import SocketIO, join_room, leave_room
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from animation_frame import AnimationFrame
+from city import City
+from civ import Civ, create_starting_civ_options_for_players
 from database import SessionLocal
 from game import Game
+from game_player import GamePlayer
 from game_state import GameState
-from map import create_hex_map
+from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
 from settings import LOCAL
@@ -150,16 +153,44 @@ def join_game(sess, game_id: str):
 
 
 def _launch_game_inner(sess, game: Game) -> None:
-    hexes = create_hex_map(game.map_size)  # type: ignore
-
     game_id: str = game.id  # type: ignore
-    game_state = GameState(game_id, hexes)  # type: ignore
 
     players = (
         sess.query(Player)
         .filter(Player.game_id == game_id)
         .all()
     )
+
+    num_players = len(players)
+
+    map_size = infer_map_size_from_num_players(num_players)
+
+    hexes = create_hex_map(game.map_size)  # type: ignore
+
+    game_state = GameState(game_id, hexes)  # type: ignore
+
+    assert num_players <= 8
+
+    starting_locations = generate_starting_locations(hexes, 3 * num_players)
+
+    game_players = [GamePlayer(player_num=player.player_num, username=player.user.username) for player in players]
+
+    starting_civ_options_for_players = create_starting_civ_options_for_players(game_players, starting_locations)
+
+    starting_civs_for_players = {}
+
+    for player_num, civ_options_tups in starting_civ_options_for_players.items():
+        starting_civs_for_players[player_num] = []
+        for civ_options_tup in civ_options_tups:
+            civ, starting_location = civ_options_tup
+            starting_civs_for_players[player_num].append(civ)
+            starting_city = City(civ)
+            starting_location.city = starting_city
+            starting_city.hex = starting_location
+            game_state.cities.append(starting_city)
+            game_state.civs.append(civ)
+
+    game_state.refresh_visibility_by_civ()
 
     animation_frame = AnimationFrame(
         game_id=game_id,
@@ -175,7 +206,7 @@ def _launch_game_inner(sess, game: Game) -> None:
             turn_num=1,
             frame_num=0,
             player_num=player.player_num,
-            game_state=game_state.to_json(),
+            game_state=game_state.to_json(from_civ_perspectives=starting_civs_for_players[player.player_num]),
         )
 
         sess.add(animation_frame)
@@ -269,7 +300,7 @@ def get_game_state(sess, game_id):
     if game_state is None:
         return jsonify({"error": "Game state not found"}), 404
     
-    return {'game_state': GameState.from_json(game_state).to_json()}
+    return {'game_state': game_state}
 
 
 @app.route('/api/open_games', methods=['GET'])

@@ -4,15 +4,17 @@ from ability import Ability
 
 
 class CivTemplate:
-    def __init__(self, name: str, color: str, abilities: list[list[Union[str, list]]]):
+    def __init__(self, name: str, primary_color: str, secondary_color: str, abilities: list[list[Union[str, list]]]):
         self.name = name
-        self.color = color
-        self.abilities: list[Ability] = CIV_ABILITIES[abilities[0]](*abilities[1])  # type: ignore
+        self.primary_color = primary_color
+        self.secondary_color = secondary_color
+        self.abilities: list[Ability] = [CIV_ABILITIES[ability[0]](*ability[1]) for ability in abilities]  # type: ignore
 
     def to_json(self) -> dict:
         return {
             "name": self.name,
-            "color": self.color,
+            "primary_color": self.primary_color,
+            "secondary_color": self.secondary_color,
             "abilities": [ability.to_json() for ability in self.abilities],
         }
     
@@ -20,6 +22,7 @@ class CivTemplate:
     def from_json(json: dict) -> "CivTemplate":
         return CivTemplate(
             name=json["name"],
-            color=json["color"],
+            primary_color=json["primary_color"],
+            secondary_color=json["secondary_color"],
             abilities=[[ability["name"], ability["numbers"]] for ability in json["abilities"]],
         )

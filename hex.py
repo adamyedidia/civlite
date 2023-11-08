@@ -115,7 +115,7 @@ class Hex:
     def is_occupied(self, unit_type: str, civ: Civ) -> bool:
         return any(unit.template.type == unit_type or unit.civ.template.name != civ.template.name for unit in self.units)
 
-    def to_json(self, from_civ_perspective: Optional[Civ] = None) -> dict:
+    def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         return {
             "q": self.q,
             "r": self.r,
@@ -126,7 +126,7 @@ class Hex:
                 "units": [unit.to_json() for unit in self.units],
                 "city": self.city.to_json() if self.city else None,
                 "visibility_by_civ": self.visibility_by_civ,
-            } if from_civ_perspective is None or self.visibility_by_civ.get(from_civ_perspective.id) else {}),
+            } if from_civ_perspectives is None or any([self.visibility_by_civ.get(from_civ_perspective.id) for from_civ_perspective in from_civ_perspectives]) else {}),
         }
     
     @staticmethod

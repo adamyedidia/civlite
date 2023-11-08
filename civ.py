@@ -1,15 +1,19 @@
+import random
 from typing import TYPE_CHECKING, Optional
 
 from civ_template import CivTemplate
-from civ_templates_list import CIVS
+from civ_templates_list import ANCIENT_CIVS, CIVS
 from game_player import GamePlayer
-from settings import FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE
+from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE
 from tech import Tech
 from tech_template import TechTemplate
 from utils import generate_unique_id
 
+import random
+
 if TYPE_CHECKING:
     from game_state import GameState
+    from hex import Hex
 
 
 class Civ:
@@ -21,6 +25,7 @@ class Civ:
         self.tech_queue: list[TechTemplate] = []
         self.techs: dict[str, bool] = {}
         self.vitality = 1.0
+        self.city_power = 0.0
 
     def to_json(self) -> dict:
         return {
@@ -31,6 +36,7 @@ class Civ:
             "tech_queue": [tech_template.to_json() for tech_template in self.tech_queue],
             "techs": self.techs,
             "vitality": self.vitality,
+            "city_power": self.city_power,
         }
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
@@ -49,6 +55,8 @@ class Civ:
         else:
             self.vitality *= VITALITY_DECAY_RATE
 
+        self.city_power += 20
+
     @staticmethod
     def from_json(json: dict) -> "Civ":
         civ = Civ(
@@ -60,5 +68,24 @@ class Civ:
         civ.tech_queue = [TechTemplate.from_json(tech_template) for tech_template in json["tech_queue"]]
         civ.techs = json["techs"].copy()
         civ.vitality = json["vitality"]
+        civ.city_power = json["city_power"]
 
         return civ
+
+
+def create_starting_civ_options_for_players(game_players: list[GamePlayer], starting_locations: list['Hex']) -> dict[int, list[tuple[Civ, 'Hex']]]:
+    assert len(game_players) <= 8
+
+    starting_civ_option_jsons = random.sample(list(ANCIENT_CIVS.values()), NUM_STARTING_LOCATION_OPTIONS * len(game_players))
+
+    starting_civ_options = {}
+
+    counter = 0
+
+    for game_player in game_players:
+        starting_civ_options[game_player.player_num] = []
+        for _ in range(NUM_STARTING_LOCATION_OPTIONS):
+            starting_civ_options[game_player.player_num].append((Civ(CivTemplate.from_json(starting_civ_option_jsons[counter]), game_player), starting_locations[counter]))
+            counter += 1
+
+    return starting_civ_options

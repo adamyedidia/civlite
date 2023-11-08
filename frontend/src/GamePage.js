@@ -104,7 +104,7 @@ export default function GamePage() {
                         <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
                                  cellStyle={hexStyle(hex.terrain)} 
                                  onClick={() => console.log('hello')}>
-                            <YieldImages yields={hex.yields} />
+                            {hex.yields ? <YieldImages yields={hex.yields} /> : null}
                         </Hexagon>
                     ))}
                 </Layout>
