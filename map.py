@@ -31,7 +31,7 @@ TERRAIN_TO_YIELDS: dict[str, Yields] = {
 
 def infer_map_size_from_num_players(num_players: int) -> int:
     for map_size in range(100):
-        num_hexes_for_map_size = 3 * map_size * (map_size + 1) + 1
+        num_hexes_for_map_size = 3 * map_size * (map_size - 1) + 1
 
         if num_hexes_for_map_size >= num_players * PER_PLAYER_AREA:
             return map_size
