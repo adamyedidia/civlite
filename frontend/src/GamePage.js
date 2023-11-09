@@ -50,7 +50,11 @@ export default function GamePage() {
     //     );
     // };
 
-    const City = ({ primaryColor, secondaryColor, population }) => {
+    const City = ({ city }) => {
+        const primaryColor = civTemplates[city.civ.name].primary_color
+        const secondaryColor = civTemplates[city.civ.name].secondary_color
+        const population = city.population
+
         return (
             // <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
             //      width="4" height="4" viewBox="0 0 4 4"
@@ -115,30 +119,54 @@ export default function GamePage() {
             </g>
         );
     };
-    const hexStyle = (terrain) => {
-        switch (terrain) {
-            case 'forest':
-                return { fill: '#228B22', fillOpacity: '0.8' }; // example color for forest
-            case 'desert':
-                return { fill: '#FFFFAA', fillOpacity: '0.8' }; // example color for desert
-            case 'plains': 
-                return { fill: '#CBC553', fillOpacity: '0.8' }; // example color for plains CB9553
-            case 'hills': 
-                return { fill: '#9B9553', fillOpacity: '0.8' }; // example color for plains                
-            case 'mountain':
-                return { fill: '#8B4513', fillOpacity: '0.8' }; // example color for mountain
-            case 'grassland':
-                return { fill: '#AAFF77', fillOpacity: '0.8' }; // example color for grassland
-            case 'tundra':
-                return { fill: '#BBAABB', fillOpacity: '0.8' }; // example color for tundra
-            case 'jungle': 
-                return { fill: '#00BB00', fillOpacity: '0.8' }; // example color for jungle
-            case 'marsh':
-                return { fill: '#00FFFF', fillOpacity: '0.8' }; // example color for marsh
-            // Add more cases for different terrains
-            default:
-                return { fill: '#f0f0f0', fillOpacity: '0.6' }; // default color
+
+    function greyOutHexColor(hexColor, targetGrey = '#777777') {
+        // Convert hex to RGB
+        function hexToRgb(hex) {
+            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
         }
+    
+        // Convert RGB to hex
+        function rgbToHex(r, g, b) {
+            return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+    
+        // Blend two colors
+        function blendColors(color1, color2, bias) {
+            return {
+                r: Math.floor((bias * color1.r + (1 - bias) * color2.r)),
+                g: Math.floor((bias * color1.g + (1 - bias) * color2.g)),
+                b: Math.floor((bias * color1.b + (1 - bias) * color2.b))
+            };
+        }
+    
+        const originalRgb = hexToRgb(hexColor);
+        const greyRgb = hexToRgb(targetGrey);
+    
+        const blendedRgb = blendColors(originalRgb, greyRgb, 0.25);
+    
+        return rgbToHex(blendedRgb.r, blendedRgb.g, blendedRgb.b);
+    }
+
+    const hexStyle = (terrain, inFog) => {
+        const terrainToColor = {
+            'forest': '#228B22',
+            'desert': '#FFFFAA',
+            'plains': '#CBC553',
+            'hills': '#9B9553',
+            'mountain': '#8B4513',
+            'grassland': '#AAFF77',
+            'tundra': '#BBAABB',
+            'jungle': '#00BB00',
+            'marsh': '#00FFFF',
+        }
+
+        return { fill: inFog ? greyOutHexColor(terrainToColor[terrain], '#AAAAAA') : terrainToColor[terrain], fillOpacity: '0.8' }; // example color for forest
     };
 
     const displayGameState = (gameState) => {
@@ -151,10 +179,10 @@ export default function GamePage() {
                 <Layout size={{ x: 3, y: 3 }}>
                     {hexagons.map((hex, i) => (
                         <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
-                                 cellStyle={hexStyle(hex.terrain)} 
+                                 cellStyle={hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
                                  onClick={() => console.log('hello')}>
                             {hex.yields ? <YieldImages yields={hex.yields} /> : null}
-                            {hex.city && <City primaryColor={civTemplates[hex.city.civ.name].primary_color} secondaryColor={civTemplates[hex.city.civ.name].secondary_color} population={hex.city.population}/>}
+                            {hex.city && <City city={hex.city}/>}
                         </Hexagon>
                     ))}
                 </Layout>
