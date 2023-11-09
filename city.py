@@ -17,7 +17,7 @@ class City:
         self.civ = civ
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True}
         self.name = generate_random_city_name()
-        self.population = 1
+        self.population = 3
         self.buildings: list[Building] = []
         self.food = 0.0
         self.metal = 0.0

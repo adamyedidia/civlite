@@ -12,6 +12,7 @@ import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
 import scienceImg from './images/science.png';
+import CityIcon from './images/city.svg';
 
 export default function GamePage() {
 
@@ -29,10 +30,58 @@ export default function GamePage() {
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
     const [frameNum, setFrameNum] = useState(0);
+    const [civTemplates, setCivTemplates] = useState({});
+
+    console.log(civTemplates);
+
+    useEffect(() => {
+        fetch(`${URL}/api/civ_templates`)
+            .then(response => response.json())
+            .then(data => setCivTemplates(data));
+    }, [])
 
     console.log(playersInGame);
 
     console.log(gameState);
+
+    // const City = ({ primaryColor, secondaryColor }) => {
+    //     return (
+    //         <CityIcon fill={primaryColor} stroke={secondaryColor} strokeWidth="5" />
+    //     );
+    // };
+
+    const City = ({ primaryColor, secondaryColor, population }) => {
+        return (
+            // <svg version="1.0" xmlns="http://www.w3.org/2000/svg"
+            //      width="4" height="4" viewBox="0 0 4 4"
+            //      preserveAspectRatio="xMidYMid meet">
+            //     <g transform="translate(0.000000,0.000000) scale(0.100000,-0.100000)"
+            //        fill={primaryColor} stroke={secondaryColor}>
+            //         <path d="M5893 12222 c-135 -474 -800 -2789 -849 -2959 -12 -40 -20 -53 -35
+            //         -53 -10 0 -19 -7 -19 -15 0 -8 7 -15 15 -15 13 0 15 -153 15 -1320 0 -726 -4
+            //         -1320 -8 -1320 -5 0 -276 246 -603 546 l-594 547 -3 78 -3 79 -50 0 -49 0 6
+            //         43 c29 201 70 322 150 442 75 113 84 139 84 242 0 73 -39 315 -53 329 -2 2 -9
+            //         -37 -15 -86 -23 -169 -66 -244 -138 -238 -35 3 -39 6 -36 28 2 14 10 44 19 67
+            //         14 39 14 45 -1 68 -21 32 -76 35 -107 4 -23 -23 -22 -46 2 -127 16 -51 4 -66
+            //         -46 -57 -62 11 -95 78 -138 285 l-13 65 -22 -92 c-57 -238 -52 -313 29 -456
+            //         71 -123 103 -217 123 -366 23 -163 27 -151 -49 -151 l-65 0 0 -74 0 -74 -645
+            //         -516 c-355 -284 -647 -516 -650 -516 -3 0 -5 601 -5 1335 l0 1335 -1050 0
+            //         -1050 0 0 -1370 c0 -907 -3 -1370 -10 -1370 -6 0 -10 -136 -10 -389 0 -302 -3
+            //         -391 -12 -395 -10 -5 -10 -7 0 -12 10 -5 12 -331 12 -1612 0 -884 0 -2171 0
+            //         -2859 l0 -1253 3540 0 3540 0 2 1253 3 1252 40 6 40 5 -40 5 -40 4 -3 3314
+            //         c-1 2314 1 3318 9 3327 7 9 6 15 -6 22 -16 8 -106 316 -800 2737 -131 457
+            //         -241 833 -244 837 -3 4 -79 -248 -168 -560z"/>
+            //     </g>
+            // </svg>
+
+            <svg width="2" height="2" viewBox="0 0 2 2" x={-1} y={-1}>
+                <rect width="2" height="2" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
+                <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fontSize="0.1" fill="black">
+                    {population}
+                </text>                
+            </svg>
+        );
+    };
 
     const YieldImages = ({ yields }) => {
         let imageCounter = 0; // Counter to track the total number of images
@@ -105,6 +154,7 @@ export default function GamePage() {
                                  cellStyle={hexStyle(hex.terrain)} 
                                  onClick={() => console.log('hello')}>
                             {hex.yields ? <YieldImages yields={hex.yields} /> : null}
+                            {hex.city && <City primaryColor={civTemplates[hex.city.civ.name].primary_color} secondaryColor={civTemplates[hex.city.civ.name].secondary_color} population={hex.city.population}/>}
                         </Hexagon>
                     ))}
                 </Layout>

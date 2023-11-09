@@ -39,7 +39,7 @@
 
 .basic-example svg g {
   fill: #3f51b5;
-  fill-opacity: 0.6;
+  fill-opacity: 1;
 }
 .basic-example svg g:hover {
   fill-opacity: 1;
@@ -54,9 +54,9 @@
   transition: fill-opacity 0.2s;
 }
 .basic-example svg g text {
-  font-size: 0.3em;
-  fill: #ffffff;
-  fill-opacity: 0.4;
+  font-size: 0.1em;
+  fill: #000000;
+  fill-opacity: 1;
   transition: fill-opacity 0.2s;
 }
 .basic-example svg path {
