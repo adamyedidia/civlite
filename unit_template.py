@@ -13,7 +13,7 @@ class UnitTemplate:
         self.ranged_attacker = ranged_attacker
         self.movement = movement
         self.range = range
-        self.abilities: list[Ability] = ABILITIES[abilities[0]](*abilities[1])  # type: ignore
+        self.abilities: list[Ability] = [ABILITIES[ability[0]](*ability[1]) for ability in abilities]  # type: ignore
         self.type = type
 
     def to_json(self) -> dict:

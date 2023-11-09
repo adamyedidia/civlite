@@ -145,99 +145,99 @@ color_pairs = [
 ANCIENT_CIVS = {
     "Pueblo": {
         "name": "Pueblo",
-        "abilities": [],
+        "abilities": [["IncreaseCapitalYields", ["wood", 2]]],
     },
     "Egypt": {
         "name": "Egypt",
-        "abilities": [],
+        "abilities": [["ExtraVpsPerWonder", [5]]],
     },
     "Mycenaeans": {
         "name": "Mycenaeans",
-        "abilities": [],
+        "abilities": [["IncreaseCapitalYields", ["metal", 2]]],
     },
     "Harrapans": {
         "name": "Harrapans",
-        "abilities": [],
+        "abilities": [["IncreaseCapitalYields", ["food", 2]]],
     },
     "Shang": {
         "name": "Shang",
-        "abilities": [],
+        "abilities": [["IncreaseCapitalYields", ["science", 2]]],
     },
     "Sumer": {
         "name": "Sumer",
-        "abilities": [],
+        "abilities": [["IncreaseFocusYields", ["wood", 2]]],
     },
     "Indus": {
         "name": "Indus",
-        "abilities": [],
+        "abilities": [["IncreaseFocusYields", ["food", 2]]],
     },
     "Minoans": {
         "name": "Minoans",
-        "abilities": [],
+        "abilities": [["IncreaseFocusYields", ["metal", 2]]],
     },
     "Babylon": {
         "name": "Babylon",
-        "abilities": [],
+        "abilities": [["IncreaseFocusYields", ["science", 2]]],
     },
     "Hittites": {
         "name": "Hittites",
-        "abilities": [],
+        "abilities": [["IncreaseYieldsForTerrainNextToSecondCity", ["wood", "forest", 1]]],
     },
     "Phoenicia": {
         "name": "Phoenicia",
-        "abilities": [],
+        "abilities": [["IncreaseYieldsForTerrainNextToSecondCity", ["metal", "hills", 1]]],
     },
     "Nazca": {
         "name": "Nazca",
-        "abilities": [],
+        "abilities": [["IncreaseYieldsForTerrainNextToSecondCity", ["food", "plains", 1]]],
     },
     "Bantu": {
         "name": "Bantu",
-        "abilities": [],
+        "abilities": [["IncreaseYieldsForTerrainNextToSecondCity", ["food", "grassland", 1]]],
     },
     "Olmecs": {
         "name": "Olmecs",
-        "abilities": [],
+        "abilities": [["IncreaseYieldsForTerrain", ["wood", "jungle", 1]]],
     },
     "Zhou": {
         "name": "Zhou",
-        "abilities": [],
+        "abilities": [["IncreaseYieldsForTerrain", ["metal", "desert", 1]]],
     },
     "Nubians": {
         "name": "Nubians",
-        "abilities": [],
+        "abilities": [["IncreaseYieldsForTerrain", ["food", "marsh", 1]]],
     },
     "Pama-Nguyan": {
         "name": "Pama-Nguyan",
-        "abilities": [],
+        "abilities": [["IncreaseYieldsForTerrain", ["wood", "tundra", 1]]],
     },
     "Assyrians": {
         "name": "Assyrians",
-        "abilities": [],
+        "abilities": [["IncreaseYieldsForTerrain", ["metal", "mountain", 1]]],
     },
     "Caralans": {
         "name": "Caralans",
-        "abilities": [],
+        "abilities": [["IncreasedStrengthForUnit", ["warrior", 2]]],
     },
     "Elamites": {
         "name": "Elamites",
-        "abilities": [],
+        "abilities": [["IncreasedStrengthForUnit", ["archer", 2]]],
     },
     "Teotihuacan": {
         "name": "Teotihuacan",
-        "abilities": [],
+        "abilities": [["IncreasedStrengthForUnit", ["spearman", 2]]],
     },
     "Maya": {
         "name": "Maya",
-        "abilities": [],
+        "abilities": [["ExtraVpsPerCityCaptured", [10]]],
     },
     "Jomon": {
         "name": "Jomon",
-        "abilities": [],
+        "abilities": [["ExtraCityPower", [20]]],
     },
     "Yangshao": {
         "name": "Yangshao",
-        "abilities": [],
+        "abilities": [["ExtraVpsPerUnitKilled", [1]]],
     },  
 }
 

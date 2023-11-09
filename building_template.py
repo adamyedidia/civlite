@@ -1,4 +1,6 @@
 from typing import Optional, Union
+from abilities_list import BUILDING_ABILITIES
+from ability import Ability
 
 
 class BuildingTemplate:
@@ -6,7 +8,7 @@ class BuildingTemplate:
         self.name = name
         self.type = type
         self.cost = cost
-        self.abilities: list[Ability] = ABILITIES[abilities[0]](*abilities[1])  # type: ignore
+        self.abilities: list[Ability] = [BUILDING_ABILITIES[ability[0]](*ability[1]) for ability in abilities]  # type: ignore
         self.is_wonder = is_wonder
         self.vp_reward = vp_reward
 

@@ -169,6 +169,20 @@ export default function GamePage() {
         return { fill: inFog ? greyOutHexColor(terrainToColor[terrain], '#AAAAAA') : terrainToColor[terrain], fillOpacity: '0.8' }; // example color for forest
     };
 
+    const handleMouseLeaveHex = (hex) => {
+    };
+
+    const handleMouseOverHex = (hex) => {
+    };
+
+    const handleClickHex = (hex) => {
+        if (hex.city) {
+            const city = hex.city;
+
+            
+        }
+    };
+
     const displayGameState = (gameState) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes)
@@ -180,7 +194,9 @@ export default function GamePage() {
                     {hexagons.map((hex, i) => (
                         <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
                                  cellStyle={hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
-                                 onClick={() => console.log('hello')}>
+                                 onClick={() => handleClickHex(hex)} 
+                                 onMouseOver={() => handleMouseOverHex(hex)}
+                                 onMouseLeave={() => handleMouseLeaveHex(hex)}>
                             {hex.yields ? <YieldImages yields={hex.yields} /> : null}
                             {hex.city && <City city={hex.city}/>}
                         </Hexagon>

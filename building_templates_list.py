@@ -6,7 +6,7 @@ BUILDINGS: dict[str, Any] = {
         "name": "Lumber Mill",
         "type": "economy",
         "cost": 20,
-        "abilities": ["IncreaseYieldsForTerrain", ["wood", 1, "forest"]],
+        "abilities": [["IncreaseYieldsForTerrain", ["wood", 1, "forest"]]],
     },
     "Colossus": {
         "name": "Colossus",
