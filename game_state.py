@@ -64,9 +64,10 @@ class GameState:
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
 
-    def update_from_player_moves(self, player_num: int, moves: list[dict]) -> None:
+    def update_from_player_moves(self, player_num: int, moves: list[dict]) -> Optional[list[Civ]]:
+        game_player = None
         for move in moves:
-            if move['move_type'] == 'starting_city':
+            if move['move_type'] == 'choose_starting_city':
                 city_id = move['city_id']
 
                 for city in self.cities:
@@ -96,6 +97,11 @@ class GameState:
                 tech = TechTemplate.from_json(TECHS[tech_name])
                 civ.tech_queue.append(tech)
 
+        if game_player is not None and game_player.civ_id is not None:
+            from_civ_perspectives = [self.civs_by_id[game_player.civ_id]]
+            return from_civ_perspectives
+
+        return None
 
     def refresh_visibility_by_civ(self, short_sighted: bool = False) -> None:
         for hex in self.hexes.values():
@@ -225,16 +231,16 @@ def get_most_recent_game_state_json(sess, game_id: str) -> dict:
     return most_recent_game_state
 
 
-def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) -> GameState:
+def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) -> tuple[GameState, Optional[list[Civ]]]:
     with rlock(f'staged_moves_lock:{game_id}:{player_num}'):
         staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
         game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}') or get_most_recent_game_state_json(sess, game_id)
         game_state = GameState.from_json(game_state_json)
-        game_state.update_from_player_moves(player_num, moves)
+        from_civ_perspectives = game_state.update_from_player_moves(player_num, moves)
 
         staged_moves.extend(moves)
 
         rset_json(f'staged_moves:{game_id}:{player_num}', staged_moves, ex=24 * 60 * 60)
         rset_json(f'staged_game_state:{game_id}:{player_num}', game_state.to_json())
 
-        return game_state
+        return game_state, from_civ_perspectives

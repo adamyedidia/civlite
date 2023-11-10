@@ -52,9 +52,12 @@ export default function GamePage() {
     const handleClickTech = (tech) => {
         const data = {
             player_num: playerNum,
-            tech_name: tech.name,
+            player_input: {
+                'move_type': 'choose_tech',
+                'tech_name': tech.name,
+            }
         }
-        fetch(`${URL}/api/tech_choice/${gameId}`, {
+        fetch(`${URL}/api/player_input/${gameId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -63,7 +66,7 @@ export default function GamePage() {
         }).then(response => response.json())
             .then(data => {
                 console.log(data);
-                setTechChoices(data.tech_choices ? data.tech_choices : null);
+                setGameState(data.game_state);
             });
     }
 
@@ -124,6 +127,7 @@ export default function GamePage() {
                 .then(data => {
                     console.log(data);
                     setTechChoices(data.tech_choices);
+                    setGameState(data.game_state);
                 });
         
         }

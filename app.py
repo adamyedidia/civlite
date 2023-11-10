@@ -363,7 +363,7 @@ def choose_initial_civ(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
+    game_state, from_civ_perspectives = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
 
     city_list_one = [city for city in game_state.cities if city.id == city_id]
 
@@ -376,7 +376,7 @@ def choose_initial_civ(sess, game_id):
 
     techs = get_tech_choices_for_civ(civ)
 
-    return jsonify({'tech_choices': techs, 'game_state': game_state.to_json()})
+    return jsonify({'tech_choices': techs, 'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
 
 
 @app.route('/api/player_input/<game_id>', methods=['POST'])
@@ -402,9 +402,9 @@ def choose_tech(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state = update_staged_moves(sess, game_id, player_num, [player_input])
+    game_state, from_civ_perspectives = update_staged_moves(sess, game_id, player_num, [player_input])
 
-    return jsonify({'Success': True})
+    return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
 
 
 @app.route('/api/civ_templates', methods=['GET'])
