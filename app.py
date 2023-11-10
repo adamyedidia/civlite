@@ -17,11 +17,12 @@ from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game
 from game_player import GamePlayer
-from game_state import GameState
+from game_state import GameState, update_staged_moves
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
 from settings import LOCAL
+from tech import get_tech_choices_for_civ
 from user import User, add_or_get_user
 from utils import generate_unique_id
 
@@ -330,6 +331,56 @@ def get_open_games(sess):
     )
 
     return jsonify([game.to_json() for game in games])
+
+
+@app.route('/api/choose_city_location/<game_id>', methods=['POST'])
+@api_endpoint
+def choose_initial_civ(sess, game_id):
+    data = request.json
+
+    if not data:
+        return jsonify({"error": "Invalid data"}), 400
+    
+    player_num = data.get('player_num')
+
+    if player_num is None:
+        return jsonify({"error": "Username is required"}), 400
+    
+    city_id = data.get('city_id')
+
+    if not city_id:
+        return jsonify({"error": "City ID is required"}), 400
+    
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    update_staged_moves(game_id, player_num, {'chosen_city': city_id})
+
+    animation_frame = (
+        sess.query(AnimationFrame)
+        .filter(AnimationFrame.game_id == game_id)
+        .filter(AnimationFrame.turn_num == 1)
+        .filter(AnimationFrame.player_num == player_num)
+        .filter(AnimationFrame.frame_num == 0)
+        .one_or_none()
+    )
+
+    game_state = GameState.from_json(animation_frame.game_state)
+
+    city_list_one = [city for city in game_state.cities if city.id == city_id]
+
+    if len(city_list_one) == 0:
+        return jsonify({"error": "City not found"}), 404
+    
+    city = city_list_one[0]
+
+    civ = city.civ
+
+    techs = get_tech_choices_for_civ(civ)
+
+    return jsonify({'tech_choices': techs})
 
 
 @app.route('/api/civ_templates', methods=['GET'])

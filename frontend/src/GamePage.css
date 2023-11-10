@@ -75,3 +75,7 @@
   font-size: 0.3em;
   /* Add other styles you want for text here */
 }
+
+.city-hex {
+  cursor: pointer;
+}

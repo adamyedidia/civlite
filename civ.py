@@ -27,6 +27,12 @@ class Civ:
         self.vitality = 1.0
         self.city_power = 0.0
 
+    def has_ability(self, ability_name: str) -> bool:
+        return any([ability.name == ability_name for ability in self.template.abilities])
+
+    def numbers_of_ability(self, ability_name: str) -> list:
+        return [ability.numbers for ability in self.template.abilities if ability.name == ability_name]
+
     def to_json(self) -> dict:
         return {
             "id": self.id,

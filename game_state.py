@@ -5,6 +5,7 @@ from city import City
 from civ import Civ
 from game_player import GamePlayer
 from hex import Hex
+from redis_utils import rget_json, rlock, rset_json
 from unit import Unit
 import random
 
@@ -152,3 +153,10 @@ class GameState:
         game_state.special_mode = json["special_mode"]
         game_state.set_unit_and_city_hexes()
         return game_state
+
+
+def update_staged_moves(game_id: str, player_num: int, moves: dict) -> None:
+    with rlock(f'staged_moves_lock:{game_id}:{player_num}'):
+        staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or {}
+        staged_moves.update(moves)
+        rset_json(f'staged_moves:{game_id}:{player_num}', staged_moves, ex=24 * 60 * 60)

@@ -6,6 +6,7 @@ from civ import Civ
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
+from utils import generate_unique_id
 
 if TYPE_CHECKING:
     from hex import Hex
@@ -14,6 +15,7 @@ if TYPE_CHECKING:
 
 class City:
     def __init__(self, civ: Civ):
+        self.id = generate_unique_id()
         self.civ = civ
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True}
         self.name = generate_random_city_name()
@@ -223,6 +225,7 @@ class City:
 
     def to_json(self) -> dict:
         return {
+            "id": self.id,
             "civ": self.civ.to_json(),
             "ever_controlled_by_civ_ids": self.ever_controlled_by_civ_ids,
             "name": self.name,
@@ -243,6 +246,7 @@ class City:
         city = City(
             civ=Civ.from_json(json["civ"]),
         )
+        city.id = json["id"]
         city.ever_controlled_by_civ_ids = json["ever_controlled_by_civ_ids"].copy()
         city.name = json["name"]
         city.population = json["population"]

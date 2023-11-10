@@ -227,6 +227,10 @@ ANCIENT_CIVS = {
         "name": "Teotihuacan",
         "abilities": [["IncreasedStrengthForUnit", ["spearman", 2]]],
     },
+    "Scythians": {
+        "name": "Scythians",
+        "abilities": [["IncreasedStrengthForUnit", ["chariot", 2]]],
+    },
     "Maya": {
         "name": "Maya",
         "abilities": [["ExtraVpsPerCityCaptured", [10]]],
