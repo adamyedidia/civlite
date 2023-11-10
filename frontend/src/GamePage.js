@@ -49,6 +49,24 @@ export default function GamePage() {
 
     console.log(civTemplates);
 
+    const handleClickTech = (tech) => {
+        const data = {
+            player_num: playerNum,
+            tech_name: tech.name,
+        }
+        fetch(`${URL}/api/tech_choice/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                console.log(data);
+                setTechChoices(data.tech_choices ? data.tech_choices : null);
+            });
+    }
+
     useEffect(() => {
         fetch(`${URL}/api/civ_templates`)
             .then(response => response.json())
@@ -326,7 +344,7 @@ export default function GamePage() {
             {techChoices && (
                 <div className="tech-choices-container">
                     {techChoices.map((tech, index) => (
-                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} />
+                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} onClick={handleClickTech} />
                     ))}
                 </div>
             )}

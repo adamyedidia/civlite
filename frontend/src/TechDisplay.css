@@ -4,6 +4,7 @@
     margin: 10px;
     border-radius: 5px;
     background-color: #b0e0e6;
+    cursor: pointer;
 }
 
 .tech-card h2 {
@@ -12,4 +13,8 @@
 
 .tech-card .unlocked-units {
     margin-top: 10px;
+}
+
+.tech-card:hover {
+    border: 3px solid black; /* Thick black border on hover */
 }

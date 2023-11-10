@@ -388,6 +388,34 @@ def choose_initial_civ(sess, game_id):
     return jsonify({'tech_choices': techs})
 
 
+@app.route('/api/tech_choice/<game_id>', methods=['POST'])
+@api_endpoint
+def choose_tech(sess, game_id):
+    data = request.json
+
+    if not data:
+        return jsonify({"error": "Invalid data"}), 400
+    
+    player_num = data.get('player_num')
+
+    if player_num is None:
+        return jsonify({"error": "Username is required"}), 400
+    
+    tech_name = data.get('tech_name')
+
+    if not tech_name:
+        return jsonify({"error": "Tech name is required"}), 400
+
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    update_staged_moves(game_id, player_num, {'tech': tech_name})
+
+    return jsonify({'Success': True})
+
+
 @app.route('/api/civ_templates', methods=['GET'])
 @api_endpoint
 def get_civ_templates(sess):
