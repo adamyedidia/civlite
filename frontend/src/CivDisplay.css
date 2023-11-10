@@ -1,0 +1,24 @@
+.civ-card {
+    border: 10px solid; /* Border color will be set inline */
+    padding: 10px;
+    border-radius: 5px;
+    position: fixed;
+    right: 10px;
+    bottom: 10px;    
+}
+
+.civ-card-inner {
+    padding: 10px;
+    border-radius: 3px;
+    /* Background color will be set inline */
+}
+
+.civ-card h2 {
+    margin-top: 0;
+}
+
+.civ-card ul {
+    list-style-type: disc;
+    margin: 10px;
+    padding-left: 20px;
+}

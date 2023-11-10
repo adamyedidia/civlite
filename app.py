@@ -12,6 +12,7 @@ from sqlalchemy.orm import joinedload
 from animation_frame import AnimationFrame
 from city import City
 from civ import Civ, create_starting_civ_options_for_players
+from civ_template import CivTemplate
 from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game
@@ -334,7 +335,7 @@ def get_open_games(sess):
 @app.route('/api/civ_templates', methods=['GET'])
 @api_endpoint
 def get_civ_templates(sess):
-    return jsonify(CIVS)
+    return jsonify({civ_template['name']: CivTemplate.from_json(civ_template).to_json() for civ_template in CIVS.values()})
 
 
 @socketio.on('connect')

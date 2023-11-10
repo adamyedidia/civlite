@@ -12,6 +12,7 @@ import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
 import scienceImg from './images/science.png';
+import CivDisplay from './CivDisplay';
 import CityIcon from './images/city.svg';
 
 export default function GamePage() {
@@ -31,6 +32,7 @@ export default function GamePage() {
     const [turnNum, setTurnNum] = useState(1);
     const [frameNum, setFrameNum] = useState(0);
     const [civTemplates, setCivTemplates] = useState({});
+    const [hoveredCiv, setHoveredCiv] = useState(null);
 
     console.log(civTemplates);
 
@@ -173,6 +175,12 @@ export default function GamePage() {
     };
 
     const handleMouseOverHex = (hex) => {
+        if (hex.city) {
+            setHoveredCiv(civTemplates[hex.city.civ.name]);
+        }
+        else {
+            setHoveredCiv(null);
+        }
     };
 
     const handleClickHex = (hex) => {
@@ -189,7 +197,7 @@ export default function GamePage() {
         return (
             <div className="basic-example">
                 <h1>Basic example of HexGrid usage.</h1>
-                <HexGrid width={5000} height={5000}>
+                <HexGrid width={2000} height={2000}>
                 <Layout size={{ x: 3, y: 3 }}>
                     {hexagons.map((hex, i) => (
                         <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
@@ -201,10 +209,9 @@ export default function GamePage() {
                             {hex.city && <City city={hex.city}/>}
                         </Hexagon>
                     ))}
-                </Layout>
-                <Pattern id="pat-1" link="http://cat-picture" />
-                <Pattern id="pat-2" link="http://cat-picture2" />                
+                </Layout>         
                 </HexGrid>
+                {hoveredCiv && <CivDisplay civ={hoveredCiv} />}
             </div>
         )
     }
