@@ -43,15 +43,15 @@ class GameState:
             if hex.city:
                 hex.city.hex = hex
 
-    def refresh_visibility_by_civ(self) -> None:
+    def refresh_visibility_by_civ(self, short_sighted: bool = False) -> None:
         for hex in self.hexes.values():
             hex.visibility_by_civ = {}
 
         for unit in self.units:
-            unit.update_nearby_hexes_visibility(self)
+            unit.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
 
         for city in self.cities:
-            city.update_nearby_hexes_visibility(self)
+            city.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
 
     def roll_turn(self, sess) -> None:
         units_copy = self.units[:]

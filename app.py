@@ -186,7 +186,7 @@ def _launch_game_inner(sess, game: Game) -> None:
             game_state.cities.append(starting_city)
             game_state.civs.append(civ)
 
-    game_state.refresh_visibility_by_civ()
+    game_state.refresh_visibility_by_civ(short_sighted=True)
 
     animation_frame = AnimationFrame(
         game_id=game_id,

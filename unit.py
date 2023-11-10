@@ -23,11 +23,17 @@ class Unit:
         self.target: Optional['Hex'] = None
         self.hex: Optional['Hex'] = None
 
-    def update_nearby_hexes_visibility(self, game_state: 'GameState') -> None:
+    def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
             return
         self.hex.visibility_by_civ[self.civ.id] = True
-        for nearby_hex in self.hex.get_hexes_within_distance_2(game_state.hexes):
+
+        if short_sighted:
+            neighbors = self.hex.get_neighbors(game_state.hexes)
+        else:
+            neighbors = self.hex.get_hexes_within_distance_2(game_state.hexes)
+
+        for nearby_hex in neighbors:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
