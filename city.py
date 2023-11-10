@@ -31,6 +31,7 @@ class City:
         self.autobuild_unit: Optional[UnitTemplate] = None
         self.units_queue: list[UnitTemplate] = []
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
+        self.capital = False
 
     def harvest_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -221,7 +222,20 @@ class City:
                 "type": "CityCapture",
                 "civ": civ.template.name,
                 "city": self.name,
+                "vpReward": CITY_CAPTURE_REWARD,
             }, hexes_must_be_visible=[self.hex])
+
+    def capitalize(self) -> None:
+        civ = self.civ
+        self.capital = True
+        game_player.civ_id = civ.id
+    
+        if civ.has_ability('IncreaseCapitalYields'):
+            if self.hex:
+                self.hex.yields.increase(civ.numbers_of_ability('IncreaseCapitalYields')[0],
+                                            civ.numbers_of_ability('IncreaseCapitalYields')[1])
+                
+                                    
 
     def to_json(self) -> dict:
         return {
@@ -239,6 +253,7 @@ class City:
             "autobuild_unit": self.autobuild_unit.name if self.autobuild_unit else None,
             "units_queue": [unit.name for unit in self.units_queue],
             "buildings_queue": [building.name for building in self.buildings_queue],
+            "capital": self.capital,
         }
 
     @staticmethod
@@ -255,6 +270,7 @@ class City:
         city.metal = json["metal"]
         city.wood = json["wood"]
         city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
+        city.capital = json["capital"]
 
         return city
 

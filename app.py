@@ -189,7 +189,9 @@ def _launch_game_inner(sess, game: Game) -> None:
             starting_location.city = starting_city
             starting_city.hex = starting_location
             game_state.cities.append(starting_city)
-            game_state.civs.append(civ)
+            game_state.civs_by_id[civ.id] = civ
+
+    game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
 
     game_state.refresh_visibility_by_civ(short_sighted=True)
 
@@ -361,18 +363,7 @@ def choose_initial_civ(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    update_staged_moves(game_id, player_num, {'chosen_city': city_id})
-
-    animation_frame = (
-        sess.query(AnimationFrame)
-        .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.turn_num == 1)
-        .filter(AnimationFrame.player_num.is_(None))
-        .filter(AnimationFrame.frame_num == 0)
-        .one_or_none()
-    )
-
-    game_state = GameState.from_json(animation_frame.game_state)
+    game_state = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
 
     city_list_one = [city for city in game_state.cities if city.id == city_id]
 
@@ -385,10 +376,10 @@ def choose_initial_civ(sess, game_id):
 
     techs = get_tech_choices_for_civ(civ)
 
-    return jsonify({'tech_choices': techs})
+    return jsonify({'tech_choices': techs, 'game_state': game_state.to_json()})
 
 
-@app.route('/api/tech_choice/<game_id>', methods=['POST'])
+@app.route('/api/player_input/<game_id>', methods=['POST'])
 @api_endpoint
 def choose_tech(sess, game_id):
     data = request.json
@@ -401,17 +392,17 @@ def choose_tech(sess, game_id):
     if player_num is None:
         return jsonify({"error": "Username is required"}), 400
     
-    tech_name = data.get('tech_name')
+    player_input = data.get('player_input')
 
-    if not tech_name:
-        return jsonify({"error": "Tech name is required"}), 400
+    if not player_input:
+        return jsonify({"error": "Player input is required"}), 400
 
     game = sess.query(Game).filter(Game.id == game_id).first()
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    update_staged_moves(game_id, player_num, {'tech': tech_name})
+    game_state = update_staged_moves(sess, game_id, player_num, [player_input])
 
     return jsonify({'Success': True})
 

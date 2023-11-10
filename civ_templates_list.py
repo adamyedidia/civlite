@@ -142,6 +142,15 @@ color_pairs = [
 #     }
 # }
 
+BARBARIAN_CIV = {
+    "Barbarians": {
+        "name": "Barbarians",
+        "abilities": [],
+        "primary_color": "#FF0000",
+        "secondary_color": "#000000",
+    },
+}
+
 ANCIENT_CIVS = {
     "Pueblo": {
         "name": "Pueblo",

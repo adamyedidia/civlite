@@ -23,4 +23,6 @@ class AnimationFrame(Base):
     __table_args__ = (
         Index("animation_frame_idx_game_turn_num_player_num_frame_num", 
               "game_id", "turn_num", "player_num", "frame_num", unique=True),
+        Index("animation_frame_idx_game_player_num_frame_num_turn_num",
+              "game_id", "player_num", "frame_num", "turn_num"),
     )

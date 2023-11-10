@@ -31,7 +31,7 @@ class Civ:
         return any([ability.name == ability_name for ability in self.template.abilities])
 
     def numbers_of_ability(self, ability_name: str) -> list:
-        return [ability.numbers for ability in self.template.abilities if ability.name == ability_name]
+        return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
 
     def to_json(self) -> dict:
         return {

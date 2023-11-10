@@ -7,6 +7,9 @@ class Yields:
         self.wood = wood
         self.science = science
 
+    def increase(self, yield_type: str, amount: int) -> None:
+        setattr(self, yield_type, getattr(self, yield_type) + amount)
+
     def copy(self) -> "Yields":
         return Yields(
             food=self.food,

@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING, Optional
+from camp import Camp
 from civ import Civ
 from unit import Unit
 from utils import coords_str
@@ -19,6 +20,7 @@ class Hex:
         self.yields = yields
         self.units: list[Unit] = []
         self.city: Optional[City] = None
+        self.camp: Optional[Camp] = None
         self.coords = coords_str((q, r, s))
         self.visibility_by_civ: dict[str, bool] = {}
 
@@ -125,6 +127,7 @@ class Hex:
                 "yields": self.yields.to_json(),
                 "units": [unit.to_json() for unit in self.units],
                 "city": self.city.to_json() if self.city else None,
+                "camp": self.camp.to_json() if self.camp else None,
                 "visibility_by_civ": self.visibility_by_civ,
             } if from_civ_perspectives is None or any([self.visibility_by_civ.get(from_civ_perspective.id) for from_civ_perspective in from_civ_perspectives]) else {}),
         }
@@ -139,8 +142,10 @@ class Hex:
             yields=Yields.from_json(json["yields"]),
         )
         hex.units = [Unit.from_json(unit_json) for unit_json in json["units"]]
-        if json["city"]:
+        if json.get("city"):
             hex.city = City.from_json(json["city"])
+        if json.get("camp"):
+            hex.camp = Camp.from_json(json["camp"])
         hex.visibility_by_civ = json["visibility_by_civ"].copy()
 
         return hex
