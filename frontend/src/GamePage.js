@@ -45,6 +45,7 @@ export default function GamePage() {
     const [techChoices, setTechChoices] = useState(null);
 
     console.log(selectedCity);
+    console.log(techChoices);
 
     console.log(civTemplates);
 
@@ -103,6 +104,7 @@ export default function GamePage() {
                 body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
+                    console.log(data);
                     setTechChoices(data.tech_choices);
                 });
         

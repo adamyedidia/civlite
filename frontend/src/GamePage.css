@@ -85,7 +85,7 @@
   justify-content: center;
   align-items: center;
   gap: 20px; /* Adjust gap between items */
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

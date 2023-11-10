@@ -5,7 +5,7 @@ const UnitDisplay = ({ unit }) => {
     return (
         <div className="unit-card">
             <h2>{unit.name}</h2>
-            <p>Type: {unit.type}</p>
+            {/* <p>Type: {unit.type}</p> */}
             <p>Building: {unit.building_name}</p>
             <p>Metal Cost: {unit.metal_cost}</p>
             <p>Wood Cost: {unit.wood_cost}</p>
@@ -13,7 +13,7 @@ const UnitDisplay = ({ unit }) => {
             <p>Movement: {unit.movement}</p>
             <p>Range: {unit.range}</p>
             {unit.ranged ? <p>Ranged</p> : null}
-            {unit.ranged ? <p>Mounted</p> : null}
+            {unit.mounted ? <p>Mounted</p> : null}
             {unit.abilities.map((ability) => {
                 <p>{ability.description}</p>
             })}
