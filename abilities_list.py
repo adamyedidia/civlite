@@ -60,3 +60,11 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         numbers=[x, y, z],
     )
 }
+
+UNIT_ABILITIES: dict[str, Callable] = {
+    "BonusAgainst": lambda x, y: Ability(
+        name="BonusAgainst",
+        description=f"Has +{y} strength against {x} units.",
+        numbers=[x, y],
+    ),
+}

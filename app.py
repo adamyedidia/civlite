@@ -23,6 +23,10 @@ from player import Player
 
 from settings import LOCAL
 from tech import get_tech_choices_for_civ
+from tech_template import TechTemplate
+from tech_templates_list import TECHS
+from unit_template import UnitTemplate
+from unit_templates_list import UNITS
 from user import User, add_or_get_user
 from utils import generate_unique_id
 
@@ -196,6 +200,7 @@ def _launch_game_inner(sess, game: Game) -> None:
         player_num=None,
         game_state=game_state.to_json(),
     )
+    sess.add(animation_frame)
 
     for player in players:
         animation_frame = AnimationFrame(
@@ -333,7 +338,7 @@ def get_open_games(sess):
     return jsonify([game.to_json() for game in games])
 
 
-@app.route('/api/choose_city_location/<game_id>', methods=['POST'])
+@app.route('/api/starting_location/<game_id>', methods=['POST'])
 @api_endpoint
 def choose_initial_civ(sess, game_id):
     data = request.json
@@ -362,7 +367,7 @@ def choose_initial_civ(sess, game_id):
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
         .filter(AnimationFrame.turn_num == 1)
-        .filter(AnimationFrame.player_num == player_num)
+        .filter(AnimationFrame.player_num.is_(None))
         .filter(AnimationFrame.frame_num == 0)
         .one_or_none()
     )
@@ -387,6 +392,19 @@ def choose_initial_civ(sess, game_id):
 @api_endpoint
 def get_civ_templates(sess):
     return jsonify({civ_template['name']: CivTemplate.from_json(civ_template).to_json() for civ_template in CIVS.values()})
+
+
+@app.route('/api/unit_templates', methods=['GET'])
+@api_endpoint
+def get_unit_templates(sess):
+    return jsonify({unit_template['name']: UnitTemplate.from_json(unit_template).to_json() for unit_template in UNITS.values()})
+
+
+@app.route('/api/tech_templates', methods=['GET'])
+@api_endpoint
+def get_tech_templates(sess):
+    return jsonify({tech_template['name']: TechTemplate.from_json(tech_template).to_json() for tech_template in TECHS.values()})
+
 
 
 @socketio.on('connect')

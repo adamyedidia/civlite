@@ -2,10 +2,12 @@ TECHS = {
     'Archery': {
         'name': 'Archery',
         'cost': 10,
+        'unlocks_units': ['Archer'],
     },
     'Bronze Working': {
         'name': 'Bronze Working',
         'cost': 10,
+        'unlocks_units': ['Spearman'],
     },
     'Pottery': {
         'name': 'Pottery',
@@ -22,6 +24,7 @@ TECHS = {
     'The Wheel': {
         'name': 'The Wheel',
         'cost': 15,
+        'unlocks_units': ['Chariot'],
     },
     'Forestry': {
         'name': 'Forestry',

@@ -14,6 +14,7 @@ import metalImg from './images/metal.png';
 import scienceImg from './images/science.png';
 import CivDisplay from './CivDisplay';
 import CityIcon from './images/city.svg';
+import TechDisplay from './TechDisplay';
 
 export default function GamePage() {
 
@@ -31,11 +32,17 @@ export default function GamePage() {
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
     const [frameNum, setFrameNum] = useState(0);
+
     const [civTemplates, setCivTemplates] = useState({});
+    const [unitTemplates, setUnitTemplates] = useState(null);
+    const [techTemplates, setTechTemplates] = useState(null);
+
     const [hoveredCiv, setHoveredCiv] = useState(null);
 
     const [hoveredCity, setHoveredCity] = useState(null);
     const [selectedCity, setSelectedCity] = useState(null);
+
+    const [techChoices, setTechChoices] = useState(null);
 
     console.log(selectedCity);
 
@@ -45,6 +52,14 @@ export default function GamePage() {
         fetch(`${URL}/api/civ_templates`)
             .then(response => response.json())
             .then(data => setCivTemplates(data));
+
+        fetch(`${URL}/api/unit_templates`)
+            .then(response => response.json())
+            .then(data => setUnitTemplates(data));
+        
+        fetch(`${URL}/api/tech_templates`)
+            .then(response => response.json())
+            .then(data => setTechTemplates(data));
     }, [])
 
     console.log(playersInGame);
@@ -75,6 +90,23 @@ export default function GamePage() {
     };
 
     const handleClickCity = (city) => {
+        if (gameState.special_mode == 'starting_location') {
+            const data = {
+                player_num: playerNum,
+                city_id: city.id,
+            }
+            fetch(`${URL}/api/starting_location/${gameId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+            }).then(response => response.json())
+                .then(data => {
+                    setTechChoices(data.tech_choices);
+                });
+        
+        }
         setSelectedCity(city);
     };
 
@@ -268,7 +300,7 @@ export default function GamePage() {
         })
     }, [])
 
-    if (!civTemplates) {
+    if (!civTemplates || !unitTemplates || !techTemplates) {
         return (
             <div>
                 <h1>Game Page</h1>
@@ -288,6 +320,13 @@ export default function GamePage() {
             ) : 'Loading...'}
             {gameState ? displayGameState(gameState) : (
                 <Button onClick={launchGame}>Launch Game</Button>
+            )}
+            {techChoices && (
+                <div className="tech-choices-container">
+                    {techChoices.map((tech, index) => (
+                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} />
+                    ))}
+                </div>
             )}
         </div>
     )

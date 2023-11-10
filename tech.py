@@ -1,4 +1,4 @@
-from random import random
+import random
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 
@@ -29,7 +29,7 @@ def get_tech_choices_for_civ(civ: "Civ") -> list[dict]:
     characteristic_tech = None
 
     if civ.has_ability('IncreasedStrengthForUnit'):
-        special_unit_name = civ.numbers_of_ability('IncreasedStrengthForUnit')[0]
+        special_unit_name = civ.numbers_of_ability('IncreasedStrengthForUnit')[0][0]
 
         if (prereq := UNITS[special_unit_name].get('prereq')):
             characteristic_tech = TECHS[prereq]

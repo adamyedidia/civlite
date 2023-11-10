@@ -129,7 +129,7 @@ class Unit:
             return
 
         self.punch(game_state, target)
-        if self.template.ranged_attacker:
+        if self.template.ranged:
             target.target = self.hex
         else:
             target.punch(game_state, self)

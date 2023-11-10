@@ -1,0 +1,15 @@
+.tech-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.tech-card h2 {
+    margin-top: 0;
+}
+
+.tech-card .unlocked-units {
+    margin-top: 10px;
+}

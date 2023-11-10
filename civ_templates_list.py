@@ -217,19 +217,19 @@ ANCIENT_CIVS = {
     },
     "Caralans": {
         "name": "Caralans",
-        "abilities": [["IncreasedStrengthForUnit", ["warrior", 2]]],
+        "abilities": [["IncreasedStrengthForUnit", ["Warrior", 2]]],
     },
     "Elamites": {
         "name": "Elamites",
-        "abilities": [["IncreasedStrengthForUnit", ["archer", 2]]],
+        "abilities": [["IncreasedStrengthForUnit", ["Archer", 2]]],
     },
     "Teotihuacan": {
         "name": "Teotihuacan",
-        "abilities": [["IncreasedStrengthForUnit", ["spearman", 2]]],
+        "abilities": [["IncreasedStrengthForUnit", ["Spearman", 2]]],
     },
     "Scythians": {
         "name": "Scythians",
-        "abilities": [["IncreasedStrengthForUnit", ["chariot", 2]]],
+        "abilities": [["IncreasedStrengthForUnit", ["Chariot", 2]]],
     },
     "Maya": {
         "name": "Maya",

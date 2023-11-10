@@ -1,0 +1,15 @@
+.unit-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    background-color: #f9f9f9;
+}
+
+.unit-card h2 {
+    margin-top: 0;
+}
+
+.unit-card p {
+    margin: 5px 0;
+}
