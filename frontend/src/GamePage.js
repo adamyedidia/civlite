@@ -71,6 +71,7 @@ export default function GamePage() {
                 console.log(data);
                 if (data.game_state) {
                     setGameState(data.game_state);
+                    setTechChoices(null);
                 }
             });
     }
