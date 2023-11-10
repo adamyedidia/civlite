@@ -41,6 +41,6 @@ class UnitTemplate:
             ranged=json["ranged"],
             movement=json["movement"],
             range=json["range"],
-            abilities=[[ability[0], ability[1]] for ability in json["abilities"]],
+            abilities=[[ability["name"], ability["numbers"]] for ability in json["abilities"]],
             type=json["type"],
         )

@@ -270,7 +270,6 @@ export default function GamePage() {
         const hexagons = Object.values(gameState.hexes)
         return (
             <div className="basic-example">
-                <h1>Basic example of HexGrid usage.</h1>
                 <HexGrid width={2000} height={2000}>
                 <Layout size={{ x: 3, y: 3 }}>
                     {hexagons.map((hex, i) => (
@@ -343,8 +342,7 @@ export default function GamePage() {
 
     return (
         <div>
-            <h1>Game Page</h1>
-            {gameState ? 'Here is the game State!' : playersInGame ? (
+            {gameState ? null : playersInGame ? (
                 <>
                     <Typography variant="h5">Players in game:</Typography>
                     {playersInGame.map((playerUsername, i) => <Typography key={i}>{playerUsername}</Typography>)}

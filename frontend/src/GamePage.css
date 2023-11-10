@@ -91,3 +91,9 @@
   transform: translate(-50%, -50%);
   z-index: 1000; /* Ensure it's above other elements */
 }
+
+/* In your global CSS file (e.g., index.css or App.css) */
+
+body {
+  background-color: #4488FF; /* Or use a specific blue like #0000FF, rgb(0, 0, 255), etc. */
+}

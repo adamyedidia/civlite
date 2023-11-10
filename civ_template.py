@@ -27,5 +27,5 @@ class CivTemplate:
             name=json["name"],
             primary_color=json["primary_color"],
             secondary_color=json["secondary_color"],
-            abilities=[[ability[0], ability[1]] for ability in json["abilities"]],
+            abilities=[[ability["name"], ability["numbers"]] for ability in json["abilities"]],
         )

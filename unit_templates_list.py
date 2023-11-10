@@ -38,7 +38,10 @@ UNITS = {
         "ranged": False,
         "prereq": "Bronze Working",
         "mounted": False,
-        "abilities": [["BonusAgainst", ["mounted", 4]]],
+        "abilities": [{
+            "name": "BonusAgainst",
+            "numbers": ["mounted", 4],
+        }],
     },
     "Chariot": {
         "name": "Chariot",
@@ -52,6 +55,9 @@ UNITS = {
         "ranged": False,
         "prereq": "The Wheel",
         "mounted": True,
-        "abilities": [["BonusAgainst", ["ranged", 5]]],
+        "abilities": [{
+            "name": "BonusAgainst",
+            "numbers": ["ranged", 5],
+        }],
     },
 }

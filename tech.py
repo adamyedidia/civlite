@@ -29,7 +29,8 @@ def get_tech_choices_for_civ(civ: "Civ") -> list[dict]:
     characteristic_tech = None
 
     if civ.has_ability('IncreasedStrengthForUnit'):
-        special_unit_name = civ.numbers_of_ability('IncreasedStrengthForUnit')[0][0]
+        print(civ.numbers_of_ability('IncreasedStrengthForUnit'))
+        special_unit_name = civ.numbers_of_ability('IncreasedStrengthForUnit')[0]
 
         if (prereq := UNITS[special_unit_name].get('prereq')):
             characteristic_tech = TECHS[prereq]

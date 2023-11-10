@@ -29,7 +29,7 @@ class BuildingTemplate:
             name=json["name"],
             type=json["type"],
             cost=json["cost"],
-            abilities=[[ability[0], ability[1]] for ability in json["abilities"]],
+            abilities=[[ability["name"], ability["numbers"]] for ability in json["abilities"]],
             is_wonder=json.get("is_wonder", False),
             vp_reward=json.get("vp_reward", None),
         )

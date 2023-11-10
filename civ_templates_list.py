@@ -150,109 +150,184 @@ BARBARIAN_CIV = {
         "secondary_color": "#000000",
     },
 }
-
 ANCIENT_CIVS = {
     "Pueblo": {
         "name": "Pueblo",
-        "abilities": [["IncreaseCapitalYields", ["wood", 2]]],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["wood", 2]
+        }],
     },
     "Egypt": {
         "name": "Egypt",
-        "abilities": [["ExtraVpsPerWonder", [5]]],
+        "abilities": [{
+            "name": "ExtraVpsPerWonder",
+            "numbers": [5]
+        }],
     },
     "Mycenaeans": {
         "name": "Mycenaeans",
-        "abilities": [["IncreaseCapitalYields", ["metal", 2]]],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["metal", 2]
+        }],
     },
     "Harrapans": {
         "name": "Harrapans",
-        "abilities": [["IncreaseCapitalYields", ["food", 2]]],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["food", 2]
+        }],
     },
     "Shang": {
         "name": "Shang",
-        "abilities": [["IncreaseCapitalYields", ["science", 2]]],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["science", 2]
+        }],
     },
     "Sumer": {
         "name": "Sumer",
-        "abilities": [["IncreaseFocusYields", ["wood", 2]]],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["wood", 2]
+        }],
     },
     "Indus": {
         "name": "Indus",
-        "abilities": [["IncreaseFocusYields", ["food", 2]]],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["food", 2]
+        }],
     },
     "Minoans": {
         "name": "Minoans",
-        "abilities": [["IncreaseFocusYields", ["metal", 2]]],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["metal", 2]
+        }],
     },
     "Babylon": {
         "name": "Babylon",
-        "abilities": [["IncreaseFocusYields", ["science", 2]]],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["science", 2]
+        }],
     },
     "Hittites": {
         "name": "Hittites",
-        "abilities": [["IncreaseYieldsForTerrainNextToSecondCity", ["wood", "forest", 1]]],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrainNextToSecondCity",
+            "numbers": ["wood", "forest", 1]
+        }],
     },
     "Phoenicia": {
         "name": "Phoenicia",
-        "abilities": [["IncreaseYieldsForTerrainNextToSecondCity", ["metal", "hills", 1]]],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrainNextToSecondCity",
+            "numbers": ["metal", "hills", 1]
+        }],
     },
     "Nazca": {
         "name": "Nazca",
-        "abilities": [["IncreaseYieldsForTerrainNextToSecondCity", ["food", "plains", 1]]],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrainNextToSecondCity",
+            "numbers": ["food", "plains", 1]
+        }],
     },
     "Bantu": {
         "name": "Bantu",
-        "abilities": [["IncreaseYieldsForTerrainNextToSecondCity", ["food", "grassland", 1]]],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrainNextToSecondCity",
+            "numbers": ["food", "grassland", 1]
+        }],
     },
     "Olmecs": {
         "name": "Olmecs",
-        "abilities": [["IncreaseYieldsForTerrain", ["wood", "jungle", 1]]],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", "jungle", 1]
+        }],
     },
     "Zhou": {
         "name": "Zhou",
-        "abilities": [["IncreaseYieldsForTerrain", ["metal", "desert", 1]]],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["metal", "desert", 1]
+        }],
     },
     "Nubians": {
         "name": "Nubians",
-        "abilities": [["IncreaseYieldsForTerrain", ["food", "marsh", 1]]],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["food", "marsh", 1]
+        }],
     },
     "Pama-Nguyan": {
         "name": "Pama-Nguyan",
-        "abilities": [["IncreaseYieldsForTerrain", ["wood", "tundra", 1]]],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", "tundra", 1]
+        }],
     },
     "Assyrians": {
         "name": "Assyrians",
-        "abilities": [["IncreaseYieldsForTerrain", ["metal", "mountain", 1]]],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["metal", "mountain", 1]
+        }],
     },
     "Caralans": {
         "name": "Caralans",
-        "abilities": [["IncreasedStrengthForUnit", ["Warrior", 2]]],
+        "abilities": [{
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Warrior", 2]
+        }],
     },
     "Elamites": {
         "name": "Elamites",
-        "abilities": [["IncreasedStrengthForUnit", ["Archer", 2]]],
+        "abilities": [{
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Archer", 2]
+        }],
     },
     "Teotihuacan": {
         "name": "Teotihuacan",
-        "abilities": [["IncreasedStrengthForUnit", ["Spearman", 2]]],
+        "abilities": [{
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Spearman", 2]
+        }],
     },
     "Scythians": {
         "name": "Scythians",
-        "abilities": [["IncreasedStrengthForUnit", ["Chariot", 2]]],
+        "abilities": [{
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Chariot", 2]
+        }],
     },
     "Maya": {
         "name": "Maya",
-        "abilities": [["ExtraVpsPerCityCaptured", [10]]],
+        "abilities": [{
+            "name": "ExtraVpsPerCityCaptured",
+            "numbers": [10]
+        }],
     },
     "Jomon": {
         "name": "Jomon",
-        "abilities": [["ExtraCityPower", [20]]],
+        "abilities": [{
+            "name": "ExtraCityPower",
+            "numbers": [20]
+        }],
     },
     "Yangshao": {
         "name": "Yangshao",
-        "abilities": [["ExtraVpsPerUnitKilled", [1]]],
-    },  
+        "abilities": [{
+            "name": "ExtraVpsPerUnitKilled",
+            "numbers": [1]
+        }],
+    }
 }
+
 
 for i, civ in enumerate(ANCIENT_CIVS):
     ANCIENT_CIVS[civ]["primary_color"] = color_pairs[i][0]
