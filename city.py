@@ -228,7 +228,6 @@ class City:
     def capitalize(self) -> None:
         civ = self.civ
         self.capital = True
-        game_player.civ_id = civ.id
     
         if civ.has_ability('IncreaseCapitalYields'):
             if self.hex:

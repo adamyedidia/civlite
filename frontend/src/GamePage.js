@@ -50,12 +50,15 @@ export default function GamePage() {
     console.log(civTemplates);
 
     const handleClickTech = (tech) => {
+
+        const playerInput = {
+            'tech_name': tech.name,
+            'move_type': 'choose_tech',
+        }
+
         const data = {
             player_num: playerNum,
-            player_input: {
-                'move_type': 'choose_tech',
-                'tech_name': tech.name,
-            }
+            player_input: playerInput,
         }
         fetch(`${URL}/api/player_input/${gameId}`, {
             method: 'POST',
@@ -66,7 +69,9 @@ export default function GamePage() {
         }).then(response => response.json())
             .then(data => {
                 console.log(data);
-                setGameState(data.game_state);
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                }
             });
     }
 
@@ -127,7 +132,9 @@ export default function GamePage() {
                 .then(data => {
                     console.log(data);
                     setTechChoices(data.tech_choices);
-                    setGameState(data.game_state);
+                    if (data.game_state) {
+                        setGameState(data.game_state);
+                    }
                 });
         
         }
@@ -136,8 +143,8 @@ export default function GamePage() {
 
 
     const City = ({ city, isHovered, isSelected }) => {
-        const primaryColor = civTemplates[city.civ.name].primary_color;
-        const secondaryColor = civTemplates[city.civ.name].secondary_color;
+        const primaryColor = civTemplates[city.civ.name]?.primary_color;
+        const secondaryColor = civTemplates[city.civ.name]?.secondary_color;
         const population = city.population;
 
         const pointer = isFriendlyCity(city);
@@ -348,7 +355,7 @@ export default function GamePage() {
             {techChoices && (
                 <div className="tech-choices-container">
                     {techChoices.map((tech, index) => (
-                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} onClick={handleClickTech} />
+                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} onClick={() => handleClickTech(tech)} />
                     ))}
                 </div>
             )}

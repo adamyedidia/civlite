@@ -259,4 +259,4 @@ for i, civ in enumerate(ANCIENT_CIVS):
     ANCIENT_CIVS[civ]["secondary_color"] = color_pairs[i][1]
 
 
-CIVS = ANCIENT_CIVS
+CIVS = {**ANCIENT_CIVS, **BARBARIAN_CIV}

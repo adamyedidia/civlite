@@ -65,7 +65,7 @@ class GameState:
         return random.choice(list(self.hexes.values()))
 
     def update_from_player_moves(self, player_num: int, moves: list[dict]) -> Optional[list[Civ]]:
-        game_player = None
+        game_player_to_return: Optional[GamePlayer] = None
         for move in moves:
             if move['move_type'] == 'choose_starting_city':
                 city_id = move['city_id']
@@ -73,7 +73,9 @@ class GameState:
                 for city in self.cities:
                     if (game_player := city.civ.game_player) and game_player.player_num == player_num:
                         if city.id == city_id:
-                            game_player.civ_id = city.civ.id
+                            game_player_to_return = game_player
+                            game_player_to_return.civ_id = city.civ.id
+                            self.game_player_by_player_num[player_num].civ_id = city.civ.id
                             city.capitalize()
 
                         else:
@@ -87,6 +89,8 @@ class GameState:
                                 city.hex = None
                                 self.cities = [c for c in self.cities if c.id != city.id]
 
+                            del self.civs_by_id[city.civ.id]
+
                 self.refresh_visibility_by_civ()
 
             if move['move_type'] == 'choose_tech':
@@ -96,9 +100,10 @@ class GameState:
                 civ = self.civs_by_id[game_player.civ_id]
                 tech = TechTemplate.from_json(TECHS[tech_name])
                 civ.tech_queue.append(tech)
+                game_player_to_return = game_player
 
-        if game_player is not None and game_player.civ_id is not None:
-            from_civ_perspectives = [self.civs_by_id[game_player.civ_id]]
+        if game_player_to_return is not None and game_player_to_return.civ_id is not None:
+            from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
             return from_civ_perspectives
 
         return None
@@ -195,7 +200,7 @@ class GameState:
             "game_id": self.game_id,
             "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
             "civs_by_id": {civ_id: civ.to_json() for civ_id, civ in self.civs_by_id.items()},
-            "game_players": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
+            "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
             "turn_num": self.turn_num,
             "wonders_built": self.wonders_built,
             "special_mode": self.special_mode,
@@ -205,8 +210,8 @@ class GameState:
     def from_json(json: dict) -> "GameState":
         hexes = {key: Hex.from_json(hex_json) for key, hex_json in json["hexes"].items()}
         game_state = GameState(game_id=json["game_id"], hexes=hexes)
-        game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs"].items()}
-        game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_players"].items()}
+        game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs_by_id"].items()}
+        game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}
         game_state.turn_num = json["turn_num"]
         game_state.wonders_built = json["wonders_built"].copy()
         game_state.special_mode = json["special_mode"]
