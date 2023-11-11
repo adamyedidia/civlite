@@ -8,13 +8,11 @@ import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
 import { Button } from '@mui/material';
-import foodImg from './images/food.png';
-import woodImg from './images/wood.png';
-import metalImg from './images/metal.png';
-import scienceImg from './images/science.png';
 import CivDisplay from './CivDisplay';
 import CityIcon from './images/city.svg';
 import TechDisplay from './TechDisplay';
+import HexDisplay, { YieldImages } from './HexDisplay';
+import CityDisplay from './CityDisplay';
 
 export default function GamePage() {
 
@@ -38,6 +36,10 @@ export default function GamePage() {
     const [techTemplates, setTechTemplates] = useState(null);
 
     const [hoveredCiv, setHoveredCiv] = useState(null);
+    const [hoveredHex, setHoveredHex] = useState(null);
+
+    const [hoveredUnit, setHoveredUnit] = useState(null);
+    const [hoveredBuilding, setHoveredBuilding] = useState(null);
 
     const [hoveredCity, setHoveredCity] = useState(null);
     const [selectedCity, setSelectedCity] = useState(null);
@@ -118,7 +120,7 @@ export default function GamePage() {
     };
 
     const handleClickCity = (city) => {
-        if (gameState.special_mode == 'starting_location') {
+        if (gameState.special_mode_by_player_num[playerNum] == 'starting_location') {
             const data = {
                 player_num: playerNum,
                 city_id: city.id,
@@ -162,39 +164,6 @@ export default function GamePage() {
                     </text>
                 </svg>
             </>
-        );
-    };
-
-    const YieldImages = ({ yields }) => {
-        let imageCounter = 0; // Counter to track the total number of images
-
-        let totalCount = yields.food + yields.wood + yields.metal + yields.science;
-    
-        const renderImages = (img, count) => {
-            let images = [];
-            for (let i = 0; i < count; i++) {
-                images.push(
-                    <image 
-                        key={`${img}-${imageCounter}`} 
-                        href={img} 
-                        x={(1.5 * (imageCounter * (totalCount / (totalCount - 1)) + 0.1) - totalCount * 1.5) / (totalCount * 0.7)} 
-                        y={-1} 
-                        height={2} 
-                        width={2}
-                    />
-                );
-                imageCounter++; // Increment counter for each image
-            }
-            return images;
-        };
-    
-        return (
-            <g>
-                {renderImages(foodImg, yields.food)}
-                {renderImages(woodImg, yields.wood)}
-                {renderImages(metalImg, yields.metal)}
-                {renderImages(scienceImg, yields.science)}
-            </g>
         );
     };
 
@@ -251,6 +220,7 @@ export default function GamePage() {
     };
 
     const handleMouseOverHex = (hex) => {
+        setHoveredHex(hex);
         if (hex.city) {
             setHoveredCiv(civTemplates[hex.city.civ.name]);
         }
@@ -289,6 +259,10 @@ export default function GamePage() {
                 </Layout>         
                 </HexGrid>
                 {hoveredCiv && <CivDisplay civ={hoveredCiv} />}
+                {hoveredHex && (
+                    <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
+                )}
+                {selectedCity && <CityDisplay city={selectedCity} setHoveredUnit={setHoveredUnit} />}
             </div>
         )
     }

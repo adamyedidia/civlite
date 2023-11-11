@@ -49,7 +49,7 @@ class GameState:
         self.turn_num = 1
         self.game_player_by_player_num: dict[int, GamePlayer] = {}
         self.wonders_built: dict[str, bool] = {}
-        self.special_mode: Optional[str] = 'starting_location'
+        self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.barbarians: Civ = Civ(CivTemplate.from_json(BARBARIAN_CIV["Barbarians"]), None)
 
     def set_unit_and_city_hexes(self) -> None:
@@ -69,6 +69,7 @@ class GameState:
         for move in moves:
             if move['move_type'] == 'choose_starting_city':
                 city_id = move['city_id']
+                self.special_mode_by_player_num[player_num] = None
 
                 for city in self.cities:
                     if (game_player := city.civ.game_player) and game_player.player_num == player_num:
@@ -203,7 +204,7 @@ class GameState:
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
             "turn_num": self.turn_num,
             "wonders_built": self.wonders_built,
-            "special_mode": self.special_mode,
+            "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
         }
     
     @staticmethod
@@ -214,7 +215,7 @@ class GameState:
         game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}
         game_state.turn_num = json["turn_num"]
         game_state.wonders_built = json["wonders_built"].copy()
-        game_state.special_mode = json["special_mode"]
+        game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.set_unit_and_city_hexes()
         return game_state
 

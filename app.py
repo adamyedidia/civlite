@@ -192,6 +192,7 @@ def _launch_game_inner(sess, game: Game) -> None:
             game_state.civs_by_id[civ.id] = civ
 
     game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
+    game_state.special_mode_by_player_num = {game_player.player_num: 'starting_location' for game_player in game_players}
 
     game_state.refresh_visibility_by_civ(short_sighted=True)
 

@@ -6,7 +6,9 @@ from civ import Civ
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
+from unit_templates_list import UNITS
 from utils import generate_unique_id
+import random
 
 if TYPE_CHECKING:
     from hex import Hex
@@ -29,8 +31,9 @@ class City:
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
         self.autobuild_unit: Optional[UnitTemplate] = None
-        self.units_queue: list[UnitTemplate] = []
+        self.units_queue: list[UnitTemplate] = [UnitTemplate.from_json(UNITS['Warrior']), UnitTemplate.from_json(UNITS['Spearman'])]
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
+        self.buildings: list[Building] = []
         self.capital = False
 
     def harvest_yields(self, game_state: 'GameState') -> None:
@@ -252,6 +255,7 @@ class City:
             "autobuild_unit": self.autobuild_unit.name if self.autobuild_unit else None,
             "units_queue": [unit.name for unit in self.units_queue],
             "buildings_queue": [building.name for building in self.buildings_queue],
+            "buildings": [building.to_json() for building in self.buildings],
             "capital": self.capital,
         }
 
@@ -270,6 +274,7 @@ class City:
         city.wood = json["wood"]
         city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
         city.capital = json["capital"]
+        city.buildings_queue = [UnitTemplate.from_json(building) if building.get('strength') else BuildingTemplate.from_json(building) for building in json["buildings_queue"]]
 
         return city
 
@@ -386,4 +391,4 @@ CITY_NAMES = [
 
 
 def generate_random_city_name() -> str:
-    return "City"
+    return random.choice(CITY_NAMES)
