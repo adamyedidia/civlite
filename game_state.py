@@ -1,6 +1,7 @@
 from typing import Any, Optional
 from animation_frame import AnimationFrame
 from building_template import BuildingTemplate
+from building_templates_list import BUILDINGS
 from camp import Camp
 from city import City
 from civ import Civ
@@ -22,12 +23,12 @@ def get_all_units(hexes: dict[str, Hex]) -> list[Unit]:
     return units
 
 
-def get_all_cities(hexes: dict[str, Hex]) -> list[City]:
-    cities = []
+def get_all_cities(hexes: dict[str, Hex]) -> dict[str, City]:
+    cities_by_id = {}
     for hex in hexes.values():
         if hex.city:
-            cities.append(hex.city)
-    return cities
+            cities_by_id[hex.city.id] = hex.city
+    return cities_by_id
 
 
 def get_all_camps(hexes: dict[str, Hex]) -> list[Camp]:
@@ -43,7 +44,7 @@ class GameState:
         self.hexes = hexes
         self.game_id = game_id
         self.units = get_all_units(hexes)
-        self.cities = get_all_cities(hexes)
+        self.cities_by_id: dict[str, City] = get_all_cities(hexes)
         self.camps = get_all_camps(hexes)
         self.civs_by_id: dict[str, Civ] = {}
         self.turn_num = 1
@@ -71,7 +72,7 @@ class GameState:
                 city_id = move['city_id']
                 self.special_mode_by_player_num[player_num] = None
 
-                for city in self.cities:
+                for city in self.cities_by_id.values():
                     if (game_player := city.civ.game_player) and game_player.player_num == player_num:
                         if city.id == city_id:
                             game_player_to_return = game_player
@@ -88,7 +89,7 @@ class GameState:
 
                                 city.hex.city = None
                                 city.hex = None
-                                self.cities = [c for c in self.cities if c.id != city.id]
+                                self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
 
                             del self.civs_by_id[city.civ.id]
 
@@ -103,6 +104,21 @@ class GameState:
                 civ.tech_queue.append(tech)
                 game_player_to_return = game_player
 
+            if move['move_type'] == 'choose_building':
+                building_name = move['building_name']
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                city_id = move['city_id']
+                city = self.cities_by_id[city_id]
+
+
+                building = BuildingTemplate.from_json(BUILDINGS[building_name])
+                city.buildings_queue.append(building)
+                game_player_to_return = game_player
+
+
+
         if game_player_to_return is not None and game_player_to_return.civ_id is not None:
             from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
             return from_civ_perspectives
@@ -116,7 +132,7 @@ class GameState:
         for unit in self.units:
             unit.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
 
-        for city in self.cities:
+        for city in self.cities_by_id.values():
             city.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
 
     def roll_turn(self, sess) -> None:
@@ -131,7 +147,7 @@ class GameState:
         for unit in units_copy:
             unit.attack(sess, self)
 
-        cities_copy = self.cities[:]
+        cities_copy = list(self.cities_by_id.values())
         random.shuffle(cities_copy)
         for city in cities_copy:
             city.roll_turn(sess, self)
@@ -147,7 +163,7 @@ class GameState:
         if (game_player := civ.game_player) is not None and (vp_reward := building_template.vp_reward) is not None:
             game_player.score += vp_reward
 
-        for city in self.cities:
+        for city in self.cities_by_id.values():
             for i, building in enumerate(city.buildings_queue):
                 if i > 0 and building.name == building_template.name:
                     city.buildings_queue = [building for building in city.buildings_queue if building.name != building_template.name]

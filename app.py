@@ -188,7 +188,7 @@ def _launch_game_inner(sess, game: Game) -> None:
             starting_city = City(civ)
             starting_location.city = starting_city
             starting_city.hex = starting_location
-            game_state.cities.append(starting_city)
+            game_state.cities_by_id[starting_city.id] = starting_city
             game_state.civs_by_id[civ.id] = civ
 
     game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
@@ -366,7 +366,7 @@ def choose_initial_civ(sess, game_id):
     
     game_state, from_civ_perspectives = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
 
-    city_list_one = [city for city in game_state.cities if city.id == city_id]
+    city_list_one = [city for city in game_state.cities_by_id.values() if city.id == city_id]
 
     if len(city_list_one) == 0:
         return jsonify({"error": "City not found"}), 404
@@ -382,7 +382,7 @@ def choose_initial_civ(sess, game_id):
 
 @app.route('/api/player_input/<game_id>', methods=['POST'])
 @api_endpoint
-def choose_tech(sess, game_id):
+def enter_player_input(sess, game_id):
     data = request.json
 
     if not data:
