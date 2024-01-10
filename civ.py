@@ -1,5 +1,6 @@
 import random
 from typing import TYPE_CHECKING, Optional
+from building_templates_list import BUILDINGS
 
 from civ_template import CivTemplate
 from civ_templates_list import ANCIENT_CIVS, CIVS
@@ -26,6 +27,7 @@ class Civ:
         self.techs: dict[str, bool] = {}
         self.vitality = 1.0
         self.city_power = 0.0
+        self.available_buildings: list[str] = []
 
     def has_ability(self, ability_name: str) -> bool:
         return any([ability.name == ability_name for ability in self.template.abilities])
@@ -43,9 +45,12 @@ class Civ:
             "techs": self.techs,
             "vitality": self.vitality,
             "city_power": self.city_power,
+            "available_buildings": self.available_buildings,
         }
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
+        self.available_buildings = [building["name"] for building in BUILDINGS if not building.get('prereq') or self.techs.get(building.get("prereq"))]  # type: ignore
+        
         while self.tech_queue and self.tech_queue[0].cost <= self.science:
             self.science -= self.tech_queue[0].cost
             self.techs[self.tech_queue[0].name] = True
@@ -75,6 +80,7 @@ class Civ:
         civ.techs = json["techs"].copy()
         civ.vitality = json["vitality"]
         civ.city_power = json["city_power"]
+        civ.available_buildings = json["available_buildings"][:]
 
         return civ
 

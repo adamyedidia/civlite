@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from unit_template import UnitTemplate
@@ -18,6 +18,7 @@ class Building:
         else:
             assert building_template
             self.building_template = building_template
+        self.template: Union[UnitTemplate, BuildingTemplate] = unit_template or building_template  # type: ignore
 
     @property
     def type(self) -> str:

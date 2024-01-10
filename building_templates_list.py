@@ -1,7 +1,7 @@
 from typing import Any
 
 
-BUILDINGS: dict[str, Any] = {
+BUILDINGS: dict[str, dict] = {
     "Lumber Mill": {
         "name": "Lumber Mill",
         "type": "economy",
@@ -10,6 +10,7 @@ BUILDINGS: dict[str, Any] = {
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", 1, "forest"],
         }],
+        "prereq": "Forestry",
     },
     "Colossus": {
         "name": "Colossus",

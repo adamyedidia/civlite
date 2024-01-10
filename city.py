@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import TYPE_CHECKING, Optional, Union
 from building import Building
 from building_template import BuildingTemplate
+from building_templates_list import BUILDINGS
 from civ import Civ
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
@@ -34,7 +35,11 @@ class City:
         self.units_queue: list[UnitTemplate] = [UnitTemplate.from_json(UNITS['Warrior']), UnitTemplate.from_json(UNITS['Spearman'])]
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
         self.buildings: list[Building] = []
+        self.available_buildings: list[str] = []
         self.capital = False
+
+    def has_building(self, building_name: str) -> bool:
+        return any([building.template.name == building_name for building in self.buildings])
 
     def harvest_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -83,6 +88,7 @@ class City:
         self.build_units(sess, game_state)
         self.build_buildings(sess, game_state)
         self.handle_siege(sess, game_state)
+        self.handle_cleanup(game_state)
 
     def grow(self) -> None:
         while self.food >= self.growth_cost():
@@ -102,6 +108,13 @@ class City:
                 self.under_siege_by_civ = siege_state
             else:
                 self.capture(sess, siege_state, game_state)
+
+    def handle_cleanup(self, game_state: 'GameState') -> None:
+        self.available_buildings = [building_name for building_name in self.civ.available_buildings if not self.has_building(building_name)]
+
+    def get_available_buildings(self, game_state: 'GameState') -> list[BuildingTemplate]:
+        building_names_in_queue = [building.name for building in self.buildings_queue]
+        return [BuildingTemplate.from_json(BUILDINGS[building_name]) for building_name in self.available_buildings if not building_name in building_names_in_queue]
 
     def build_units(self, sess, game_state: 'GameState') -> None:
         if self.autobuild_unit is not None:
@@ -256,6 +269,7 @@ class City:
             "units_queue": [unit.name for unit in self.units_queue],
             "buildings_queue": [building.name for building in self.buildings_queue],
             "buildings": [building.to_json() for building in self.buildings],
+            "available_buildings": self.available_buildings,
             "capital": self.capital,
         }
 
@@ -275,6 +289,7 @@ class City:
         city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
         city.capital = json["capital"]
         city.buildings_queue = [UnitTemplate.from_json(building) if building.get('strength') else BuildingTemplate.from_json(building) for building in json["buildings_queue"]]
+        city.available_buildings = json["available_buildings"][:]
 
         return city
 

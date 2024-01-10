@@ -45,6 +45,8 @@ export default function GamePage() {
     const [selectedCity, setSelectedCity] = useState(null);
 
     const [techChoices, setTechChoices] = useState(null);
+    const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
+
 
     console.log(selectedCity);
     console.log(techChoices);

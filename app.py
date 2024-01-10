@@ -408,6 +408,26 @@ def enter_player_input(sess, game_id):
     return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
 
 
+@app.route('/api/building_choices/<game_id>/<city_id>', methods=['GET'])
+@api_endpoint
+def get_building_choices(sess, game_id, city_id):
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game_state = GameState.from_json(game.game_state)
+
+    city = game_state.cities_by_id.get(city_id)
+
+    civ = city.civ
+
+    building_choices = civ.get_all_available_buildings()
+
+
+    return jsonify({})
+
+
 @app.route('/api/civ_templates', methods=['GET'])
 @api_endpoint
 def get_civ_templates(sess):
