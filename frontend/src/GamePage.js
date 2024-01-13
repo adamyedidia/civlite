@@ -13,6 +13,7 @@ import CityIcon from './images/city.svg';
 import TechDisplay from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
 import CityDisplay from './CityDisplay';
+import BuildingDisplay from './BuildingDisplay';
 
 export default function GamePage() {
 
@@ -34,6 +35,7 @@ export default function GamePage() {
     const [civTemplates, setCivTemplates] = useState({});
     const [unitTemplates, setUnitTemplates] = useState(null);
     const [techTemplates, setTechTemplates] = useState(null);
+    const [buildingTemplates, setBuildingTemplates] = useState(null);
 
     const [hoveredCiv, setHoveredCiv] = useState(null);
     const [hoveredHex, setHoveredHex] = useState(null);
@@ -92,7 +94,25 @@ export default function GamePage() {
         fetch(`${URL}/api/tech_templates`)
             .then(response => response.json())
             .then(data => setTechTemplates(data));
+
+        fetch(`${URL}/api/building_templates`)
+            .then(response => response.json())
+            .then(data => setBuildingTemplates(data));
     }, [])
+
+    console.log(selectedCity);
+
+    console.log(selectedCity?.id);
+
+    useEffect(() => {
+        console.log('fetching city building choices')
+        if (selectedCity?.id) {
+            fetch(`${URL}/api/building_choices/${gameId}/${selectedCity?.id}`).then(response => response.json()).then(data => {
+                console.log(data);
+                setSelectedCityBuildingChoices(data.building_choices);
+            });
+        }
+    }, [selectedCity?.id])
 
     console.log(playersInGame);
 
@@ -265,6 +285,13 @@ export default function GamePage() {
                     <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                 )}
                 {selectedCity && <CityDisplay city={selectedCity} setHoveredUnit={setHoveredUnit} />}
+                {selectedCityBuildingChoices && (
+                    <div className="building-choices-container">
+                        {selectedCityBuildingChoices.map((buildingName, index) => (
+                            <BuildingDisplay key={index} buildingName={buildingName} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} />
+                        ))}
+                    </div>
+                )};
             </div>
         )
     }

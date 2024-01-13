@@ -6,7 +6,7 @@ const TechDisplay = ({ tech, unitTemplates, onClick }) => {
     return (
         <div className="tech-card" onClick={onClick}>
             <h2>{tech.name}</h2>
-            <p>Cost: {tech.cost}</p>
+            <p>Cost: {tech.cost} science</p>
             <div className="unlocked-units">
                 {tech.unlocks_units && tech.unlocks_units.map((unitName, index) => (
                     <UnitDisplay key={index} unit={unitTemplates[unitName]} />

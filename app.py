@@ -17,7 +17,7 @@ from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game
 from game_player import GamePlayer
-from game_state import GameState, update_staged_moves
+from game_state import GameState, update_staged_moves, get_most_recent_game_state
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
@@ -27,6 +27,8 @@ from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
+from building_template import BuildingTemplate
+from building_templates_list import BUILDINGS
 from user import User, add_or_get_user
 from utils import generate_unique_id
 
@@ -416,16 +418,16 @@ def get_building_choices(sess, game_id, city_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state = GameState.from_json(game.game_state)
+    game_state = get_most_recent_game_state(sess, game_id)
 
     city = game_state.cities_by_id.get(city_id)
 
-    civ = city.civ
+    if not city:
+        return jsonify({"error": "City not found"}), 404
 
-    building_choices = civ.get_all_available_buildings()
+    building_choices = city.get_available_buildings(game_state)
 
-
-    return jsonify({})
+    return jsonify({'building_choices': building_choices})
 
 
 @app.route('/api/civ_templates', methods=['GET'])
@@ -445,6 +447,11 @@ def get_unit_templates(sess):
 def get_tech_templates(sess):
     return jsonify({tech_template['name']: TechTemplate.from_json(tech_template).to_json() for tech_template in TECHS.values()})
 
+
+@app.route('/api/building_templates', methods=['GET'])
+@api_endpoint
+def get_building_templates(sess):
+    return jsonify({building_template['name']: BuildingTemplate.from_json(building_template).to_json() for building_template in BUILDINGS.values()})
 
 
 @socketio.on('connect')

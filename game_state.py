@@ -253,6 +253,10 @@ def get_most_recent_game_state_json(sess, game_id: str) -> dict:
     return most_recent_game_state
 
 
+def get_most_recent_game_state(sess, game_id: str) -> GameState:
+    return GameState.from_json(get_most_recent_game_state_json(sess, game_id))
+
+
 def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) -> tuple[GameState, Optional[list[Civ]]]:
     with rlock(f'staged_moves_lock:{game_id}:{player_num}'):
         staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []

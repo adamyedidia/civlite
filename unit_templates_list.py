@@ -12,6 +12,20 @@ UNITS = {
         "mounted": False,
         "abilities": []
     },
+    "Slinger": {
+        "name": "Slinger",
+        "building_name": "Pebble Pile",
+        "type": "military",
+        "metal_cost": 5,
+        "wood_cost": 3,
+        "strength": 4,
+        "movement": 1,
+        "range": 1,
+        "ranged": True,
+        "prereq": None,
+        "mounted": False,
+        "abilities": [],
+    },    
     "Archer": {
         "name": "Archer",
         "building_name": "Bowyer",

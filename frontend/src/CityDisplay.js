@@ -2,6 +2,8 @@ import React from 'react';
 import './CityDisplay.css'; // You will need to create this CSS file
 
 const CityDisplay = ({ city, setHoveredUnit }) => {
+
+
     const handleMouseEnter = (item) => {
         setHoveredUnit(item);
     };
