@@ -28,6 +28,7 @@ class Civ:
         self.vitality = 1.0
         self.city_power = 0.0
         self.available_buildings: list[str] = []
+        self.fill_out_available_buildings()
 
     def has_ability(self, ability_name: str) -> bool:
         return any([ability.name == ability_name for ability in self.template.abilities])
@@ -48,8 +49,11 @@ class Civ:
             "available_buildings": self.available_buildings,
         }
 
+    def fill_out_available_buildings(self) -> None:
+        self.available_buildings = [building["name"] for building in BUILDINGS.values() if (not building.get('prereq')) or self.techs.get(building.get("prereq"))]  # type: ignore
+
     def roll_turn(self, sess, game_state: 'GameState') -> None:
-        self.available_buildings = [building["name"] for building in BUILDINGS if not building.get('prereq') or self.techs.get(building.get("prereq"))]  # type: ignore
+        self.fill_out_available_buildings()
         
         while self.tech_queue and self.tech_queue[0].cost <= self.science:
             self.science -= self.tech_queue[0].cost
@@ -81,6 +85,7 @@ class Civ:
         civ.vitality = json["vitality"]
         civ.city_power = json["city_power"]
         civ.available_buildings = json["available_buildings"][:]
+        civ.fill_out_available_buildings()
 
         return civ
 

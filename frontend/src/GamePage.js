@@ -55,6 +55,8 @@ export default function GamePage() {
 
     console.log(civTemplates);
 
+    console.log(selectedCityBuildingChoices);
+
     const handleClickTech = (tech) => {
 
         const playerInput = {
@@ -100,15 +102,10 @@ export default function GamePage() {
             .then(data => setBuildingTemplates(data));
     }, [])
 
-    console.log(selectedCity);
-
-    console.log(selectedCity?.id);
 
     useEffect(() => {
-        console.log('fetching city building choices')
         if (selectedCity?.id) {
             fetch(`${URL}/api/building_choices/${gameId}/${selectedCity?.id}`).then(response => response.json()).then(data => {
-                console.log(data);
                 setSelectedCityBuildingChoices(data.building_choices);
             });
         }
@@ -287,8 +284,8 @@ export default function GamePage() {
                 {selectedCity && <CityDisplay city={selectedCity} setHoveredUnit={setHoveredUnit} />}
                 {selectedCityBuildingChoices && (
                     <div className="building-choices-container">
-                        {selectedCityBuildingChoices.map((buildingName, index) => (
-                            <BuildingDisplay key={index} buildingName={buildingName} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} />
+                        {selectedCityBuildingChoices.map((buildingChoice, index) => (
+                            <BuildingDisplay key={index} buildingName={buildingChoice.name} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} />
                         ))}
                     </div>
                 )};

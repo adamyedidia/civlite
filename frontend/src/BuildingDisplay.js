@@ -1,7 +1,11 @@
 import React from 'react';
-import UnitDisplay from './UnitDisplay'; // Adjust the path as needed
+import UnitDisplay from './UnitDisplay';
+import './BuildingDisplay.css';
 
 const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplates, onClick }) => {
+    console.log(buildingName);
+    console.log(unitTemplates[buildingName]);
+
     return (
         unitTemplates[buildingName] ? 
             <div className="building-card" onClick={onClick}>

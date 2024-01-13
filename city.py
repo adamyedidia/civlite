@@ -38,6 +38,8 @@ class City:
         self.available_buildings: list[str] = []
         self.capital = False
 
+        self.handle_cleanup()
+
     def has_building(self, building_name: str) -> bool:
         return any([building.template.name == building_name for building in self.buildings])
 
@@ -88,7 +90,7 @@ class City:
         self.build_units(sess, game_state)
         self.build_buildings(sess, game_state)
         self.handle_siege(sess, game_state)
-        self.handle_cleanup(game_state)
+        self.handle_cleanup()
 
     def grow(self) -> None:
         while self.food >= self.growth_cost():
@@ -109,7 +111,7 @@ class City:
             else:
                 self.capture(sess, siege_state, game_state)
 
-    def handle_cleanup(self, game_state: 'GameState') -> None:
+    def handle_cleanup(self) -> None:
         self.available_buildings = [building_name for building_name in self.civ.available_buildings if not self.has_building(building_name)]
 
     def get_available_buildings(self, game_state: 'GameState') -> list[BuildingTemplate]:
@@ -290,6 +292,7 @@ class City:
         city.capital = json["capital"]
         city.buildings_queue = [UnitTemplate.from_json(building) if building.get('strength') else BuildingTemplate.from_json(building) for building in json["buildings_queue"]]
         city.available_buildings = json["available_buildings"][:]
+        city.handle_cleanup()
 
         return city
 

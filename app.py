@@ -427,7 +427,9 @@ def get_building_choices(sess, game_id, city_id):
 
     building_choices = city.get_available_buildings(game_state)
 
-    return jsonify({'building_choices': building_choices})
+    print(building_choices)
+
+    return jsonify({'building_choices': [building_choice.to_json() for building_choice in building_choices]})
 
 
 @app.route('/api/civ_templates', methods=['GET'])
