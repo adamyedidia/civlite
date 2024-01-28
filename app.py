@@ -405,6 +405,8 @@ def enter_player_input(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
+    print(player_input)
+
     game_state, from_civ_perspectives = update_staged_moves(sess, game_id, player_num, [player_input])
 
     return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
@@ -427,7 +429,7 @@ def get_building_choices(sess, game_id, city_id):
 
     building_choices = city.get_available_buildings(game_state)
 
-    print(building_choices)
+    print('choices', building_choices)
 
     return jsonify({'building_choices': [building_choice.to_json() for building_choice in building_choices]})
 

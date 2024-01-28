@@ -13,7 +13,7 @@ import CityIcon from './images/city.svg';
 import TechDisplay from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
 import CityDisplay from './CityDisplay';
-import BuildingDisplay from './BuildingDisplay';
+import BuildingDisplay, { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
 
 export default function GamePage() {
 
@@ -37,6 +37,13 @@ export default function GamePage() {
     const [techTemplates, setTechTemplates] = useState(null);
     const [buildingTemplates, setBuildingTemplates] = useState(null);
 
+    const unitTemplatesByBuildingName = {};
+    Object.values(unitTemplates || {}).forEach(unitTemplate => {
+        if (unitTemplate.building_name) {
+            unitTemplatesByBuildingName[unitTemplate.building_name] = unitTemplate;
+        }
+    });
+
     const [hoveredCiv, setHoveredCiv] = useState(null);
     const [hoveredHex, setHoveredHex] = useState(null);
 
@@ -47,15 +54,45 @@ export default function GamePage() {
     const [selectedCity, setSelectedCity] = useState(null);
 
     const [techChoices, setTechChoices] = useState(null);
-    const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
+    // const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
 
 
-    console.log(selectedCity);
-    console.log(techChoices);
+    const selectedCityBuildingChoices = selectedCity?.available_building_names;
+    const selectedCityBuildingQueue = selectedCity?.buildings_queue;
+    const selectedCityBuildings = selectedCity?.buildings;
 
-    console.log(civTemplates);
+    const refreshSelectedCity = (newGameState) => {
+        if (selectedCity?.id) {
+            setSelectedCity(newGameState.hexes[selectedCity.hex].city);
+        }
+    }
 
-    console.log(selectedCityBuildingChoices);
+    const handleClickBuildingChoice = (buildingName) => {
+        const playerInput = {
+            'building_name': (buildingName),
+            'move_type': 'choose_building',
+            'city_id': selectedCity.id,
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+
+        fetch(`${URL}/api/player_input/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });
+    }
 
     const handleClickTech = (tech) => {
 
@@ -76,7 +113,6 @@ export default function GamePage() {
             body: JSON.stringify(data),
         }).then(response => response.json())
             .then(data => {
-                console.log(data);
                 if (data.game_state) {
                     setGameState(data.game_state);
                     setTechChoices(null);
@@ -103,17 +139,13 @@ export default function GamePage() {
     }, [])
 
 
-    useEffect(() => {
-        if (selectedCity?.id) {
-            fetch(`${URL}/api/building_choices/${gameId}/${selectedCity?.id}`).then(response => response.json()).then(data => {
-                setSelectedCityBuildingChoices(data.building_choices);
-            });
-        }
-    }, [selectedCity?.id])
-
-    console.log(playersInGame);
-
-    console.log(gameState);
+    // useEffect(() => {
+    //     if (selectedCity?.id) {
+    //         fetch(`${URL}/api/building_choices/${gameId}/${selectedCity?.id}`).then(response => response.json()).then(data => {
+    //             setSelectedCityBuildingChoices(data.building_choices);
+    //         });
+    //     }
+    // }, [selectedCity?.id])
 
     const isFriendlyCityHex = (hex) => {
         return isFriendlyCity(hex?.city);
@@ -134,7 +166,6 @@ export default function GamePage() {
     // };
 
     const handleMouseOverCity = (city) => {
-        console.log('mousing over ')
         setHoveredCity(city);
     };
 
@@ -152,7 +183,6 @@ export default function GamePage() {
                 body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
-                    console.log(data);
                     setTechChoices(data.tech_choices);
                     if (data.game_state) {
                         setGameState(data.game_state);
@@ -284,11 +314,31 @@ export default function GamePage() {
                 {selectedCity && <CityDisplay city={selectedCity} setHoveredUnit={setHoveredUnit} />}
                 {selectedCityBuildingChoices && (
                     <div className="building-choices-container">
-                        {selectedCityBuildingChoices.map((buildingChoice, index) => (
-                            <BuildingDisplay key={index} buildingName={buildingChoice.name} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} />
+                        <BriefBuildingDisplayTitle title="Building Choices" />
+                        {selectedCityBuildingChoices.map((buildingName, index) => (
+                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} />
                         ))}
                     </div>
                 )};
+                {selectedCityBuildingQueue && (
+                    <div className="building-queue-container">
+                        <BriefBuildingDisplayTitle title="Building Queue" />
+                        {selectedCityBuildingQueue.map((buildingName, index) => (
+                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} />
+                        ))}
+                    </div>
+                )};                
+                {selectedCityBuildings && (
+                    <div className="existing-buildings-container">
+                        <BriefBuildingDisplayTitle title="Existing buildings" />
+                        {selectedCityBuildings.map((buildingName, index) => (
+                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} />
+                        ))}
+                    </div>
+                )};                    
+                {hoveredBuilding && (
+                    <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
+                )}
             </div>
         )
     }

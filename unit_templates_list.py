@@ -75,3 +75,7 @@ UNITS = {
         }],
     },
 }
+
+UNITS_BY_BUILDING_NAME = {
+    unit_json["building_name"]: unit_json for unit_json in UNITS.values() if unit_json["building_name"] is not None
+}

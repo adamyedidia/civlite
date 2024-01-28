@@ -7,7 +7,7 @@ from civ import Civ
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
-from unit_templates_list import UNITS
+from unit_templates_list import UNITS, UNITS_BY_BUILDING_NAME
 from utils import generate_unique_id
 import random
 
@@ -41,7 +41,10 @@ class City:
         self.handle_cleanup()
 
     def has_building(self, building_name: str) -> bool:
-        return any([building.template.name == building_name for building in self.buildings])
+        return any([(building.template.building_name if hasattr(building.template, 'building_name') else building.template.name) == building_name for building in self.buildings])  # type: ignore
+
+    def building_is_in_queue(self, building_name: str) -> bool:
+        return any([(building.building_name if hasattr(building, 'building_name') else building.name) == building_name for building in self.buildings_queue])  # type: ignore
 
     def harvest_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -111,12 +114,19 @@ class City:
             else:
                 self.capture(sess, siege_state, game_state)
 
-    def handle_cleanup(self) -> None:
-        self.available_buildings = [building_name for building_name in self.civ.available_buildings if not self.has_building(building_name)]
+    def refresh_available_buildings(self) -> None:
+        self.available_buildings = [building_name for building_name in self.civ.available_buildings if not self.has_building(building_name) and not self.building_is_in_queue(building_name)]
 
-    def get_available_buildings(self, game_state: 'GameState') -> list[BuildingTemplate]:
-        building_names_in_queue = [building.name for building in self.buildings_queue]
-        return [BuildingTemplate.from_json(BUILDINGS[building_name]) for building_name in self.available_buildings if not building_name in building_names_in_queue]
+    def handle_cleanup(self) -> None:
+        self.refresh_available_buildings()
+
+    def get_available_buildings(self, game_state: 'GameState') -> list[Union[BuildingTemplate, UnitTemplate]]:
+        building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
+        buildings = [BuildingTemplate.from_json(BUILDINGS[building_name]) for building_name in self.available_buildings if not building_name in building_names_in_queue]
+        unit_buildings = [UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building_name]) for building_name in self.civ.available_unit_buildings if not building_name in building_names_in_queue]
+        return [*buildings, *unit_buildings]
+
+
 
     def build_units(self, sess, game_state: 'GameState') -> None:
         if self.autobuild_unit is not None:
@@ -269,9 +279,10 @@ class City:
             "hex": self.hex.coords if self.hex else None,
             "autobuild_unit": self.autobuild_unit.name if self.autobuild_unit else None,
             "units_queue": [unit.name for unit in self.units_queue],
-            "buildings_queue": [building.name for building in self.buildings_queue],
+            "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
             "buildings": [building.to_json() for building in self.buildings],
             "available_buildings": self.available_buildings,
+            "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings(None)],  # type: ignore
             "capital": self.capital,
         }
 
@@ -290,7 +301,7 @@ class City:
         city.wood = json["wood"]
         city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
         city.capital = json["capital"]
-        city.buildings_queue = [UnitTemplate.from_json(building) if building.get('strength') else BuildingTemplate.from_json(building) for building in json["buildings_queue"]]
+        city.buildings_queue = [UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building]) if building in UNITS_BY_BUILDING_NAME else BuildingTemplate.from_json(BUILDINGS[building]) for building in json["buildings_queue"]]
         city.available_buildings = json["available_buildings"][:]
         city.handle_cleanup()
 

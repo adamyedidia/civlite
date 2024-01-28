@@ -97,3 +97,46 @@
 body {
   background-color: #4488FF; /* Or use a specific blue like #0000FF, rgb(0, 0, 255), etc. */
 }
+
+.building-choices-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* gap: 5px; */
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  /* transform: translate(-50%, -50%); */
+  z-index: 1000; /* Ensure it's above other elements */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-direction: column;
+}
+
+.building-queue-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* gap: 5px; */
+  position: fixed;
+  top: 30%;
+  left: 10px;
+  /* transform: translate(-50%, -50%); */
+  z-index: 1000; /* Ensure it's above other elements */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-direction: column;
+}
+
+.existing-buildings-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* gap: 5px; */
+  position: fixed;
+  top: 60%;
+  left: 10px;
+  /* transform: translate(-50%, -50%); */
+  z-index: 1000; /* Ensure it's above other elements */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-direction: column;
+}
+

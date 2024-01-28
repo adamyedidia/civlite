@@ -16,7 +16,12 @@ BUILDINGS: dict[str, dict] = {
         "name": "Colossus",
         "type": "wonder",
         "cost": 80,
-        "abilities": [],
+        "abilities": [
+            {
+                "name": "UnitsHaveExtraStrength",
+                "numbers": [1],
+            },
+        ],
         "is_wonder": True,
         "vp_reward": 5,
     },

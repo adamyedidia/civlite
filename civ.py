@@ -8,6 +8,7 @@ from game_player import GamePlayer
 from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE
 from tech import Tech
 from tech_template import TechTemplate
+from unit_templates_list import UNITS
 from utils import generate_unique_id
 
 import random
@@ -28,6 +29,7 @@ class Civ:
         self.vitality = 1.0
         self.city_power = 0.0
         self.available_buildings: list[str] = []
+        self.available_unit_buildings: list[str] = []
         self.fill_out_available_buildings()
 
     def has_ability(self, ability_name: str) -> bool:
@@ -47,10 +49,12 @@ class Civ:
             "vitality": self.vitality,
             "city_power": self.city_power,
             "available_buildings": self.available_buildings,
+            "available_unit_buildings": self.available_unit_buildings,
         }
 
     def fill_out_available_buildings(self) -> None:
         self.available_buildings = [building["name"] for building in BUILDINGS.values() if (not building.get('prereq')) or self.techs.get(building.get("prereq"))]  # type: ignore
+        self.available_unit_buildings = [unit.get("building_name") for unit in UNITS.values() if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and unit.get("building_name"))]  # type: ignore
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings()
@@ -85,6 +89,7 @@ class Civ:
         civ.vitality = json["vitality"]
         civ.city_power = json["city_power"]
         civ.available_buildings = json["available_buildings"][:]
+        civ.available_unit_buildings = json["available_unit_buildings"][:]
         civ.fill_out_available_buildings()
 
         return civ

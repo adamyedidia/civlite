@@ -14,6 +14,8 @@ from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
 import random
+from unit_templates_list import UNITS_BY_BUILDING_NAME
+from unit_template import UnitTemplate
 
 
 def get_all_units(hexes: dict[str, Hex]) -> list[Unit]:
@@ -113,10 +115,14 @@ class GameState:
                 city = self.cities_by_id[city_id]
 
 
-                building = BuildingTemplate.from_json(BUILDINGS[building_name])
+                if building_name in UNITS_BY_BUILDING_NAME:
+                    building = UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building_name])
+                else:
+                    building = BuildingTemplate.from_json(BUILDINGS[building_name])
                 city.buildings_queue.append(building)
                 game_player_to_return = game_player
 
+                city.refresh_available_buildings()
 
 
         if game_player_to_return is not None and game_player_to_return.civ_id is not None:
