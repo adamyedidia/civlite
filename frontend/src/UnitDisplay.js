@@ -1,6 +1,35 @@
 import React from 'react';
 import './UnitDisplay.css'; // Assuming you have a separate CSS file for styling
 
+export const BriefUnitDisplayTitle = ({ title }) => {
+    return (
+        <div 
+            className="unit-title-card" 
+        >
+            <span className="unit-name">{title}</span>
+        </div>        
+    );
+}
+
+export const BriefUnitDisplay = ({ unitName, unitTemplates, onClick, setHoveredUnit }) => {
+    const unit = unitTemplates[unitName]
+
+    console.log(unitTemplates)
+    console.log(unitName)
+
+    return (
+        <div 
+            className="brief-unit-card" 
+            onClick={onClick}
+            onMouseEnter={() => setHoveredUnit(unitName)} // set on mouse enter
+            onMouseLeave={() => setHoveredUnit(null)} // clear on mouse leave
+        >
+            <span className="unit-name">{unit?.name}</span>
+            <span className="unit-cost">{unit?.metal_cost} metal</span>
+        </div>
+    );
+};
+
 const UnitDisplay = ({ unit, hover }) => {
     return (
         <div className="unit-card">

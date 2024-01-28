@@ -14,7 +14,7 @@ from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
 import random
-from unit_templates_list import UNITS_BY_BUILDING_NAME
+from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
 
 
@@ -123,6 +123,47 @@ class GameState:
                 game_player_to_return = game_player
 
                 city.refresh_available_buildings()
+
+            if move['move_type'] == 'cancel_building':
+                building_name = move['building_name']
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                city_id = move['city_id']
+                city = self.cities_by_id[city_id]
+
+                for i, building in enumerate(city.buildings_queue):
+                    if building.name == building_name or hasattr(building, 'building_name') and building.building_name == building_name:  # type: ignore
+                        city.buildings_queue.pop(i)
+                        break
+
+                game_player_to_return = game_player
+
+                city.refresh_available_buildings()
+
+            if move['move_type'] == 'choose_unit':
+                unit_name = move['unit_name']
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                city_id = move['city_id']
+                city = self.cities_by_id[city_id]
+
+                unit = UnitTemplate.from_json(UNITS[unit_name])
+                city.units_queue.append(unit)
+                game_player_to_return = game_player
+
+            if move['move_type'] == 'cancel_unit':
+                unit_index_in_queue = move['unit_index_in_queue']
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                city_id = move['city_id']
+                city = self.cities_by_id[city_id]
+
+                city.units_queue.pop(unit_index_in_queue)
+
+                game_player_to_return = game_player
 
 
         if game_player_to_return is not None and game_player_to_return.civ_id is not None:

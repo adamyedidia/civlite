@@ -79,3 +79,7 @@ UNITS = {
 UNITS_BY_BUILDING_NAME = {
     unit_json["building_name"]: unit_json for unit_json in UNITS.values() if unit_json["building_name"] is not None
 }
+
+PRODUCTION_BUILDINGS_BY_UNIT_NAME = {
+    unit_json["name"]: unit_json["building_name"] for unit_json in UNITS.values() if unit_json["building_name"] is not None
+}

@@ -140,3 +140,45 @@ body {
   flex-direction: column;
 }
 
+.unit-choices-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* gap: 5px; */
+  position: fixed;
+  top: 10px;
+  left: 20%;
+  /* transform: translate(-50%, -50%); */
+  z-index: 1000; /* Ensure it's above other elements */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-direction: column;
+}
+
+.unit-queue-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* gap: 5px; */
+  position: fixed;
+  top: 30%;
+  left: 20%;
+  /* transform: translate(-50%, -50%); */
+  z-index: 1000; /* Ensure it's above other elements */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-direction: column;
+}
+
+.existing-units-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  /* gap: 5px; */
+  position: fixed;
+  top: 60%;
+  left: 20%;
+  /* transform: translate(-50%, -50%); */
+  z-index: 1000; /* Ensure it's above other elements */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-direction: column;
+}
+

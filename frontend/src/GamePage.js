@@ -14,6 +14,7 @@ import TechDisplay from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
 import CityDisplay from './CityDisplay';
 import BuildingDisplay, { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
+import UnitDisplay, {BriefUnitDisplay, BriefUnitDisplayTitle} from './UnitDisplay';
 
 export default function GamePage() {
 
@@ -61,6 +62,9 @@ export default function GamePage() {
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
     const selectedCityBuildings = selectedCity?.buildings;
 
+    const selectedCityUnitChoices = selectedCity?.available_units;
+    const selectedCityUnitQueue = selectedCity?.units_queue;
+
     const refreshSelectedCity = (newGameState) => {
         if (selectedCity?.id) {
             setSelectedCity(newGameState.hexes[selectedCity.hex].city);
@@ -71,6 +75,87 @@ export default function GamePage() {
         const playerInput = {
             'building_name': (buildingName),
             'move_type': 'choose_building',
+            'city_id': selectedCity.id,
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+
+        fetch(`${URL}/api/player_input/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });
+    }
+
+    const handleCancelBuilding = (buildingName) => {
+        const playerInput = {
+            'building_name': (buildingName),
+            'move_type': 'cancel_building',
+            'city_id': selectedCity.id,
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+
+        fetch(`${URL}/api/player_input/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });
+    }
+
+    const handleClickUnitChoice = (unitName) => {
+        const playerInput = {
+            'unit_name': (unitName),
+            'move_type': 'choose_unit',
+            'city_id': selectedCity.id,
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+
+        fetch(`${URL}/api/player_input/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });
+    }
+
+    const handleCancelUnit = (unitIndex) => {
+        const playerInput = {
+            'unit_index_in_queue': unitIndex,
+            'move_type': 'cancel_unit',
             'city_id': selectedCity.id,
         }
 
@@ -324,7 +409,7 @@ export default function GamePage() {
                     <div className="building-queue-container">
                         <BriefBuildingDisplayTitle title="Building Queue" />
                         {selectedCityBuildingQueue.map((buildingName, index) => (
-                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} />
+                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)}/>
                         ))}
                     </div>
                 )};                
@@ -335,7 +420,23 @@ export default function GamePage() {
                             <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} />
                         ))}
                     </div>
-                )};                    
+                )};  
+                {selectedCityUnitChoices && (
+                    <div className="unit-choices-container">
+                        <BriefUnitDisplayTitle title="Unit Choices" />
+                        {selectedCityUnitChoices.map((unitName, index) => (
+                            <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)} />
+                        ))}
+                    </div>
+                )};
+                {selectedCityUnitQueue && (
+                    <div className="unit-queue-container">
+                        <BriefUnitDisplayTitle title="Unit Queue" />
+                        {selectedCityUnitQueue.map((unitName, index) => (
+                            <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
+                        ))}
+                    </div>
+                )};                                               
                 {hoveredBuilding && (
                     <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
                 )}

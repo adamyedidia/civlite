@@ -13,3 +13,40 @@
 .unit-card p {
     margin: 5px 0;
 }
+
+.unit-title-card {
+    border: 1px solid #ddd;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+    background-color: #bbbbbb;
+    max-width: 20vw; /* Adjust as needed */
+    display: flex; /* Display content in a line */
+    justify-content: space-between; /* Distribute space evenly between the elements */
+    align-items: center; /* Align items vertically in the center */
+    font-size: 1.2em; /* Smaller font size */
+    font-weight: bold; /* Make the text bold */
+}
+
+
+.brief-unit-card {
+    border: 1px solid #ddd;
+    padding: 5px;
+    margin: 5px;
+    border-radius: 5px;
+    background-color: #bbbbbb;
+    cursor: pointer;
+    max-width: 20vw; /* Adjust as needed */
+    display: flex; /* Display content in a line */
+    justify-content: space-between; /* Distribute space evenly between the elements */
+    align-items: center; /* Align items vertically in the center */
+    font-size: 1.2em; /* Smaller font size */
+}
+
+.brief-unit-card .unit-name {
+    margin-right: 15px; /* Adjust as needed */
+}
+
+.brief-unit-card:hover {
+    border: 2px solid black; /* Thicker black border on hover */
+}
