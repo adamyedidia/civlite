@@ -251,9 +251,9 @@ class GameState:
                 .scalar()
             ) or 0
 
-            print('turn num', self.turn_num)
-            print('highest existing', highest_existing_frame_num)
-            print('player num', game_player.player_num)
+            # print('turn num', self.turn_num)
+            # print('highest existing', highest_existing_frame_num)
+            # print('player num', game_player.player_num)
 
             frame = AnimationFrame(
                 game_id=self.game_id,
@@ -262,6 +262,26 @@ class GameState:
                 player_num=game_player.player_num,
                 data=data,
                 game_state=self.to_json(from_civ_perspectives=[civ]),
+            )
+
+            sess.add(frame)
+
+        elif civ is None:
+            highest_existing_frame_num = (
+                sess.query(func.max(AnimationFrame.frame_num))
+                .filter(AnimationFrame.game_id == self.game_id)
+                .filter(AnimationFrame.turn_num == self.turn_num)
+                .filter(AnimationFrame.player_num == None)
+                .scalar()
+            ) or 0
+
+            frame = AnimationFrame(
+                game_id=self.game_id,
+                turn_num=self.turn_num,
+                frame_num=highest_existing_frame_num + 1,
+                player_num=None,
+                data=data,
+                game_state=self.to_json(),
             )
 
             sess.add(frame)

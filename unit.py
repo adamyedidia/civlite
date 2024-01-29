@@ -181,7 +181,6 @@ class Unit:
         return {
             "id": self.id,
             "name": self.template.name,
-            "strength": self.template.strength,
             "health": self.health,
             "civ": self.civ.to_json(),
             "target": self.target,
@@ -196,7 +195,6 @@ class Unit:
             civ=Civ.from_json(json["civ"]),
         )
         unit.id = json["id"]
-        unit.attack = json["attack"]
         unit.health = json["health"]
         unit.has_moved = json["has_moved"]
         unit.target = json["target"]
