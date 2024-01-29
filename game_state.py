@@ -265,6 +265,7 @@ class GameState:
             )
 
             sess.add(frame)
+            sess.commit()
 
         elif civ is None:
             highest_existing_frame_num = (
@@ -285,16 +286,15 @@ class GameState:
             )
 
             sess.add(frame)
+            sess.commit()
 
     def add_animation_frame(self, sess, data: dict[str, Any], hexes_must_be_visible: Optional[list[Hex]] = None) -> None:
         self.add_animation_frame_for_civ(sess, data, None)
-        sess.commit()
 
         for civ in self.civs_by_id.values():
             if hexes_must_be_visible is None or any(hex.visibility_by_civ.get(civ.id) for hex in hexes_must_be_visible):
                 self.add_animation_frame_for_civ(sess, data, civ)
 
-                sess.commit()
 
     def get_civ_by_name(self, civ_name: str) -> Civ:
         for civ in self.civs_by_id.values():

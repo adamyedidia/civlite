@@ -28,6 +28,10 @@ export const BriefUnitDisplay = ({ unitName, unitTemplates, onClick, setHoveredU
 };
 
 const UnitDisplay = ({ unit, hover }) => {
+    if (!unit) {
+        return null;
+    }
+
     return (
         <div className="unit-card">
             <h2>{unit.name}</h2>

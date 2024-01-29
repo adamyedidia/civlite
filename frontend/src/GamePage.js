@@ -311,7 +311,7 @@ export default function GamePage() {
     };
 
 
-    const City = ({ city, isHovered, isSelected }) => {
+    const City = ({ city, isHovered, isSelected, isUnitInHex }) => {
         const primaryColor = civTemplates[city.civ.name]?.primary_color;
         const secondaryColor = civTemplates[city.civ.name]?.secondary_color;
         const population = city.population;
@@ -321,11 +321,11 @@ export default function GamePage() {
     
         return (
             <>
-                {isHovered && <circle cx="0" cy="0" r="1.5" fill="none" stroke="white" strokeWidth="0.2"/>}
-                {isSelected && <circle cx="0" cy="0" r="1.5" fill="none" stroke="black" strokeWidth="0.2"/>}
-                <svg width="2" height="2" viewBox="0 0 2 2" x={-1} y={-1} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} style={{...(pointer ? {cursor : 'pointer'} : {})}}>
-                    <rect width="2" height="2" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
-                    <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fontSize="0.1" fill="black">
+                {isHovered && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="white" strokeWidth="0.2"/>}
+                {isSelected && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="black" strokeWidth="0.2"/>}
+                <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} style={{...(pointer ? {cursor : 'pointer'} : {})}}>
+                    <rect width="3" height="3" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
+                    <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fontSize="0.1" fill="white">
                         {population}
                     </text>
                 </svg>
@@ -333,6 +333,25 @@ export default function GamePage() {
         );
     };
 
+    const Unit = ({ unit, isCityInHex }) => {
+        const primaryColor = civTemplates[unit.civ.name]?.primary_color;
+        const secondaryColor = civTemplates[unit.civ.name]?.secondary_color;
+        const unitImage = `/images/${unit.name}.svg`; // Path to the unit SVG image
+    
+        const scale = isCityInHex ? 0.95 : 1.4;
+        const healthPercentage = unit.health / 100; // Calculate health as a percentage
+        const healthBarColor = unit.health > 50 ? '#00ff00' : '#ff0000'; // Set color based on health
+    
+        return (
+            <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (isCityInHex ? 1 : 0)}>
+                <circle cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
+                <image href={unitImage} x={`${scale}`} y={`${scale}`} height={`${2*scale}`} width={`${2*scale}`} fill={primaryColor} stroke={secondaryColor} />
+                <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" /> {/* Total health bar */}
+                <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" /> {/* Current health bar */}
+            </svg>          
+        );
+    };
+    
     function greyOutHexColor(hexColor, targetGrey = '#777777') {
         // Convert hex to RGB
         function hexToRgb(hex) {
@@ -390,6 +409,9 @@ export default function GamePage() {
         if (hex.city) {
             setHoveredCiv(civTemplates[hex.city.civ.name]);
         }
+        if (hex?.units?.length > 0) {
+            setHoveredUnit(hex?.units?.[0]);
+        }
         else {
             setHoveredCiv(null);
             setHoveredCity(null);
@@ -408,20 +430,28 @@ export default function GamePage() {
             <div className="basic-example">
                 <HexGrid width={2000} height={2000}>
                 <Layout size={{ x: 3, y: 3 }}>
-                    {hexagons.map((hex, i) => (
-                        <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
-                                 cellStyle={hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
-                                 onClick={() => handleClickHex(hex)} 
-                                 onMouseOver={() => handleMouseOverHex(hex)}
-                                 onMouseLeave={() => handleMouseLeaveHex(hex)}>
-                            {hex.yields ? <YieldImages yields={hex.yields} /> : null}
-                            {hex.city && <City 
-                                city={hex.city}
-                                isHovered={hex?.city?.id === hoveredCity?.id}
-                                isSelected={hex?.city?.id === selectedCity?.id}                                
-                            />}
-                        </Hexagon>
-                    ))}
+                    {hexagons.map((hex, i) => {
+                        console.log(hex);
+                        return (
+                            <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
+                                    cellStyle={hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
+                                    onClick={() => handleClickHex(hex)} 
+                                    onMouseOver={() => handleMouseOverHex(hex)}
+                                    onMouseLeave={() => handleMouseLeaveHex(hex)}>
+                                {hex.yields ? <YieldImages yields={hex.yields} /> : null}
+                                {hex.city && <City 
+                                    city={hex.city}
+                                    isHovered={hex?.city?.id === hoveredCity?.id}
+                                    isSelected={hex?.city?.id === selectedCity?.id}  
+                                    isUnitInHex={hex?.units?.length > 0}                              
+                                />}
+                                {hex?.units?.length > 0 && <Unit
+                                    unit={hex.units[0]}
+                                    isCityInHex={hex?.city}
+                                />}
+                            </Hexagon>
+                        );
+                    })}
                 </Layout>         
                 </HexGrid>
                 {hoveredCiv && <CivDisplay civ={hoveredCiv} />}
