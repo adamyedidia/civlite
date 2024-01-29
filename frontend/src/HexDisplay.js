@@ -83,6 +83,7 @@ const HexDisplay = ({ hoveredHex, unitTemplates }) => {
                     <UnitDisplay key={index} unit={unitTemplates[unit]} />
                 ))}
             </div>
+            {`${hoveredHex.q}, ${hoveredHex.r}, ${hoveredHex.s}`}
         </div>
     );
 };

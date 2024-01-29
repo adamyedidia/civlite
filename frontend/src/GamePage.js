@@ -1349,7 +1349,7 @@ export default function GamePage() {
 
     const selectedCityBuildingChoices = selectedCity?.available_building_names;
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
-    const selectedCityBuildings = selectedCity?.buildings.map(building => building.name);
+    const selectedCityBuildings = selectedCity?.buildings?.map(building => building.name) || [];
 
     const selectedCityUnitChoices = selectedCity?.available_units;
     const selectedCityUnitQueue = selectedCity?.units_queue;
@@ -1568,6 +1568,10 @@ export default function GamePage() {
         console.log(fromHexClientRef);
         console.log(toHexClientRef);
 
+        if (!fromHexClientRef || !toHexClientRef) {
+            return;
+        }
+
         const dx = toHexClientRef.left - fromHexClientRef.left;
         const dy = toHexClientRef.top - fromHexClientRef.top;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -1762,6 +1766,19 @@ export default function GamePage() {
                     <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fontSize="0.1" fill="white">
                         {population}
                     </text>
+                </svg>
+            </>
+        );
+    };
+
+    const Camp = ({ camp, isUnitInHex }) => {
+        const primaryColor = 'red';
+        const secondaryColor = 'black';
+    
+        return (
+            <>
+                <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5} onMouseEnter={() => handleMouseOverCity(camp)} onClick={() => handleClickCity(camp)}>
+                    <polygon points="1.5,0 3,3 0,3" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
                 </svg>
             </>
         );
@@ -2013,9 +2030,13 @@ export default function GamePage() {
                                         isSelected={hex?.city?.id === selectedCity?.id}  
                                         isUnitInHex={hex?.units?.length > 0}                              
                                     />}
+                                    {hex.camp && <Camp
+                                        camp={hex.camp}
+                                        isUnitInHex={hex?.units?.length > 0}
+                                    />}
                                     {hex?.units?.length > 0 && <Unit
                                         unit={hex.units[0]}
-                                        isCityInHex={hex?.city}
+                                        isCityInHex={hex?.city || hex?.camp}
                                     />}
                                     {target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
                                     {target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker />}
