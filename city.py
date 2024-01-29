@@ -292,7 +292,9 @@ class City:
                 self.hex.yields.increase(civ.numbers_of_ability('IncreaseCapitalYields')[0],
                                             civ.numbers_of_ability('IncreaseCapitalYields')[1])
                 
-                                    
+    def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
+        self.civ = civs_by_id[self.civ.id]
+        self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
 
     def to_json(self) -> dict:
         return {

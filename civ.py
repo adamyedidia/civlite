@@ -69,11 +69,11 @@ class Civ:
         while self.tech_queue and self.tech_queue[0].cost <= self.science:
             self.science -= self.tech_queue[0].cost
             self.techs[self.tech_queue[0].name] = True
-            self.tech_queue.pop(0)
+            tech = self.tech_queue.pop(0)
 
             game_state.add_animation_frame_for_civ(sess, {
                 "type": "TechResearched",
-                "tech": self.tech_queue[0].name,
+                "tech": tech.name,
             }, self)
 
         if self.vitality > 1:

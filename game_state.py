@@ -49,12 +49,12 @@ class GameState:
         self.units = get_all_units(hexes)
         self.cities_by_id: dict[str, City] = get_all_cities(hexes)
         self.camps = get_all_camps(hexes)
-        self.civs_by_id: dict[str, Civ] = {}
+        self.barbarians: Civ = Civ(CivTemplate.from_json(BARBARIAN_CIV["Barbarians"]), None)  
+        self.civs_by_id: dict[str, Civ] = {self.barbarians.id: self.barbarians}
         self.turn_num = 1
         self.game_player_by_player_num: dict[int, GamePlayer] = {}
         self.wonders_built: dict[str, bool] = {}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
-        self.barbarians: Civ = Civ(CivTemplate.from_json(BARBARIAN_CIV["Barbarians"]), None)
 
     def set_unit_and_city_hexes(self) -> None:
         for hex in self.hexes.values():
@@ -168,15 +168,12 @@ class GameState:
 
             if move['move_type'] == 'set_civ_primary_target':
                 target_coords = move['target_coords']
-                print(target_coords)
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
                 civ = self.civs_by_id[game_player.civ_id]
                 civ.target1_coords = target_coords
                 civ.target1 = self.hexes[target_coords]                
                 game_player_to_return = game_player
-
-                print('target1', civ.target1)
 
             if move['move_type'] == 'set_civ_secondary_target':
                 target_coords = move['target_coords']
@@ -212,7 +209,7 @@ class GameState:
 
     def refresh_visibility_by_civ(self, short_sighted: bool = False) -> None:
         for hex in self.hexes.values():
-            hex.visibility_by_civ = {}
+            hex.visibility_by_civ.clear()
 
         for unit in self.units:
             unit.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
@@ -255,6 +252,11 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.roll_turn(sess, self)
 
+        for unit in units_copy:
+            unit.has_moved = False
+
+        self.refresh_visibility_by_civ()
+
         self.add_animation_frame(sess, {
             "type": "StartOfNewTurn",
         })
@@ -287,10 +289,6 @@ class GameState:
                 .filter(AnimationFrame.player_num == game_player.player_num)
                 .scalar()
             ) or 0
-
-            # print('turn num', self.turn_num)
-            # print('highest existing', highest_existing_frame_num)
-            # print('player num', game_player.player_num)
 
             frame = AnimationFrame(
                 game_id=self.game_id,
@@ -348,6 +346,7 @@ class GameState:
             "turn_num": self.turn_num,
             "wonders_built": self.wonders_built,
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
+            "barbarians": self.barbarians.to_json(),
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
@@ -362,6 +361,9 @@ class GameState:
         hexes = {key: Hex.from_json(hex_json) for key, hex_json in json["hexes"].items()}
         game_state = GameState(game_id=json["game_id"], hexes=hexes)
         game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs_by_id"].items()}
+        game_state.barbarians = Civ.from_json(json["barbarians"])
+        for hex in game_state.hexes.values():
+            hex.update_civ_by_id(game_state.civs_by_id)
         game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}
         game_state.turn_num = json["turn_num"]
         game_state.wonders_built = json["wonders_built"].copy()
@@ -377,7 +379,7 @@ def get_most_recent_game_state_json(sess, game_id: str) -> dict:
         .filter(AnimationFrame.game_id == game_id)
         .filter(AnimationFrame.player_num == None)
         .order_by(AnimationFrame.turn_num.desc())
-        .order_by(AnimationFrame.frame_num.asc())
+        .order_by(AnimationFrame.frame_num.desc())
         .first()
     )
 

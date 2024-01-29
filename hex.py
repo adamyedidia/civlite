@@ -117,6 +117,14 @@ class Hex:
     def is_occupied(self, unit_type: str, civ: Civ) -> bool:
         return any(unit.template.type == unit_type or unit.civ.template.name != civ.template.name for unit in self.units)
 
+    def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
+        for unit in self.units:
+            unit.update_civ_by_id(civs_by_id)
+        if self.city:
+            self.city.update_civ_by_id(civs_by_id)
+        if self.camp:
+            self.camp.update_civ_by_id(civs_by_id)          
+
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         return {
             "q": self.q,

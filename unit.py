@@ -1,5 +1,5 @@
 from math import sqrt
-from random import random
+from random import random, shuffle
 from typing import TYPE_CHECKING, Optional
 from animation_frame import AnimationFrame
 from civ import Civ
@@ -173,7 +173,9 @@ class Unit:
         closest_target = self.get_closest_target()
         if self.hex is not None and closest_target is not None:
             neighbors = self.hex.get_neighbors(game_state.hexes)
-            random.shuffle(neighbors)
+            shuffle(neighbors)
+
+
             for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
 
                 if sensitive:
@@ -198,6 +200,9 @@ class Unit:
             self.hex.remove_unit(self)
         self.hex = hex
         hex.units.append(self)
+
+    def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
+        self.civ = civs_by_id[self.civ.id]
 
     def to_json(self) -> dict:
         return {

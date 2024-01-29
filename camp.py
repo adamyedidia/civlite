@@ -133,6 +133,9 @@ class Camp:
 
         self.hex = None
 
+    def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
+        self.civ = civs_by_id[self.civ.id]
+        self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None            
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         if game_state.turn_num % 2 == 0:
