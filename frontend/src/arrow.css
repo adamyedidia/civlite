@@ -1,0 +1,18 @@
+.arrow {
+    height: 8px; /* Adjust this to change the thickness of the arrow */
+    background-image: linear-gradient(to right, rgba(0, 0, 255, 0.5), blue);
+}
+  
+.arrow:after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 100%;
+    margin-top: -20px; /* Adjust this to change the vertical position of the arrow head */
+    margin-left: -16px; /* Adjust this to change the horizontal position of the arrow head */
+    width: 0;
+    height: 0;
+    border: 20px solid transparent; /* Adjust this to change the size of the arrow head */
+    border-left-color: blue;
+    transform: rotate(0deg);
+}

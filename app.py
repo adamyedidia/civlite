@@ -358,7 +358,8 @@ def get_latest_turn_movie(sess, game_id):
                 game_state_json = game_state.to_json(from_civ_perspectives=[player_civ])
 
     return jsonify({
-        'animation_frames': [*[animation_frame.game_state for animation_frame in animation_frames], *([game_state_json] if game_state_json else [])], 
+        'animation_frames': [*[{'game_state': animation_frame.game_state, 'data': animation_frame.data} for animation_frame in animation_frames], 
+                             *([{'game_state': game_state_json, 'data': {}}] if game_state_json else [])], 
         'turn_num': turn_num,
     })
 
