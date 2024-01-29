@@ -71,6 +71,18 @@ export default function GamePage() {
         }
     }
 
+    useEffect(() => {
+        if (!!hoveredBuilding) {
+            setHoveredUnit(null);
+        }
+    }, [!!hoveredBuilding])
+
+    useEffect(() => {
+        if (!!hoveredUnit) {
+            setHoveredBuilding(null);
+        }
+    }, [!!hoveredUnit])
+
     const handleClickEndTurn = () => {
         const data = {
             player_num: playerNum,
@@ -456,10 +468,15 @@ export default function GamePage() {
                             <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
                         ))}
                     </div>
-                )};                                               
-                {hoveredBuilding && (
-                    <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
-                )}
+                )};                  
+                <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
+                    {hoveredBuilding && (
+                        <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
+                    )}
+                    {hoveredUnit && (
+                        <UnitDisplay unit={unitTemplates[hoveredUnit]} />
+                    )}                
+                </div>
                 <Button 
                     style={{
                         position: 'fixed', 

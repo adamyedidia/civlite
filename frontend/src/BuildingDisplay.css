@@ -38,9 +38,9 @@
     border-radius: 5px;
     background-color: #e0b096;
     cursor: pointer;
-    position: fixed;
-    right: 32vw; /* Adjust the right margin as needed */
-    top: 10px; /* Adjust the top margin as needed */
+    /* position: fixed;
+    right: 32vw; 
+    top: 10px;  */
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 5px;
