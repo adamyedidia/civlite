@@ -16,6 +16,14 @@ import CityDisplay from './CityDisplay';
 import BuildingDisplay, { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
 import UnitDisplay, {BriefUnitDisplay, BriefUnitDisplayTitle} from './UnitDisplay';
 
+const coordsToObject = (coords) => {
+    if (!coords) {
+        return null;
+    }
+    const [q, r, s] = coords.split(',').map(coord => parseInt(coord));
+    return {q: q, r: r, s: s};
+}
+
 export default function GamePage() {
 
     const { gameId } = useParams();
@@ -55,6 +63,20 @@ export default function GamePage() {
     const [selectedCity, setSelectedCity] = useState(null);
 
     const [techChoices, setTechChoices] = useState(null);
+
+    const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
+
+    const myCivId = gameState?.game_player_by_player_num?.[playerNum]?.civ_id;
+    const myCiv = gameState?.civs_by_id?.[myCivId];
+    const target1 = coordsToObject(myCiv?.target1);
+    const target2 = coordsToObject(myCiv?.target2);
+
+    console.log(myCivId);
+
+    console.log(myCiv);
+
+    console.log(gameState);
+
     // const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
 
 
@@ -115,6 +137,8 @@ export default function GamePage() {
             player_input: playerInput,
         }
 
+        setHoveredBuilding(null);
+
         fetch(`${URL}/api/player_input/${gameId}`, {
             method: 'POST',
             headers: {
@@ -141,6 +165,8 @@ export default function GamePage() {
             player_num: playerNum,
             player_input: playerInput,
         }
+
+        setHoveredBuilding(null);
 
         fetch(`${URL}/api/player_input/${gameId}`, {
             method: 'POST',
@@ -307,7 +333,12 @@ export default function GamePage() {
                 });
         
         }
-        setSelectedCity(city);
+        if (city.id === selectedCity?.id) {
+            setSelectedCity(null);
+        }
+        else {
+            setSelectedCity(city);
+        }
     };
 
 
@@ -351,7 +382,15 @@ export default function GamePage() {
             </svg>          
         );
     };
-    
+
+    const TargetMarker = ({ }) => {
+        return (
+            <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={-1.5}>
+                <image href="/images/flag.svg" x="0" y="0" height="3" width="3" />
+            </svg>
+        );
+    };
+
     function greyOutHexColor(hexColor, targetGrey = '#777777') {
         // Convert hex to RGB
         function hexToRgb(hex) {
@@ -409,19 +448,102 @@ export default function GamePage() {
         if (hex.city) {
             setHoveredCiv(civTemplates[hex.city.civ.name]);
         }
-        if (hex?.units?.length > 0) {
-            setHoveredUnit(hex?.units?.[0]);
+        else if (hex?.units?.length > 0) {
+            setHoveredUnit(hex?.units?.[0]?.name);
+            setHoveredCiv(civTemplates[hex?.units?.[0]?.civ.name]);
         }
         else {
             setHoveredCiv(null);
             setHoveredCity(null);
+            setHoveredUnit(null);
         }
     };
 
+    const hexesAreEqual = (hex1, hex2) => {
+        return hex1?.q === hex2?.q && hex1?.r === hex2?.r && hex1?.s === hex2?.s;
+    }
+
     const handleClickHex = (hex) => {
         setHoveredCity(null);
-        // setSelectedCity(null);
+
+        if (hexesAreEqual(hex, target1)) {
+            removeTarget(false);
+            return;
+        }
+
+        if (hexesAreEqual(hex, target2)) {
+            removeTarget(true);
+            return;
+        }
+
+        if ((!hex.city) || (hex?.city?.civ?.id !== myCivId)) {
+            setTarget(hex, !target1 ? false : !target2 ? true : lastSetPrimaryTarget ? true : false);
+        }
     };
+
+    const setTarget = (hex, isSecondary) => {
+        if (!myCivId) return;
+
+        if (isSecondary) {
+            setLastSetPrimaryTarget(false);
+        }
+        else {
+            setLastSetPrimaryTarget(true);
+        }
+
+        const playerInput = {
+            'move_type': `set_civ_${isSecondary ? "secondary" : "primary"}_target`,
+            'target_coords': `${hex.q},${hex.r},${hex.s}`,
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+
+        fetch(`${URL}/api/player_input/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });
+    }
+
+    const removeTarget = (isSecondary) => {
+        if (!myCivId) return;
+
+        const playerInput = {
+            'move_type': `remove_civ_${isSecondary ? "secondary" : "primary"}_target`,
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+
+        fetch(`${URL}/api/player_input/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });
+    }
 
     const displayGameState = (gameState) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
@@ -431,25 +553,37 @@ export default function GamePage() {
                 <HexGrid width={2000} height={2000}>
                 <Layout size={{ x: 3, y: 3 }}>
                     {hexagons.map((hex, i) => {
-                        console.log(hex);
+                        // console.log(hex?.q, hex?.r, hex?.s)
+                        // console.log(target1?.q, target1?.r, target1?.s)
+                        // console.log(hex?.q === target1?.q, hex?.r === target1?.r, hex?.s === target1?.s)
+
                         return (
-                            <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
-                                    cellStyle={hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
-                                    onClick={() => handleClickHex(hex)} 
-                                    onMouseOver={() => handleMouseOverHex(hex)}
-                                    onMouseLeave={() => handleMouseLeaveHex(hex)}>
-                                {hex.yields ? <YieldImages yields={hex.yields} /> : null}
-                                {hex.city && <City 
-                                    city={hex.city}
-                                    isHovered={hex?.city?.id === hoveredCity?.id}
-                                    isSelected={hex?.city?.id === selectedCity?.id}  
-                                    isUnitInHex={hex?.units?.length > 0}                              
-                                />}
-                                {hex?.units?.length > 0 && <Unit
-                                    unit={hex.units[0]}
-                                    isCityInHex={hex?.city}
-                                />}
-                            </Hexagon>
+                            // <div 
+                            //     onContextMenu={(e) => {
+                            //         e.preventDefault(); // Prevent the browser's context menu from showing up
+                            //         handleRightClickHex(hex); // Call your right-click handler
+                            //     }}
+                            // >
+                                <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
+                                        cellStyle={hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
+                                        onClick={() => handleClickHex(hex)} 
+                                        onMouseOver={() => handleMouseOverHex(hex)}
+                                        onMouseLeave={() => handleMouseLeaveHex(hex)}>
+                                    {hex.yields ? <YieldImages yields={hex.yields} /> : null}
+                                    {hex.city && <City 
+                                        city={hex.city}
+                                        isHovered={hex?.city?.id === hoveredCity?.id}
+                                        isSelected={hex?.city?.id === selectedCity?.id}  
+                                        isUnitInHex={hex?.units?.length > 0}                              
+                                    />}
+                                    {hex?.units?.length > 0 && <Unit
+                                        unit={hex.units[0]}
+                                        isCityInHex={hex?.city}
+                                    />}
+                                    {target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
+                                    {target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker />}
+                                </Hexagon>
+                            // </div>
                         );
                     })}
                 </Layout>         

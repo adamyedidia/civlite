@@ -28,7 +28,6 @@ class City:
         self.metal = 0.0
         self.wood = 0.0
         self.focus = 'food'
-        self.target: Optional['Hex'] = None
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
         self.autobuild_unit: Optional[UnitTemplate] = None
@@ -149,6 +148,28 @@ class City:
                     self.build_unit(sess, game_state, unit)
                     self.metal -= unit.metal_cost
 
+    def get_closest_target(self) -> Optional['Hex']:
+        if not self.hex:
+            return None
+
+        target1 = self.civ.target1
+        target2 = self.civ.target2
+
+        if target1 is None and target2 is None:
+            return None
+        
+        if target1 is None:
+            return target2
+        
+        if target2 is None:
+            return target1
+        
+        if self.hex.distance_to(target1) <= self.hex.distance_to(target2):
+            return target1
+        else:
+            return target2
+
+
     def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate) -> bool:
         if not self.hex:
             return False
@@ -162,7 +183,7 @@ class City:
 
         for hex in self.hex.get_neighbors(game_state.hexes):
             if not hex.is_occupied(unit.type, self.civ):
-                distance_from_target = hex.distance_to(self.target or self.hex)
+                distance_from_target = hex.distance_to(self.get_closest_target() or self.hex)
                 if distance_from_target < best_hex_distance_from_target:
                     best_hex = hex
                     best_hex_distance_from_target = distance_from_target
@@ -170,7 +191,7 @@ class City:
         if best_hex is None:
             for hex in self.hex.get_distance_2_hexes(game_state.hexes):
                 if not hex.is_occupied(unit.type, self.civ):
-                    distance_from_target = hex.distance_to(self.target or self.hex)
+                    distance_from_target = hex.distance_to(self.get_closest_target() or self.hex)
                     if distance_from_target < best_hex_distance_from_target:
                         best_hex = hex
                         best_hex_distance_from_target = distance_from_target            
@@ -239,7 +260,7 @@ class City:
         for hex in self.hex.get_neighbors(game_state.hexes):
             for unit in hex.units:
                 if unit.template.type == 'military':
-                    num_neighboring_units_by_civ_name[unit.civ.id] += 1
+                    num_neighboring_units_by_civ_name[unit.civ.template.name] += 1
 
         for civ_name, num_neighboring_units in num_neighboring_units_by_civ_name.items():
             if num_neighboring_units >= 4:

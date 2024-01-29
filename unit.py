@@ -20,8 +20,28 @@ class Unit:
         self.health = 100
         self.civ = civ
         self.has_moved = False
-        self.target: Optional['Hex'] = None
         self.hex: Optional['Hex'] = None
+
+    def get_closest_target(self) -> Optional['Hex']:
+        if not self.hex:
+            return None
+
+        target1 = self.civ.target1
+        target2 = self.civ.target2
+
+        if target1 is None and target2 is None:
+            return None
+        
+        if target1 is None:
+            return target2
+        
+        if target2 is None:
+            return target1
+        
+        if self.hex.distance_to(target1) <= self.hex.distance_to(target2):
+            return target1
+        else:
+            return target2
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
@@ -37,7 +57,7 @@ class Unit:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
-        if self.has_moved or self.hex is None or self.target is None:
+        if self.has_moved or self.hex is None or self.get_closest_target() is None:
             return
         should_move_sensitively = sensitive
         starting_hex = self.hex
@@ -57,11 +77,11 @@ class Unit:
                 "coords": coord_strs,
             }, hexes_must_be_visible=[starting_hex, new_hex])
 
-            if new_hex.coords == self.target.coords and (target := self.get_best_target(new_hex.get_hexes_within_range(game_state.hexes, 2))) is not None:
-                self.target = target.hex
+            # if new_hex.coords == self.target.coords and (target := self.get_best_target(new_hex.get_hexes_within_range(game_state.hexes, 2))) is not None:
+            #     self.target = target.hex
 
     def attack(self, sess, game_state: 'GameState') -> None:
-        if self.hex is None or self.target is None:
+        if self.hex is None or self.get_closest_target() is None:
             return
         hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
 
@@ -71,7 +91,7 @@ class Unit:
             self.fight(sess, game_state, best_target)
 
     def get_best_target(self, hexes_to_check: list['Hex']) -> Optional['Unit']:
-        if self.hex is None or self.target is None:
+        if self.hex is None or self.get_closest_target() is None:
             return None
 
         type_scores = {
@@ -130,7 +150,8 @@ class Unit:
 
         self.punch(game_state, target)
         if self.template.ranged:
-            target.target = self.hex
+            # target.target = self.hex
+            pass
         else:
             target.punch(game_state, self)
 
@@ -149,18 +170,19 @@ class Unit:
         self.hex = None
 
     def move_one_step(self, game_state: 'GameState', coord_strs: list[str], sensitive: bool = False) -> bool:
-        if self.hex is not None and self.target is not None:
+        closest_target = self.get_closest_target()
+        if self.hex is not None and closest_target is not None:
             neighbors = self.hex.get_neighbors(game_state.hexes)
             random.shuffle(neighbors)
             for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
 
                 if sensitive:
-                    my_sensitive_distance_to_target = self.hex.sensitive_distance_to(self.target)
-                    neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(self.target)
+                    my_sensitive_distance_to_target = self.hex.sensitive_distance_to(closest_target)
+                    neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(closest_target)
                     is_better_distance = neighboring_hex_sensitive_distance_to_target < my_sensitive_distance_to_target
                 else:
-                    my_distance_to_target = self.hex.distance_to(self.target)
-                    neighboring_hex_distance_to_target = neighboring_hex.distance_to(self.target)
+                    my_distance_to_target = self.hex.distance_to(closest_target)
+                    neighboring_hex_distance_to_target = neighboring_hex.distance_to(closest_target)
                     is_better_distance = neighboring_hex_distance_to_target < my_distance_to_target
 
                 if is_better_distance and not neighboring_hex.is_occupied(self.template.type, self.civ):
@@ -183,7 +205,6 @@ class Unit:
             "name": self.template.name,
             "health": self.health,
             "civ": self.civ.to_json(),
-            "target": self.target,
             "has_moved": self.has_moved,
             "coords": self.hex.coords if self.hex is not None else None,
         }
@@ -197,6 +218,5 @@ class Unit:
         unit.id = json["id"]
         unit.health = json["health"]
         unit.has_moved = json["has_moved"]
-        unit.target = json["target"]
 
         return unit

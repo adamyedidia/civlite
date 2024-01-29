@@ -30,6 +30,11 @@ class Civ:
         self.city_power = 0.0
         self.available_buildings: list[str] = []
         self.available_unit_buildings: list[str] = []
+        self.target1: Optional['Hex'] = None
+        self.target2: Optional['Hex'] = None
+        self.target1_coords: Optional[str] = None
+        self.target2_coords: Optional[str] = None
+
         self.fill_out_available_buildings()
 
     def has_ability(self, ability_name: str) -> bool:
@@ -50,6 +55,8 @@ class Civ:
             "city_power": self.city_power,
             "available_buildings": self.available_buildings,
             "available_unit_buildings": self.available_unit_buildings,
+            "target1": self.target1.coords if self.target1 else None,
+            "target2": self.target2.coords if self.target2 else None,
         }
 
     def fill_out_available_buildings(self) -> None:
@@ -91,6 +98,8 @@ class Civ:
         civ.available_buildings = json["available_buildings"][:]
         civ.available_unit_buildings = json["available_unit_buildings"][:]
         civ.fill_out_available_buildings()
+        civ.target1_coords = json["target1"]
+        civ.target2_coords = json["target2"]
 
         return civ
 

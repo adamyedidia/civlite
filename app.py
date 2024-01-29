@@ -17,7 +17,7 @@ from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game
 from game_player import GamePlayer
-from game_state import GameState, update_staged_moves, get_most_recent_game_state
+from game_state import GameState, update_staged_moves, get_most_recent_game_state, get_most_recent_game_state_json
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
@@ -31,6 +31,7 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from user import User, add_or_get_user
 from utils import generate_unique_id
+from redis_utils import rget_json
 
 # Create a logger
 logger = logging.getLogger('__name__')
@@ -309,7 +310,9 @@ def get_game_state(sess, game_id):
 
         return jsonify({"error": "Animation frame not found"}), 404
     
-    game_state = animation_frame.game_state
+
+    game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}') or get_most_recent_game_state_json(sess, game_id)
+    game_state = GameState.from_json(game_state_json)
 
     if game_state is None:
         return jsonify({"error": "Game state not found"}), 404
@@ -343,8 +346,19 @@ def get_latest_turn_movie(sess, game_id):
     if not animation_frames:
         return jsonify({"error": "Animation frames not found"}), 404
     
+    staged_game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}')
+    game_state = GameState.from_json(staged_game_state_json) if staged_game_state_json else None
+
+    game_state_json = None
+    if game_state:
+        game_player = game_state.game_player_by_player_num.get(int(player_num))
+        if game_player:
+            player_civ = game_state.civs_by_id.get(game_player.civ_id or '')
+            if player_civ:
+                game_state_json = game_state.to_json(from_civ_perspectives=[player_civ])
+
     return jsonify({
-        'animation_frames': [animation_frame.game_state for animation_frame in animation_frames], 
+        'animation_frames': [*[animation_frame.game_state for animation_frame in animation_frames], *([game_state_json] if game_state_json else [])], 
         'turn_num': turn_num,
     })
 

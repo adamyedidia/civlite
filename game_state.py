@@ -166,6 +166,43 @@ class GameState:
 
                 game_player_to_return = game_player
 
+            if move['move_type'] == 'set_civ_primary_target':
+                target_coords = move['target_coords']
+                print(target_coords)
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                civ.target1_coords = target_coords
+                civ.target1 = self.hexes[target_coords]                
+                game_player_to_return = game_player
+
+                print('target1', civ.target1)
+
+            if move['move_type'] == 'set_civ_secondary_target':
+                target_coords = move['target_coords']
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                civ.target2_coords = target_coords
+                civ.target2 = self.hexes[target_coords]
+                game_player_to_return = game_player
+
+            if move['move_type'] == 'remove_civ_primary_target':
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                civ.target1_coords = None
+                civ.target1 = None
+                game_player_to_return = game_player
+
+            if move['move_type'] == 'remove_civ_secondary_target':
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                civ.target2_coords = None
+                civ.target2 = None
+                game_player_to_return = game_player
+
 
         if game_player_to_return is not None and game_player_to_return.civ_id is not None:
             from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
@@ -313,6 +350,13 @@ class GameState:
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
         }
     
+    def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
+        for civ in self.civs_by_id.values():
+            if civ.target1_coords:
+                civ.target1 = hexes[civ.target1_coords]
+            if civ.target2_coords:
+                civ.target2 = hexes[civ.target2_coords]
+
     @staticmethod
     def from_json(json: dict) -> "GameState":
         hexes = {key: Hex.from_json(hex_json) for key, hex_json in json["hexes"].items()}
@@ -323,6 +367,7 @@ class GameState:
         game_state.wonders_built = json["wonders_built"].copy()
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.set_unit_and_city_hexes()
+        game_state.set_civ_targets(hexes)
         return game_state
 
 
