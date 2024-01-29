@@ -17,7 +17,7 @@ class Unit:
     def __init__(self, template: UnitTemplate, civ: Civ) -> None:
         self.id = generate_unique_id()
         self.template = template
-        self.health = 80
+        self.health = 100
         self.civ = civ
         self.has_moved = False
         self.target: Optional['Hex'] = None

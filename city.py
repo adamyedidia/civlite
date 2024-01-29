@@ -130,8 +130,8 @@ class City:
 
     def get_available_buildings(self, game_state: 'GameState') -> list[Union[BuildingTemplate, UnitTemplate]]:
         building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
-        buildings = [BuildingTemplate.from_json(BUILDINGS[building_name]) for building_name in self.available_buildings if not building_name in building_names_in_queue]
-        unit_buildings = [UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building_name]) for building_name in self.civ.available_unit_buildings if not building_name in building_names_in_queue]
+        buildings = [BuildingTemplate.from_json(BUILDINGS[building_name]) for building_name in self.available_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
+        unit_buildings = [UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building_name]) for building_name in self.civ.available_unit_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
         return [*buildings, *unit_buildings]
 
     def build_units(self, sess, game_state: 'GameState') -> None:
@@ -147,6 +147,7 @@ class City:
                 if self.metal >= unit.metal_cost:
                     self.units_queue.pop(0)
                     self.build_unit(sess, game_state, unit)
+                    self.metal -= unit.metal_cost
 
     def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate) -> bool:
         if not self.hex:
@@ -200,6 +201,7 @@ class City:
                 if self.wood >= building.cost:
                     self.buildings_queue.pop(0)
                     self.build_building(sess, game_state, building)
+                    self.wood -= building.cost
                 else:
                     break
 
@@ -207,6 +209,7 @@ class City:
                 if self.wood >= building.wood_cost:
                     self.buildings_queue.pop(0)
                     self.build_building(sess, game_state, building)
+                    self.wood -= building.wood_cost
                 else:
                     break
 

@@ -60,7 +60,7 @@ export default function GamePage() {
 
     const selectedCityBuildingChoices = selectedCity?.available_building_names;
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
-    const selectedCityBuildings = selectedCity?.buildings;
+    const selectedCityBuildings = selectedCity?.buildings.map(building => building.name);
 
     const selectedCityUnitChoices = selectedCity?.available_units;
     const selectedCityUnitQueue = selectedCity?.units_queue;
@@ -565,6 +565,7 @@ export default function GamePage() {
                     // Set it to the last animation frame
                     setFrameNum(data.animation_frames.length - 1);
                     setGameState(data.animation_frames[data.animation_frames.length - 1]);
+                    setSelectedCity(null);
                 }
                 if (data.turn_num) {
                     setTurnNum(data.turn_num);
