@@ -5,8 +5,6 @@ class CivDisplay extends React.Component {
     render() {
         const { name, abilities, primary_color, secondary_color } = this.props.civ;
 
-        console.log(abilities);
-
         return (
             <div className="civ-card" style={{ borderColor: secondary_color }}>
                 <div className="civ-card-inner" style={{ backgroundColor: primary_color }}>

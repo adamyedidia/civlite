@@ -56,6 +56,13 @@ def recurse_to_json(obj):
         return obj
 
 
+def broadcast(game_id):
+    socketio.emit(
+        'update', 
+        room=game_id,
+    )
+
+
 # decorator that takes in an api endpoint and calls recurse_to_json on its result
 def api_endpoint(func):
     @wraps(func)
@@ -310,6 +317,37 @@ def get_game_state(sess, game_id):
     return {'game_state': game_state}
 
 
+@app.route('/api/movie/<game_id>', methods=['GET'])
+@api_endpoint
+def get_latest_turn_movie(sess, game_id):
+    player_num = request.args.get('player_num')
+
+    if player_num is None:
+        return jsonify({"error": "Player number is required"}), 400
+
+    turn_num = (
+        sess.query(func.max(AnimationFrame.turn_num))
+        .filter(AnimationFrame.game_id == game_id)
+        .scalar()
+    )
+
+    animation_frames = (
+        sess.query(AnimationFrame)
+        .filter(AnimationFrame.game_id == game_id)
+        .filter(AnimationFrame.turn_num == turn_num)
+        .filter(AnimationFrame.player_num == player_num)
+        .order_by(AnimationFrame.frame_num)
+        .all()
+    )
+
+    if not animation_frames:
+        return jsonify({"error": "Animation frames not found"}), 404
+    
+    return jsonify({
+        'animation_frames': [animation_frame.game_state for animation_frame in animation_frames], 
+        'turn_num': turn_num,
+    })
+
 @app.route('/api/open_games', methods=['GET'])
 @api_endpoint
 def get_open_games(sess):
@@ -410,6 +448,33 @@ def enter_player_input(sess, game_id):
     game_state, from_civ_perspectives = update_staged_moves(sess, game_id, player_num, [player_input])
 
     return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
+
+
+@app.route('/api/end_turn/<game_id>', methods=['POST'])
+@api_endpoint
+def end_turn(sess, game_id):
+    data = request.json
+
+    if not data:
+        return jsonify({"error": "Invalid data"}), 400
+    
+    player_num = data.get('player_num')
+
+    if player_num is None:
+        return jsonify({"error": "Username is required"}), 400
+    
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game_state = get_most_recent_game_state(sess, game_id)
+
+    game_state.end_turn(sess)
+
+    broadcast(game_id)
+
+    return jsonify({'game_state': game_state.to_json()})
 
 
 @app.route('/api/building_choices/<game_id>/<city_id>', methods=['GET'])

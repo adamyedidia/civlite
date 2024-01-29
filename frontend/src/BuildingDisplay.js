@@ -13,10 +13,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
 }
 
 export const BriefBuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick, setHoveredBuilding }) => {
-    console.log(unitTemplatesByBuildingName);
     const building = unitTemplatesByBuildingName[buildingName] || buildingTemplates[buildingName];
-
-    console.log(building);
 
     return (
         <div 
@@ -32,9 +29,6 @@ export const BriefBuildingDisplay = ({ buildingName, buildingTemplates, unitTemp
 };
 
 const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick }) => {
-    console.log(buildingName);
-    console.log(unitTemplatesByBuildingName[buildingName]);
-    console.log(buildingTemplates[buildingName]);
 
     return (
         unitTemplatesByBuildingName[buildingName] ? 

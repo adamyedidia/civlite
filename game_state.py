@@ -9,7 +9,7 @@ from civ_template import CivTemplate
 from civ_templates_list import BARBARIAN_CIV
 from game_player import GamePlayer
 from hex import Hex
-from redis_utils import rget_json, rlock, rset_json
+from redis_utils import rget_json, rlock, rset_json, rdel
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -17,6 +17,7 @@ import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
 
+from sqlalchemy import func
 
 def get_all_units(hexes: dict[str, Hex]) -> list[Unit]:
     units = []
@@ -182,7 +183,22 @@ class GameState:
         for city in self.cities_by_id.values():
             city.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
 
+    def end_turn(self, sess) -> None:
+        for player_num in self.game_player_by_player_num.keys():
+            staged_moves = rget_json(f'staged_moves:{self.game_id}:{player_num}') or []
+            self.update_from_player_moves(player_num, staged_moves)
+
+        print('ending turn')
+
+        self.roll_turn(sess)
+
+        for player_num in self.game_player_by_player_num.keys():
+            rdel(f'staged_moves:{self.game_id}:{player_num}')
+            rdel(f'staged_game_state:{self.game_id}:{player_num}')
+
     def roll_turn(self, sess) -> None:
+        self.turn_num += 1
+
         units_copy = self.units[:]
         random.shuffle(units_copy)
         for unit in units_copy:
@@ -202,7 +218,9 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.roll_turn(sess, self)
 
-        self.turn_num += 1
+        self.add_animation_frame(sess, {
+            "type": "StartOfNewTurn",
+        })
 
     def handle_wonder_built(self, sess, civ: Civ, building_template: BuildingTemplate) -> None:
         self.wonders_built[building_template.name] = True
@@ -226,13 +244,16 @@ class GameState:
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ]) -> None:
         if civ is not None and (game_player := civ.game_player) is not None:
             highest_existing_frame_num = (
-                sess.query(AnimationFrame.frame_num)
+                sess.query(func.max(AnimationFrame.frame_num))
                 .filter(AnimationFrame.game_id == self.game_id)
                 .filter(AnimationFrame.turn_num == self.turn_num)
                 .filter(AnimationFrame.player_num == game_player.player_num)
-                .order_by(AnimationFrame.frame_num.desc())
-                .first()
+                .scalar()
             ) or 0
+
+            print('turn num', self.turn_num)
+            print('highest existing', highest_existing_frame_num)
+            print('player num', game_player.player_num)
 
             frame = AnimationFrame(
                 game_id=self.game_id,
@@ -247,11 +268,13 @@ class GameState:
 
     def add_animation_frame(self, sess, data: dict[str, Any], hexes_must_be_visible: Optional[list[Hex]] = None) -> None:
         self.add_animation_frame_for_civ(sess, data, None)
+        sess.commit()
+
         for civ in self.civs_by_id.values():
             if hexes_must_be_visible is None or any(hex.visibility_by_civ.get(civ.id) for hex in hexes_must_be_visible):
                 self.add_animation_frame_for_civ(sess, data, civ)
 
-        sess.commit()
+                sess.commit()
 
     def get_civ_by_name(self, civ_name: str) -> Civ:
         for civ in self.civs_by_id.values():
@@ -288,8 +311,8 @@ def get_most_recent_game_state_json(sess, game_id: str) -> dict:
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
         .filter(AnimationFrame.player_num == None)
-        .filter(AnimationFrame.frame_num == 0)
         .order_by(AnimationFrame.turn_num.desc())
+        .order_by(AnimationFrame.frame_num.asc())
         .first()
     )
 

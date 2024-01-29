@@ -181,7 +181,7 @@ class Unit:
         return {
             "id": self.id,
             "name": self.template.name,
-            "attack": self.attack,
+            "strength": self.template.strength,
             "health": self.health,
             "civ": self.civ.to_json(),
             "target": self.target,

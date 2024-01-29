@@ -71,6 +71,26 @@ export default function GamePage() {
         }
     }
 
+    const handleClickEndTurn = () => {
+        const data = {
+            player_num: playerNum,
+        }
+
+        fetch(`${URL}/api/end_turn/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    // setGameState(data.game_state);
+                }
+            });
+    }
+
     const handleClickBuildingChoice = (buildingName) => {
         const playerInput = {
             'building_name': (buildingName),
@@ -440,6 +460,22 @@ export default function GamePage() {
                 {hoveredBuilding && (
                     <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
                 )}
+                <Button 
+                    style={{
+                        position: 'fixed', 
+                        bottom: '10px', 
+                        left: '50%', 
+                        transform: 'translate(-50%, 0%)', 
+                        backgroundColor: "#cccc88",
+                        color: "black",
+                        padding: '10px 20px', // Increase padding for larger button
+                        fontSize: '1.5em' // Increase font size for larger text
+                    }} 
+                    variant="contained"
+                    onClick={handleClickEndTurn}
+                >
+                    End turn
+                </Button>
             </div>
         )
     }
@@ -464,7 +500,7 @@ export default function GamePage() {
             .then(data => {
 
                 if (data.game_state) {
-                    setGameState(data.game_state);
+                    getMovie();
                 }
                 if (data.players) {
                     setPlayersInGame(data.players);
@@ -473,12 +509,31 @@ export default function GamePage() {
     
     }
 
+    const getMovie = () => {
+        fetch(`${URL}/api/movie/${gameId}?player_num=${playerNum}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.animation_frames) {
+                    // setGameState(data.game_state);
+                    // Set it to the last animation frame
+                    setFrameNum(data.animation_frames.length - 1);
+                    setGameState(data.animation_frames[data.animation_frames.length - 1]);
+                }
+                if (data.turn_num) {
+                    setTurnNum(data.turn_num);
+                }
+                if (data.players) {
+                    setPlayersInGame(data.players);
+                }                
+            });
+    }
+
     useEffect(() => {
         socket.emit('join', { room: gameId, username: username });
         fetchGameState();
         socket.on('update', () => {
           console.log('update received')
-          fetchGameState();
+          getMovie();
         })
     }, [])
 

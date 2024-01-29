@@ -14,9 +14,6 @@ export const BriefUnitDisplayTitle = ({ title }) => {
 export const BriefUnitDisplay = ({ unitName, unitTemplates, onClick, setHoveredUnit }) => {
     const unit = unitTemplates[unitName]
 
-    console.log(unitTemplates)
-    console.log(unitName)
-
     return (
         <div 
             className="brief-unit-card" 
