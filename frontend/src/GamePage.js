@@ -16,6 +16,7 @@ import HexDisplay, { YieldImages } from './HexDisplay';
 import CityDisplay from './CityDisplay';
 import BuildingDisplay, { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
 import UnitDisplay, {BriefUnitDisplay, BriefUnitDisplayTitle} from './UnitDisplay';
+import UpperRightDisplay from './UpperRightDisplay';
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -1373,7 +1374,7 @@ export default function GamePage() {
 
     // console.log(myCiv);
 
-    // console.log(gameState);
+    console.log(gameState);
 
     // const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
 
@@ -2068,7 +2069,7 @@ export default function GamePage() {
                 {hoveredHex && (
                     <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                 )}
-                {selectedCity && <CityDisplay city={selectedCity} setHoveredUnit={setHoveredUnit} />}
+                {<UpperRightDisplay city={selectedCity} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} myCiv={myCiv} />}
                 {selectedCityBuildingChoices && (
                     <div className="building-choices-container">
                         <BriefBuildingDisplayTitle title="Building Choices" />

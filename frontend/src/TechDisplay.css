@@ -18,3 +18,11 @@
 .tech-card:hover {
     border: 3px solid black; /* Thick black border on hover */
 }
+
+.brief-tech-card {
+    border: 1px solid #ddd;
+    margin: 5px;
+    border-radius: 5px;
+    background-color: #b0e0e6;
+    font-size: 1em; /* Smaller font size */
+}

@@ -57,8 +57,6 @@ class Unit:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
-        print('asdf', self.has_moved, self.hex, self.get_closest_target())
-        print(self.civ.target1, self.civ.target2)
         if self.has_moved or self.hex is None or self.get_closest_target() is None:
             return
         should_move_sensitively = sensitive

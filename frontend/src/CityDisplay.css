@@ -1,7 +1,7 @@
 .city-display {
-    position: fixed;
-    right: 10px; /* Adjust the right margin as needed */
-    top: 10px; /* Adjust the top margin as needed */
+    /* position: fixed;
+    right: 10px;
+    top: 10px; */
     border: 1px solid #ddd;
     padding: 10px;
     border-radius: 5px;
