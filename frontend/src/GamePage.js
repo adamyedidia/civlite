@@ -69,6 +69,8 @@ export default function GamePage() {
 
     const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
 
+    const [animating, setAnimating] = useState(false);
+
     const myCivId = gameState?.game_player_by_player_num?.[playerNum]?.civ_id;
     const myCiv = gameState?.civs_by_id?.[myCivId];
     const target1 = coordsToObject(myCiv?.target1);
@@ -1678,6 +1680,8 @@ export default function GamePage() {
         console.log('Triggering animations!');
         console.log(animationQueue);
 
+        setAnimating(true);
+
         for (let event of animationQueue) {
             console.log(event);
 
@@ -1695,6 +1699,8 @@ export default function GamePage() {
 
         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
         setGameState(finalGameState);        
+
+        setAnimating(false);
     }
 
     const isFriendlyCityHex = (hex) => {
@@ -2112,6 +2118,7 @@ export default function GamePage() {
                     }} 
                     variant="contained"
                     onClick={handleClickEndTurn}
+                    disabled={animating}
                 >
                     End turn
                 </Button>
