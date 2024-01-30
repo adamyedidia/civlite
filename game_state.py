@@ -246,8 +246,15 @@ class GameState:
 
         cities_copy = list(self.cities_by_id.values())
         random.shuffle(cities_copy)
+
+        camps_copy = self.camps[:]
+        random.shuffle(camps_copy)
+
         for city in cities_copy:
             city.roll_turn(sess, self)
+
+        for camp in camps_copy:
+            camp.roll_turn(sess, self)
 
         for civ in self.civs_by_id.values():
             civ.roll_turn(sess, self)
@@ -335,7 +342,7 @@ class GameState:
         for civ in self.civs_by_id.values():
             if civ.template.name == civ_name:
                 return civ
-        raise Exception("Civ not found")
+        raise Exception(f"Civ not found: {civ_name}, {self.civs_by_id}")
     
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         return {

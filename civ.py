@@ -103,6 +103,9 @@ class Civ:
 
         return civ
 
+    def __repr__(self) -> str:
+        return f"<Civ {self.id}: {self.template.name}>"
+
 
 def create_starting_civ_options_for_players(game_players: list[GamePlayer], starting_locations: list['Hex']) -> dict[int, list[tuple[Civ, 'Hex']]]:
     assert len(game_players) <= 8

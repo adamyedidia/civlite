@@ -130,12 +130,16 @@ class Unit:
     def get_damage_to_deal_from_effective_strengths(self, effective_strength: float, target_effective_strength: float) -> int:
         ratio_of_strengths = effective_strength / target_effective_strength
 
+        print(ratio_of_strengths)
+
+        print(int(round(40 ** sqrt(ratio_of_strengths))))
+
         # This is a very scientific formula
         return int(round(40 ** sqrt(ratio_of_strengths)))
 
     def punch(self, game_state: 'GameState', target: 'Unit') -> None:
-        self.effective_strength = self.template.strength * (1 + self.health / 100)
-        target.effective_strength = target.template.strength
+        self.effective_strength = self.template.strength * (0.5 + 0.5 * (self.health / 100))
+        target.effective_strength = target.template.strength 
 
         target.health = max(0, target.health - self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength))
 
@@ -148,6 +152,12 @@ class Unit:
         if self.hex is None or target.hex is None:
             return
 
+        self_hex_coords = self.hex.coords
+        target_hex_coords = target.hex.coords
+
+        self_hex = self.hex
+        target_hex = target.hex
+
         self.punch(game_state, target)
         if self.template.ranged:
             # target.target = self.hex
@@ -157,9 +167,9 @@ class Unit:
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
-            "start_coords": self.hex.coords,
-            "end_coords": target.hex.coords,
-        }, hexes_must_be_visible=[self.hex, target.hex])
+            "start_coords": self_hex_coords,
+            "end_coords": target_hex_coords,
+        }, hexes_must_be_visible=[self_hex, target_hex])
 
     def die(self, game_state: 'GameState'):
         if self.hex is None:

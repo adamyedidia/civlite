@@ -1559,7 +1559,7 @@ export default function GamePage() {
     //     }
     // }, [selectedCity?.id])
 
-    const showSingleMovementArrow = (fromHexCoords, toHexCoords) => {
+    const showSingleMovementArrow = (fromHexCoords, toHexCoords, arrowType = null) => {
         // console.log(hexRefs?.current?.[fromHexCoords]);
         // console.log(hexRefs?.current?.[fromHexCoords]?.current);
         // console.log(hexRefs?.current?.[fromHexCoords]?.current?.getBoundingClientRect());
@@ -1589,6 +1589,10 @@ export default function GamePage() {
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
         arrow.style.transform = `rotate(${angle}deg)`;
         arrow.style.transformOrigin = "0 50%";
+
+        if (arrowType === 'attack') {
+            arrow.classList.add("attack");
+        } 
 
         document.body.appendChild(arrow);
 
@@ -1693,6 +1697,11 @@ export default function GamePage() {
                         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
                         showMovementArrows(event.data.coords);
                         setGameState(newState);                    
+                    case 'UnitAttack':
+                        await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
+                        showSingleMovementArrow(event.data.start_coords, event.data.end_coords, 'attack');
+                        setGameState(newState);
+                        break;
                 }
             }
         }
@@ -1783,7 +1792,7 @@ export default function GamePage() {
     
         return (
             <>
-                <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5} onMouseEnter={() => handleMouseOverCity(camp)} onClick={() => handleClickCity(camp)}>
+                <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5} onMouseEnter={() => handleMouseOverCity(camp)}>
                     <polygon points="1.5,0 3,3 0,3" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
                 </svg>
             </>

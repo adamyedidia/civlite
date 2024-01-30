@@ -108,7 +108,7 @@ class Camp:
         for hex in self.hex.get_neighbors(game_state.hexes):
             for unit in hex.units:
                 if unit.template.type == 'military':
-                    num_neighboring_units_by_civ_name[unit.civ.id] += 1
+                    num_neighboring_units_by_civ_name[unit.civ.template.name] += 1
 
         for civ_name, num_neighboring_units in num_neighboring_units_by_civ_name.items():
             if num_neighboring_units >= 4:
