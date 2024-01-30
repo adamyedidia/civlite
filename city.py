@@ -27,7 +27,7 @@ class City:
         self.food = 0.0
         self.metal = 0.0
         self.wood = 0.0
-        self.focus = 'food'
+        self.focus: str = 'food'
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
         self.autobuild_unit: Optional[UnitTemplate] = None
@@ -307,6 +307,7 @@ class City:
             "food": self.food,
             "metal": self.metal,
             "wood": self.wood,
+            "focus": self.focus,
             "under_siege_by_civ": self.under_siege_by_civ.to_json() if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
             "autobuild_unit": self.autobuild_unit.name if self.autobuild_unit else None,
@@ -338,6 +339,7 @@ class City:
         city.available_buildings = json["available_buildings"][:]
         city.available_units = json["available_units"][:]
         city.units_queue = [UnitTemplate.from_json(UNITS[unit]) for unit in json["units_queue"]]
+        city.focus = json["focus"]
         city.handle_cleanup()
 
         return city

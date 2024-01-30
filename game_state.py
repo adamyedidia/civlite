@@ -200,6 +200,12 @@ class GameState:
                 civ.target2 = None
                 game_player_to_return = game_player
 
+            if move['move_type'] == 'choose_focus':
+                game_player = self.game_player_by_player_num[player_num]
+                city_id = move['city_id']
+                city = self.cities_by_id[city_id]
+                city.focus = move['focus']                
+                game_player_to_return = game_player
 
         if game_player_to_return is not None and game_player_to_return.civ_id is not None:
             from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]

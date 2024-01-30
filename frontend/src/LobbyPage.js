@@ -13,8 +13,6 @@ export default function LobbyPage() {
     const socket = useSocket();
     const navigate = useNavigate();
 
-    console.log(openGames);
-
     const fetchOpenGames = () => {
         fetch(`${URL}/api/open_games?username=${username}`)
             .then(response => response.json())
@@ -51,7 +49,6 @@ export default function LobbyPage() {
         socket.emit('join', { room: 'lobby', username: username });
         fetchOpenGames();
         socket.on('updateGames', () => {
-          console.log('update games received')
           fetchOpenGames();
       })
     }, []);
@@ -72,7 +69,6 @@ export default function LobbyPage() {
         })
             .then(response => response.json())
             .then(data => {
-                console.log(data);
                 socket.emit('join', { room: data.id, username: username });
                 navigate(`/game/${data.id}?playerNum=0`)
             });

@@ -25,7 +25,28 @@ const coordsToObject = (coords) => {
     return {q: q, r: r, s: s};
 }
 
-const ANIMATION_DELAY = 500;
+const ANIMATION_DELAY = 400;
+
+export const FocusSelectorTitle = ({ title }) => {
+    return (
+        <div 
+            className="focus-title-card" 
+        >
+            <span>{title}</span>
+        </div>        
+    );
+}
+
+export const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
+    return (
+        <div
+            className={`focus-selection-option ${focus} ${isSelected ? 'selected' : ''}`}
+            onClick={onClick}
+        >
+            <span>{focus}</span>
+        </div>
+    );
+}
 
 export default function GamePage() {
 
@@ -71,10 +92,18 @@ export default function GamePage() {
 
     const [animating, setAnimating] = useState(false);
 
+    const [animationRunIdUseState, setAnimationRunIdUseState] = useState(null);
+
+    const animationRunIdRef = React.useRef(null);
+
     const myCivId = gameState?.game_player_by_player_num?.[playerNum]?.civ_id;
     const myCiv = gameState?.civs_by_id?.[myCivId];
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
+
+    useEffect(() => {
+        animationRunIdRef.current = animationRunIdUseState;
+    }, [animationRunIdUseState]);
 
     const hexRefs = React.useRef({
         '-20,0,20': React.createRef(),
@@ -1340,11 +1369,11 @@ export default function GamePage() {
         '20,0,-20': React.createRef(),
     });
 
-    console.log(myCivId);
+    // console.log(myCivId);
 
-    console.log(myCiv);
+    // console.log(myCiv);
 
-    console.log(gameState);
+    // console.log(gameState);
 
     // const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
 
@@ -1532,6 +1561,32 @@ export default function GamePage() {
             });
     }
 
+    const handleClickFocus = (focus) => {
+        const playerInput = {
+            'city_id': selectedCity.id,
+            'focus': focus,
+            'move_type': 'choose_focus',
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+        fetch(`${URL}/api/player_input/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });
+    }
+
     useEffect(() => {
         fetch(`${URL}/api/civ_templates`)
             .then(response => response.json())
@@ -1560,15 +1615,9 @@ export default function GamePage() {
     // }, [selectedCity?.id])
 
     const showSingleMovementArrow = (fromHexCoords, toHexCoords, arrowType = null) => {
-        // console.log(hexRefs?.current?.[fromHexCoords]);
-        // console.log(hexRefs?.current?.[fromHexCoords]?.current);
-        // console.log(hexRefs?.current?.[fromHexCoords]?.current?.getBoundingClientRect());
 
         const fromHexClientRef = hexRefs?.current?.[fromHexCoords]?.current?.getBoundingClientRect();
         const toHexClientRef = hexRefs?.current?.[toHexCoords]?.current?.getBoundingClientRect();
-
-        console.log(fromHexClientRef);
-        console.log(toHexClientRef);
 
         if (!fromHexClientRef || !toHexClientRef) {
             return;
@@ -1600,8 +1649,6 @@ export default function GamePage() {
             document.body.removeChild(arrow);
         }, ANIMATION_DELAY * 0.67);
     }
-
-
 
     const showMovementArrows = (coords) => {
         if (!coords || coords.length < 2) {
@@ -1680,11 +1727,25 @@ export default function GamePage() {
     // };
 
 
+    console.log(animationRunIdRef.current);
+    console.log(animationRunIdUseState);
+
     const triggerAnimations = async (finalGameState, animationQueue, doNotNotifyBackendOnCompletion) => {
-        console.log('Triggering animations!');
-        console.log(animationQueue);
+        const animationRunId = Math.random().toString(36).substring(7);
+
+        console.log(`animating! ${animationRunId}`);
+
+        if (animating) {
+            return;
+        }
+
+        setAnimationRunIdUseState(animationRunId);
 
         setAnimating(true);
+
+        const cases = ['UnitMovement', 'UnitAttack'];
+        const filteredAnimationQueue = animationQueue.filter((animationEvent) => cases.includes(animationEvent?.data?.type));        
+
 
         for (let event of animationQueue) {
             console.log(event);
@@ -1703,6 +1764,12 @@ export default function GamePage() {
                         setGameState(newState);
                         break;
                 }
+
+                console.log(animationRunId, animationRunIdRef.current, filteredAnimationQueue.length)
+
+                if ((animationRunId !== animationRunIdRef.current) && (filteredAnimationQueue.length > 1)) {
+                    return;
+                }                            
             }
         }
 
@@ -1996,10 +2063,6 @@ export default function GamePage() {
                 <HexGrid width={2000} height={2000}>
                 <Layout size={{ x: 3, y: 3 }}>
                     {hexagons.map((hex, i) => {
-                        // console.log(hex?.q, hex?.r, hex?.s)
-                        // console.log(target1?.q, target1?.r, target1?.s)
-                        // console.log(hex?.q === target1?.q, hex?.r === target1?.r, hex?.s === target1?.s)
-
                         return (
                             // <div 
                             //     onContextMenu={(e) => {
@@ -2105,7 +2168,16 @@ export default function GamePage() {
                             <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
                         ))}
                     </div>
-                )};                  
+                )};
+                {selectedCity && (
+                    <div className="focus-container">
+                        <FocusSelectorTitle title="City Focus" />
+                        <FocusSelectionOption focus="food" isSelected={selectedCity.focus === 'food'} onClick={() => handleClickFocus('food')} />
+                        <FocusSelectionOption focus="wood" isSelected={selectedCity.focus === 'wood'} onClick={() => handleClickFocus('wood')} />
+                        <FocusSelectionOption focus="metal" isSelected={selectedCity.focus === 'metal'} onClick={() => handleClickFocus('metal')} />
+                        <FocusSelectionOption focus="science" isSelected={selectedCity.focus === 'science'} onClick={() => handleClickFocus('science')} />
+                    </div>
+                )}
                 <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
                     {hoveredBuilding && (
                         <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
