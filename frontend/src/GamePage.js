@@ -1660,76 +1660,11 @@ export default function GamePage() {
         }
     }
 
-    //     attackingCharacterPos = characterRefs?.current?.[event.lane]?.[event.acting_player]?.[event.from_character_index]?.current?.getBoundingClientRect();
-    //     if (['heal', 'friendlyAttack'].includes(arrowType)) {
-    //         defendingCharacterPos = characterRefs?.current?.[event.lane]?.[event.acting_player]?.[event.to_character_index]?.current?.getBoundingClientRect();
-    //     }
-    //     else if (arrowType === 'switchLanes') {
-    //         defendingCharacterPos = characterRefs?.current?.[event.to_lane]?.[event.acting_player]?.[event.to_character_index]?.current?.getBoundingClientRect();
-    //     }
-    //     else {
-    //         defendingCharacterPos = characterRefs?.current?.[event.lane]?.[1 - event.acting_player]?.[event.to_character_index]?.current?.getBoundingClientRect();
-    //     }
-
-
-    //     if (!attackingCharacterPos) {
-    //         log('Attacking character position not found!')
-    //         return;
-    //     }
-
-    //     if (!defendingCharacterPos) {
-    //         log('Defending character position not found!')
-    //         return;
-    //     }
-
-    //     // slice off the "px"
-    //     characterWidth = CHARACTER_BOX_WIDTH.slice(0, -2);
-    //     characterHeight = CHARACTER_BOX_HEIGHT.slice(0, -2);
-
-    //     const dx = defendingCharacterPos.left - attackingCharacterPos.left;
-    //     const dy = defendingCharacterPos.top - attackingCharacterPos.top;
-    //     const distance = Math.sqrt(dx * dx + dy * dy);
-
-    //     // Create an arrow element and set its position and rotation
-    //     const arrow = document.createElement('div');
-    //     arrow.className = 'arrow';
-    //     arrow.style.position = 'absolute'; // Make sure it's set to absolute
-    //     arrow.style.left = `${attackingCharacterPos.left + window.scrollX + characterWidth / 2 + 9}px`;
-    //     arrow.style.top = `${attackingCharacterPos.top + window.scrollY + characterHeight / 2}px`;
-    //     arrow.style.width = `${distance}px`; // Set the length of the arrow
-
-    //     const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    //     arrow.style.transform = `rotate(${angle}deg)`;
-    //     arrow.style.transformOrigin = "0 50%";
-    //     if (arrowType === 'shackle') {
-    //         arrow.classList.add("shackled");
-    //     } else if (arrowType === 'heal') {
-    //         arrow.classList.add("healed");
-    //     } else if (arrowType === 'silence') {
-    //         arrow.classList.add("silenced");
-    //     } else if (['switchLanes', 'switchSides'].includes(arrowType)) {
-    //         arrow.classList.add("switchLanes");
-    //     }
-    //     else {
-    //         arrow.classList.remove("shackled");
-    //         arrow.classList.remove("healed");
-    //         arrow.classList.remove("silenced");
-    //         arrow.classList.remove("switchLanes");
-    //     }
-
-    //     document.body.appendChild(arrow);
-
-    //     setTimeout(() => {
-    //         document.body.removeChild(arrow);
-    //     }, animationDelay * 0.67);
-
-    //     log('Animation successfully triggered!')
-    // };
-
     const triggerAnimations = async (finalGameState, animationQueue, doNotNotifyBackendOnCompletion) => {
         const animationRunId = Math.random().toString(36).substring(7);
 
         console.log(`animating! ${animationRunId}`);
+        console.log(animationQueue)
 
         if (animating) {
             return;
@@ -1753,7 +1688,8 @@ export default function GamePage() {
                     case 'UnitMovement':
                         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
                         showMovementArrows(event.data.coords);
-                        setGameState(newState);                    
+                        setGameState(newState);         
+                        break;           
                     case 'UnitAttack':
                         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
                         showSingleMovementArrow(event.data.start_coords, event.data.end_coords, 'attack');
