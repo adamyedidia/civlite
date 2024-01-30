@@ -25,7 +25,7 @@ const UpperRightDisplay = ({ city, setHoveredUnit, setHoveredBuilding, myCiv }) 
     return (
         <div className="upper-right-display">
             {city && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}/>}
-            {myCiv?.tech_queue?.[0] && <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} />}
+            {myCiv?.tech_queue?.[0] && <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} />}
             {myCiv && <CityPowerDisplay cityPower={myCiv.city_power} />}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} />}
         </div>

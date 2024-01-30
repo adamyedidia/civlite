@@ -1404,6 +1404,23 @@ export default function GamePage() {
         }
     }, [!!hoveredUnit])
 
+    useEffect(() => {
+        if (!animating && myCiv?.tech_queue?.length === 0) {
+
+            fetch(`${URL}/api/tech_choices/${gameId}?player_num=${playerNum}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.tech_choices) {
+                        setTechChoices(data.tech_choices);
+                    }
+                });
+        }
+    }, [animating, myCiv?.tech_queue?.length])
+
     const handleClickEndTurn = () => {
         const data = {
             player_num: playerNum,

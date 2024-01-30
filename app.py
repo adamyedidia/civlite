@@ -435,6 +435,34 @@ def choose_initial_civ(sess, game_id):
     return jsonify({'tech_choices': techs, 'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
 
 
+@app.route('/api/tech_choices/<game_id>', methods=['GET'])
+@api_endpoint
+def get_tech_choices_for_civ_endpoint(sess, game_id):
+    raw_player_num = request.args.get('player_num')
+    player_num = int(raw_player_num) if raw_player_num is not None else None
+
+    if player_num is None:
+        return jsonify({"error": "player_num is required"}), 400
+    
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game_state = get_most_recent_game_state(sess, game_id)
+
+    game_player = game_state.game_player_by_player_num.get(player_num)
+
+    civ = game_state.civs_by_id.get((game_player.civ_id or '') if game_player is not None else '')  
+
+    if civ is None:
+        return []
+
+    techs = get_tech_choices_for_civ(civ)
+
+    return jsonify({'tech_choices': techs})
+
+
 @app.route('/api/player_input/<game_id>', methods=['POST'])
 @api_endpoint
 def enter_player_input(sess, game_id):

@@ -42,8 +42,14 @@ def get_tech_choices_for_civ(civ: "Civ") -> list[dict]:
     num_techs_to_offer = 3 if characteristic_tech is None else 2
 
     techs_to_sample_from = [tech for tech in TECHS.values() 
-                            if tech['cost'] <= max_science_for_techs_available and (characteristic_tech is None or tech['name'] != characteristic_tech['name'])]
+                            if (tech['cost'] <= max_science_for_techs_available 
+                                and (characteristic_tech is None or tech['name'] != characteristic_tech['name'])
+                                and not civ.techs.get(tech['name']))]
 
-    techs_to_offer = random.sample(techs_to_sample_from, num_techs_to_offer)
+    if len(techs_to_sample_from) <= num_techs_to_offer:
+        techs_to_offer = techs_to_sample_from
+
+    else:
+        techs_to_offer = random.sample(techs_to_sample_from, num_techs_to_offer)
 
     return [*techs_to_offer, characteristic_tech] if characteristic_tech else techs_to_offer
