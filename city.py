@@ -60,12 +60,15 @@ class City:
             self.civ.science += hex.yields.science * vitality
         
         self.civ.science += self.population * vitality
+        print('food', self.food)
         self.food += 2 * vitality
         self.civ.city_power += 2 * vitality
+        print('food', self.food)
 
         if self.focus == 'food':
             self.food += self.population * vitality
-            self.food += self.civ.city_power * vitality
+            self.civ.city_power += self.population * vitality
+            print('food', self.food)
         elif self.focus == 'metal':
             self.metal += self.population * vitality
         elif self.focus == 'wood':
@@ -96,7 +99,9 @@ class City:
         self.handle_cleanup()
 
     def grow(self) -> None:
+        print('food', self.food)
         while self.food >= self.growth_cost():
+            print('food', self.food)
             self.food -= self.growth_cost()
             self.population += 1
 
