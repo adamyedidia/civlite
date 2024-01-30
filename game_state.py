@@ -233,6 +233,11 @@ class GameState:
     def roll_turn(self, sess) -> None:
         self.turn_num += 1
 
+        self.barbarians.target1 = self.pick_random_hex()
+        self.barbarians.target2 = self.pick_random_hex()
+        self.barbarians.target1_coords = self.barbarians.target1.coords
+        self.barbarians.target2_coords = self.barbarians.target2.coords
+
         units_copy = self.units[:]
         random.shuffle(units_copy)
         for unit in units_copy:
@@ -368,7 +373,7 @@ class GameState:
         hexes = {key: Hex.from_json(hex_json) for key, hex_json in json["hexes"].items()}
         game_state = GameState(game_id=json["game_id"], hexes=hexes)
         game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs_by_id"].items()}
-        game_state.barbarians = Civ.from_json(json["barbarians"])
+        game_state.barbarians = [civ for civ in game_state.civs_by_id.values() if civ.template.name == 'Barbarians'][0]
         for hex in game_state.hexes.values():
             hex.update_civ_by_id(game_state.civs_by_id)
         game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}
