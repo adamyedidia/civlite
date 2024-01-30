@@ -1726,10 +1726,6 @@ export default function GamePage() {
     //     log('Animation successfully triggered!')
     // };
 
-
-    console.log(animationRunIdRef.current);
-    console.log(animationRunIdUseState);
-
     const triggerAnimations = async (finalGameState, animationQueue, doNotNotifyBackendOnCompletion) => {
         const animationRunId = Math.random().toString(36).substring(7);
 
@@ -1764,8 +1760,6 @@ export default function GamePage() {
                         setGameState(newState);
                         break;
                 }
-
-                console.log(animationRunId, animationRunIdRef.current, filteredAnimationQueue.length)
 
                 if ((animationRunId !== animationRunIdRef.current) && (filteredAnimationQueue.length > 1)) {
                     return;
@@ -1843,6 +1837,10 @@ export default function GamePage() {
             <>
                 {isHovered && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="white" strokeWidth="0.2"/>}
                 {isSelected && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="black" strokeWidth="0.2"/>}
+                {city.under_siege_by_civ && <svg width="5" height="5" viewBox="0 0 5 5" x={-2.5} y={isUnitInHex ? -3.5 : -2.5}>
+                        <image href="/images/fire.svg" x="0" y="0" height="5" width="5" />
+                    </svg>
+                }
                 <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} style={{...(pointer ? {cursor : 'pointer'} : {})}}>
                     <rect width="3" height="3" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
                     <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fontSize="0.1" fill="white">
@@ -1856,9 +1854,15 @@ export default function GamePage() {
     const Camp = ({ camp, isUnitInHex }) => {
         const primaryColor = 'red';
         const secondaryColor = 'black';
+
+        console.log(camp.under_siege_by_civ)
     
         return (
             <>
+                {camp.under_siege_by_civ && <svg width="5" height="5" viewBox="0 0 5 5" x={-2.5} y={isUnitInHex ? -3.5 : -2.5}>
+                        <image href="/images/fire.svg" x="0" y="0" height="5" width="5" />
+                    </svg>
+                }
                 <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5} onMouseEnter={() => handleMouseOverCity(camp)}>
                     <polygon points="1.5,0 3,3 0,3" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
                 </svg>
