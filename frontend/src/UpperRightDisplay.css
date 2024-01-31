@@ -34,3 +34,12 @@
     background-color: #cccccc;
     font-size: 1em; /* Smaller font size */
 }
+
+.score-display {
+    border: 1px solid #ddd;
+    margin: 5px;
+    padding: 5px;
+    border-radius: 5px;
+    background-color: #ddaadd;
+    font-size: 1em; /* Smaller font size */
+}

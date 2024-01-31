@@ -103,6 +103,7 @@ export default function GamePage() {
 
     const animationRunIdRef = React.useRef(null);
 
+    const myGamePlayer = gameState?.game_player_by_player_num?.[playerNum];
     const myCivId = gameState?.game_player_by_player_num?.[playerNum]?.civ_id;
     const myCiv = gameState?.civs_by_id?.[myCivId];
     const target1 = coordsToObject(myCiv?.target1);
@@ -2135,7 +2136,13 @@ export default function GamePage() {
                 {hoveredHex && (
                     <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                 )}
-                {<UpperRightDisplay city={selectedCity || hoveredCity} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} myCiv={myCiv} />}
+                {<UpperRightDisplay 
+                    city={selectedCity || hoveredCity} 
+                    setHoveredUnit={setHoveredUnit} 
+                    setHoveredBuilding={setHoveredBuilding} 
+                    myCiv={myCiv} 
+                    myGamePlayer={myGamePlayer} 
+                />}
                 {selectedCityBuildingChoices && (
                     <div className="building-choices-container">
                         <BriefBuildingDisplayTitle title="Building Choices" />

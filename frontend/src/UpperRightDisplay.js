@@ -20,7 +20,16 @@ const CivVitalityDisplay = ({ civVitality }) => {
     );
 }
 
-const UpperRightDisplay = ({ city, setHoveredUnit, setHoveredBuilding, myCiv }) => {
+const ScoreDisplay = ({ myGamePlayer }) => {
+    const score = myGamePlayer?.score;
+    return (
+        <div className="score-display">
+            <p>You have {score} VPs</p>
+        </div>
+    );
+}
+
+const UpperRightDisplay = ({ city, setHoveredUnit, setHoveredBuilding, myCiv, myGamePlayer }) => {
 
     return (
         <div className="upper-right-display">
@@ -28,6 +37,7 @@ const UpperRightDisplay = ({ city, setHoveredUnit, setHoveredBuilding, myCiv }) 
             {myCiv?.tech_queue?.[0] && <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} />}
             {myCiv && <CityPowerDisplay cityPower={myCiv.city_power} />}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} />}
+            {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
         </div>
     );
 };

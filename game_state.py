@@ -81,6 +81,8 @@ class GameState:
                             game_player_to_return = game_player
                             game_player_to_return.civ_id = city.civ.id
                             self.game_player_by_player_num[player_num].civ_id = city.civ.id
+                            city.civ.vitality = 2.0
+
                             city.capitalize()
 
                         else:
