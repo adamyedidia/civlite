@@ -2111,7 +2111,7 @@ export default function GamePage() {
                                     {hex.yields ? <YieldImages yields={hex.yields} /> : null}
                                     {hex.city && <City 
                                         city={hex.city}
-                                        isHovered={hex?.city?.id === hoveredCity?.id}
+                                        isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
                                         isSelected={hex?.city?.id === selectedCity?.id}  
                                         isUnitInHex={hex?.units?.length > 0}                              
                                     />}
@@ -2135,7 +2135,7 @@ export default function GamePage() {
                 {hoveredHex && (
                     <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                 )}
-                {<UpperRightDisplay city={selectedCity} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} myCiv={myCiv} />}
+                {<UpperRightDisplay city={selectedCity || hoveredCity} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} myCiv={myCiv} />}
                 {selectedCityBuildingChoices && (
                     <div className="building-choices-container">
                         <BriefBuildingDisplayTitle title="Building Choices" />

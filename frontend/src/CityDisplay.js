@@ -1,9 +1,7 @@
 import React from 'react';
 import './CityDisplay.css'; // You will need to create this CSS file
 
-const CityDisplay = ({ city, setHoveredUnit, setHoveredBuilding }) => {
-
-
+const CityDisplay = ({ city, setHoveredUnit, setHoveredBuilding, isFriendly }) => {
     const handleMouseEnter = (item, itemType) => {
         if (itemType === 'unit') {
             setHoveredUnit(item);
@@ -36,9 +34,9 @@ const CityDisplay = ({ city, setHoveredUnit, setHoveredBuilding }) => {
     return (
         <div className="city-display">
             <h3>{city.name} (Population: {city.population})</h3>
-            {renderQueue(city.units_queue, 'Units Queue', 'unit')}
-            {renderQueue(city.buildings_queue, 'Buildings Queue', 'building')}
-            {renderQueue(city.buildings, 'Buildings', 'building')}
+            {isFriendly && renderQueue(city.units_queue, 'Units Queue', 'unit')}
+            {isFriendly && renderQueue(city.buildings_queue, 'Buildings Queue', 'building')}
+            {isFriendly && renderQueue(city.buildings, 'Buildings', 'building')}
         </div>
     );
 };
