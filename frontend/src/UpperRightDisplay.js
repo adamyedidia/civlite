@@ -29,12 +29,11 @@ const ScoreDisplay = ({ myGamePlayer }) => {
     );
 }
 
-const UpperRightDisplay = ({ city, setHoveredUnit, setHoveredBuilding, myCiv, myGamePlayer }) => {
-
+const UpperRightDisplay = ({ city, setHoveredUnit, setHoveredBuilding, setHoveredTech, myCiv, myGamePlayer }) => {
     return (
         <div className="upper-right-display">
             {city && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={city?.civ?.id === myCiv?.id}/>}
-            {myCiv?.tech_queue?.[0] && <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} />}
+            {myCiv?.tech_queue?.[0] && <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} setHoveredTech={setHoveredTech}/>}
             {myCiv && <CityPowerDisplay myCiv={myCiv} />}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} />}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}

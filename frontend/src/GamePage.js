@@ -87,6 +87,7 @@ export default function GamePage() {
 
     const [hoveredUnit, setHoveredUnit] = useState(null);
     const [hoveredBuilding, setHoveredBuilding] = useState(null);
+    const [hoveredTech, setHoveredTech] = useState(null);
 
     const [hoveredCity, setHoveredCity] = useState(null);
     const [selectedCity, setSelectedCity] = useState(null);
@@ -1402,14 +1403,23 @@ export default function GamePage() {
     useEffect(() => {
         if (!!hoveredBuilding) {
             setHoveredUnit(null);
+            setHoveredTech(null);
         }
     }, [!!hoveredBuilding])
 
     useEffect(() => {
         if (!!hoveredUnit) {
             setHoveredBuilding(null);
+            setHoveredTech(null);
         }
     }, [!!hoveredUnit])
+
+    useEffect(() => {
+        if (!!hoveredTech) {
+            setHoveredBuilding(null);
+            setHoveredUnit(null);
+        }
+    }, [!!hoveredTech])
 
     const toggleFoundingCity = () => {
         setFoundingCity(!foundingCity);
@@ -2142,6 +2152,7 @@ export default function GamePage() {
                     city={selectedCity || hoveredCity} 
                     setHoveredUnit={setHoveredUnit} 
                     setHoveredBuilding={setHoveredBuilding} 
+                    setHoveredTech={setHoveredTech}
                     myCiv={myCiv} 
                     myGamePlayer={myGamePlayer} 
                 />}
@@ -2200,7 +2211,10 @@ export default function GamePage() {
                     )}
                     {hoveredUnit && (
                         <UnitDisplay unit={unitTemplates[hoveredUnit]} />
-                    )}                
+                    )}
+                    {hoveredTech && (
+                        <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} />
+                    )}
                 </div>
                 {!animating && <div style={{
                     position: 'fixed', 
