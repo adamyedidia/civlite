@@ -23,6 +23,7 @@ class Hex:
         self.camp: Optional[Camp] = None
         self.coords = coords_str((q, r, s))
         self.visibility_by_civ: dict[str, bool] = {}
+        self.is_foundable_by_civ: dict[str, bool] = {}
 
     def distance_to(self, other: "Hex") -> int:
         return max(abs(self.q - other.q), abs(self.r - other.r), abs(self.s - other.s))
@@ -137,6 +138,7 @@ class Hex:
                 "city": self.city.to_json() if self.city else None,
                 "camp": self.camp.to_json() if self.camp else None,
                 "visibility_by_civ": self.visibility_by_civ,
+                "is_foundable_by_civ": self.is_foundable_by_civ,
             } if from_civ_perspectives is None or any([self.visibility_by_civ.get(from_civ_perspective.id) for from_civ_perspective in from_civ_perspectives]) else {}),
         }
     
@@ -155,5 +157,6 @@ class Hex:
         if json.get("camp"):
             hex.camp = Camp.from_json(json["camp"])
         hex.visibility_by_civ = json["visibility_by_civ"].copy()
+        hex.is_foundable_by_civ = json["is_foundable_by_civ"].copy()
 
         return hex

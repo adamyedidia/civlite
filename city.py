@@ -17,8 +17,8 @@ if TYPE_CHECKING:
 
 
 class City:
-    def __init__(self, civ: Civ):
-        self.id = generate_unique_id()
+    def __init__(self, civ: Civ, id: Optional[str] = None):
+        self.id = id or generate_unique_id()
         self.civ = civ
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True}
         self.name = generate_random_city_name()
@@ -60,15 +60,12 @@ class City:
             self.civ.science += hex.yields.science * vitality
         
         self.civ.science += self.population * vitality
-        print('food', self.food)
         self.food += 2 * vitality
         self.civ.city_power += 2 * vitality
-        print('food', self.food)
 
         if self.focus == 'food':
             self.food += self.population * vitality
             self.civ.city_power += self.population * vitality
-            print('food', self.food)
         elif self.focus == 'metal':
             self.metal += self.population * vitality
         elif self.focus == 'wood':
@@ -90,6 +87,14 @@ class City:
         for nearby_hex in neighbors:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
+    def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:
+        if self.hex is None:
+            return
+
+        for hex in [*self.hex.get_neighbors(hexes), self.hex]:
+            for key in hex.is_foundable_by_civ:
+                hex.is_foundable_by_civ[key] = False            
+
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.harvest_yields(game_state)
         self.grow()
@@ -99,9 +104,7 @@ class City:
         self.handle_cleanup()
 
     def grow(self) -> None:
-        print('food', self.food)
         while self.food >= self.growth_cost():
-            print('food', self.food)
             self.food -= self.growth_cost()
             self.population += 1
 
@@ -260,16 +263,16 @@ class City:
             if unit.civ.id != self.civ.id and unit.template.type == 'military':
                 return unit.civ
 
-        num_neighboring_units_by_civ_name = defaultdict(int)
+        # num_neighboring_units_by_civ_name = defaultdict(int)
 
-        for hex in self.hex.get_neighbors(game_state.hexes):
-            for unit in hex.units:
-                if unit.template.type == 'military':
-                    num_neighboring_units_by_civ_name[unit.civ.template.name] += 1
+        # for hex in self.hex.get_neighbors(game_state.hexes):
+        #     for unit in hex.units:
+        #         if unit.template.type == 'military':
+        #             num_neighboring_units_by_civ_name[unit.civ.template.name] += 1
 
-        for civ_name, num_neighboring_units in num_neighboring_units_by_civ_name.items():
-            if num_neighboring_units >= 4:
-                return game_state.get_civ_by_name(civ_name)
+        # for civ_name, num_neighboring_units in num_neighboring_units_by_civ_name.items():
+        #     if num_neighboring_units >= 4 and civ_name != self.civ.template.name:
+        #         return game_state.get_civ_by_name(civ_name)
 
         return None
 
@@ -279,6 +282,8 @@ class City:
         if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
             civ.game_player.score += CITY_CAPTURE_REWARD
             self.ever_controlled_by_civ_ids[civ.id] = True
+
+        self.under_siege_by_civ = None
 
         if self.hex:
             game_state.add_animation_frame(sess, {

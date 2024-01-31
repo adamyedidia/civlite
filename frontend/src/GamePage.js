@@ -38,6 +38,10 @@ export const FocusSelectorTitle = ({ title }) => {
     );
 }
 
+const generateUniqueId = () => {
+    return Math.random().toString(36).substring(2);
+}
+
 export const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
     return (
         <div
@@ -94,6 +98,8 @@ export default function GamePage() {
     const [animating, setAnimating] = useState(false);
 
     const [animationRunIdUseState, setAnimationRunIdUseState] = useState(null);
+
+    const [foundingCity, setFoundingCity] = useState(false);
 
     const animationRunIdRef = React.useRef(null);
 
@@ -1404,6 +1410,10 @@ export default function GamePage() {
         }
     }, [!!hoveredUnit])
 
+    const toggleFoundingCity = () => {
+        setFoundingCity(!foundingCity);
+    }
+
     useEffect(() => {
         if (!animating && myCiv?.tech_queue?.length === 0) {
 
@@ -1679,7 +1689,7 @@ export default function GamePage() {
     }
 
     const triggerAnimations = async (finalGameState, animationQueue, doNotNotifyBackendOnCompletion) => {
-        const animationRunId = Math.random().toString(36).substring(7);
+        const animationRunId = generateUniqueId();
 
         console.log(`animating! ${animationRunId}`);
         console.log(animationQueue)
@@ -1886,6 +1896,8 @@ export default function GamePage() {
 
     const hexStyle = (terrain, inFog, pointer) => {
         const terrainToColor = {
+            'foundable': '#44AA44',
+            'unfoundable': '#FF4444',
             'forest': '#228B22',
             'desert': '#FFFFAA',
             'plains': '#CBC553',
@@ -1932,21 +1944,53 @@ export default function GamePage() {
     }
 
     const handleClickHex = (hex) => {
-        setHoveredCity(null);
+        if (foundingCity) {
+            if (!hex?.is_foundable_by_civ?.[myCivId]) {
+                return;
+            }
+            const playerInput = {
+                'move_type': 'found_city',
+                'city_id': generateUniqueId(),
+                'coords': `${hex.q},${hex.r},${hex.s}`,
+            }
 
-        if (hexesAreEqual(hex, target1)) {
-            removeTarget(false);
-            return;
-        }
+            const data = {
+                player_num: playerNum,
+                player_input: playerInput,
+            }
 
-        if (hexesAreEqual(hex, target2)) {
-            removeTarget(true);
-            return;
-        }
+            fetch(`${URL}/api/player_input/${gameId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
 
-        if ((!hex.city) || (hex?.city?.civ?.id !== myCivId)) {
-            setTarget(hex, !target1 ? false : !target2 ? true : lastSetPrimaryTarget ? true : false);
+                body: JSON.stringify(data),
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.game_state) {
+                        setGameState(data.game_state);
+                        setFoundingCity(false);
+                    }
+                });
         }
+        else {
+            setHoveredCity(null);
+
+            if (hexesAreEqual(hex, target1)) {
+                removeTarget(false);
+                return;
+            }
+
+            if (hexesAreEqual(hex, target2)) {
+                removeTarget(true);
+                return;
+            }
+
+            if ((!hex.city) || (hex?.city?.civ?.id !== myCivId)) {
+                setTarget(hex, !target1 ? false : !target2 ? true : lastSetPrimaryTarget ? true : false);
+            }
+        }   
     };
 
     const setTarget = (hex, isSecondary) => {
@@ -2029,7 +2073,10 @@ export default function GamePage() {
                             //     }}
                             // >
                                 <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
-                                        cellStyle={hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
+                                        cellStyle={foundingCity ? 
+                                                   hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
+                                                   : 
+                                                   hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
                                         onClick={() => handleClickHex(hex)} 
                                         onMouseOver={() => handleMouseOverHex(hex)}
                                         onMouseLeave={() => handleMouseLeaveHex(hex)}
@@ -2144,23 +2191,41 @@ export default function GamePage() {
                         <UnitDisplay unit={unitTemplates[hoveredUnit]} />
                     )}                
                 </div>
-                <Button 
-                    style={{
-                        position: 'fixed', 
-                        bottom: '10px', 
-                        left: '50%', 
-                        transform: 'translate(-50%, 0%)', 
-                        backgroundColor: "#cccc88",
-                        color: "black",
-                        padding: '10px 20px', // Increase padding for larger button
-                        fontSize: '1.5em' // Increase font size for larger text
-                    }} 
-                    variant="contained"
-                    onClick={handleClickEndTurn}
-                    disabled={animating}
-                >
-                    End turn
-                </Button>
+                {!animating && <div style={{
+                    position: 'fixed', 
+                    bottom: '10px', 
+                    left: '50%', 
+                    transform: 'translate(-50%, 0%)', 
+                    flexDirection: 'row',
+                }}>
+                    {myCiv?.city_power > 100 && <Button 
+                        style={{
+                            backgroundColor: "#ccffaa",
+                            color: "black",
+                            padding: '10px 20px', // Increase padding for larger button
+                            fontSize: '1.5em' // Increase font size for larger text
+                        }} 
+                        variant="contained"
+                        disabled={animating}
+                        onClick={toggleFoundingCity}
+                    >
+                        {foundingCity ? 'Cancel found city' : 'Found city'}
+                    </Button>}
+                    <Button 
+                        style={{
+                            backgroundColor: "#cccc88",
+                            color: "black",
+                            marginLeft: '20px',
+                            padding: '10px 20px', // Increase padding for larger button
+                            fontSize: '1.5em' // Increase font size for larger text
+                        }} 
+                        variant="contained"
+                        onClick={handleClickEndTurn}
+                        disabled={animating}
+                    >
+                        End turn
+                    </Button>                    
+                </div>}
             </div>
         )
     }

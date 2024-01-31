@@ -207,6 +207,19 @@ class GameState:
                 city.focus = move['focus']                
                 game_player_to_return = game_player
 
+            if move['move_type'] == 'found_city':
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                civ.city_power -= 100
+                city_id = move['city_id']
+                city = City(civ, id=city_id)
+                city.hex = self.hexes[move['coords']]
+                city.hex.city = city
+                self.cities_by_id[city_id] = city
+                self.refresh_foundability_by_civ()
+                game_player_to_return = game_player
+
         if game_player_to_return is not None and game_player_to_return.civ_id is not None:
             from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
             return from_civ_perspectives
@@ -222,6 +235,22 @@ class GameState:
 
         for city in self.cities_by_id.values():
             city.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
+
+    def refresh_foundability_by_civ(self) -> None:
+        for hex in self.hexes.values():
+            hex.is_foundable_by_civ.clear()
+
+        for unit in self.units:
+            unit.update_nearby_hexes_friendly_foundability()
+
+        for unit in self.units:
+            unit.update_nearby_hexes_hostile_foundability(self.hexes)
+
+        for city in self.cities_by_id.values():
+            city.update_nearby_hexes_hostile_foundability(self.hexes)
+
+        for camp in self.camps:
+            camp.update_nearby_hexes_hostile_foundability(self.hexes)
 
     def end_turn(self, sess) -> None:
         for player_num in self.game_player_by_player_num.keys():
@@ -274,6 +303,7 @@ class GameState:
             unit.has_moved = False
 
         self.refresh_visibility_by_civ()
+        self.refresh_foundability_by_civ()
 
         self.add_animation_frame(sess, {
             "type": "StartOfNewTurn",

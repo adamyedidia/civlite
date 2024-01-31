@@ -210,6 +210,20 @@ class Unit:
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         self.civ = civs_by_id[self.civ.id]
 
+    def update_nearby_hexes_friendly_foundability(self) -> None:
+        if self.hex is None:
+            return
+        self.hex.is_foundable_by_civ[self.civ.id] = True
+
+    def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:
+        if self.hex is None:
+            return
+        
+        for hex in self.hex.get_neighbors(hexes):
+            for key in hex.is_foundable_by_civ:
+                if key != self.civ.id:
+                    hex.is_foundable_by_civ[key] = False
+
     def to_json(self) -> dict:
         return {
             "id": self.id,

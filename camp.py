@@ -103,18 +103,26 @@ class Camp:
             if unit.civ.id != self.civ.id and unit.template.type == 'military':
                 return unit.civ
 
-        num_neighboring_units_by_civ_name = defaultdict(int)
+        # num_neighboring_units_by_civ_name = defaultdict(int)
 
-        for hex in self.hex.get_neighbors(game_state.hexes):
-            for unit in hex.units:
-                if unit.template.type == 'military':
-                    num_neighboring_units_by_civ_name[unit.civ.template.name] += 1
+        # for hex in self.hex.get_neighbors(game_state.hexes):
+        #     for unit in hex.units:
+        #         if unit.template.type == 'military':
+        #             num_neighboring_units_by_civ_name[unit.civ.template.name] += 1
 
-        for civ_name, num_neighboring_units in num_neighboring_units_by_civ_name.items():
-            if num_neighboring_units >= 4:
-                return game_state.get_civ_by_name(civ_name)
+        # for civ_name, num_neighboring_units in num_neighboring_units_by_civ_name.items():
+        #     if num_neighboring_units >= 4 and civ_name != self.civ.template.name:
+        #         return game_state.get_civ_by_name(civ_name)
 
         return None
+
+    def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:
+        if self.hex is None:
+            return
+
+        for hex in [*self.hex.get_neighbors(hexes), self.hex]:
+            for key in hex.is_foundable_by_civ:
+                hex.is_foundable_by_civ[key] = False
 
     def clear(self, sess, civ: Civ, game_state: 'GameState') -> None:
         civ.city_power += CAMP_CLEAR_CITY_POWER_REWARD

@@ -147,7 +147,7 @@ BARBARIAN_CIV = {
         "name": "Barbarians",
         "abilities": [],
         "primary_color": "#FF0000",
-        "secondary_color": "#000000",
+        "secondary_color": "#666666",
     },
 }
 ANCIENT_CIVS = {
