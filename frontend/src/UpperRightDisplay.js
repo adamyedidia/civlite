@@ -3,10 +3,10 @@ import './UpperRightDisplay.css';
 import CityDisplay from './CityDisplay';
 import { BriefTechDisplay } from './TechDisplay';
 
-const CityPowerDisplay = ({ cityPower }) => {
+const CityPowerDisplay = ({ myCiv }) => {
     return (
         <div className="city-power-display">
-            <p>City power: {cityPower.toFixed(1)}</p>
+            <p>City power: {myCiv?.city_power?.toFixed(1)} (+{myCiv?.projected_city_power_income?.toFixed(1)})</p>
         </div>
     );
 };
@@ -35,7 +35,7 @@ const UpperRightDisplay = ({ city, setHoveredUnit, setHoveredBuilding, myCiv, my
         <div className="upper-right-display">
             {city && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={city?.civ?.id === myCiv?.id}/>}
             {myCiv?.tech_queue?.[0] && <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} />}
-            {myCiv && <CityPowerDisplay cityPower={myCiv.city_power} />}
+            {myCiv && <CityPowerDisplay myCiv={myCiv} />}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} />}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
         </div>

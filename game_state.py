@@ -84,6 +84,8 @@ class GameState:
                             city.civ.vitality = 2.0
 
                             city.capitalize()
+                            city.adjust_projected_yields(self)
+                            city.civ.adjust_projected_yields(self)
 
                         else:
                             if city.hex:
@@ -209,6 +211,9 @@ class GameState:
                 city.focus = move['focus']                
                 game_player_to_return = game_player
 
+                city.adjust_projected_yields(self)
+                city.civ.adjust_projected_yields(self)
+
             if move['move_type'] == 'found_city':
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
@@ -220,6 +225,8 @@ class GameState:
                 city.hex.city = city
                 self.cities_by_id[city_id] = city
                 self.refresh_foundability_by_civ()
+                city.adjust_projected_yields(self)
+                city.civ.adjust_projected_yields(self)                
                 game_player_to_return = game_player
 
         if game_player_to_return is not None and game_player_to_return.civ_id is not None:
@@ -303,6 +310,12 @@ class GameState:
 
         for unit in units_copy:
             unit.has_moved = False
+
+        for city in self.cities_by_id.values():
+            city.adjust_projected_yields(self)
+
+        for civ in self.civs_by_id.values():
+            civ.adjust_projected_yields(self)
 
         print([game_player.to_json() for key, game_player in self.game_player_by_player_num.items()])
 

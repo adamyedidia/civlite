@@ -37,6 +37,11 @@ const CityDisplay = ({ city, setHoveredUnit, setHoveredBuilding, isFriendly }) =
             {isFriendly && renderQueue(city.units_queue, 'Units Queue', 'unit')}
             {isFriendly && renderQueue(city.buildings_queue, 'Buildings Queue', 'building')}
             {isFriendly && renderQueue(city.buildings, 'Buildings', 'building')}
+            {isFriendly && <ul>
+                <li>Food: {city.food.toFixed(1)} (+{city.projected_food_income.toFixed(1)}) / {city.growth_cost}</li>
+                <li>Wood: {city.wood.toFixed(1)} (+{city.projected_wood_income.toFixed(1)})</li>
+                <li>Metal: {city.metal.toFixed(1)} (+{city.projected_metal_income.toFixed(1)})</li>
+            </ul>}
         </div>
     );
 };

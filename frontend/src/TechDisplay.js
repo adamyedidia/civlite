@@ -6,7 +6,7 @@ export const BriefTechDisplay = ({ tech, myCiv }) => {
     return (
         <div className="brief-tech-card">
             <p>Researching {tech.name}</p>
-            <p>You currently have: {myCiv?.science?.toFixed(1)} science</p>
+            <p>You currently have: {myCiv?.science?.toFixed(1)} (+{myCiv?.projected_science_income?.toFixed(1)}) science</p>
             <p>Cost: {tech.cost} science</p>
         </div>
     );

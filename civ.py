@@ -5,7 +5,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ_templates_list import ANCIENT_CIVS, CIVS
 from game_player import GamePlayer
-from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE
+from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME
 from tech import Tech
 from tech_template import TechTemplate
 from unit_templates_list import UNITS
@@ -34,6 +34,8 @@ class Civ:
         self.target2: Optional['Hex'] = None
         self.target1_coords: Optional[str] = None
         self.target2_coords: Optional[str] = None
+        self.projected_science_income = 0.0
+        self.projected_city_power_income = 0.0
 
         self.fill_out_available_buildings()
 
@@ -42,6 +44,15 @@ class Civ:
 
     def numbers_of_ability(self, ability_name: str) -> list:
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
+
+    def adjust_projected_yields(self, game_state: 'GameState') -> None:
+        self.projected_science_income = 0.0
+        self.projected_city_power_income = BASE_CITY_POWER_INCOME
+
+        for city in game_state.cities_by_id.values():
+            if city.civ.id == self.id:
+                self.projected_science_income += city.projected_science_income
+                self.projected_city_power_income += city.projected_city_power_income
 
     def to_json(self) -> dict:
         return {
@@ -57,6 +68,8 @@ class Civ:
             "available_unit_buildings": self.available_unit_buildings,
             "target1": self.target1.coords if self.target1 else None,
             "target2": self.target2.coords if self.target2 else None,
+            "projected_science_income": self.projected_science_income,
+            "projected_city_power_income": self.projected_city_power_income,
         }
 
     def fill_out_available_buildings(self) -> None:
@@ -81,7 +94,7 @@ class Civ:
         else:
             self.vitality *= VITALITY_DECAY_RATE
 
-        self.city_power += 20
+        self.city_power += BASE_CITY_POWER_INCOME
 
     def update_game_player(self, game_player_by_player_num: dict[int, GamePlayer]) -> None:
         if self.game_player is not None:
@@ -104,6 +117,8 @@ class Civ:
         civ.fill_out_available_buildings()
         civ.target1_coords = json["target1"]
         civ.target2_coords = json["target2"]
+        civ.projected_science_income = json["projected_science_income"]
+        civ.projected_city_power_income = json["projected_city_power_income"]
 
         return civ
 

@@ -37,6 +37,11 @@ class City:
         self.available_buildings: list[str] = []
         self.capital = False
         self.available_units: list[str] = []
+        self.projected_food_income = 0.0
+        self.projected_metal_income = 0.0
+        self.projected_wood_income = 0.0
+        self.projected_science_income = 0.0
+        self.projected_city_power_income = 0.0
 
         self.handle_cleanup()
 
@@ -45,6 +50,55 @@ class City:
 
     def building_is_in_queue(self, building_name: str) -> bool:
         return any([(building.building_name if hasattr(building, 'building_name') else building.name) == building_name for building in self.buildings_queue])  # type: ignore
+
+    def adjust_projected_yields(self, game_state: 'GameState') -> None:
+        print('adjusting projected yields')
+
+        projected_yields = self.get_projected_yields(game_state)
+
+        self.projected_food_income = projected_yields['food']
+        self.projected_metal_income = projected_yields['metal']
+        self.projected_wood_income = projected_yields['wood']
+        self.projected_science_income = projected_yields['science']
+        self.projected_city_power_income = projected_yields['city_power']
+
+        print(projected_yields)
+
+    def get_projected_yields(self, game_state: 'GameState') -> dict[str, float]:
+        if self.hex is None:
+            return {
+                "food": 0,
+                "metal": 0,
+                "wood": 0,
+                "science": 0,
+                "city_power": 0,
+            }
+
+        vitality = self.civ.vitality
+        yields = defaultdict(float)
+
+        for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+            yields["food"] += hex.yields.food * vitality
+            yields["metal"] += hex.yields.metal * vitality
+            yields["wood"] += hex.yields.wood * vitality
+            yields["science"] += hex.yields.science * vitality
+            yields["city_power"] += hex.yields.food * vitality
+        
+        yields["science"] += self.population * vitality
+        yields["food"] += 2 * vitality
+        yields["city_power"] += 2 * vitality
+
+        if self.focus == 'food':
+            yields["food"] += self.population * vitality
+            yields["city_power"] += self.population * vitality
+        elif self.focus == 'metal':
+            yields["metal"] += self.population * vitality
+        elif self.focus == 'wood':
+            yields["wood"] += self.population * vitality
+        elif self.focus == 'science':
+            yields["science"] += self.population * vitality
+
+        return yields
 
     def harvest_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -328,6 +382,12 @@ class City:
             "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings(None)],  # type: ignore
             "capital": self.capital,
             "available_units": self.available_units,
+            "projected_food_income": self.projected_food_income,
+            "projected_metal_income": self.projected_metal_income,
+            "projected_wood_income": self.projected_wood_income,
+            "projected_science_income": self.projected_science_income,
+            "projected_city_power_income": self.projected_city_power_income,
+            "growth_cost": self.growth_cost(),
         }
 
     @staticmethod
@@ -350,6 +410,12 @@ class City:
         city.available_units = json["available_units"][:]
         city.units_queue = [UnitTemplate.from_json(UNITS[unit]) for unit in json["units_queue"]]
         city.focus = json["focus"]
+        city.projected_food_income = json["projected_food_income"]
+        city.projected_metal_income = json["projected_metal_income"]
+        city.projected_wood_income = json["projected_wood_income"]
+        city.projected_science_income = json["projected_science_income"]
+        city.projected_city_power_income = json["projected_city_power_income"]
+
         city.handle_cleanup()
 
         return city

@@ -1777,6 +1777,8 @@ export default function GamePage() {
                     setTechChoices(data.tech_choices);
                     if (data.game_state) {
                         setGameState(data.game_state);
+                        // refreshSelectedCity(data.game_state);
+                        setSelectedCity(data.game_state.hexes[city.hex].city);
                     }
                 });
         
