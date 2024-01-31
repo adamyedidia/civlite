@@ -157,6 +157,7 @@ class Hex:
         if json.get("camp"):
             hex.camp = Camp.from_json(json["camp"])
         hex.visibility_by_civ = json["visibility_by_civ"].copy()
-        hex.is_foundable_by_civ = json["is_foundable_by_civ"].copy()
+        if json.get("is_foundable_by_civ"):
+            hex.is_foundable_by_civ = json["is_foundable_by_civ"].copy()
 
         return hex
