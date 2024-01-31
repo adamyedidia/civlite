@@ -83,6 +83,10 @@ class Civ:
 
         self.city_power += 20
 
+    def update_game_player(self, game_player_by_player_num: dict[int, GamePlayer]) -> None:
+        if self.game_player is not None:
+            self.game_player = game_player_by_player_num[self.game_player.player_num]
+
     @staticmethod
     def from_json(json: dict) -> "Civ":
         civ = Civ(

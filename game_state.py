@@ -304,6 +304,8 @@ class GameState:
         for unit in units_copy:
             unit.has_moved = False
 
+        print([game_player.to_json() for key, game_player in self.game_player_by_player_num.items()])
+
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
 
@@ -410,11 +412,13 @@ class GameState:
     def from_json(json: dict) -> "GameState":
         hexes = {key: Hex.from_json(hex_json) for key, hex_json in json["hexes"].items()}
         game_state = GameState(game_id=json["game_id"], hexes=hexes)
+        game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}        
         game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs_by_id"].items()}
         game_state.barbarians = [civ for civ in game_state.civs_by_id.values() if civ.template.name == 'Barbarians'][0]
+        for civ in game_state.civs_by_id.values():
+            civ.update_game_player(game_state.game_player_by_player_num)
         for hex in game_state.hexes.values():
             hex.update_civ_by_id(game_state.civs_by_id)
-        game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}
         game_state.turn_num = json["turn_num"]
         game_state.wonders_built = json["wonders_built"].copy()
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}

@@ -139,10 +139,19 @@ class Unit:
 
         target.health = max(0, target.health - self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength))
 
+        if self.civ.game_player:
+            print('game player score', self.civ.game_player.score)
+
         if target.health == 0:
             target.die(game_state)
+            print("killed by", self.civ.template.name)
+            print("killer game player", self.civ.game_player)
+
             if (game_player := self.civ.game_player) is not None:
+                print("killer game player", self.civ.game_player)
                 game_player.score += UNIT_KILL_REWARD
+
+                print(game_player.score)
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
         if self.hex is None or target.hex is None:
