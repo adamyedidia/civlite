@@ -99,7 +99,7 @@ body {
 }
 
 .building-choices-container {
-  display: flex;
+  /* display: flex; */
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
@@ -108,17 +108,19 @@ body {
   left: 10px;
   /* transform: translate(-50%, -50%); */
   z-index: 1000; /* Ensure it's above other elements */
+  max-height: 27%; /* Adjust as needed */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
 }
 
 .building-queue-container {
-  display: flex;
+  /* display: flex; */
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
   position: fixed;
   top: 30%;
+  max-height: 20%;
   left: 10px;
   /* transform: translate(-50%, -50%); */
   z-index: 1000; /* Ensure it's above other elements */
@@ -127,13 +129,14 @@ body {
 }
 
 .existing-buildings-container {
-  display: flex;
+  /* display: flex; */
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
   position: fixed;
-  top: 60%;
+  top: 55%;
   left: 10px;
+  max-height: 27%;
   /* transform: translate(-50%, -50%); */
   z-index: 1000; /* Ensure it's above other elements */
   overflow-y: auto; /* Enable vertical scrolling */
@@ -141,13 +144,14 @@ body {
 }
 
 .unit-choices-container {
-  display: flex;
+  /* display: flex; */
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
   position: fixed;
   top: 10px;
   left: 20%;
+  max-height: 27%; /* Adjust as needed */
   /* transform: translate(-50%, -50%); */
   z-index: 1000; /* Ensure it's above other elements */
   overflow-y: auto; /* Enable vertical scrolling */
@@ -155,12 +159,13 @@ body {
 }
 
 .unit-queue-container {
-  display: flex;
+  /* display: flex; */
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
   position: fixed;
   top: 30%;
+  max-height: 20%;
   left: 20%;
   /* transform: translate(-50%, -50%); */
   z-index: 1000; /* Ensure it's above other elements */
@@ -169,13 +174,14 @@ body {
 }
 
 .focus-container {
-  display: flex;
+  /* display: flex; */
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
   position: fixed;
-  top: 60%;
+  top: 55%;
   left: 20%;
+  max-height: 27%; /* Adjust as needed */
   /* transform: translate(-50%, -50%); */
   z-index: 1000; /* Ensure it's above other elements */
   overflow-y: auto; /* Enable vertical scrolling */
