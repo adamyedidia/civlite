@@ -6,9 +6,10 @@ from camp import Camp
 from city import City
 from civ import Civ
 from civ_template import CivTemplate
-from civ_templates_list import BARBARIAN_CIV
+from civ_templates_list import BARBARIAN_CIV, CIVS, ANCIENT_CIVS
 from game_player import GamePlayer
 from hex import Hex
+from map import generate_decline_locations
 from redis_utils import rget_json, rlock, rset_json, rdel
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
@@ -16,6 +17,7 @@ from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
+from utils import swap_two_elements_of_list
 
 from sqlalchemy import func
 
@@ -44,17 +46,18 @@ def get_all_camps(hexes: dict[str, Hex]) -> list[Camp]:
 
 class GameState:
     def __init__(self, game_id: str, hexes: dict[str, Hex]):
-        self.hexes = hexes
+        self.hexes: dict[str, Hex] = hexes
         self.game_id = game_id
-        self.units = get_all_units(hexes)
+        self.units: list[Unit] = get_all_units(hexes)
         self.cities_by_id: dict[str, City] = get_all_cities(hexes)
-        self.camps = get_all_camps(hexes)
+        self.camps: list[Camp] = get_all_camps(hexes)
         self.barbarians: Civ = Civ(CivTemplate.from_json(BARBARIAN_CIV["Barbarians"]), None)  
         self.civs_by_id: dict[str, Civ] = {self.barbarians.id: self.barbarians}
         self.turn_num = 1
         self.game_player_by_player_num: dict[int, GamePlayer] = {}
         self.wonders_built: dict[str, bool] = {}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
+        self.advancement_level = 0
 
     def set_unit_and_city_hexes(self) -> None:
         for hex in self.hexes.values():
@@ -229,11 +232,35 @@ class GameState:
                 city.civ.adjust_projected_yields(self)                
                 game_player_to_return = game_player
 
+            if move['move_type'] == 'enter_decline':
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                civ.game_player = None
+                game_player.civ_id = None
+                game_player_to_return = game_player
+
         if game_player_to_return is not None and game_player_to_return.civ_id is not None:
             from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
             return from_civ_perspectives
 
         return None
+
+    def sync_advancement_level(self) -> None:
+        tech_levels = []
+
+        for civ in self.civs_by_id.values():
+            for tech in civ.techs:
+                if civ.techs[tech]:
+                    tech_levels.append(TECHS[tech]['advancement_level'])
+        
+        max_advancement_level = 0
+
+        for tech_level in range(max(tech_levels) + 1):
+            if len([tech for tech in tech_levels if tech >= tech_level]) >= len(self.civs_by_id) / 2:
+                max_advancement_level = tech_level
+
+        self.advancement_level = max_advancement_level
 
     def refresh_visibility_by_civ(self, short_sighted: bool = False) -> None:
         for hex in self.hexes.values():
@@ -317,7 +344,11 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.adjust_projected_yields(self)
 
-        print([game_player.to_json() for key, game_player in self.game_player_by_player_num.items()])
+        self.sync_advancement_level()
+
+        self.prepare_decline_choices()
+
+        # print([game_player.to_json() for key, game_player in self.game_player_by_player_num.items()])
 
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
@@ -325,6 +356,69 @@ class GameState:
         self.add_animation_frame(sess, {
             "type": "StartOfNewTurn",
         })
+
+
+    def prepare_decline_choices(self) -> None:
+        advancement_level_to_use = max(self.advancement_level, 1)
+
+        num_players = len(self.game_player_by_player_num)
+
+        num_civs_to_sample = 3 * num_players
+
+        decline_choice_big_civ_pool = []
+
+        for min_advancement_level in range(advancement_level_to_use, 0, -1):
+            decline_choice_big_civ_pool = [civ for civ in ANCIENT_CIVS.values() if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level]
+
+            if len(decline_choice_big_civ_pool) >= num_civs_to_sample:
+                break
+
+        decline_choice_civ_pool = random.sample(decline_choice_big_civ_pool, num_civs_to_sample)
+
+        cities_by_civ = {civ.id: [city for city in self.cities_by_id.values() if city.civ.id == civ.id] for civ in self.civs_by_id.values()}
+
+        eligible_cities_for_declining = [city for city in self.cities_by_id.values() if len(cities_by_civ[city.civ.id]) > 1]
+
+        eligible_locations_for_declining = generate_decline_locations(self.hexes, max(num_civs_to_sample - len(eligible_cities_for_declining) + num_players, 0))
+
+        all_location_options: list[str] = [*[city.hex.coords for city in eligible_cities_for_declining if city.hex is not None], 
+                                  *[hex.coords for hex in eligible_locations_for_declining]]
+
+        min_options_per_player = len(all_location_options) // num_players
+
+        num_options_by_player = [min_options_per_player] * num_players
+
+        for i in range(len(all_location_options) % num_players):
+            num_options_by_player[i] += 1
+
+        random.shuffle(all_location_options)
+
+        counter = 0
+
+        for i, player_num in enumerate(self.game_player_by_player_num.keys()):
+            game_player = self.game_player_by_player_num[player_num]
+            decline_options = []
+            for _ in range(num_options_by_player[i]):
+                location = ''
+                index_to_swap_with = counter + 1
+                is_good_location = False
+                while True:
+                    location = all_location_options[counter]
+                    hex_at_location = self.hexes[location]
+                    city_at_location = hex_at_location.city
+                    if city_at_location is None or city_at_location.civ.id != game_player.civ_id:
+                        is_good_location = True
+                        break
+                    swap_two_elements_of_list(all_location_options, counter, index_to_swap_with)
+                    index_to_swap_with += 1
+                    if index_to_swap_with >= len(all_location_options):
+                        break
+
+                if is_good_location:
+                    decline_options.append((all_location_options[counter], decline_choice_civ_pool[counter]))
+                counter += 1
+            game_player.decline_options = decline_options
+    
 
     def handle_wonder_built(self, sess, civ: Civ, building_template: BuildingTemplate) -> None:
         self.wonders_built[building_template.name] = True
@@ -412,6 +506,7 @@ class GameState:
             "wonders_built": self.wonders_built,
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
+            "advancement_level": self.advancement_level,
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
@@ -428,6 +523,7 @@ class GameState:
         game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}        
         game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs_by_id"].items()}
         game_state.barbarians = [civ for civ in game_state.civs_by_id.values() if civ.template.name == 'Barbarians'][0]
+        game_state.advancement_level = json["advancement_level"]
         for civ in game_state.civs_by_id.values():
             civ.update_game_player(game_state.game_player_by_player_num)
         for hex in game_state.hexes.values():

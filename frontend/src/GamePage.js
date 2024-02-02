@@ -8,7 +8,14 @@ import { css } from '@emotion/react';
 import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
-import { Button } from '@mui/material';
+import { 
+    Button, 
+    Dialog, 
+    DialogTitle, 
+    DialogContent, 
+    DialogContentText,
+    DialogActions,
+} from '@mui/material';
 import CivDisplay from './CivDisplay';
 import CityIcon from './images/city.svg';
 import TechDisplay from './TechDisplay';
@@ -27,6 +34,33 @@ const coordsToObject = (coords) => {
 }
 
 const ANIMATION_DELAY = 400;
+
+function ConfirmEnterDeclineDialog({open, onClose, onConfirm}) {
+    const handleConfirm = () => {
+        onConfirm();
+        onClose();
+    }
+
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>Confirm Enter Decline</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Are you sure you want to enter decline? You will stop controlling your current civilization,
+                    and will be offered a choice of new civilizations to control.
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Cancel
+                </Button>
+                <Button onClick={handleConfirm} color="primary">
+                    Confirm
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
 
 export const FocusSelectorTitle = ({ title }) => {
     return (
@@ -101,6 +135,8 @@ export default function GamePage() {
     const [animationRunIdUseState, setAnimationRunIdUseState] = useState(null);
 
     const [foundingCity, setFoundingCity] = useState(false);
+
+    const [confirmEnterDecline, setConfirmEnterDecline] = useState(false);
 
     const animationRunIdRef = React.useRef(null);
 
@@ -2072,186 +2108,231 @@ export default function GamePage() {
             });
     }
 
+    const handleEnterDecline = () => {
+    }
+
     const displayGameState = (gameState) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes)
         return (
-            <div className="basic-example">
-                <HexGrid width={2000} height={2000}>
-                <Layout size={{ x: 3, y: 3 }}>
-                    {hexagons.map((hex, i) => {
-                        return (
-                            // <div 
-                            //     onContextMenu={(e) => {
-                            //         e.preventDefault(); // Prevent the browser's context menu from showing up
-                            //         handleRightClickHex(hex); // Call your right-click handler
-                            //     }}
-                            // >
-                                <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
-                                        cellStyle={foundingCity ? 
-                                                   hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
-                                                   : 
-                                                   hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
-                                        onClick={() => handleClickHex(hex)} 
-                                        onMouseOver={() => handleMouseOverHex(hex)}
-                                        onMouseLeave={() => handleMouseLeaveHex(hex)}
-                                        // ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
-                                    >
-                                    {/* <div 
-                                        ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]} 
-                                        style={{
-                                            position: 'absolute',
-                                            top: '50%',
-                                            left: '50%',
-                                            transform: 'translate(-50%, -50%)',
-                                            width: '100px',
-                                            height: '100px',
-                                            zIndex: '10000',
-                                            backgroundColor: 'red',
-                                            // visibility: 'hidden',
-                                        }}
-                                    /> */}
-                                    <circle 
-                                        cx="0" 
-                                        cy="0" 
-                                        r="0.01" 
-                                        fill="none" 
-                                        stroke="black" 
-                                        strokeWidth="0.2" 
-                                        ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
-                                        style={{visibility: 'hidden'}}
-                                    />
-                                    {hex.yields ? <YieldImages yields={hex.yields} /> : null}
-                                    {hex.city && <City 
-                                        city={hex.city}
-                                        isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
-                                        isSelected={hex?.city?.id === selectedCity?.id}  
-                                        isUnitInHex={hex?.units?.length > 0}                              
-                                    />}
-                                    {hex.camp && <Camp
-                                        camp={hex.camp}
-                                        isUnitInHex={hex?.units?.length > 0}
-                                    />}
-                                    {hex?.units?.length > 0 && <Unit
-                                        unit={hex.units[0]}
-                                        isCityInHex={hex?.city || hex?.camp}
-                                    />}
-                                    {target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
-                                    {target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker />}
-                                </Hexagon>
-                            // </div>
-                        );
-                    })}
-                </Layout>         
-                </HexGrid>
-                {hoveredCiv && <CivDisplay civ={hoveredCiv} />}
-                {hoveredHex && (
-                    <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
-                )}
-                {<UpperRightDisplay 
-                    city={selectedCity || hoveredCity} 
-                    setHoveredUnit={setHoveredUnit} 
-                    setHoveredBuilding={setHoveredBuilding} 
-                    setHoveredTech={setHoveredTech}
-                    myCiv={myCiv} 
-                    myGamePlayer={myGamePlayer} 
-                />}
-                {selectedCityBuildingChoices && (
-                    <div className="building-choices-container">
-                        <BriefBuildingDisplayTitle title="Building Choices" />
-                        {selectedCityBuildingChoices.map((buildingName, index) => (
-                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} />
-                        ))}
-                    </div>
-                )};
-                {selectedCityBuildingQueue && (
-                    <div className="building-queue-container">
-                        <BriefBuildingDisplayTitle title="Building Queue" />
-                        {selectedCityBuildingQueue.map((buildingName, index) => (
-                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)}/>
-                        ))}
-                    </div>
-                )};                
-                {selectedCityBuildings && (
-                    <div className="existing-buildings-container">
-                        <BriefBuildingDisplayTitle title="Existing buildings" />
-                        {selectedCityBuildings.map((buildingName, index) => (
-                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} />
-                        ))}
-                    </div>
-                )};  
-                {selectedCityUnitChoices && (
-                    <div className="unit-choices-container">
-                        <BriefUnitDisplayTitle title="Unit Choices" />
-                        {selectedCityUnitChoices.map((unitName, index) => (
-                            <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)} />
-                        ))}
-                    </div>
-                )};
-                {selectedCityUnitQueue && (
-                    <div className="unit-queue-container">
-                        <BriefUnitDisplayTitle title="Unit Queue" />
-                        {selectedCityUnitQueue.map((unitName, index) => (
-                            <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
-                        ))}
-                    </div>
-                )};
-                {selectedCity && (
-                    <div className="focus-container">
-                        <FocusSelectorTitle title="City Focus" />
-                        <FocusSelectionOption focus="food" isSelected={selectedCity.focus === 'food'} onClick={() => handleClickFocus('food')} />
-                        <FocusSelectionOption focus="wood" isSelected={selectedCity.focus === 'wood'} onClick={() => handleClickFocus('wood')} />
-                        <FocusSelectionOption focus="metal" isSelected={selectedCity.focus === 'metal'} onClick={() => handleClickFocus('metal')} />
-                        <FocusSelectionOption focus="science" isSelected={selectedCity.focus === 'science'} onClick={() => handleClickFocus('science')} />
-                    </div>
-                )}
-                <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
-                    {hoveredBuilding && (
-                        <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
+            <>
+                <div className="basic-example">
+                    <HexGrid width={2000} height={2000}>
+                    <Layout size={{ x: 3, y: 3 }}>
+                        {hexagons.map((hex, i) => {
+                            return (
+                                // <div 
+                                //     onContextMenu={(e) => {
+                                //         e.preventDefault(); // Prevent the browser's context menu from showing up
+                                //         handleRightClickHex(hex); // Call your right-click handler
+                                //     }}
+                                // >
+                                    <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
+                                            cellStyle={foundingCity ? 
+                                                    hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
+                                                    : 
+                                                    hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
+                                            onClick={() => handleClickHex(hex)} 
+                                            onMouseOver={() => handleMouseOverHex(hex)}
+                                            onMouseLeave={() => handleMouseLeaveHex(hex)}
+                                            // ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
+                                        >
+                                        {/* <div 
+                                            ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]} 
+                                            style={{
+                                                position: 'absolute',
+                                                top: '50%',
+                                                left: '50%',
+                                                transform: 'translate(-50%, -50%)',
+                                                width: '100px',
+                                                height: '100px',
+                                                zIndex: '10000',
+                                                backgroundColor: 'red',
+                                                // visibility: 'hidden',
+                                            }}
+                                        /> */}
+                                        <circle 
+                                            cx="0" 
+                                            cy="0" 
+                                            r="0.01" 
+                                            fill="none" 
+                                            stroke="black" 
+                                            strokeWidth="0.2" 
+                                            ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
+                                            style={{visibility: 'hidden'}}
+                                        />
+                                        {hex.yields ? <YieldImages yields={hex.yields} /> : null}
+                                        {hex.city && <City 
+                                            city={hex.city}
+                                            isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
+                                            isSelected={hex?.city?.id === selectedCity?.id}  
+                                            isUnitInHex={hex?.units?.length > 0}                              
+                                        />}
+                                        {hex.camp && <Camp
+                                            camp={hex.camp}
+                                            isUnitInHex={hex?.units?.length > 0}
+                                        />}
+                                        {hex?.units?.length > 0 && <Unit
+                                            unit={hex.units[0]}
+                                            isCityInHex={hex?.city || hex?.camp}
+                                        />}
+                                        {target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
+                                        {target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker />}
+                                    </Hexagon>
+                                // </div>
+                            );
+                        })}
+                    </Layout>         
+                    </HexGrid>
+                    {hoveredCiv && <CivDisplay civ={hoveredCiv} />}
+                    {hoveredHex && (
+                        <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                     )}
-                    {hoveredUnit && (
-                        <UnitDisplay unit={unitTemplates[hoveredUnit]} />
+                    {<UpperRightDisplay 
+                        city={selectedCity || hoveredCity} 
+                        setHoveredUnit={setHoveredUnit} 
+                        setHoveredBuilding={setHoveredBuilding} 
+                        setHoveredTech={setHoveredTech}
+                        myCiv={myCiv} 
+                        myGamePlayer={myGamePlayer} 
+                    />}
+                    {selectedCityBuildingChoices && (
+                        <div className="building-choices-container">
+                            <BriefBuildingDisplayTitle title="Building Choices" />
+                            {selectedCityBuildingChoices.map((buildingName, index) => (
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} />
+                            ))}
+                        </div>
+                    )};
+                    {selectedCityBuildingQueue && (
+                        <div className="building-queue-container">
+                            <BriefBuildingDisplayTitle title="Building Queue" />
+                            {selectedCityBuildingQueue.map((buildingName, index) => (
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)}/>
+                            ))}
+                        </div>
+                    )};                
+                    {selectedCityBuildings && (
+                        <div className="existing-buildings-container">
+                            <BriefBuildingDisplayTitle title="Existing buildings" />
+                            {selectedCityBuildings.map((buildingName, index) => (
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} />
+                            ))}
+                        </div>
+                    )};  
+                    {selectedCityUnitChoices && (
+                        <div className="unit-choices-container">
+                            <BriefUnitDisplayTitle title="Unit Choices" />
+                            {selectedCityUnitChoices.map((unitName, index) => (
+                                <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)} />
+                            ))}
+                        </div>
+                    )};
+                    {selectedCityUnitQueue && (
+                        <div className="unit-queue-container">
+                            <BriefUnitDisplayTitle title="Unit Queue" />
+                            {selectedCityUnitQueue.map((unitName, index) => (
+                                <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
+                            ))}
+                        </div>
+                    )};
+                    {selectedCity && (
+                        <div className="focus-container">
+                            <FocusSelectorTitle title="City Focus" />
+                            <FocusSelectionOption focus="food" isSelected={selectedCity.focus === 'food'} onClick={() => handleClickFocus('food')} />
+                            <FocusSelectionOption focus="wood" isSelected={selectedCity.focus === 'wood'} onClick={() => handleClickFocus('wood')} />
+                            <FocusSelectionOption focus="metal" isSelected={selectedCity.focus === 'metal'} onClick={() => handleClickFocus('metal')} />
+                            <FocusSelectionOption focus="science" isSelected={selectedCity.focus === 'science'} onClick={() => handleClickFocus('science')} />
+                        </div>
                     )}
-                    {hoveredTech && (
-                        <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} />
-                    )}
+                    <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
+                        {hoveredBuilding && (
+                            <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
+                        )}
+                        {hoveredUnit && (
+                            <UnitDisplay unit={unitTemplates[hoveredUnit]} />
+                        )}
+                        {hoveredTech && (
+                            <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} />
+                        )}
+                    </div>
+                    {!animating && <div style={{
+                        position: 'fixed', 
+                        bottom: '10px', 
+                        left: '50%', 
+                        transform: 'translate(-50%, 0%)', 
+                        flexDirection: 'row',
+                        display: 'flex', // Enable flexbox
+                        flexDirection: 'row',
+                        whiteSpace: 'nowrap', // Prevent wrapping                    
+                    }}>
+                        {myCiv?.city_power > 100 && <Button 
+                            style={{
+                                backgroundColor: "#ccffaa",
+                                color: "black",
+                                padding: '10px 20px', // Increase padding for larger button
+                                fontSize: '1.5em', // Increase font size for larger text
+                                marginBottom: '10px',
+                            }} 
+                            variant="contained"
+                            disabled={animating}
+                            onClick={toggleFoundingCity}
+                        >
+                            {foundingCity ? 'Cancel found city' : 'Found city'}
+                        </Button>}
+                        <Button 
+                            style={{
+                                backgroundColor: "#cccc88",
+                                color: "black",
+                                marginLeft: '20px',
+                                padding: '10px 20px', // Increase padding for larger button
+                                fontSize: '1.5em', // Increase font size for larger text
+                                marginBottom: '10px',
+                            }} 
+                            variant="contained"
+                            onClick={handleClickEndTurn}
+                            disabled={animating}
+                        >
+                            End turn
+                        </Button>
+                        <Button
+                            style={{
+                                backgroundColor: "#BBAABB",
+                                color: "black",
+                                marginLeft: '20px',
+                                padding: '10px 20px', // Increase padding for larger button
+                                fontSize: '1.5em', // Increase font size for larger text
+                                marginBottom: '10px',
+                            }} 
+                            variant="contained"
+                            onClick={() => setConfirmEnterDecline(true)}
+                            disabled={animating}
+                        >
+                            Enter decline
+                        </Button>
+                        <Button
+                            style={{
+                                backgroundColor: "#ffcccc",
+                                color: "black",
+                                marginLeft: '20px',
+                                padding: '10px 20px', // Increase padding for larger button
+                                fontSize: '1.5em', // Increase font size for larger text
+                                marginBottom: '10px',
+                            }} 
+                            variant="contained"
+                            onClick={() => getMovie(true)}
+                            disabled={animating}
+                        >
+                            Replay animations
+                        </Button>
+                    </div>}
                 </div>
-                {!animating && <div style={{
-                    position: 'fixed', 
-                    bottom: '10px', 
-                    left: '50%', 
-                    transform: 'translate(-50%, 0%)', 
-                    flexDirection: 'row',
-                }}>
-                    {myCiv?.city_power > 100 && <Button 
-                        style={{
-                            backgroundColor: "#ccffaa",
-                            color: "black",
-                            padding: '10px 20px', // Increase padding for larger button
-                            fontSize: '1.5em' // Increase font size for larger text
-                        }} 
-                        variant="contained"
-                        disabled={animating}
-                        onClick={toggleFoundingCity}
-                    >
-                        {foundingCity ? 'Cancel found city' : 'Found city'}
-                    </Button>}
-                    <Button 
-                        style={{
-                            backgroundColor: "#cccc88",
-                            color: "black",
-                            marginLeft: '20px',
-                            padding: '10px 20px', // Increase padding for larger button
-                            fontSize: '1.5em' // Increase font size for larger text
-                        }} 
-                        variant="contained"
-                        onClick={handleClickEndTurn}
-                        disabled={animating}
-                    >
-                        End turn
-                    </Button>                    
-                </div>}
-            </div>
+                {confirmEnterDecline && <ConfirmEnterDeclineDialog
+                    open={confirmEnterDecline}
+                    onClose={() => setConfirmEnterDecline(false)}
+                    onConfirm={() => handleEnterDecline()}
+                />}
+            </>
         )
     }
 

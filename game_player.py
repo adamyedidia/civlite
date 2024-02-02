@@ -1,4 +1,5 @@
 from typing import Optional
+from civ_template import CivTemplate
 
 
 class GamePlayer:
@@ -7,6 +8,7 @@ class GamePlayer:
         self.username = username
         self.score = 0
         self.civ_id: Optional[str] = None
+        self.decline_options: list[tuple[str, str]] = []
 
     def to_json(self) -> dict:
         return {
@@ -14,6 +16,7 @@ class GamePlayer:
             "username": self.username,
             "score": self.score,
             "civ_id": self.civ_id,
+            "decline_locations": self.decline_options,
         }
     
     @staticmethod
@@ -24,5 +27,6 @@ class GamePlayer:
         )
         game_player.score = json["score"]
         game_player.civ_id = json["civ_id"]
+        game_player.decline_options = json["decline_locations"]
 
         return game_player

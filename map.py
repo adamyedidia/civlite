@@ -81,3 +81,27 @@ def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
                 starting_locations.append(starting_location)
 
     return starting_locations
+
+
+def generate_decline_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
+    decline_locations = []
+
+    num_attempts = 0
+
+    while len(decline_locations) < n and num_attempts < 1000:
+        decline_location = random.choice(list(hexes.values()))
+
+        if len([hex for hex in decline_location.get_neighbors(hexes) if not hex.city]) < 6:
+            too_close = False
+
+            for other_decline_location in decline_locations:
+                if other_decline_location.distance_to(decline_location) < 2:
+                    too_close = True
+                    break
+
+            if not too_close:
+                decline_locations.append(decline_location)
+        
+        num_attempts += 1
+    
+    return decline_locations

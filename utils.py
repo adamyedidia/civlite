@@ -21,3 +21,8 @@ def get_all_coords_up_to_n(n) -> list[tuple[int, int, int]]:
             all_coords.append((q, r, -q - r))
 
     return all_coords
+
+
+def swap_two_elements_of_list(l: list, i: int, j: int) -> list:
+    l[i], l[j] = l[j], l[i]
+    return l
