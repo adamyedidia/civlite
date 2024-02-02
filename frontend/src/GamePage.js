@@ -1790,6 +1790,10 @@ export default function GamePage() {
 
     const isFriendlyCity = (city) => {
         const playerNum = city?.civ?.game_player?.player_num;
+        if (gameState?.special_mode_by_player_num[playerNum]) {
+            console.log('returning true!')
+            return true;
+        }
         if (playerNum !== null && playerNum !== undefined) {
             return city.civ.game_player.player_num == playerNum
         }
@@ -1807,10 +1811,21 @@ export default function GamePage() {
     };
 
     const handleClickCity = (city) => {
+        if (city.id === selectedCity?.id) {
+            setSelectedCity(null);
+        }
+        else {
+            if (isFriendlyCity(city)) {
+                setSelectedCity(city);
+            }
+        }
+    };
+
+    const handleFoundCapital = () => {
         if (gameState.special_mode_by_player_num[playerNum] == 'starting_location') {
             const data = {
                 player_num: playerNum,
-                city_id: city.id,
+                city_id: selectedCity.id,
             }
             fetch(`${URL}/api/starting_location/${gameId}`, {
                 method: 'POST',
@@ -1824,20 +1839,31 @@ export default function GamePage() {
                     if (data.game_state) {
                         setGameState(data.game_state);
                         // refreshSelectedCity(data.game_state);
-                        setSelectedCity(data.game_state.hexes[city.hex].city);
+                        refreshSelectedCity(data.game_state);
                     }
                 });
-        
-        }
-        if (city.id === selectedCity?.id) {
-            setSelectedCity(null);
-        }
-        else {
-            if (isFriendlyCity(city)) {
-                setSelectedCity(city);
+        } else if (gameState.special_mode_by_player_num[playerNum] == 'choose_decline_civ') {
+            const data = {
+                player_num: playerNum,
+                city_id: selectedCity.id,
             }
+            fetch(`${URL}/api/choose_decline_civ/${gameId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+            }).then(response => response.json())
+                .then(data => {
+                    if (data.game_state) {
+                        setGameState(data.game_state);
+                        // refreshSelectedCity(data.game_state);
+                        setSelectedCity(data.game_state.hexes[selectedCity.hex].city);
+                    }
+                });
+
         }
-    };
+    }
 
 
     const City = ({ city, isHovered, isSelected, isUnitInHex }) => {
@@ -2195,6 +2221,7 @@ export default function GamePage() {
                         setHoveredTech={setHoveredTech}
                         myCiv={myCiv} 
                         myGamePlayer={myGamePlayer} 
+                        isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
                     />}
                     {selectedCityBuildingChoices && (
                         <div className="building-choices-container">
@@ -2266,7 +2293,7 @@ export default function GamePage() {
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
-                        {myCiv?.city_power > 100 && <Button 
+                        {!gameState?.special_mode_by_player_num?.[playerNum] && myCiv?.city_power > 100 && <Button 
                             style={{
                                 backgroundColor: "#ccffaa",
                                 color: "black",
@@ -2280,7 +2307,7 @@ export default function GamePage() {
                         >
                             {foundingCity ? 'Cancel found city' : 'Found city'}
                         </Button>}
-                        <Button 
+                        {!gameState?.special_mode_by_player_num?.[playerNum] && <Button 
                             style={{
                                 backgroundColor: "#cccc88",
                                 color: "black",
@@ -2294,8 +2321,8 @@ export default function GamePage() {
                             disabled={animating}
                         >
                             End turn
-                        </Button>
-                        <Button
+                        </Button>}
+                        {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
                             style={{
                                 backgroundColor: "#BBAABB",
                                 color: "black",
@@ -2309,8 +2336,8 @@ export default function GamePage() {
                             disabled={animating}
                         >
                             Enter decline
-                        </Button>
-                        <Button
+                        </Button>}
+                        {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
                             style={{
                                 backgroundColor: "#ffcccc",
                                 color: "black",
@@ -2324,7 +2351,22 @@ export default function GamePage() {
                             disabled={animating}
                         >
                             Replay animations
-                        </Button>
+                        </Button>}
+                        {gameState?.special_mode_by_player_num?.[playerNum] && selectedCity && <Button
+                            style={{
+                                backgroundColor: "#ccffaa",
+                                color: "black",
+                                marginLeft: '20px',
+                                padding: '10px 20px', // Increase padding for larger button
+                                fontSize: '1.5em', // Increase font size for larger text
+                                marginBottom: '10px',
+                            }} 
+                            variant="contained"
+                            onClick={() => handleFoundCapital()}
+                            disabled={animating}
+                        >
+                            Make {selectedCity.name} my capital
+                        </Button>}
                     </div>}
                 </div>
                 {confirmEnterDecline && <ConfirmEnterDeclineDialog

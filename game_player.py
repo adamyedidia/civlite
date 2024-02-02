@@ -16,7 +16,7 @@ class GamePlayer:
             "username": self.username,
             "score": self.score,
             "civ_id": self.civ_id,
-            "decline_locations": self.decline_options,
+            "decline_options": self.decline_options,
         }
     
     @staticmethod
@@ -27,6 +27,6 @@ class GamePlayer:
         )
         game_player.score = json["score"]
         game_player.civ_id = json["civ_id"]
-        game_player.decline_options = json["decline_locations"]
+        game_player.decline_options = json["decline_options"]
 
         return game_player

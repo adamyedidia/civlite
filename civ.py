@@ -129,7 +129,7 @@ class Civ:
 def create_starting_civ_options_for_players(game_players: list[GamePlayer], starting_locations: list['Hex']) -> dict[int, list[tuple[Civ, 'Hex']]]:
     assert len(game_players) <= 8
 
-    starting_civ_option_jsons = random.sample(list(ANCIENT_CIVS.values()), NUM_STARTING_LOCATION_OPTIONS * len(game_players))
+    starting_civ_option_jsons = random.sample([civ for civ in list(ANCIENT_CIVS.values()) if civ['advancement_level'] == 0], NUM_STARTING_LOCATION_OPTIONS * len(game_players))
 
     starting_civ_options = {}
 

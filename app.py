@@ -21,7 +21,7 @@ from game_state import GameState, update_staged_moves, get_most_recent_game_stat
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
-from settings import LOCAL
+from settings import LOCAL, STARTING_CIV_VITALITY
 from tech import get_tech_choices_for_civ
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
@@ -200,10 +200,13 @@ def _launch_game_inner(sess, game: Game) -> None:
             starting_city.hex = starting_location
             game_state.cities_by_id[starting_city.id] = starting_city
             game_state.civs_by_id[civ.id] = civ
+            civ.vitality = STARTING_CIV_VITALITY
 
     game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
     game_state.special_mode_by_player_num = {game_player.player_num: 'starting_location' for game_player in game_players}
 
+    for city in game_state.cities_by_id.values():
+        city.adjust_projected_yields(game_state)
     game_state.refresh_visibility_by_civ(short_sighted=True)
 
     animation_frame = AnimationFrame(
