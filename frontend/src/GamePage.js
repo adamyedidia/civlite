@@ -2135,6 +2135,32 @@ export default function GamePage() {
     }
 
     const handleEnterDecline = () => {
+        if (!myCivId) return;
+
+        const playerInput = {
+            'player_num': playerNum,
+            'move_type': 'enter_decline',
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+
+        fetch(`${URL}/api/player_input/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });        
     }
 
     const displayGameState = (gameState) => {

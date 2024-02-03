@@ -11,13 +11,14 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations
 from redis_utils import rget_json, rlock, rset_json, rdel
+from settings import STARTING_CIV_VITALITY
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
-from utils import swap_two_elements_of_list
+from utils import swap_two_elements_of_list, generate_unique_id
 
 from sqlalchemy import func
 
@@ -71,8 +72,9 @@ class GameState:
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
 
-    def update_from_player_moves(self, player_num: int, moves: list[dict]) -> Optional[list[Civ]]:
+    def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False) -> Optional[list[Civ]]:
         game_player_to_return: Optional[GamePlayer] = None
+        from_civ_perspectives: Optional[list[Civ]] = None
         for move in moves:
             if move['move_type'] == 'choose_starting_city':
                 city_id = move['city_id']
@@ -84,7 +86,7 @@ class GameState:
                             game_player_to_return = game_player
                             game_player_to_return.civ_id = city.civ.id
                             self.game_player_by_player_num[player_num].civ_id = city.civ.id
-                            city.civ.vitality = 2.0
+                            city.civ.vitality = STARTING_CIV_VITALITY
 
                             city.capitalize()
                             city.adjust_projected_yields(self)
@@ -239,15 +241,50 @@ class GameState:
                 civ.game_player = None
                 game_player.civ_id = None
                 game_player_to_return = game_player
+                self.special_mode_by_player_num[player_num] = 'choose_decline_options'
+
+                print('entering decline, speculative=', speculative)
+
+                if speculative:
+                    from_civ_perspectives = []
+                    for decline_option in self.game_player_by_player_num[player_num].decline_options:
+                        coords, civ_name, city_id = decline_option
+                        hex = self.hexes[coords]
+                        new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player)
+                        new_civ.vitality = min(2.0 + self.turn_num * 0.1, 4.0)
+                        if hex.city is None:
+                            city = City(civ, id=city_id)
+                            city.hex = hex
+                            hex.city = city
+                            self.cities_by_id[city_id] = city
+                        else:
+                            hex.city.civ = new_civ
+                        new_civ.game_player = game_player
+                        game_player.civ_id = new_civ.id
+                        game_player_to_return = game_player
+                        self.civs_by_id[new_civ.id] = new_civ
+                        from_civ_perspectives.append(new_civ)
+
+                        for neighbor_hex in hex.get_neighbors(self.hexes):
+                            for unit in neighbor_hex.units:
+                                unit.civ = new_civ
+
+                        self.refresh_foundability_by_civ()
+                        self.refresh_visibility_by_civ(short_sighted=True)
+
 
         if game_player_to_return is not None and game_player_to_return.civ_id is not None:
-            from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
+            print('from_civ_perspectives', from_civ_perspectives)
+
+            if from_civ_perspectives is None:
+                from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
+            
             return from_civ_perspectives
 
         return None
 
     def sync_advancement_level(self) -> None:
-        tech_levels = []
+        tech_levels = [0]
 
         for civ in self.civs_by_id.values():
             for tech in civ.techs:
@@ -368,7 +405,8 @@ class GameState:
         decline_choice_big_civ_pool = []
 
         for min_advancement_level in range(advancement_level_to_use, 0, -1):
-            decline_choice_big_civ_pool = [civ for civ in ANCIENT_CIVS.values() if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level]
+            decline_choice_big_civ_pool = [civ['name'] for civ in ANCIENT_CIVS.values() 
+                                           if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level]
 
             if len(decline_choice_big_civ_pool) >= num_civs_to_sample:
                 break
@@ -384,20 +422,26 @@ class GameState:
         all_location_options: list[str] = [*[city.hex.coords for city in eligible_cities_for_declining if city.hex is not None], 
                                   *[hex.coords for hex in eligible_locations_for_declining]]
 
-        min_options_per_player = len(all_location_options) // num_players
+        min_options_per_player = min(len(all_location_options) // num_players, 3)
 
         num_options_by_player = [min_options_per_player] * num_players
 
         for i in range(len(all_location_options) % num_players):
-            num_options_by_player[i] += 1
+            if num_options_by_player[i] < 3:
+                num_options_by_player[i] += 1
 
         random.shuffle(all_location_options)
 
         counter = 0
 
         for i, player_num in enumerate(self.game_player_by_player_num.keys()):
+            # print('num_options_by_player', num_options_by_player)
+            # print('decline_choice_civ_pool', decline_choice_civ_pool)
+            # print('counter', counter)
+            # print('i', i)
+
             game_player = self.game_player_by_player_num[player_num]
-            decline_options = []
+            decline_options: list[tuple[str, str, str]] = []
             for _ in range(num_options_by_player[i]):
                 location = ''
                 index_to_swap_with = counter + 1
@@ -413,9 +457,9 @@ class GameState:
                     index_to_swap_with += 1
                     if index_to_swap_with >= len(all_location_options):
                         break
-
                 if is_good_location:
-                    decline_options.append((all_location_options[counter], decline_choice_civ_pool[counter]))
+                    city_id = city_at_location.id if city_at_location else generate_unique_id()
+                    decline_options.append((all_location_options[counter], decline_choice_civ_pool[counter], city_id))
                 counter += 1
             game_player.decline_options = decline_options
     
@@ -562,7 +606,7 @@ def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) 
         staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
         game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}') or get_most_recent_game_state_json(sess, game_id)
         game_state = GameState.from_json(game_state_json)
-        from_civ_perspectives = game_state.update_from_player_moves(player_num, moves)
+        from_civ_perspectives = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
         staged_moves.extend(moves)
 

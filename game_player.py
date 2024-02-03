@@ -8,7 +8,9 @@ class GamePlayer:
         self.username = username
         self.score = 0
         self.civ_id: Optional[str] = None
-        self.decline_options: list[tuple[str, str]] = []
+
+        # (hex coords, civ name, city_id)
+        self.decline_options: list[tuple[str, str, str]] = []
 
     def to_json(self) -> dict:
         return {
