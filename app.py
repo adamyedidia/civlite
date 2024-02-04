@@ -359,6 +359,15 @@ def get_latest_turn_movie(sess, game_id):
             player_civ = game_state.civs_by_id.get(game_player.civ_id or '')
             if player_civ:
                 game_state_json = game_state.to_json(from_civ_perspectives=[player_civ])
+            else:
+                from_civ_perspectives = []
+
+                for decline_option in game_player.decline_options:
+                    for civ in game_state.civs_by_id.values():
+                        if civ.template.name == decline_option[1]:
+                            from_civ_perspectives.append(civ)
+
+                game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
     return jsonify({
         'animation_frames': [*[{'game_state': animation_frame.game_state, 'data': animation_frame.data} for animation_frame in animation_frames], 
@@ -422,7 +431,7 @@ def choose_initial_civ(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state, from_civ_perspectives = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
+    game_state, from_civ_perspectives, _ = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
 
     city_list_one = [city for city in game_state.cities_by_id.values() if city.id == city_id]
 
@@ -491,9 +500,14 @@ def enter_player_input(sess, game_id):
     
     print(player_input)
 
-    game_state, from_civ_perspectives = update_staged_moves(sess, game_id, player_num, [player_input])
+    _, from_civ_perspectives, game_state_to_return_json = update_staged_moves(sess, game_id, player_num, [player_input])
 
-    return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
+    # print(game_state.to_json())
+
+    # print(from_civ_perspectives)
+
+    return jsonify({'game_state': game_state_to_return_json})
+    # return jsonify({'game_state': game_state.to_json()})
 
 
 @app.route('/api/end_turn/<game_id>', methods=['POST'])

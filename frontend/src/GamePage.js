@@ -1462,7 +1462,7 @@ export default function GamePage() {
     }
 
     useEffect(() => {
-        if (!animating && myCiv?.tech_queue?.length === 0) {
+        if (!animating && myCiv?.tech_queue?.length === 0 && !gameState?.special_mode_by_player_num?.[playerNum]) {
 
             fetch(`${URL}/api/tech_choices/${gameId}?player_num=${playerNum}`, {
                 method: 'GET',
@@ -1842,12 +1842,15 @@ export default function GamePage() {
                         refreshSelectedCity(data.game_state);
                     }
                 });
-        } else if (gameState.special_mode_by_player_num[playerNum] == 'choose_decline_civ') {
+        } else if (gameState.special_mode_by_player_num[playerNum] == 'choose_decline_option') {
             const data = {
                 player_num: playerNum,
-                city_id: selectedCity.id,
+                player_input: {
+                    city_id: selectedCity.id,
+                    move_type: 'choose_decline_option',
+                },
             }
-            fetch(`${URL}/api/choose_decline_civ/${gameId}`, {
+            fetch(`${URL}/api/player_input/${gameId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -1857,8 +1860,7 @@ export default function GamePage() {
                 .then(data => {
                     if (data.game_state) {
                         setGameState(data.game_state);
-                        // refreshSelectedCity(data.game_state);
-                        setSelectedCity(data.game_state.hexes[selectedCity.hex].city);
+                        refreshSelectedCity(data.game_state);
                     }
                 });
 
@@ -2071,7 +2073,7 @@ export default function GamePage() {
     };
 
     const setTarget = (hex, isSecondary) => {
-        if (!myCivId) return;
+        if (!myCivId || gameState?.special_mode_by_player_num?.[playerNum]) return;
 
         if (isSecondary) {
             setLastSetPrimaryTarget(false);
@@ -2158,7 +2160,8 @@ export default function GamePage() {
             .then(data => {
                 if (data.game_state) {
                     setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
+                    setTechChoices(null);
+                    // refreshSelectedCity(data.game_state);
                 }
             });        
     }

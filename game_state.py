@@ -72,10 +72,37 @@ class GameState:
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
 
-    def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False) -> Optional[list[Civ]]:
+    def process_decline_option(self, decline_option: tuple[str, str, str], game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> GamePlayer:
+        coords, civ_name, city_id = decline_option
+        hex = self.hexes[coords]
+        new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player)
+        new_civ.vitality = min(2.0 + self.turn_num * 0.1, 4.0)
+        if hex.city is None:
+            city = City(new_civ, id=city_id)
+            city.hex = hex
+            hex.city = city
+            self.cities_by_id[city_id] = city
+        else:
+            hex.city.civ = new_civ
+        game_player_to_return = game_player
+        self.civs_by_id[new_civ.id] = new_civ
+        from_civ_perspectives.append(new_civ)
+
+        for neighbor_hex in [hex, *hex.get_neighbors(self.hexes)]:
+            for unit in neighbor_hex.units:
+                unit.civ = new_civ
+            neighbor_hex.camp = None
+
+        return game_player_to_return
+
+
+    # Returns (from_civ_perspectives, game state to pass to frontend, game state to store)
+    def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False) -> tuple[Optional[list[Civ]], dict, dict]:
         game_player_to_return: Optional[GamePlayer] = None
         from_civ_perspectives: Optional[list[Civ]] = None
-        for move in moves:
+        game_state_to_return_json: Optional[dict] = None
+        game_state_to_store_json: Optional[dict] = None
+        for move_index, move in enumerate(moves):
             if move['move_type'] == 'choose_starting_city':
                 city_id = move['city_id']
                 self.special_mode_by_player_num[player_num] = None
@@ -241,47 +268,52 @@ class GameState:
                 civ.game_player = None
                 game_player.civ_id = None
                 game_player_to_return = game_player
-                self.special_mode_by_player_num[player_num] = 'choose_decline_options'
+                self.special_mode_by_player_num[player_num] = 'choose_decline_option'
+                game_state_to_store_json = self.to_json()
 
-                print('entering decline, speculative=', speculative)
+                if move_index == len(moves) - 1 and speculative:
+                    print('processing all')
 
-                if speculative:
                     from_civ_perspectives = []
                     for decline_option in self.game_player_by_player_num[player_num].decline_options:
-                        coords, civ_name, city_id = decline_option
-                        hex = self.hexes[coords]
-                        new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player)
-                        new_civ.vitality = min(2.0 + self.turn_num * 0.1, 4.0)
-                        if hex.city is None:
-                            city = City(civ, id=city_id)
-                            city.hex = hex
-                            hex.city = city
-                            self.cities_by_id[city_id] = city
-                        else:
-                            hex.city.civ = new_civ
-                        new_civ.game_player = game_player
-                        game_player.civ_id = new_civ.id
-                        game_player_to_return = game_player
-                        self.civs_by_id[new_civ.id] = new_civ
-                        from_civ_perspectives.append(new_civ)
-
-                        for neighbor_hex in hex.get_neighbors(self.hexes):
-                            for unit in neighbor_hex.units:
-                                unit.civ = new_civ
+                        self.process_decline_option(decline_option, game_player, from_civ_perspectives)
+                        print('from_civ_perspectives', from_civ_perspectives)
 
                         self.refresh_foundability_by_civ()
                         self.refresh_visibility_by_civ(short_sighted=True)
+                        game_state_to_return_json = self.to_json(from_civ_perspectives=from_civ_perspectives)
+
+            if move['move_type'] == 'choose_decline_option':
+                game_player = self.game_player_by_player_num[player_num]
+                city_id = move['city_id']
+                self.special_mode_by_player_num[player_num] = None
+                game_player_to_return = game_player
+
+                from_civ_perspectives = []
+                for decline_option in self.game_player_by_player_num[player_num].decline_options:
+                    if decline_option[2] == city_id:
+                        game_player_to_return = self.process_decline_option(decline_option, game_player, from_civ_perspectives)
+
+                assert len(from_civ_perspectives) == 1
+
+                civ = from_civ_perspectives[0]
+
+                civ.game_player = game_player
+                game_player.civ_id = civ.id
+
+                self.refresh_foundability_by_civ()
+                self.refresh_visibility_by_civ()                        
 
 
-        if game_player_to_return is not None and game_player_to_return.civ_id is not None:
+        if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
             print('from_civ_perspectives', from_civ_perspectives)
 
-            if from_civ_perspectives is None:
+            if from_civ_perspectives is None and game_player_to_return.civ_id is not None:
                 from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
             
-            return from_civ_perspectives
+            return (from_civ_perspectives, game_state_to_return_json or self.to_json(from_civ_perspectives=from_civ_perspectives), game_state_to_store_json or self.to_json())
 
-        return None
+        return (None, self.to_json(), self.to_json())
 
     def sync_advancement_level(self) -> None:
         tech_levels = [0]
@@ -435,11 +467,6 @@ class GameState:
         counter = 0
 
         for i, player_num in enumerate(self.game_player_by_player_num.keys()):
-            # print('num_options_by_player', num_options_by_player)
-            # print('decline_choice_civ_pool', decline_choice_civ_pool)
-            # print('counter', counter)
-            # print('i', i)
-
             game_player = self.game_player_by_player_num[player_num]
             decline_options: list[tuple[str, str, str]] = []
             for _ in range(num_options_by_player[i]):
@@ -601,16 +628,16 @@ def get_most_recent_game_state(sess, game_id: str) -> GameState:
     return GameState.from_json(get_most_recent_game_state_json(sess, game_id))
 
 
-def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) -> tuple[GameState, Optional[list[Civ]]]:
+def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) -> tuple[GameState, Optional[list[Civ]], dict]:
     with rlock(f'staged_moves_lock:{game_id}:{player_num}'):
         staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
         game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}') or get_most_recent_game_state_json(sess, game_id)
         game_state = GameState.from_json(game_state_json)
-        from_civ_perspectives = game_state.update_from_player_moves(player_num, moves, speculative=True)
+        from_civ_perspectives, game_state_to_return_json, game_state_to_store_json = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
         staged_moves.extend(moves)
 
-        rset_json(f'staged_moves:{game_id}:{player_num}', staged_moves, ex=24 * 60 * 60)
-        rset_json(f'staged_game_state:{game_id}:{player_num}', game_state.to_json())
+        rset_json(f'staged_moves:{game_id}:{player_num}', staged_moves, ex=7 * 24 * 60 * 60)
+        rset_json(f'staged_game_state:{game_id}:{player_num}', game_state_to_store_json, ex=7 * 24 * 60 * 60)
 
-        return game_state, from_civ_perspectives
+        return game_state, from_civ_perspectives, game_state_to_return_json

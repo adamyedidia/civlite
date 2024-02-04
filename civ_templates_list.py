@@ -411,23 +411,28 @@ ANCIENT_CIVS = {
         }],
         "advancement_level": 0,
     },
+    "Troy": {
+        "name": "Troy",
+        "abilities": [],
+        "advancement_level": 0,
+    },    
     "Romans": {
         "name": "Romans",
         "abilities": [],
         "advancement_level": 1,
     },
     "Greece": {
-        "name": "Greeks",
+        "name": "Greece",
         "abilities": [],
         "advancement_level": 1,
     },
-    "Troy": {
-        "name": "Trojans",
+    "Gokturks": {
+        "name": "Gokturks",
         "abilities": [],
         "advancement_level": 1,
     },
     "Persia": {
-        "name": "Persians",
+        "name": "Persia",
         "abilities": [],
         "advancement_level": 1,
     },
@@ -866,8 +871,5 @@ ANCIENT_CIVS = {
 for i, civ in enumerate(ANCIENT_CIVS):
     ANCIENT_CIVS[civ]["primary_color"] = color_pairs[i][0]
     ANCIENT_CIVS[civ]["secondary_color"] = color_pairs[i][1]
-
-print(ANCIENT_CIVS["Abbasids"]["primary_color"])
-
 
 CIVS = {**ANCIENT_CIVS, **BARBARIAN_CIV}

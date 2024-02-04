@@ -91,17 +91,18 @@ def generate_decline_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
     while len(decline_locations) < n and num_attempts < 1000:
         decline_location = random.choice(list(hexes.values()))
 
+        too_close = False
         if len([hex for hex in decline_location.get_neighbors(hexes) if not hex.city]) < 6:
-            too_close = False
+            too_close = True
 
-            for other_decline_location in decline_locations:
-                if other_decline_location.distance_to(decline_location) < 2:
-                    too_close = True
-                    break
+        for other_decline_location in decline_locations:
+            if other_decline_location.distance_to(decline_location) < 2:
+                too_close = True
+                break
 
-            if not too_close:
-                decline_locations.append(decline_location)
+        if not too_close:
+            decline_locations.append(decline_location)
         
         num_attempts += 1
-    
+
     return decline_locations
