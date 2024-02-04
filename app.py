@@ -163,6 +163,35 @@ def join_game(sess, game_id: str):
     return jsonify({'game': game.to_json(), 'player_num': player.player_num})
 
 
+@app.route('/api/add_bot_to_game/<game_id>', methods=['POST'])
+@api_endpoint
+def add_bot_to_game(sess, game_id: str):
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    num_players_in_game = (
+        sess.query(func.count(Player.id))
+        .filter(Player.game_id == game_id)
+        .scalar()
+    ) or 0
+
+    bot_player = Player(
+        user=None,
+        game=game,
+        player_num=num_players_in_game,
+        is_bot=True,
+    )
+
+    sess.add(bot_player)
+    sess.commit()
+
+    socketio.emit('update', room=game.id)
+
+    return jsonify({'game': game.to_json(), 'player_num': num_players_in_game})
+
+
 def _launch_game_inner(sess, game: Game) -> None:
     game_id: str = game.id  # type: ignore
 
@@ -184,26 +213,40 @@ def _launch_game_inner(sess, game: Game) -> None:
 
     starting_locations = generate_starting_locations(hexes, 3 * num_players)
 
-    game_players = [GamePlayer(player_num=player.player_num, username=player.user.username) for player in players]
+    game_players = [GamePlayer(player_num=player.player_num, username=player.user.username, is_bot=player.is_bot) for player in players]
 
     starting_civ_options_for_players = create_starting_civ_options_for_players(game_players, starting_locations)
 
     starting_civs_for_players = {}
 
+    game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
+
     for player_num, civ_options_tups in starting_civ_options_for_players.items():
-        starting_civs_for_players[player_num] = []
-        for civ_options_tup in civ_options_tups:
-            civ, starting_location = civ_options_tup
-            starting_civs_for_players[player_num].append(civ)
+        game_player = game_state.game_player_by_player_num[player_num]
+        if game_player.is_bot:
+            civ_option_tup = civ_options_tups[0]
+            civ, starting_location = civ_option_tup
             starting_city = City(civ)
             starting_location.city = starting_city
             starting_city.hex = starting_location
             game_state.cities_by_id[starting_city.id] = starting_city
             game_state.civs_by_id[civ.id] = civ
             civ.vitality = STARTING_CIV_VITALITY
+            starting_city.hex.city = starting_city
 
-    game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
-    game_state.special_mode_by_player_num = {game_player.player_num: 'starting_location' for game_player in game_players}
+        else:
+            starting_civs_for_players[player_num] = []
+            for civ_options_tup in civ_options_tups:
+                civ, starting_location = civ_options_tup
+                starting_civs_for_players[player_num].append(civ)
+                starting_city = City(civ)
+                starting_location.city = starting_city
+                starting_city.hex = starting_location
+                game_state.cities_by_id[starting_city.id] = starting_city
+                game_state.civs_by_id[civ.id] = civ
+                civ.vitality = STARTING_CIV_VITALITY
+
+    game_state.special_mode_by_player_num = {game_player.player_num: 'starting_location' if not game_player.is_bot else None for game_player in game_players}
 
     for city in game_state.cities_by_id.values():
         city.adjust_projected_yields(game_state)

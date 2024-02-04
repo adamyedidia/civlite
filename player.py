@@ -1,4 +1,4 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, String, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import relationship
 from database import Base
 from game import Game
@@ -19,6 +19,8 @@ class Player(Base):
     player_num = Column(Integer, nullable=False)
 
     created_at = Column(DateTime, nullable=False, server_default=func.now(), index=True)
+
+    is_bot = Column(Boolean, nullable=False, default=False, server_default="false")
 
     __table_args__ = (
         Index("player_idx_game_player_num", "game_id", "player_num", unique=True),
