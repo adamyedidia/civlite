@@ -25,6 +25,8 @@ import CityDisplay from './CityDisplay';
 import BuildingDisplay, { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
 import UnitDisplay, {BriefUnitDisplay, BriefUnitDisplayTitle} from './UnitDisplay';
 import UpperRightDisplay from './UpperRightDisplay';
+import moveSound from './sounds/movement.mp3';
+import SettingsDialog from './SettingsDialog';
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -35,6 +37,12 @@ const coordsToObject = (coords) => {
 }
 
 const ANIMATION_DELAY = 400;
+
+let userHasInteracted = false;
+
+window.addEventListener('click', () => {
+    userHasInteracted = true;
+});
 
 function ConfirmEnterDeclineDialog({open, onClose, onConfirm}) {
     const handleConfirm = () => {
@@ -109,6 +117,8 @@ export default function GamePage() {
     const [unitTemplates, setUnitTemplates] = useState(null);
     const [techTemplates, setTechTemplates] = useState(null);
     const [buildingTemplates, setBuildingTemplates] = useState(null);
+    const [volume, setVolume] = useState(100);
+    const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
     const unitTemplatesByBuildingName = {};
     Object.values(unitTemplates || {}).forEach(unitTemplate => {
@@ -158,6 +168,24 @@ export default function GamePage() {
             gameStateExistsRef.current = true;
         }
     }, [gameState]);
+
+    const volumeRef = React.useRef(volume);
+
+    useEffect(() => {
+        volumeRef.current = volume;
+    }, [volume]);
+
+    function playMoveSound(moveSound) {
+        if (!userHasInteracted) return;
+    
+        try {
+            let audio = new Audio(moveSound);
+            audio.volume = 0.5 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
 
     const hexRefs = React.useRef({
         '-20,0,20': React.createRef(),
@@ -1771,6 +1799,7 @@ export default function GamePage() {
                 switch (event?.data?.type) {
                     case 'UnitMovement':
                         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
+                        playMoveSound(moveSound, volume);
                         showMovementArrows(event.data.coords);
                         setGameState(newState);         
                         break;           
@@ -2248,6 +2277,9 @@ export default function GamePage() {
                         })}
                     </Layout>         
                     </HexGrid>
+                    {!hoveredCiv && <Button onClick={() => setSettingsDialogOpen(!settingsDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', right: '10px', bottom: '10px'}}>
+                        Settings
+                    </Button>}
                     {hoveredCiv && <CivDisplay civ={hoveredCiv} />}
                     {hoveredHex && (
                         <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
@@ -2532,6 +2564,14 @@ export default function GamePage() {
                         <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} onClick={() => handleClickTech(tech)} />
                     ))}
                 </div>
+            )}
+            {settingsDialogOpen && (
+                <SettingsDialog
+                    open={settingsDialogOpen}
+                    onClose={() => setSettingsDialogOpen(false)}
+                    volume={volume}
+                    setVolume={setVolume}
+                />
             )}
         </div>
     )
