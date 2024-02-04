@@ -361,7 +361,7 @@ class GameState:
             self.update_from_player_moves(player_num, staged_moves)
 
         for civ in self.civs_by_id.values():
-            if not civ.game_player or civ.game_player.is_bot:
+            if (not civ.game_player or civ.game_player.is_bot) and not civ.template.name == 'Barbarians':
                 civ.bot_move(self)
 
         print('ending turn')

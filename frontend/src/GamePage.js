@@ -15,6 +15,7 @@ import {
     DialogContent, 
     DialogContentText,
     DialogActions,
+    Grid,
 } from '@mui/material';
 import CivDisplay from './CivDisplay';
 import CityIcon from './images/city.svg';
@@ -140,6 +141,8 @@ export default function GamePage() {
 
     const animationRunIdRef = React.useRef(null);
 
+    const gameStateExistsRef = React.useRef(false);
+
     const myGamePlayer = gameState?.game_player_by_player_num?.[playerNum];
     const myCivId = gameState?.game_player_by_player_num?.[playerNum]?.civ_id;
     const myCiv = gameState?.civs_by_id?.[myCivId];
@@ -149,6 +152,12 @@ export default function GamePage() {
     useEffect(() => {
         animationRunIdRef.current = animationRunIdUseState;
     }, [animationRunIdUseState]);
+
+    useEffect(() => {
+        if (gameState) {
+            gameStateExistsRef.current = true;
+        }
+    }, [gameState]);
 
     const hexRefs = React.useRef({
         '-20,0,20': React.createRef(),
@@ -2468,9 +2477,27 @@ export default function GamePage() {
         fetchGameState();
         socket.on('update', () => {
           console.log('update received')
-          getMovie(true);
+          if (gameStateExistsRef.current) {
+            getMovie(true);
+          }
+          else {
+            fetchGameState();
+          }
         })
     }, [])
+
+    const handleAddBotPlayer = () => {
+        const data = {
+        }
+
+        fetch(`${URL}/api/add_bot_to_game/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        })
+    }
 
     if (!civTemplates || !unitTemplates || !techTemplates) {
         return (
@@ -2490,7 +2517,14 @@ export default function GamePage() {
                 </>
             ) : 'Loading...'}
             {gameState ? displayGameState(gameState) : (
-                <Button onClick={launchGame}>Launch Game</Button>
+                <Grid item container direction="column" spacing={2}>
+                    <Grid item>
+                        <Button onClick={handleAddBotPlayer} variant="contained" style={{backgroundColor: '#880088'}}>Add Bot Player</Button>
+                    </Grid>
+                    <Grid item>
+                        <Button onClick={launchGame} variant="contained" style={{backgroundColor: '#008800'}}>Launch Game</Button>
+                    </Grid>
+                </Grid>
             )}
             {techChoices && (
                 <div className="tech-choices-container">

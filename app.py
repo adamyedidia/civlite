@@ -29,7 +29,7 @@ from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
-from user import User, add_or_get_user
+from user import User, add_or_get_user, add_bot_users, BOT_USERNAMES
 from utils import generate_unique_id
 from redis_utils import rget_json
 
@@ -177,8 +177,20 @@ def add_bot_to_game(sess, game_id: str):
         .scalar()
     ) or 0
 
+    user = None
+    for username in BOT_USERNAMES:
+        if not (
+            sess.query(Player)
+            .join(User)
+            .filter(User.username == username)
+            .filter(Player.game_id == game_id)
+            .first()
+        ):
+            user = add_or_get_user(sess, username)
+            break
+
     bot_player = Player(
-        user=None,
+        user=user,
         game=game,
         player_num=num_players_in_game,
         is_bot=True,
@@ -233,6 +245,7 @@ def _launch_game_inner(sess, game: Game) -> None:
             game_state.civs_by_id[civ.id] = civ
             civ.vitality = STARTING_CIV_VITALITY
             starting_city.hex.city = starting_city
+            starting_civs_for_players[player_num] = [civ]
 
         else:
             starting_civs_for_players[player_num] = []
@@ -648,6 +661,8 @@ def on_leave(data):
 
 
 if __name__ == '__main__':
+    with SessionLocal() as sess:
+        add_bot_users(sess)
     if LOCAL:
         socketio.run(app, host='0.0.0.0', port=5001, debug=True)  # type: ignore
     else:
