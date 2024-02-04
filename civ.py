@@ -6,7 +6,7 @@ from civ_template import CivTemplate
 from civ_templates_list import ANCIENT_CIVS, CIVS
 from game_player import GamePlayer
 from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME
-from tech import Tech
+from tech import Tech, get_tech_choices_for_civ
 from tech_template import TechTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
@@ -75,6 +75,29 @@ class Civ:
     def fill_out_available_buildings(self) -> None:
         self.available_buildings = [building["name"] for building in BUILDINGS.values() if (not building.get('prereq')) or self.techs.get(building.get("prereq"))]  # type: ignore
         self.available_unit_buildings = [unit.get("building_name") for unit in UNITS.values() if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and unit.get("building_name"))]  # type: ignore
+
+    def bot_move(self, game_state: 'GameState') -> None:
+        if random.random() < 0.2 or self.target1 is None or self.target2 is None:
+            enemy_cities = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
+            possible_target_hexes = [*[city.hex for city in enemy_cities if city.hex], *[camp.hex for camp in game_state.camps if camp.hex]]
+
+            random.shuffle(possible_target_hexes)
+
+            if len(possible_target_hexes) > 0:
+                self.target1 = possible_target_hexes[0]
+                self.target1_coords = self.target1.coords
+            if len(possible_target_hexes) > 1:
+                self.target2 = possible_target_hexes[1]
+                self.target2_coords = self.target2.coords
+
+        techs = get_tech_choices_for_civ(self)
+
+        if len(techs) > 0:
+            self.tech_queue.append(TechTemplate.from_json(techs[0]))
+
+        for city in game_state.cities_by_id.values():
+            if city.civ.id == self.id:
+                city.bot_move(game_state)
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings()

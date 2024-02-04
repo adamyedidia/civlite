@@ -306,8 +306,6 @@ class GameState:
 
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
-            print('from_civ_perspectives', from_civ_perspectives)
-
             if from_civ_perspectives is None and game_player_to_return.civ_id is not None:
                 from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
             
@@ -361,6 +359,10 @@ class GameState:
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = rget_json(f'staged_moves:{self.game_id}:{player_num}') or []
             self.update_from_player_moves(player_num, staged_moves)
+
+        for civ in self.civs_by_id.values():
+            if not civ.game_player or civ.game_player.is_bot:
+                civ.bot_move(self)
 
         print('ending turn')
 

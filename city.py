@@ -52,8 +52,6 @@ class City:
         return any([(building.building_name if hasattr(building, 'building_name') else building.name) == building_name for building in self.buildings_queue])  # type: ignore
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
-        print('adjusting projected yields')
-
         projected_yields = self.get_projected_yields(game_state)
 
         self.projected_food_income = projected_yields['food']
@@ -61,8 +59,6 @@ class City:
         self.projected_wood_income = projected_yields['wood']
         self.projected_science_income = projected_yields['science']
         self.projected_city_power_income = projected_yields['city_power']
-
-        print(projected_yields)
 
     def get_projected_yields(self, game_state: 'GameState') -> dict[str, float]:
         if self.hex is None:
@@ -359,6 +355,16 @@ class City:
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         self.civ = civs_by_id[self.civ.id]
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
+
+    def bot_move(self, game_state: 'GameState') -> None:
+        self.focus = random.choice(['food', 'metal', 'wood', 'science'])
+        available_buildings = self.get_available_buildings(game_state)
+        if len(available_buildings) > 0:
+            self.buildings_queue.append(random.choice(available_buildings))
+        available_units = self.available_units
+        if len(available_units) > 0:
+            self.units_queue.append(UnitTemplate.from_json(UNITS[random.choice(available_units)]))
+        
 
     def to_json(self) -> dict:
         return {

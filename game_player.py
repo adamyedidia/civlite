@@ -3,7 +3,7 @@ from civ_template import CivTemplate
 
 
 class GamePlayer:
-    def __init__(self, player_num: int, username: str):
+    def __init__(self, player_num: int, username: str, is_bot: bool = False):
         self.player_num = player_num
         self.username = username
         self.score = 0
@@ -11,6 +11,7 @@ class GamePlayer:
 
         # (hex coords, civ name, city_id)
         self.decline_options: list[tuple[str, str, str]] = []
+        self.is_bot = is_bot
 
     def to_json(self) -> dict:
         return {
@@ -19,6 +20,7 @@ class GamePlayer:
             "score": self.score,
             "civ_id": self.civ_id,
             "decline_options": self.decline_options,
+            "is_bot": self.is_bot,
         }
     
     @staticmethod
@@ -26,6 +28,7 @@ class GamePlayer:
         game_player = GamePlayer(
             player_num=json["player_num"],
             username=json["username"],
+            is_bot=json["is_bot"],
         )
         game_player.score = json["score"]
         game_player.civ_id = json["civ_id"]
