@@ -37,4 +37,10 @@ TECHS = {
         'cost': 20,
         'advancement_level': 1,
     },
+    'Masonry': {
+        'name': 'Masonry',
+        'cost': 20,
+        'unlocks_units': ['Garrison'],
+        'advancement_level': 1,
+    },
 }

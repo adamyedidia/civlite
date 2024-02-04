@@ -87,6 +87,20 @@ UNITS = {
             "numbers": ["ranged", 5],
         }],
     },
+    "Garrison": {
+        "name": "Garrison",
+        "building_name": "Walls",
+        "type": "military",
+        "metal_cost": 8,
+        "wood_cost": 4,
+        "strength": 14,
+        "movement": 0,
+        "range": 1,
+        "ranged": False,
+        "prereq": "Masonry",
+        "mounted": False,
+        "abilities": [],
+    },
 }
 
 UNITS_BY_BUILDING_NAME = {
