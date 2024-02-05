@@ -1,10 +1,10 @@
 import React from 'react';
 import './CityDisplay.css'; // You will need to create this CSS file
 
-const CityDisplay = ({ city, setHoveredUnit, setHoveredBuilding, isFriendly }) => {
+const CityDisplay = ({ city, unitTemplates, setHoveredUnit, setHoveredBuilding, isFriendly }) => {
     const handleMouseEnter = (item, itemType) => {
         if (itemType === 'unit') {
-            setHoveredUnit(item);
+            setHoveredUnit(unitTemplates[item?.name]);
         }
         else {
             setHoveredBuilding(item);

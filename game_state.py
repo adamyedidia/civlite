@@ -240,7 +240,7 @@ class GameState:
                 game_player = self.game_player_by_player_num[player_num]
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
-                city.focus = move['focus']                
+                city.focus = move['focus']
                 game_player_to_return = game_player
 
                 city.adjust_projected_yields(self)
@@ -256,6 +256,25 @@ class GameState:
                 city.hex = self.hexes[move['coords']]
                 city.hex.city = city
                 self.cities_by_id[city_id] = city
+
+                if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
+                    if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
+                        assert city.hex
+                        numbers = civ.numbers_of_ability('IncreaseYieldsForTerrainNextToSecondCity')
+                        for hex in [city.hex, city.hex.get_neighbors(self.hexes)]:
+                            if hex.terrain == numbers[1]:
+                                new_value = getattr(hex.yields, numbers[0]) + numbers[2]
+                                setattr(hex.yields, numbers[0], new_value)
+
+                if civ.has_ability('IncreaseYieldsForTerrain'):
+                    assert city.hex
+                    numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
+                    for hex in [city.hex, city.hex.get_neighbors(self.hexes)]:
+                        if hex.terrain == numbers[1]:
+                            new_value = getattr(hex.yields, numbers[0]) + numbers[2]
+                            setattr(hex.yields, numbers[0], new_value)
+            
+
                 self.refresh_foundability_by_civ()
                 city.adjust_projected_yields(self)
                 city.civ.adjust_projected_yields(self)                
@@ -499,9 +518,12 @@ class GameState:
         if (game_player := civ.game_player) is not None and (vp_reward := building_template.vp_reward) is not None:
             game_player.score += vp_reward
 
+            if civ.has_ability('ExtraVpsPerWonder'):
+                game_player.score += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
+
         for city in self.cities_by_id.values():
             for i, building in enumerate(city.buildings_queue):
-                if i > 0 and building.name == building_template.name:
+                if building.name == building_template.name:
                     city.buildings_queue = [building for building in city.buildings_queue if building.name != building_template.name]
                     break
 

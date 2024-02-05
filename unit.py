@@ -21,6 +21,7 @@ class Unit:
         self.civ = civ
         self.has_moved = False
         self.hex: Optional['Hex'] = None
+        self.strength = self.template.strength
 
     def get_closest_target(self) -> Optional['Hex']:
         if not self.hex:
@@ -113,17 +114,17 @@ class Unit:
                             best_target = unit
                             best_target_distance = distance
                             best_target_type_score = type_scores[unit.template.type]
-                            best_target_strength = unit.template.strength
+                            best_target_strength = unit.strength
                         elif distance == best_target_distance and type_scores[unit.template.type] < best_target_type_score:
                             best_target = unit
                             best_target_distance = distance
                             best_target_type_score = type_scores[unit.template.type]
-                            best_target_strength = unit.template.strength
-                        elif distance == best_target_distance and type_scores[unit.template.type] == best_target_type_score and unit.template.strength < best_target_strength:
+                            best_target_strength = unit.strength
+                        elif distance == best_target_distance and type_scores[unit.template.type] == best_target_type_score and unit.strength < best_target_strength:
                             best_target = unit
                             best_target_distance = distance
                             best_target_type_score = type_scores[unit.template.type]
-                            best_target_strength = unit.template.strength
+                            best_target_strength = unit.strength
 
         return best_target
 
@@ -134,8 +135,8 @@ class Unit:
         return int(round(40 ** sqrt(ratio_of_strengths)))
 
     def punch(self, game_state: 'GameState', target: 'Unit') -> None:
-        self.effective_strength = self.template.strength * (0.5 + 0.5 * (self.health / 100))
-        target.effective_strength = target.template.strength 
+        self.effective_strength = self.strength * (0.5 + 0.5 * (self.health / 100))
+        target.effective_strength = target.strength 
 
         target.health = max(0, target.health - self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength))
 
@@ -242,6 +243,8 @@ class Unit:
             "civ": self.civ.to_json(),
             "has_moved": self.has_moved,
             "coords": self.hex.coords if self.hex is not None else None,
+            "strength": self.strength,
+            "template": self.template.to_json(),
         }
     
     @staticmethod
@@ -253,5 +256,6 @@ class Unit:
         unit.id = json["id"]
         unit.health = json["health"]
         unit.has_moved = json["has_moved"]
+        unit.strength = json["strength"]
 
         return unit

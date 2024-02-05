@@ -18,7 +18,7 @@ export const BriefUnitDisplay = ({ unitName, unitTemplates, onClick, setHoveredU
         <div 
             className="brief-unit-card" 
             onClick={onClick}
-            onMouseEnter={() => setHoveredUnit(unitName)} // set on mouse enter
+            onMouseEnter={() => setHoveredUnit(unit)} // set on mouse enter
             onMouseLeave={() => setHoveredUnit(null)} // clear on mouse leave
         >
             <span className="unit-name">{unit?.name}</span>
@@ -34,16 +34,16 @@ const UnitDisplay = ({ unit, hover }) => {
 
     return (
         <div className="unit-card">
-            <h2>{unit.name}</h2>
+            <h2>{unit?.name || unit?.template?.name}</h2>
             {/* <p>Type: {unit.type}</p> */}
-            <p>Costs {unit.metal_cost} metal</p>
-            <p>Building: {unit.building_name} (costs {unit.wood_cost} wood)</p>
-            <p>Strength: {unit.strength}</p>
-            <p>Movement: {unit.movement}</p>
-            <p>Range: {unit.range}</p>
-            {unit.ranged ? <p>Ranged</p> : null}
-            {unit.mounted ? <p>Mounted</p> : null}
-            {unit.abilities.map((ability) => {
+            <p>Costs {unit?.metal_cost || unit?.template?.metal_cost} metal</p>
+            <p>Building: {unit?.building_name || unit?.template?.building_name} (costs {unit?.wood_cost || unit?.template?.wood_cost} wood)</p>
+            <p>Strength: {unit?.strength || unit?.template?.strength}</p>
+            <p>Movement: {unit?.movement || unit?.template?.movement}</p>
+            <p>Range: {unit?.range || unit?.template?.range}</p>
+            {(unit?.ranged || unit?.template?.ranged) ? <p>Ranged</p> : null}
+            {(unit?.mounted || unit?.template?.mounted) ? <p>Mounted</p> : null}
+            {(unit?.abilities || unit?.template?.abilities)?.map((ability) => {
                 <p>{ability.description}</p>
             })}
         </div>

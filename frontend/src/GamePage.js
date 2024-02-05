@@ -28,6 +28,7 @@ import UpperRightDisplay from './UpperRightDisplay';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
+import spawnSound from './sounds/spawn.mp3';
 import SettingsDialog from './SettingsDialog';
 
 const coordsToObject = (coords) => {
@@ -207,6 +208,18 @@ export default function GamePage() {
         try {
             let audio = new Audio(rangedAttackSound);
             audio.volume = 1.0 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playSpawnSound(spawnSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(spawnSound);
+            audio.volume = 0.5 * volumeRef.current / 100;
             audio.play();
         } catch (error) {
             console.error('Error playing sound:', error);
@@ -1839,6 +1852,12 @@ export default function GamePage() {
                         showSingleMovementArrow(event.data.start_coords, event.data.end_coords, 'attack');
                         setGameState(newState);
                         break;
+                    // case 'UnitSpawn':
+                    //     await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
+                    //     playSpawnSound(spawnSound, volume);
+                    //     setGameState(newState);
+                    //     break;
+                    
                 }
 
                 if ((animationRunId !== animationRunIdRef.current) && (filteredAnimationQueue.length > 1)) {
@@ -2075,7 +2094,7 @@ export default function GamePage() {
             setHoveredCity(null);
         }
         if (hex?.units?.length > 0) {
-            setHoveredUnit(hex?.units?.[0]?.name);
+            setHoveredUnit(hex?.units?.[0]);
             setHoveredCiv(civTemplates[hex?.units?.[0]?.civ.name]);
             hoveredCivPicked = true;
         }
@@ -2323,6 +2342,7 @@ export default function GamePage() {
                         myCiv={myCiv} 
                         myGamePlayer={myGamePlayer} 
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
+                        unitTemplates={unitTemplates}
                     />}
                     {selectedCityBuildingChoices && (
                         <div className="building-choices-container">
@@ -2378,7 +2398,7 @@ export default function GamePage() {
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
                         )}
                         {hoveredUnit && (
-                            <UnitDisplay unit={unitTemplates[hoveredUnit]} />
+                            <UnitDisplay unit={hoveredUnit} />
                         )}
                         {hoveredTech && (
                             <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} />

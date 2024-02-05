@@ -94,6 +94,9 @@ class City:
         elif self.focus == 'science':
             yields["science"] += self.population * vitality
 
+        if self.civ.has_ability('IncreaseFocusYields') and self.focus == self.civ.numbers_of_ability('IncreaseFocusYields')[0]:
+            yields[self.focus] += self.civ.numbers_of_ability('IncreaseFocusYields')[1]
+
         return yields
 
     def harvest_yields(self, game_state: 'GameState') -> None:
@@ -122,6 +125,10 @@ class City:
             self.wood += self.population * vitality
         elif self.focus == 'science':
             self.civ.science += self.population * vitality
+
+        if self.civ.has_ability('IncreaseFocusYields') and self.focus == self.civ.numbers_of_ability('IncreaseFocusYields')[0]:
+            new_value = getattr(self, self.focus) + self.civ.numbers_of_ability('IncreaseFocusYields')[1]
+            setattr(self, self.focus, new_value)
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
