@@ -359,15 +359,23 @@ ANCIENT_CIVS = {
         "name": "Caralans",
         "abilities": [{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Warrior", 2]
+            "numbers": ["Warrior", 4]
         }],
         "advancement_level": 0,
     },
+    "Troy": {
+        "name": "Troy",
+        "abilities": [{
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Slinger", 3]
+        }],
+        "advancement_level": 0,
+    },    
     "Elamites": {
         "name": "Elamites",
         "abilities": [{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Archer", 2]
+            "numbers": ["Archer", 3]
         }],
         "advancement_level": 0,
     },
@@ -375,7 +383,7 @@ ANCIENT_CIVS = {
         "name": "Teotihuacan",
         "abilities": [{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Spearman", 2]
+            "numbers": ["Spearman", 3]
         }],
         "advancement_level": 0,
     },
@@ -383,7 +391,7 @@ ANCIENT_CIVS = {
         "name": "Scythians",
         "abilities": [{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Chariot", 2]
+            "numbers": ["Chariot", 3]
         }],
         "advancement_level": 0,
     },
@@ -391,7 +399,7 @@ ANCIENT_CIVS = {
         "name": "Maya",
         "abilities": [{
             "name": "ExtraVpsPerCityCaptured",
-            "numbers": [10]
+            "numbers": [5]
         }],
         "advancement_level": 0,
     },
@@ -399,7 +407,7 @@ ANCIENT_CIVS = {
         "name": "Jomon",
         "abilities": [{
             "name": "ExtraCityPower",
-            "numbers": [20]
+            "numbers": [50]
         }],
         "advancement_level": 0,
     },
@@ -409,11 +417,6 @@ ANCIENT_CIVS = {
             "name": "ExtraVpsPerUnitKilled",
             "numbers": [1]
         }],
-        "advancement_level": 0,
-    },
-    "Troy": {
-        "name": "Troy",
-        "abilities": [],
         "advancement_level": 0,
     },    
     "Romans": {
@@ -481,8 +484,8 @@ ANCIENT_CIVS = {
         "abilities": [],
         "advancement_level": 1,
     },
-    "Byzantium": {
-        "name": "Byzantium",
+    "Byzantines": {
+        "name": "Byzantines",
         "abilities": [],
         "advancement_level": 1,
     },

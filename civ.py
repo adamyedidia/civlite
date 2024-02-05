@@ -117,7 +117,7 @@ class Civ:
         else:
             self.vitality *= VITALITY_DECAY_RATE
 
-        self.city_power += BASE_CITY_POWER_INCOME
+        self.city_power += BASE_CITY_POWER_INCOME * self.vitality
 
     def update_game_player(self, game_player_by_player_num: dict[int, GamePlayer]) -> None:
         if self.game_player is not None:
@@ -161,7 +161,12 @@ def create_starting_civ_options_for_players(game_players: list[GamePlayer], star
     for game_player in game_players:
         starting_civ_options[game_player.player_num] = []
         for _ in range(NUM_STARTING_LOCATION_OPTIONS):
-            starting_civ_options[game_player.player_num].append((Civ(CivTemplate.from_json(starting_civ_option_jsons[counter]), game_player), starting_locations[counter]))
+            civ = Civ(CivTemplate.from_json(starting_civ_option_jsons[counter]), game_player)
+
+            if civ.has_ability('ExtraCityPower'):
+                civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
+
+            starting_civ_options[game_player.player_num].append((civ, starting_locations[counter]))
             counter += 1
 
     return starting_civ_options

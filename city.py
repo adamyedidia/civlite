@@ -273,6 +273,11 @@ class City:
         unit.hex = hex
         hex.units.append(unit)
         game_state.units.append(unit)
+
+        if self.civ.has_ability('IncreasedStrengthForUnit'):
+            if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
+                unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
+
         if self.hex.coords != unit.hex.coords:
             game_state.add_animation_frame_for_civ(sess, {
                 "type": "UnitSpawn",
@@ -339,6 +344,9 @@ class City:
         if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
             civ.game_player.score += CITY_CAPTURE_REWARD
             self.ever_controlled_by_civ_ids[civ.id] = True
+
+            if civ.has_ability('ExtraVpsPerCityCaptured'):
+                civ.game_player.score += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
 
         self.under_siege_by_civ = None
 

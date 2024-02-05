@@ -25,7 +25,7 @@ DATABASE_URL = "postgresql://cl:cl@localhost:5432/cl"
 
 LOCAL = False
 
-BASE_CITY_POWER_INCOME = 20.0
+BASE_CITY_POWER_INCOME = 10.0
 
 if os.path.exists('local_settings.py'):
     from local_settings import *

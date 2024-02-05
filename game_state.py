@@ -77,6 +77,10 @@ class GameState:
         hex = self.hexes[coords]
         new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player)
         new_civ.vitality = min(2.0 + self.turn_num * 0.1, 4.0)
+
+        if new_civ.has_ability('ExtraCityPower'):
+            new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]
+
         if hex.city is None:
             city = City(new_civ, id=city_id)
             city.hex = hex
