@@ -1,6 +1,6 @@
 import random
 from hex import Hex
-from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA
+from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY
 from utils import coords_str, get_all_coords_up_to_n
 from yields import Yields
 
@@ -58,6 +58,13 @@ def create_hex_map(map_size: int) -> dict[str, Hex]:
         random_neighbor_of_hex = random.choice(hex_to_propagate.get_neighbors(hexes))
         random_neighbor_of_hex.terrain = hex_to_propagate.terrain
         random_neighbor_of_hex.yields = hex_to_propagate.yields.copy()
+
+    for hex in hexes.values():
+        if random.random() < GOOD_HEX_PROBABILITY:
+            hex.yields.food *= 2
+            hex.yields.wood *= 2
+            hex.yields.metal *= 2
+            hex.yields.science *= 2
 
     return hexes
 
