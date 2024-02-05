@@ -24,6 +24,12 @@ class Building:
     def type(self) -> str:
         return "military" if self.unit_name else self.building_template.type  # type: ignore
 
+    def has_ability(self, ability_name: str) -> bool:
+        return any([ability.name == ability_name for ability in self.template.abilities])
+
+    def numbers_of_ability(self, ability_name: str) -> list:
+        return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
+
     def to_json(self) -> dict:
         return {
             "name": self.name,

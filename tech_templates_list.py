@@ -32,10 +32,16 @@ TECHS = {
         'unlocks_units': ['Chariot'],
         'advancement_level': 1,
     },
+    'Mining': {
+        'name': 'Mining',
+        'cost': 15,
+        'advancement_level': 1,
+    },
     'Forestry': {
         'name': 'Forestry',
         'cost': 20,
         'advancement_level': 1,
+        'unlocks_buildings': ['Lumber Mill'],
     },
     'Masonry': {
         'name': 'Masonry',

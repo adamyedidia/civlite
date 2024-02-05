@@ -5,7 +5,7 @@ BUILDINGS: dict[str, dict] = {
     "Lumber Mill": {
         "name": "Lumber Mill",
         "type": "economy",
-        "cost": 20,
+        "cost": 10,
         "abilities": [{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", 1, "forest"],

@@ -311,7 +311,17 @@ class City:
         unit_template = building if isinstance(building, UnitTemplate) else None
         building_template = building if isinstance(building, BuildingTemplate) else None
 
-        self.buildings.append(Building(unit_template=unit_template, building_template=building_template))
+        new_building = Building(unit_template=unit_template, building_template=building_template)
+
+        self.buildings.append(new_building)
+
+        if new_building.has_ability('IncreaseYieldsForTerrain'):
+            assert self.hex
+            numbers = new_building.numbers_of_ability('IncreaseYieldsForTerrain')
+            for hex in [self.hex, self.hex.get_neighbors(game_state.hexes)]:
+                if hex.terrain == numbers[1]:
+                    new_value = getattr(hex.yields, numbers[0]) + numbers[2]
+                    setattr(hex.yields, numbers[0], new_value)
 
         if building_template is not None and building_template.is_wonder:
             assert isinstance(building_template, BuildingTemplate)
