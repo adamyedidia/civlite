@@ -172,6 +172,7 @@ class Unit:
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
+            "attack_type": "melee" if not self.template.ranged else "ranged",
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
         }, hexes_must_be_visible=[self_hex, target_hex])

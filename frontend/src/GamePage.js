@@ -26,6 +26,8 @@ import BuildingDisplay, { BriefBuildingDisplay, BriefBuildingDisplayTitle } from
 import UnitDisplay, {BriefUnitDisplay, BriefUnitDisplayTitle} from './UnitDisplay';
 import UpperRightDisplay from './UpperRightDisplay';
 import moveSound from './sounds/movement.mp3';
+import meleeAttackSound from './sounds/melee_attack.mp3';
+import rangedAttackSound from './sounds/ranged_attack.mp3';
 import SettingsDialog from './SettingsDialog';
 
 const coordsToObject = (coords) => {
@@ -181,6 +183,30 @@ export default function GamePage() {
         try {
             let audio = new Audio(moveSound);
             audio.volume = 0.5 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playMeleeAttackSound(meleeAttackSound) {
+        if (!userHasInteracted) return;
+    
+        try {
+            let audio = new Audio(meleeAttackSound);
+            audio.volume = 0.1 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playRangedAttackSound(rangedAttackSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(rangedAttackSound);
+            audio.volume = 1.0 * volumeRef.current / 100;
             audio.play();
         } catch (error) {
             console.error('Error playing sound:', error);
@@ -1805,6 +1831,11 @@ export default function GamePage() {
                         break;           
                     case 'UnitAttack':
                         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
+                        if (event.data.attack_type === 'melee') {
+                            playMeleeAttackSound(meleeAttackSound, volume);
+                        } else {
+                            playRangedAttackSound(rangedAttackSound, volume);
+                        }
                         showSingleMovementArrow(event.data.start_coords, event.data.end_coords, 'attack');
                         setGameState(newState);
                         break;
