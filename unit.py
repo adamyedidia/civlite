@@ -161,7 +161,7 @@ class Unit:
         target_hex = target.hex
 
         self.punch(game_state, target)
-        if self.template.ranged:
+        if self.template.has_tag('ranged'):
             # target.target = self.hex
             pass
         else:
@@ -169,7 +169,7 @@ class Unit:
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
-            "attack_type": "melee" if not self.template.ranged else "ranged",
+            "attack_type": "melee" if not self.template.has_tag('ranged') else "ranged",
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
         }, hexes_must_be_visible=[self_hex, target_hex])
