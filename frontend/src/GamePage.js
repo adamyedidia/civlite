@@ -1872,8 +1872,12 @@ export default function GamePage() {
                         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
                         if (event.data.attack_type === 'melee') {
                             playMeleeAttackSound(meleeAttackSound, volume);
-                        } else {
+                        } else if (event.data.attack_type === 'ranged') {
                             playRangedAttackSound(rangedAttackSound, volume);
+                        } else if (event.data.attack_type === 'gunpowder_melee') {
+                            playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
+                        } else if (event.data.attack_type === 'gunpowder_ranged') {
+                            playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
                         }
                         showSingleMovementArrow(event.data.start_coords, event.data.end_coords, 'attack');
                         setGameState(newState);

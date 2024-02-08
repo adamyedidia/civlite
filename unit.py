@@ -23,6 +23,12 @@ class Unit:
         self.hex: Optional['Hex'] = None
         self.strength = self.template.strength
 
+    def has_ability(self, ability_name: str) -> bool:
+        return any([ability.name == ability_name for ability in self.template.abilities])
+
+    def numbers_of_ability(self, ability_name: str) -> list:
+        return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
+
     def get_closest_target(self) -> Optional['Hex']:
         if not self.hex:
             return None
@@ -134,14 +140,33 @@ class Unit:
         # This is a very scientific formula
         return int(round(40 ** sqrt(ratio_of_strengths)))
 
-    def punch(self, game_state: 'GameState', target: 'Unit') -> None:
-        self.effective_strength = self.strength * (0.5 + 0.5 * (self.health / 100))
-        target.effective_strength = target.strength 
+    def compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit') -> int:
+        bonus_strength = 0
+
+        if self.has_ability('BonusNextTo') and self.hex is not None:
+            unit_type = self.numbers_of_ability('BonusNextTo')[0]
+            
+            for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
+                for unit in neighboring_hex.units:
+                    if unit.template.has_tag(unit_type):
+                        bonus_strength += self.numbers_of_ability('BonusNextTo')[1]
+                        break
+
+        if self.has_ability('BonusAgainst'):
+            unit_type = self.numbers_of_ability('BonusAgainst')[0]
+            if enemy.template.has_tag(unit_type):
+                bonus_strength += self.numbers_of_ability('BonusAgainst')[1]
+
+        return bonus_strength
+
+    def punch(self, game_state: 'GameState', target: 'Unit', damage_reduction_factor: float = 1.0) -> None:
+        self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target)) * damage_reduction_factor * (0.5 + 0.5 * (self.health / 100))
+        target.effective_strength = target.strength + target.compute_bonus_strength(game_state, self)
 
         target.health = max(0, target.health - self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength))
 
         if target.health == 0:
-            target.die(game_state)
+            target.die(game_state, self)
 
             if (game_player := self.civ.game_player) is not None:
                 game_player.score += UNIT_KILL_REWARD
@@ -161,6 +186,13 @@ class Unit:
         target_hex = target.hex
 
         self.punch(game_state, target)
+
+        if self.has_ability('Splash'):
+            for neighboring_hex in target_hex.get_neighbors(game_state.hexes):
+                for unit in neighboring_hex.units:
+                    if unit.civ.id != self.civ.id:
+                        self.punch(game_state, unit, self.numbers_of_ability('Splash')[0])
+
         if self.template.has_tag('ranged'):
             # target.target = self.hex
             pass
@@ -176,13 +208,21 @@ class Unit:
             "end_coords": target_hex_coords,
         }, hexes_must_be_visible=[self_hex, target_hex])
 
-    def die(self, game_state: 'GameState'):
+    def die(self, game_state: 'GameState', killer: 'Unit'):
         if self.hex is None:
             return
+
+        my_hex = self.hex
 
         self.hex.units = [unit for unit in self.hex.units if unit.id != self.id]
         game_state.units = [unit for unit in game_state.units if unit.id != self.id]
         self.hex = None
+
+        if killer.has_ability('ConvertKills'):
+            new_unit = Unit(killer.template, killer.civ)
+            new_unit.hex = my_hex
+            my_hex.units.append(new_unit)
+            game_state.units.append(new_unit)
 
     def move_one_step(self, game_state: 'GameState', coord_strs: list[str], sensitive: bool = False) -> bool:
         closest_target = self.get_closest_target()

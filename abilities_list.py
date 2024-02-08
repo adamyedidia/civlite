@@ -72,4 +72,19 @@ UNIT_ABILITIES: dict[str, Callable] = {
         description=f"Has +{y} strength against {x} units.",
         numbers=[x, y],
     ),
+    "BonusNextTo": lambda x, y: Ability(
+        name="BonusNextTo",
+        description=f"Has +{y} strength when next to friendly {x} units.",
+        numbers=[x, y],
+    ),
+    "Splash": lambda x: Ability(
+        name="Splash",
+        description=f"Deals damage equivalent {'{:.0%}'.format(x)}% of strength to all enemy units adjacent to the target.",
+        numbers=[x],
+    ),
+    "ConvertKills": lambda x: Ability(
+        name="ConvertKills",
+        description=f"Converts killed enemy units into more copies of itself.",
+        numbers=[],
+    ),
 }
