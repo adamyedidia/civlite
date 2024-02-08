@@ -41,8 +41,7 @@ const UnitDisplay = ({ unit, hover }) => {
             <p>Strength: {unit?.strength || unit?.template?.strength}</p>
             <p>Movement: {unit?.movement || unit?.template?.movement}</p>
             <p>Range: {unit?.range || unit?.template?.range}</p>
-            {(unit?.ranged || unit?.template?.ranged) ? <p>Ranged</p> : null}
-            {(unit?.mounted || unit?.template?.mounted) ? <p>Mounted</p> : null}
+            <p>{unit?.tags?.join(', ') || unit?.template?.tags?.join(', ')}</p>
             {(unit?.abilities || unit?.template?.abilities)?.map((ability) => {
                 <p>{ability.description}</p>
             })}

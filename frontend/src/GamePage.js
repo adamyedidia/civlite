@@ -29,6 +29,8 @@ import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
 import spawnSound from './sounds/spawn.mp3';
+import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
+import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
 
 const coordsToObject = (coords) => {
@@ -207,6 +209,30 @@ export default function GamePage() {
 
         try {
             let audio = new Audio(rangedAttackSound);
+            audio.volume = 1.0 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(gunpowderMeleeAttackSound);
+            audio.volume = 0.1 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playGunpowderRangedAttackSound(gunpowderRangedAttackSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(gunpowderRangedAttackSound);
             audio.volume = 1.0 * volumeRef.current / 100;
             audio.play();
         } catch (error) {

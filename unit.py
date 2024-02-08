@@ -169,7 +169,9 @@ class Unit:
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
-            "attack_type": "melee" if not self.template.has_tag('ranged') else "ranged",
+            "attack_type": ("melee" if not self.template.has_tag('ranged') else "ranged") 
+                            if not self.template.has_tag('gunpowder') and not self.template.has_tag('armored') and not self.template.name == 'Nanoswarm' 
+                            else ("gunpowder_melee" if not self.template.has_tag('ranged') else "gunpowder_ranged"),
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
         }, hexes_must_be_visible=[self_hex, target_hex])
