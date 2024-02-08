@@ -242,7 +242,7 @@ UNITS = {
         "movement": 4,
         "range": 1,
         "tags": ["mounted"],
-        "prereq": "Military Science",
+        "prereq": "Steel",
         "abilities": [{
             "name": "BonusNextTo",
             "numbers": ["gunpowder", 5],
@@ -374,7 +374,7 @@ UNITS = {
         "movement": 1,
         "range": 1,
         "tags": ["ranged", "gunpowder"],
-        "prereq": "Industrialization",
+        "prereq": "Ballistics",
         "abilities": [{
             "name": "BonusAgainst",
             "numbers": ["infantry", 20],
@@ -429,7 +429,7 @@ UNITS = {
         "name": "Nanoswarm",
         "building_name": "Nanofactory",
         "type": "military",
-        "metal_cost": 80,
+        "metal_cost": 60,
         "wood_cost": 80,
         "strength": 50,
         "movement": 1,

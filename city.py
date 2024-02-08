@@ -319,13 +319,23 @@ class City:
             assert self.hex
             numbers = new_building.numbers_of_ability('IncreaseYieldsForTerrain')
             for hex in [self.hex, self.hex.get_neighbors(game_state.hexes)]:
-                if hex.terrain == numbers[1]:
-                    new_value = getattr(hex.yields, numbers[0]) + numbers[2]
+                if hex.terrain == numbers[2]:
+                    new_value = getattr(hex.yields, numbers[0]) + numbers[1]
                     setattr(hex.yields, numbers[0], new_value)
+
+        if new_building.has_ability('IncreaseYieldsInCity'):
+            assert self.hex
+            numbers = new_building.numbers_of_ability('IncreaseYieldsForTerrain')
+            new_value = getattr(self.hex.yields, numbers[0]) + numbers[1]
+            setattr(self.hex.yields, numbers[0], new_value)
 
         if building_template is not None and building_template.is_wonder:
             assert isinstance(building_template, BuildingTemplate)
-            game_state.handle_wonder_built(sess, self.civ, building_template)
+            game_state.handle_wonder_built(sess, self.civ, building_template, national=False)
+
+        if building_template is not None and building_template.is_national_wonder:
+            assert isinstance(building_template, BuildingTemplate)
+            game_state.handle_wonder_built(sess, self.civ, building_template, national=True)
 
     def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
         if self.hex is None:

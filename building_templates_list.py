@@ -101,6 +101,16 @@ BUILDINGS: dict[str, dict] = {
         }],
         "prereq": "University",
     },
+    "Factory": {
+        "name": "Factory",
+        "type": "economy",
+        "cost": 50,
+        "abilities": [{
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["metal", 1],
+        }],
+        "prereq": "Industrialization",
+    },
     "Observatory": {
         "name": "Observatory",
         "type": "science",
@@ -120,6 +130,79 @@ BUILDINGS: dict[str, dict] = {
             "numbers": ["wood", 2],
         }],
         "prereq": "Paper",
+    },
+    "Zoo": {
+        "name": "Zoo",
+        "type": "economy",
+        "cost": 20,
+        "prereq": "Medicine",
+        "vp_reward": 1,
+    },
+    "Stadium": {
+        "name": "Stadium",
+        "type": "economy",
+        "cost": 40,
+        "prereq": "Radio",
+        "vp_reward": 1,
+    },
+
+    "Windmill": {
+        "name": "Windmill",
+        "type": "economy",
+        "cost": 30,
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["tundra", 2],
+        }, {
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["grassland", 2],
+        }],
+        "prereq": "Windmill",
+    },
+    "Forge": {
+        "name": "Forge",
+        "type": "economy",
+        "cost": 30,
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["metal", 2, "mountains"],
+        }, {
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["metal", 2, "plains"],
+        }],
+    },
+    "Lumber Farm": {
+        "name": "Lumber Farm",
+        "type": "economy",
+        "cost": 30,
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", 2, "forest"],
+        }, {
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", 2, "hills"],
+        }],
+    },
+    "Apothecary": {
+        "name": "Apothecary",
+        "type": "economy",
+        "cost": 30,
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["food", 2, "marsh"],
+        }, {
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["food", 2, "jungle"],
+        }],
+    },
+    'Caravansery': {
+        "name": "Caravansery",
+        "type": "economy",
+        "cost": 15,
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["metal", 2, 'desert'],
+        }],
     },
 
     "Ironworks": {
@@ -153,6 +236,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["wood", 2],
         }],
+        "is_national_wonder": True,
         "prereq": "Machinery",
     },
     "Husbandry Center": {
@@ -163,6 +247,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["food", 2],
         }],
+        "is_national_wonder": True,
         "prereq": "Chivalry",
     },
     
@@ -293,11 +378,94 @@ BUILDINGS: dict[str, dict] = {
         "type": "economy",
         "cost": 110,
         "abilities": [{
-            "name": "NewUnitsGainBonusStrength",
+            "name": "ExistingUnitsGainBonusStrength",
             "numbers": [2],
         }],
         "is_wonder": True,
         "vp_reward": 5,
         "prereq": "Chivalry",
+    },
+    "Notre Dame": {
+        "name": "Notre Dame",
+        "type": "economy",
+        "cost": 120,
+        "abilities": [{
+            "name": "IncreaseYieldsInCity",
+            "numbers": ["wood", 15],
+        }],
+        "is_wonder": True,
+        "vp_reward": 5,
+        "prereq": "Architecture",
+    },
+    "Porcelain Tower": {
+        "name": "Porcelain Tower",
+        "type": "science",
+        "cost": 140,
+        "abilities": [{
+            "name": "ExtraVpsForTechs",
+            "numbers": [1],
+        }],
+        "is_wonder": True,
+        "vp_reward": 5,
+        "prereq": "Medicine",
+    },
+    "Brandenburg Gate": {
+        "name": "Brandenburg Gate",
+        "type": "economy",
+        "cost": 150,
+        "abilities": [{
+            "name": "NewUnitsGainBonusStrength",
+            "numbers": [3],
+        }],
+        "is_wonder": True,
+        "vp_reward": 5,
+        "prereq": "Military Science",
+    },
+    "Statue of Liberty": {
+        "name": "Statue of Liberty",
+        "type": "economy",
+        "cost": 250,
+        "abilities": [{
+            "name": "ExtraVpsForCityGrowth",
+            "numbers": [1],
+        }],
+        "is_wonder": True,
+        "vp_reward": 5,
+        "prereq": "Radio",
+    },
+    "Kremlin": {
+        "name": "Kremlin",
+        "type": "economy",
+        "cost": 300,
+        "abilities": [{
+            "name": "ExtraVpsForCityCapture",
+            "numbers": [10],
+        }],
+        "is_wonder": True,
+        "vp_reward": 5,
+        "prereq": "Communism",
+    },
+    "Apollo Program": {
+        "name": "Apollo Program",
+        "type": "science",
+        "cost": 400,
+        "abilities": [{
+            "name": "ExtraVpsForTechs",
+            "numbers": [5],
+        }],
+        "is_wonder": True,
+        "vp_reward": 5,
+        "prereq": "Rocketry",
+    },
+    'Artificial Intelligence': {
+        "name": "AGI",
+        "type": "science",
+        "cost": 750,
+        "abilities": [{
+            "name": "EndTheGame",
+        }],
+        "is_wonder": True,
+        "vp_reward": 10,
+        "prereq": "Megarobotics",
     },
 }
