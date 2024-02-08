@@ -80,7 +80,27 @@ class City:
             yields["science"] += hex.yields.science * vitality
             yields["city_power"] += hex.yields.food * vitality
         
-        yields["science"] += self.population * vitality
+        yields_per_population = {
+            "food": 0,
+            "metal": 0,
+            "wood": 0,
+            "science": 1,
+        }
+
+        for building in self.buildings:
+            for ability in building.template.abilities:
+                if ability.name == 'IncreaseYieldsPerPopulation':
+                    yields_per_population[ability.numbers[0]] += ability.numbers[1]
+
+                if ability.name == 'IncreaseFocusYieldsPerPopulation' and self.focus == ability.numbers[0]:
+                    yields_per_population[self.focus] += ability.numbers[1]
+
+        for key in yields_per_population:
+            yields[key] += self.population * yields_per_population[key] * vitality
+
+            if key == 'food':
+                yields["city_power"] += self.population * yields_per_population[key] * vitality
+
         yields["food"] += 2 * vitality
         yields["city_power"] += 2 * vitality
 
@@ -112,7 +132,30 @@ class City:
             self.wood += hex.yields.wood * vitality
             self.civ.science += hex.yields.science * vitality
         
-        self.civ.science += self.population * vitality
+        yields_per_population = {
+            "food": 0,
+            "metal": 0,
+            "wood": 0,
+            "science": 1,
+        }
+
+        for building in self.buildings:
+            for ability in building.template.abilities:
+                if ability.name == 'IncreaseYieldsPerPopulation':
+                    yields_per_population[ability.numbers[0]] += ability.numbers[1]
+
+        for key in yields_per_population:
+            if key in ["food"]:
+                self.food += self.population * yields_per_population[key] * vitality
+                self.civ.city_power += self.population * yields_per_population[key] * vitality
+
+            if key in ["metal", "wood"]:
+                new_value = getattr(self, key) + self.population * yields_per_population[key] * vitality
+                setattr(self, key, new_value)
+            
+            if key in ["science"]:
+                self.civ.science += self.population * yields_per_population[key] * vitality
+
         self.food += 2 * vitality
         self.civ.city_power += 2 * vitality
 
@@ -166,7 +209,14 @@ class City:
             self.population += 1
 
     def growth_cost(self) -> int:
-        return BASE_FOOD_COST_OF_POP + self.population * ADDITIONAL_PER_POP_FOOD_COST
+        total_growth_cost_reduction = 0
+
+        for building in self.buildings:
+            for ability in building.template.abilities:
+                if ability.name == 'CityGrowthCostReduction':
+                    total_growth_cost_reduction += ability.numbers[0]
+
+        return (BASE_FOOD_COST_OF_POP + self.population * ADDITIONAL_PER_POP_FOOD_COST) * (1 - total_growth_cost_reduction)
 
     def handle_siege(self, sess, game_state: 'GameState') -> None:
         siege_state = self.get_siege_state(game_state)

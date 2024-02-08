@@ -59,6 +59,26 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Increase {x} yields in {y}s by {z}.",
         numbers=[x, y, z],
     ),
+    "IncreaseYieldsInCity": lambda x, y: Ability(
+        name="IncreaseYieldsInCity",
+        description=f"Increase {x} yields in the city by {y}.",
+        numbers=[x, y],
+    ),
+    "IncreaseYieldsPerPopulation": lambda x, y: Ability(
+        name="IncreaseYieldsPerPopulation",
+        description=f"Increase {x} yields per population in the city by {y}.",
+        numbers=[x, y],
+    ),
+    "CityGrowthCostReduction": lambda x: Ability(
+        name="CityGrowthCostReduction",
+        description=f"Reduce the cost of city growth by {'{:.0%}'.format(x)}%.",
+        numbers=[x],
+    ),
+    "IncreaseFocusYieldsPerPopulation": lambda x, y: Ability(
+        name="IncreaseFocusYieldsPerPopulation",
+        description=f"Increase {x} yields per population in the city with a {x} focus by {y}.",
+        numbers=[x, y],
+    ),
     "UnitsHaveExtraStrength": lambda x: Ability(
         name="UnitsHaveExtraStrength",
         description=f"Units you build get +{x} strength.",

@@ -69,8 +69,8 @@ BUILDINGS: dict[str, dict] = {
         "type": "economy",
         "cost": 20,
         "abilities": [{
-            "name": "CityGrowthCostRebate",
-            "numbers": [0.5],
+            "name": "CityGrowthCostReduction",
+            "numbers": [0.4],
         }],
         "prereq": "Construction",
     },
