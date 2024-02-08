@@ -37,8 +37,6 @@ class Civ:
         self.projected_science_income = 0.0
         self.projected_city_power_income = 0.0
 
-        self.fill_out_available_buildings()
-
     def has_ability(self, ability_name: str) -> bool:
         return any([ability.name == ability_name for ability in self.template.abilities])
 
@@ -72,8 +70,12 @@ class Civ:
             "projected_city_power_income": self.projected_city_power_income,
         }
 
-    def fill_out_available_buildings(self) -> None:
-        self.available_buildings = [building["name"] for building in BUILDINGS.values() if (not building.get('prereq')) or self.techs.get(building.get("prereq"))]  # type: ignore
+    def fill_out_available_buildings(self, game_state: 'GameState') -> None:
+        self.available_buildings = [building["name"] for building in BUILDINGS.values() if (
+            (not building.get('prereq')) or self.techs.get(building.get("prereq"))  # type: ignore
+            and (not building.get('is_wonder') or not game_state.wonders_built_to_civ_id.get(building['name']))
+            and (not building.get('is_national_wonder') or not self.id in (game_state.national_wonders_built_to_civ_ids.get(building['name']) or []))
+        )]
         self.available_unit_buildings = [unit.get("building_name") for unit in UNITS.values() if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and unit.get("building_name"))]  # type: ignore
 
     def bot_move(self, game_state: 'GameState') -> None:
@@ -100,7 +102,7 @@ class Civ:
                 city.bot_move(game_state)
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
-        self.fill_out_available_buildings()
+        self.fill_out_available_buildings(game_state)
         
         while self.tech_queue and self.tech_queue[0].cost <= self.science:
             self.science -= self.tech_queue[0].cost
@@ -137,7 +139,6 @@ class Civ:
         civ.city_power = json["city_power"]
         civ.available_buildings = json["available_buildings"][:]
         civ.available_unit_buildings = json["available_unit_buildings"][:]
-        civ.fill_out_available_buildings()
         civ.target1_coords = json["target1"]
         civ.target2_coords = json["target2"]
         civ.projected_science_income = json["projected_science_income"]
