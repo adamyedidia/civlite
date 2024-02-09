@@ -392,7 +392,7 @@ class City:
         if new_building.has_ability('IncreaseYieldsForTerrain'):
             assert self.hex
             numbers = new_building.numbers_of_ability('IncreaseYieldsForTerrain')
-            for hex in [self.hex, self.hex.get_neighbors(game_state.hexes)]:
+            for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
                 if hex.terrain == numbers[2]:
                     new_value = getattr(hex.yields, numbers[0]) + numbers[1]
                     setattr(hex.yields, numbers[0], new_value)
