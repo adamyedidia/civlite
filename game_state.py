@@ -77,6 +77,18 @@ class GameState:
     def process_decline_option(self, decline_option: tuple[str, str, str], game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> GamePlayer:
         coords, civ_name, city_id = decline_option
         hex = self.hexes[coords]
+        if hex.city:
+            old_civ = hex.city.civ
+
+            if old_civ.game_player:
+                old_civ.game_player.score += 5
+
+                total_city_yields = sum([x for x in hex.city.get_projected_yields(self).values()]) / old_civ.vitality
+
+                points_from_yields = int(total_city_yields / (10 * 1.03 ** (self.turn_num - 1)))
+
+                old_civ.game_player.score += points_from_yields
+
         new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player)
         new_civ.vitality = min(2.0 + self.turn_num * 0.1, 4.0)
 
@@ -334,6 +346,13 @@ class GameState:
 
                 civ.game_player = game_player
                 game_player.civ_id = civ.id
+
+                for tech in TECHS.values():
+                    if tech['advancement_level'] <= self.advancement_level:
+                        num_civs_with_tech = len([other_civ for other_civ in self.civs_by_id.values() if tech['name'] in other_civ.techs])
+
+                        if num_civs_with_tech >= (len(self.civs_by_id) - 1) / 2:
+                            civ.techs[tech['name']] = True
 
                 self.refresh_foundability_by_civ()
                 self.refresh_visibility_by_civ()                        

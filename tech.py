@@ -29,7 +29,6 @@ def get_tech_choices_for_civ(civ: "Civ") -> list[dict]:
     characteristic_tech = None
 
     if civ.has_ability('IncreasedStrengthForUnit'):
-        print(civ.numbers_of_ability('IncreasedStrengthForUnit'))
         special_unit_name = civ.numbers_of_ability('IncreasedStrengthForUnit')[0]
 
         if (prereq := UNITS[special_unit_name].get('prereq')):
@@ -37,12 +36,12 @@ def get_tech_choices_for_civ(civ: "Civ") -> list[dict]:
 
     tech_level = len(civ.techs)
 
-    max_science_for_techs_available = 5 * (tech_level + 2)
+    max_advancement_level = max(1, tech_level // 2)
 
     num_techs_to_offer = 3 if characteristic_tech is None else 2
 
     techs_to_sample_from = [tech for tech in TECHS.values() 
-                            if (tech['cost'] <= max_science_for_techs_available 
+                            if (tech['advancement_level'] <= max_advancement_level 
                                 and (characteristic_tech is None or tech['name'] != characteristic_tech['name'])
                                 and not civ.techs.get(tech['name']))]
 
