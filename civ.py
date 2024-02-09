@@ -38,6 +38,10 @@ class Civ:
         self.projected_science_income = 0.0
         self.projected_city_power_income = 0.0
 
+    def moniker(self) -> str:
+        game_player_parenthetical = f' ({self.game_player.username})' if self.game_player else ''
+        return f"{self.template.name}{game_player_parenthetical}"
+
     def has_ability(self, ability_name: str) -> bool:
         return any([ability.name == ability_name for ability in self.template.abilities])
 

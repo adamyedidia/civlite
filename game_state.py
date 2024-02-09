@@ -61,6 +61,7 @@ class GameState:
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
         self.game_over = False
+        self.announcements = []
 
     def set_unit_and_city_hexes(self) -> None:
         for hex in self.hexes.values():
@@ -74,7 +75,7 @@ class GameState:
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
 
-    def process_decline_option(self, decline_option: tuple[str, str, str], game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> GamePlayer:
+    def process_decline_option(self, decline_option: tuple[str, str, str], game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> tuple[GamePlayer, City]:
         coords, civ_name, city_id = decline_option
         hex = self.hexes[coords]
         if hex.city:
@@ -111,7 +112,7 @@ class GameState:
                 unit.civ = new_civ
             neighbor_hex.camp = None
 
-        return game_player_to_return
+        return game_player_to_return, hex.city
 
 
     # Returns (from_civ_perspectives, game state to pass to frontend, game state to store)
@@ -307,10 +308,11 @@ class GameState:
                 city.civ.adjust_projected_yields(self)                
                 game_player_to_return = game_player
 
-            if move['move_type'] == 'enter_decline':
+            if move['move_type'] == 'enter_decline':                
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
                 civ = self.civs_by_id[game_player.civ_id]
+                self.announcements.append(f'The civilization of {civ.moniker()} has entered decline!')                
                 civ.game_player = None
                 game_player.civ_id = None
                 game_player_to_return = game_player
@@ -318,13 +320,9 @@ class GameState:
                 game_state_to_store_json = self.to_json()
 
                 if move_index == len(moves) - 1 and speculative:
-                    print('processing all')
-
                     from_civ_perspectives = []
                     for decline_option in self.game_player_by_player_num[player_num].decline_options:
                         self.process_decline_option(decline_option, game_player, from_civ_perspectives)
-                        print('from_civ_perspectives', from_civ_perspectives)
-
                         self.refresh_foundability_by_civ()
                         self.refresh_visibility_by_civ(short_sighted=True)
                         game_state_to_return_json = self.to_json(from_civ_perspectives=from_civ_perspectives)
@@ -341,11 +339,13 @@ class GameState:
                 game_player_to_return = game_player
 
                 from_civ_perspectives = []
+                city: Optional[City] = None
                 for decline_option in self.game_player_by_player_num[player_num].decline_options:
                     if decline_option[2] == city_id:
-                        game_player_to_return = self.process_decline_option(decline_option, game_player, from_civ_perspectives)
+                        game_player_to_return, city = self.process_decline_option(decline_option, game_player, from_civ_perspectives)
 
                 assert len(from_civ_perspectives) == 1
+                assert city is not None
 
                 civ = from_civ_perspectives[0]
 
@@ -364,6 +364,8 @@ class GameState:
 
                 for civ in self.civs_by_id.values():
                     civ.fill_out_available_buildings(self)
+
+                self.announcements.append(f'The civilization of {civ.moniker()} has been founded in {city.name}!')
 
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
@@ -583,12 +585,15 @@ class GameState:
                         city.buildings_queue = [building for building in city.buildings_queue if building.name != building_template.name]
                         break
 
-        for civ_to_announce in self.civs_by_id.values():
-            self.add_animation_frame_for_civ(sess, {
-                'type': 'WonderBuilt',
-                'civ': civ.template.name,
-                'wonder': building_template.name,
-            }, civ_to_announce)
+        if not national:
+            for civ_to_announce in self.civs_by_id.values():
+                self.add_animation_frame_for_civ(sess, {
+                    'type': 'WonderBuilt',
+                    'civ': civ.template.name,
+                    'wonder': building_template.name,
+                }, civ_to_announce)
+            
+            self.announcements.append(f'{civ.moniker()} has built the {building_template.name}!')
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ]) -> None:
         if civ is not None and (game_player := civ.game_player) is not None:
@@ -660,6 +665,7 @@ class GameState:
             "barbarians": self.barbarians.to_json(),
             "advancement_level": self.advancement_level,
             "game_over": self.game_over,
+            "announcements": self.announcements[:],
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
@@ -688,6 +694,7 @@ class GameState:
         game_state.set_unit_and_city_hexes()
         game_state.set_civ_targets(hexes)
         game_state.game_over = json["game_over"]
+        game_state.announcements = json["announcements"][:]
         return game_state
 
 
