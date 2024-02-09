@@ -116,12 +116,14 @@ class Civ:
 
             if self.game_player:
                 self.game_player.score += TECH_VP_REWARD
+                self.game_player.score_from_researching_techs += TECH_VP_REWARD
 
                 for wonder in game_state.wonders_built_to_civ_id:
                     if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
                         for ability in abilities:
                             if ability["name"] == "ExtraVpsForTechs":
                                 self.game_player.score += ability["numbers"][0]    
+                                self.game_player.score_from_abilities += ability["numbers"][0]
 
             if tech.name == 'Renaissance':
                 self.vitality *= 1.5

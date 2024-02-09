@@ -7,6 +7,14 @@ class GamePlayer:
         self.player_num = player_num
         self.username = username
         self.score = 0
+        self.score_from_killing_units = 0
+        self.score_from_capturing_cities_and_camps = 0
+        self.score_from_researching_techs = 0
+        self.score_from_building_vps = 0
+        self.score_from_abilities = 0
+        self.score_from_survival = 0
+        self.score_from_revolting_cities = 0
+
         self.civ_id: Optional[str] = None
 
         # (hex coords, civ name, city_id)
@@ -21,6 +29,13 @@ class GamePlayer:
             "civ_id": self.civ_id,
             "decline_options": self.decline_options,
             "is_bot": self.is_bot,
+            "sfku": self.score_from_killing_units,
+            "sfccac": self.score_from_capturing_cities_and_camps,
+            "sfrt": self.score_from_researching_techs,
+            "sfbv": self.score_from_building_vps,
+            "sfa": self.score_from_abilities,
+            "sfs": self.score_from_survival,
+            "sfrc": self.score_from_revolting_cities,
         }
     
     @staticmethod
@@ -33,5 +48,12 @@ class GamePlayer:
         game_player.score = json["score"]
         game_player.civ_id = json["civ_id"]
         game_player.decline_options = json["decline_options"]
+        game_player.score_from_killing_units = json["sfku"]
+        game_player.score_from_capturing_cities_and_camps = json["sfccac"]
+        game_player.score_from_researching_techs = json["sfrt"]
+        game_player.score_from_building_vps = json["sfbv"]
+        game_player.score_from_abilities = json["sfa"]
+        game_player.score_from_survival = json["sfs"]
+        game_player.score_from_revolting_cities = json["sfrc"]
 
         return game_player

@@ -83,12 +83,14 @@ class GameState:
 
             if old_civ.game_player:
                 old_civ.game_player.score += 5
+                old_civ.game_player.score_from_revolting_cities += 5
 
                 total_city_yields = sum([x for x in hex.city.get_projected_yields(self).values()]) / old_civ.vitality
 
                 points_from_yields = int(total_city_yields / (10 * 1.03 ** (self.turn_num - 1)))
 
                 old_civ.game_player.score += points_from_yields
+                old_civ.game_player.score_from_revolting_cities += points_from_yields
 
         new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player)
         new_civ.vitality = min(2.0 + self.turn_num * 0.1, 4.0)
@@ -331,6 +333,7 @@ class GameState:
                     if other_civ.id != civ.id:
                         if other_civ.game_player:
                             other_civ.game_player.score += SURVIVAL_BONUS
+                            other_civ.game_player.score_from_survival += SURVIVAL_BONUS
 
             if move['move_type'] == 'choose_decline_option':
                 game_player = self.game_player_by_player_num[player_num]
@@ -577,6 +580,7 @@ class GameState:
         if (game_player := civ.game_player) is not None:
             if civ.has_ability('ExtraVpsPerWonder'):
                 game_player.score += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
+                game_player.score_from_abilities += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
 
         for city in self.cities_by_id.values():
             for i, building in enumerate(city.buildings_queue):

@@ -218,6 +218,7 @@ class City:
                     for ability in abilities:
                         if ability["name"] == "ExtraVpsForCityGrowth":
                             self.civ.game_player.score += ability["numbers"][0]    
+                            self.civ.game_player.score_from_abilities += ability["numbers"][0]
 
 
     def grow(self, game_state: 'GameState') -> None:
@@ -417,6 +418,7 @@ class City:
 
         if isinstance(new_building.template, BuildingTemplate) and new_building.template.vp_reward and self.civ.game_player:
             self.civ.game_player.score += new_building.template.vp_reward
+            self.civ.game_player.score_from_building_vps += new_building.template.vp_reward
 
         if new_building.has_ability('GainCityPower'):
             self.civ.city_power += new_building.numbers_of_ability('GainCityPower')[0]
@@ -462,16 +464,19 @@ class City:
 
         if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
             civ.game_player.score += CITY_CAPTURE_REWARD
+            civ.game_player.score_from_capturing_cities_and_camps += CITY_CAPTURE_REWARD
             self.ever_controlled_by_civ_ids[civ.id] = True
 
             if civ.has_ability('ExtraVpsPerCityCaptured'):
                 civ.game_player.score += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
+                civ.game_player.score_from_abilities += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
 
             for wonder in game_state.wonders_built_to_civ_id:
                 if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
                     for ability in abilities:
                         if ability["name"] == "ExtraVpsForCityCapture":
                             civ.game_player.score += ability["numbers"][0]
+                            civ.game_player.score_from_abilities += ability["numbers"][0]
 
         self.under_siege_by_civ = None
 

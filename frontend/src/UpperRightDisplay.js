@@ -2,6 +2,7 @@ import React from 'react';
 import './UpperRightDisplay.css';
 import CityDisplay from './CityDisplay';
 import { BriefTechDisplay } from './TechDisplay';
+import { Grid, Typography } from '@mui/material';
 
 const CityPowerDisplay = ({ myCiv }) => {
     return (
@@ -24,7 +25,46 @@ const ScoreDisplay = ({ myGamePlayer }) => {
     const score = myGamePlayer?.score;
     return (
         <div className="score-display">
-            <p>You have {score} VPs</p>
+            <Grid container direction="column" spacing={1}>
+                <Grid item>
+                    <Typography variant="h5">You have {score} VPs</Typography>
+                </Grid>
+                <Grid item>
+                    <Typography>
+                        {myGamePlayer?.sfku || 0} from killing units
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography>
+                        {myGamePlayer?.sfccac || 0} from camp/city captures
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography>
+                        {myGamePlayer?.sfrt || 0} from research
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography>
+                        {myGamePlayer?.sfbv || 0} from building bonuses
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography>
+                        {myGamePlayer?.sfa || 0} from abilities
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography>
+                        {myGamePlayer?.sfs || 0} from survival
+                    </Typography>
+                </Grid>
+                <Grid item>
+                    <Typography>
+                        {myGamePlayer?.sfrc || 0} from revolting cities
+                    </Typography>
+                </Grid>                                                                     
+            </Grid>
         </div>
     );
 }
