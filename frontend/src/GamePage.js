@@ -90,6 +90,10 @@ const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
 }
 
+const lowercaseAndReplaceSpacesWithUnderscores = (str) => {
+    return str.toLowerCase().replace(/ /g, '_');
+}
+
 export const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
     return (
         <div
@@ -2067,7 +2071,7 @@ export default function GamePage() {
     const Unit = ({ unit, isCityInHex }) => {
         const primaryColor = civTemplates[unit.civ.name]?.primary_color;
         const secondaryColor = civTemplates[unit.civ.name]?.secondary_color;
-        const unitImage = `/images/${unit.name}.svg`; // Path to the unit SVG image
+        const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
     
         const scale = isCityInHex ? 0.95 : 1.4;
         const healthPercentage = unit.health / 100; // Calculate health as a percentage
