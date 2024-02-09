@@ -306,7 +306,10 @@ class GameState:
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
-                city.units_queue.pop(unit_index_in_queue)
+                try:
+                    city.units_queue.pop(unit_index_in_queue)
+                except IndexError:
+                    pass
 
                 game_player_to_return = game_player
 

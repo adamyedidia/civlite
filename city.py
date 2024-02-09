@@ -412,7 +412,7 @@ class City:
 
         if new_building.has_ability('IncreaseYieldsInCity'):
             assert self.hex
-            numbers = new_building.numbers_of_ability('IncreaseYieldsForTerrain')
+            numbers = new_building.numbers_of_ability('IncreaseYieldsInCity')
             new_value = getattr(self.hex.yields, numbers[0]) + numbers[1]
             setattr(self.hex.yields, numbers[0], new_value)
 
