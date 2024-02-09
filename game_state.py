@@ -11,7 +11,7 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations
 from redis_utils import rget_json, rlock, rset_json, rdel
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -328,6 +328,11 @@ class GameState:
                         self.refresh_foundability_by_civ()
                         self.refresh_visibility_by_civ(short_sighted=True)
                         game_state_to_return_json = self.to_json(from_civ_perspectives=from_civ_perspectives)
+
+                for other_civ in self.civs_by_id.values():
+                    if other_civ.id != civ.id:
+                        if other_civ.game_player:
+                            other_civ.game_player.score += SURVIVAL_BONUS
 
             if move['move_type'] == 'choose_decline_option':
                 game_player = self.game_player_by_player_num[player_num]

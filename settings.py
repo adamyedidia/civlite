@@ -31,5 +31,7 @@ LOCAL = False
 
 BASE_CITY_POWER_INCOME = 10.0
 
+SURVIVAL_BONUS = 20
+
 if os.path.exists('local_settings.py'):
     from local_settings import *
