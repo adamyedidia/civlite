@@ -79,7 +79,7 @@ export default function LobbyPage() {
             <Typography variant="h1">Lobby</Typography>
             <TextField label="Username" value={username} onChange={e => setUsername(e.target.value)} />
             <Typography variant="h2">Open Games</Typography>
-            {openGames.map(game => (
+            {openGames?.map(game => (
                 <>
                     <Button key={game.gameId} variant="contained" color="primary" disabled={!username} onClick={() => handleClickJoinButton(game)}>{username ? game.name : 'Enter username'}</Button>
                     <br />
