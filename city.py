@@ -197,7 +197,7 @@ class City:
         if self.hex is None:
             return
 
-        for hex in [*self.hex.get_neighbors(hexes), self.hex]:
+        for hex in [*self.hex.get_hexes_within_distance_2(hexes), self.hex]:
             for key in hex.is_foundable_by_civ:
                 hex.is_foundable_by_civ[key] = False            
 
