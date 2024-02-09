@@ -119,6 +119,8 @@ class Civ:
                             if ability["name"] == "ExtraVpsForTechs":
                                 self.game_player.score += ability["numbers"][0]    
 
+            if tech.name == 'Renaissance':
+                self.vitality *= 1.5
 
             game_state.add_animation_frame_for_civ(sess, {
                 "type": "TechResearched",

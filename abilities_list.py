@@ -147,7 +147,7 @@ UNIT_ABILITIES: dict[str, Callable] = {
         description=f"Deals damage equivalent {'{:.0%}'.format(x)}% of strength to all enemy units adjacent to the target.",
         numbers=[x],
     ),
-    "ConvertKills": lambda x: Ability(
+    "ConvertKills": lambda: Ability(
         name="ConvertKills",
         description=f"Converts killed enemy units into more copies of itself.",
         numbers=[],

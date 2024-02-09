@@ -86,7 +86,7 @@ UNITS = {
         "building_name": "Walls",
         "type": "military",
         "metal_cost": 8,
-        "wood_cost": 2,
+        "wood_cost": 3,
         "strength": 12,
         "movement": 0,
         "range": 1,
@@ -438,6 +438,7 @@ UNITS = {
         "prereq": "Nanotechnology",
         "abilities": [{
             "name": "ConvertKills",
+            "numbers": [],
         }],
     },
 }
