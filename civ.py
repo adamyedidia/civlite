@@ -5,11 +5,12 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ_templates_list import ANCIENT_CIVS, CIVS
 from game_player import GamePlayer
-from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME
+from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD
 from tech import Tech, get_tech_choices_for_civ
 from tech_template import TechTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
+from building_templates_list import BUILDINGS
 
 import random
 
@@ -74,7 +75,7 @@ class Civ:
         self.available_buildings = [building["name"] for building in BUILDINGS.values() if (
             (not building.get('prereq')) or self.techs.get(building.get("prereq"))  # type: ignore
             and (not building.get('is_wonder') or not game_state.wonders_built_to_civ_id.get(building['name']))
-            and (not building.get('is_national_wonder') or not self.id in (game_state.national_wonders_built_to_civ_ids.get(building['name']) or []))
+            and (not building.get('is_national_wonder') or not self.id in (game_state.national_wonders_built_by_civ_id.get(building['name']) or []))
         )]
         self.available_unit_buildings = [unit.get("building_name") for unit in UNITS.values() if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and unit.get("building_name"))]  # type: ignore
 
@@ -108,6 +109,16 @@ class Civ:
             self.science -= self.tech_queue[0].cost
             self.techs[self.tech_queue[0].name] = True
             tech = self.tech_queue.pop(0)
+
+            if self.game_player:
+                self.game_player.score += TECH_VP_REWARD
+
+                for wonder in game_state.wonders_built_to_civ_id:
+                    if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                        for ability in abilities:
+                            if ability["name"] == "ExtraVpsForTechs":
+                                self.game_player.score += ability["numbers"][0]    
+
 
             game_state.add_animation_frame_for_civ(sess, {
                 "type": "TechResearched",

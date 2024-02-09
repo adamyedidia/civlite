@@ -318,8 +318,8 @@ BUILDINGS: dict[str, dict] = {
         "type": "science",
         "cost": 60,
         "abilities": [{
-            "name": "GetRandomTechs",
-            "numbers": [1],
+            "name": "IncreaseYieldsInCity",
+            "numbers": ["science", 5],
         }],
         "is_wonder": True,
         "vp_reward": 5,
@@ -355,7 +355,7 @@ BUILDINGS: dict[str, dict] = {
         "cost": 90,
         "abilities": [{
             "name": "IncreaseYieldsInCity",
-            "numbers": ["science", 10],
+            "numbers": ["food", 10],
         }],
         "is_wonder": True,
         "vp_reward": 5,

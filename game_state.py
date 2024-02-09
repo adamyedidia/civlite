@@ -57,7 +57,7 @@ class GameState:
         self.turn_num = 1
         self.game_player_by_player_num: dict[int, GamePlayer] = {}
         self.wonders_built_to_civ_id: dict[str, str] = {}
-        self.national_wonders_built_to_civ_ids: dict[str, list[str]] = {}
+        self.national_wonders_built_by_civ_id: dict[str, list[str]] = {}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
 
@@ -282,6 +282,12 @@ class GameState:
                             new_value = getattr(hex.yields, numbers[0]) + numbers[1]
                             setattr(hex.yields, numbers[0], new_value)
             
+                for wonder in self.wonders_built_to_civ_id:
+                    if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                        for ability in abilities:
+                            if ability["name"] == "IncreasePopulationOfNewCities":
+                                for _ in range(ability["numbers"][0]):
+                                    city.grow_inner()
 
                 self.refresh_foundability_by_civ()
                 city.adjust_projected_yields(self)
@@ -528,17 +534,15 @@ class GameState:
 
     def handle_wonder_built(self, sess, civ: Civ, building_template: BuildingTemplate, national: bool = False) -> None:
         if national:
-            if civ.id not in self.national_wonders_built_to_civ_ids:
-                self.national_wonders_built_to_civ_ids[civ.id] = [building_template.name]
+            if civ.id not in self.national_wonders_built_by_civ_id:
+                self.national_wonders_built_by_civ_id[civ.id] = [building_template.name]
             else:
-                self.national_wonders_built_to_civ_ids[civ.id].append(building_template.name)
+                self.national_wonders_built_by_civ_id[civ.id].append(building_template.name)
         else:
             self.wonders_built_to_civ_id[building_template.name] = civ.id
 
         
-        if (game_player := civ.game_player) is not None and (vp_reward := building_template.vp_reward) is not None:
-            game_player.score += vp_reward
-
+        if (game_player := civ.game_player) is not None:
             if civ.has_ability('ExtraVpsPerWonder'):
                 game_player.score += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
 
@@ -621,7 +625,7 @@ class GameState:
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
             "turn_num": self.turn_num,
             "wonders_built_to_civ_id": self.wonders_built_to_civ_id.copy(),
-            "national_wonders_built_to_civ_ids": {k: v[:] for k, v in self.national_wonders_built_to_civ_ids.items()},
+            "national_wonders_built_by_civ_id": {k: v[:] for k, v in self.national_wonders_built_by_civ_id.items()},
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
             "advancement_level": self.advancement_level,
@@ -648,7 +652,7 @@ class GameState:
             hex.update_civ_by_id(game_state.civs_by_id)
         game_state.turn_num = json["turn_num"]
         game_state.wonders_built_to_civ_id = json["wonders_built_to_civ_id"].copy()
-        game_state.national_wonders_built_to_civ_ids = {k: v[:] for k, v in json["national_wonders_built_to_civ_ids"].items()}
+        game_state.national_wonders_built_by_civ_id = {k: v[:] for k, v in json["national_wonders_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.set_unit_and_city_hexes()
         game_state.set_civ_targets(hexes)

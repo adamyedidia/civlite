@@ -197,16 +197,27 @@ class City:
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.harvest_yields(game_state)
-        self.grow()
+        self.grow(game_state)
         self.build_units(sess, game_state)
         self.build_buildings(sess, game_state)
         self.handle_siege(sess, game_state)
         self.handle_cleanup()
 
-    def grow(self) -> None:
+    def grow_inner(self, game_state: 'GameState') -> None:
+        self.population += 1
+
+        if self.civ.game_player:
+            for wonder in game_state.wonders_built_to_civ_id:
+                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                    for ability in abilities:
+                        if ability["name"] == "ExtraVpsForCityGrowth":
+                            self.civ.game_player.score += ability["numbers"][0]    
+
+
+    def grow(self, game_state: 'GameState') -> None:
         while self.food >= self.growth_cost():
             self.food -= self.growth_cost()
-            self.population += 1
+            self.grow_inner(game_state)
 
     def growth_cost(self) -> int:
         total_growth_cost_reduction = 0
@@ -328,6 +339,12 @@ class City:
             if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
                 unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
 
+        for wonder in game_state.wonders_built_to_civ_id:
+            if game_state.wonders_built_to_civ_id[wonder] == self.civ.id:
+                for ability in BUILDINGS[wonder]["abilities"]:
+                    if ability['name'] == 'NewUnitsGainBonusStrength':
+                        unit.strength += ability['numbers'][0]
+
         if self.hex.coords != unit.hex.coords:
             game_state.add_animation_frame_for_civ(sess, {
                 "type": "UnitSpawn",
@@ -373,11 +390,34 @@ class City:
                     new_value = getattr(hex.yields, numbers[0]) + numbers[1]
                     setattr(hex.yields, numbers[0], new_value)
 
+        if new_building.has_ability('DoubleYieldsForTerrainInCity'):
+            assert self.hex
+            numbers = new_building.numbers_of_ability('DoubleYieldsForTerrainInCity')
+            for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                if hex.terrain == numbers[0]:
+                    new_value = getattr(hex.yields, numbers[1]) * 2
+                    setattr(hex.yields, numbers[1], new_value)
+
+        if new_building.has_ability('ExistingUnitsGainBonusStrength'):
+            for unit in game_state.units:
+                if unit.civ.id == self.civ.id:
+                    unit.strength += new_building.numbers_of_ability('ExistingUnitsGainBonusStrength')[0]
+
         if new_building.has_ability('IncreaseYieldsInCity'):
             assert self.hex
             numbers = new_building.numbers_of_ability('IncreaseYieldsForTerrain')
             new_value = getattr(self.hex.yields, numbers[0]) + numbers[1]
             setattr(self.hex.yields, numbers[0], new_value)
+
+        if isinstance(new_building.template, BuildingTemplate) and new_building.template.vp_reward and self.civ.game_player:
+            self.civ.game_player.score += new_building.template.vp_reward
+
+        if new_building.has_ability('GainCityPower'):
+            self.civ.city_power += new_building.numbers_of_ability('GainCityPower')[0]
+
+        if new_building.has_ability('GainFreeUnits'):
+            for _ in range(new_building.numbers_of_ability('GainFreeUnits')[1]):
+                self.build_unit(sess, game_state, UnitTemplate.from_json(UNITS[new_building.numbers_of_ability('GainFreeUnits')[0]]))
 
         if building_template is not None and building_template.is_wonder:
             assert isinstance(building_template, BuildingTemplate)
@@ -418,7 +458,23 @@ class City:
             if civ.has_ability('ExtraVpsPerCityCaptured'):
                 civ.game_player.score += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
 
+            for wonder in game_state.wonders_built_to_civ_id:
+                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                    for ability in abilities:
+                        if ability["name"] == "ExtraVpsForCityCapture":
+                            civ.game_player.score += ability["numbers"][0]
+
         self.under_siege_by_civ = None
+
+        for building in self.buildings:
+            if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
+                game_state.wonders_built_to_civ_id[building.template.name] = civ.id
+
+            if isinstance(building.template, BuildingTemplate) and building.template.is_national_wonder:
+                if civ.id in game_state.national_wonders_built_by_civ_id:
+                    game_state.national_wonders_built_by_civ_id[civ.id].append(building.template.name)
+                else:
+                    game_state.national_wonders_built_by_civ_id[civ.id] = [building.template.name]
 
         if self.hex:
             game_state.add_animation_frame(sess, {

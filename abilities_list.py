@@ -56,7 +56,7 @@ CIV_ABILITIES: dict[str, Callable] = {
 BUILDING_ABILITIES: dict[str, Callable] = {
     "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
         name="IncreaseYieldsForTerrain",
-        description=f"Increase {x} yields in {y}s by {z}.",
+        description=f"Increase {x} yields in {y}s adjacent to and in the city by {z}.",
         numbers=[x, y, z],
     ),
     "IncreaseYieldsInCity": lambda x, y: Ability(
@@ -79,11 +79,41 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Increase {x} yields per population in the city with a {x} focus by {y}.",
         numbers=[x, y],
     ),
-    "UnitsHaveExtraStrength": lambda x: Ability(
+    "NewUnitsGainBonusStrength": lambda x: Ability(
         name="UnitsHaveExtraStrength",
-        description=f"Units you build get +{x} strength.",
+        description=f"New units you build get +{x} extra strength.",
         numbers=[x],
     ),    
+    "GainCityPower": lambda x: Ability(
+        name="GainCityPower",
+        description=f"Gain {x} city power upon completion.",
+        numbers=[x],
+    ),
+    "GainFreeUnits": lambda x, y: Ability(
+        name="GainFreeUnits",
+        description=f"Gain {y} free {x} units upon completion.",
+        numbers=[x, y],
+    ),
+    "DoubleYieldsForTerrainInCity": lambda x: Ability(
+        name="DoubleYieldsForTerrainInCity",
+        description=f"Double yields in {x}s adjacent to and in the city.",
+        numbers=[x],
+    ),
+    "IncreasePopulationOfNewCities": lambda x: Ability(
+        name="IncreasePopulationOfNewCities",
+        description=f"New cities you build start with an extra {x} population.",
+        numbers=[x],
+    ),
+    "ExistingUnitsGainBonusStrength": lambda x: Ability(
+        name="ExistingUnitsGainBonusStrength",
+        description=f"All existing units gain +{x} strength.",
+        numbers=[x],
+    ),
+    "ExtraVpsForTechs": lambda x: Ability(
+        name="ExtraVpsForTechs",
+        description=f"Receive {x} extra VP for each tech you research.",
+        numbers=[x],
+    ),
 }
 
 UNIT_ABILITIES: dict[str, Callable] = {
