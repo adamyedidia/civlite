@@ -170,8 +170,14 @@ class City:
             self.civ.science += self.population * vitality
 
         if self.civ.has_ability('IncreaseFocusYields') and self.focus == self.civ.numbers_of_ability('IncreaseFocusYields')[0]:
-            new_value = getattr(self, self.focus) + self.civ.numbers_of_ability('IncreaseFocusYields')[1]
-            setattr(self, self.focus, new_value)
+            if self.focus in ['wood', 'metal']:
+                new_value = getattr(self, self.focus) + self.civ.numbers_of_ability('IncreaseFocusYields')[1]
+                setattr(self, self.focus, new_value)
+            elif self.focus in ['food']:
+                self.food += self.civ.numbers_of_ability('IncreaseFocusYields')[1]
+                self.civ.city_power += self.civ.numbers_of_ability('IncreaseFocusYields')[1]
+            elif self.focus in ['science']:
+                self.civ.science += self.civ.numbers_of_ability('IncreaseFocusYields')[1]
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:

@@ -2431,7 +2431,7 @@ export default function GamePage() {
                             <UnitDisplay unit={hoveredUnit} />
                         )}
                         {hoveredTech && (
-                            <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} />
+                            <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName}/>
                         )}
                     </div>
                     {!animating && <div style={{
@@ -2658,7 +2658,7 @@ export default function GamePage() {
             {techChoices && (
                 <div className="tech-choices-container">
                     {techChoices.map((tech, index) => (
-                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} onClick={() => handleClickTech(tech)} />
+                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} onClick={() => handleClickTech(tech)} />
                     ))}
                 </div>
             )}

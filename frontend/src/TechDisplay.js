@@ -1,6 +1,7 @@
 import React from 'react';
 import UnitDisplay from './UnitDisplay'; // Adjust the path as needed
 import './TechDisplay.css'; // Assuming you have a separate CSS file for styling
+import BuildingDisplay from './BuildingDisplay';
 
 export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech }) => {
     return (
@@ -15,7 +16,9 @@ export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech }) => {
     );
 };
 
-const TechDisplay = ({ tech, unitTemplates, onClick }) => {
+// const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick }) => {
+
+const TechDisplay = ({ tech, unitTemplates, buildingTemplates, unitTemplatesByBuildingName, onClick }) => {
     return (
         <div 
             className="tech-card" 
@@ -26,6 +29,11 @@ const TechDisplay = ({ tech, unitTemplates, onClick }) => {
             <div className="unlocked-units">
                 {tech.unlocks_units && tech.unlocks_units.map((unitName, index) => (
                     <UnitDisplay key={index} unit={unitTemplates[unitName]} />
+                ))}
+            </div>
+            <div className="unlocked-units">
+                {tech.unlocks_buildings && tech.unlocks_buildings.map((buildingName, index) => (
+                    <BuildingDisplay key={index} buildingName={buildingName} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} onClick={() => {}} />
                 ))}
             </div>
         </div>
