@@ -155,12 +155,12 @@ BUILDINGS: dict[str, dict] = {
         "cost": 30,
         "abilities": [{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["tundra", 2],
+            "numbers": ["food", 2, "tundra"],
         }, {
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["grassland", 2],
+            "numbers": ["food", 2, "grassland"],
         }],
-        "prereq": "Windmill",
+        "prereq": "Physics",
     },
     "Forge": {
         "name": "Forge",
@@ -173,6 +173,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", 2, "plains"],
         }],
+        "prereq": "Metallurgy",
     },
     "Lumber Farm": {
         "name": "Lumber Farm",
@@ -185,6 +186,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", 2, "hills"],
         }],
+        "prereq": "Architecture",
     },
     "Apothecary": {
         "name": "Apothecary",
@@ -197,6 +199,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["food", 2, "jungle"],
         }],
+        "prereq": "Medicine",
     },
     'Caravansery': {
         "name": "Caravansery",
@@ -206,6 +209,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", 2, 'desert'],
         }],
+        "prereq": "Economics",
     },
 
     "Ironworks": {
@@ -466,6 +470,7 @@ BUILDINGS: dict[str, dict] = {
         "cost": 750,
         "abilities": [{
             "name": "EndTheGame",
+            "numbers": [],
         }],
         "is_wonder": True,
         "vp_reward": 10,

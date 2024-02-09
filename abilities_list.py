@@ -56,7 +56,7 @@ CIV_ABILITIES: dict[str, Callable] = {
 BUILDING_ABILITIES: dict[str, Callable] = {
     "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
         name="IncreaseYieldsForTerrain",
-        description=f"Increase {x} yields in {y}s adjacent to and in the city by {z}.",
+        description=f"Increase {x} yields in {z}s adjacent to and in the city by {y}.",
         numbers=[x, y, z],
     ),
     "IncreaseYieldsInCity": lambda x, y: Ability(
@@ -114,12 +114,17 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Receive {x} extra VP for each tech you research.",
         numbers=[x],
     ),
+    "ExtraVpsForCityGrowth": lambda x: Ability(
+        name="ExtraVpsForCityGrowth",
+        description=f"Receive {x} VP each time your population grows.",
+        numbers=[x],
+    ),
     "ExtraVpsForCityCapture": lambda x: Ability(
         name="ExtraVpsForCityCapture",
         description=f"Receive {x} extra VP for each city you capture.",
         numbers=[x],
     ),
-    "EndTheGame": lambda x: Ability(
+    "EndTheGame": lambda: Ability(
         name="EndTheGame",
         description=f"The game ends when this building is completed, and the player with the most victory points wins.",
         numbers=[],

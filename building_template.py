@@ -8,6 +8,8 @@ class BuildingTemplate:
         self.name = name
         self.type = type
         self.cost = cost
+        print(name)
+
         self.abilities: list[Ability] = [BUILDING_ABILITIES[ability[0]](*ability[1]) for ability in abilities]  # type: ignore
         self.is_wonder = is_wonder
         self.is_national_wonder = is_national_wonder
