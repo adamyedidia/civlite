@@ -404,9 +404,6 @@ def get_latest_turn_movie(sess, game_id):
         .order_by(AnimationFrame.frame_num)
         .all()
     )
-
-    if not animation_frames:
-        return jsonify({"error": "Animation frames not found"}), 404
     
     staged_game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}')
     game_state = GameState.from_json(staged_game_state_json) if staged_game_state_json else None
