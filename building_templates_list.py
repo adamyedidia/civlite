@@ -79,6 +79,7 @@ BUILDINGS: dict[str, dict] = {
         "type": "economy",
         "cost": 10,
         "prereq": "Construction",
+        "abilities": [],
         "vp_reward": 1,
     },
     "Workshop": {
@@ -136,6 +137,7 @@ BUILDINGS: dict[str, dict] = {
         "type": "economy",
         "cost": 20,
         "prereq": "Medicine",
+        "abilities": [],
         "vp_reward": 1,
     },
     "Stadium": {
@@ -143,6 +145,7 @@ BUILDINGS: dict[str, dict] = {
         "type": "economy",
         "cost": 40,
         "prereq": "Radio",
+        "abilities": [],
         "vp_reward": 1,
     },
 
