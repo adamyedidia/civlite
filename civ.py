@@ -37,6 +37,7 @@ class Civ:
         self.target2_coords: Optional[str] = None
         self.projected_science_income = 0.0
         self.projected_city_power_income = 0.0
+        self.in_decline = False
 
     def moniker(self) -> str:
         game_player_parenthetical = f' ({self.game_player.username})' if self.game_player else ''
@@ -73,6 +74,7 @@ class Civ:
             "target2": self.target2.coords if self.target2 else None,
             "projected_science_income": self.projected_science_income,
             "projected_city_power_income": self.projected_city_power_income,
+            "in_decline": self.in_decline,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -162,6 +164,7 @@ class Civ:
         civ.target2_coords = json["target2"]
         civ.projected_science_income = json["projected_science_income"]
         civ.projected_city_power_income = json["projected_city_power_income"]
+        civ.in_decline = json["in_decline"]
 
         return civ
 

@@ -333,6 +333,7 @@ class GameState:
                 civ = self.civs_by_id[game_player.civ_id]
                 self.announcements.append(f'The civilization of {civ.moniker()} has entered decline!')                
                 civ.game_player = None
+                civ.in_decline = True
                 game_player.civ_id = None
                 game_player_to_return = game_player
                 self.special_mode_by_player_num[player_num] = 'choose_decline_option'

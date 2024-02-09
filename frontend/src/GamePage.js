@@ -2010,9 +2010,20 @@ export default function GamePage() {
         const primaryColor = civTemplates[city.civ.name]?.primary_color;
         const secondaryColor = civTemplates[city.civ.name]?.secondary_color;
         const population = city.population;
-
+    
         const pointer = isFriendlyCity(city);
-
+    
+        // Function to darken color
+        const darkenColor = (color) => {
+            let f = parseInt(color.slice(1), 16),
+                t = 0 | ((1 << 8) + f - (f >> 2) & 0xFFFFFF),
+                newColor = "#" + t.toString(16).toUpperCase();
+            return newColor;
+        };
+    
+        // Darken colors if city is in decline
+        const finalPrimaryColor = city.civ.in_decline ? darkenColor(primaryColor) : primaryColor;
+        const finalSecondaryColor = city.civ.in_decline ? darkenColor(secondaryColor) : secondaryColor;
     
         return (
             <>
@@ -2023,7 +2034,7 @@ export default function GamePage() {
                     </svg>
                 }
                 <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} style={{...(pointer ? {cursor : 'pointer'} : {})}}>
-                    <rect width="3" height="3" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
+                    <rect width="3" height="3" fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.5} />
                     <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fontSize="0.1" fill="white">
                         {population}
                     </text>
@@ -2058,12 +2069,23 @@ export default function GamePage() {
     
         const scale = isCityInHex ? 0.95 : 1.4;
         const healthPercentage = unit.health / 100; // Calculate health as a percentage
-        const healthBarColor = unit.health > 50 ? '#00ff00' : '#ff0000'; // Set color based on health
+    
+        // Function to darken color
+        const darkenColor = (color) => {
+            let f = parseInt(color.slice(1), 16),
+                t = 0 | ((1 << 8) + f - (f >> 2) & 0xFFFFFF),
+                newColor = "#" + t.toString(16).toUpperCase();
+            return newColor;
+        };
+    
+        // Darken colors if unit's civ is in decline
+        const finalPrimaryColor = unit.civ.in_decline ? darkenColor(primaryColor) : primaryColor;
+        const finalSecondaryColor = unit.civ.in_decline ? darkenColor(secondaryColor) : secondaryColor;
     
         return (
             <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (isCityInHex ? 1 : 0)}>
-                <circle cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
-                <image href={unitImage} x={`${scale}`} y={`${scale}`} height={`${2*scale}`} width={`${2*scale}`} fill={primaryColor} stroke={secondaryColor} />
+                <circle cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.5} />
+                <image href={unitImage} x={`${scale}`} y={`${scale}`} height={`${2*scale}`} width={`${2*scale}`} />
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" /> {/* Total health bar */}
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" /> {/* Current health bar */}
             </svg>          

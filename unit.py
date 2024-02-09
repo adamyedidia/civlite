@@ -170,9 +170,11 @@ class Unit:
 
             if (game_player := self.civ.game_player) is not None:
                 game_player.score += UNIT_KILL_REWARD
+                game_player.score_from_killing_units += UNIT_KILL_REWARD
 
                 if self.civ.has_ability('ExtraVpsPerUnitKilled'):
                     game_player.score += self.civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
+                    game_player.score_from_abilities += self.civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
 
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:

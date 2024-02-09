@@ -128,6 +128,7 @@ class Camp:
         civ.city_power += CAMP_CLEAR_CITY_POWER_REWARD
         if civ.game_player:
             civ.game_player.score += CAMP_CLEAR_VP_REWARD
+            civ.game_player.score_from_capturing_cities_and_camps += CAMP_CLEAR_VP_REWARD
 
         if self.hex:
             game_state.add_animation_frame(sess, {
