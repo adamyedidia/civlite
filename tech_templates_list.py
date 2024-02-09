@@ -29,12 +29,6 @@ TECHS = {
         'unlocks_buildings': ['Temple of Artemis'],
         'advancement_level': 1,
     },
-    'Ceremonial Burial': {
-        'name': 'Ceremonial Burial',
-        'cost': 10,
-        'unlocks_buildings': ['Mausoleum of Halicarnassus'],
-        'advancement_level': 1,
-    },
     'The Wheel': {
         'name': 'The Wheel',
         'cost': 15,
