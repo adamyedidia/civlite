@@ -11,7 +11,7 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations
 from redis_utils import rget_json, rlock, rset_json, rdel
-from settings import STARTING_CIV_VITALITY
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -60,6 +60,7 @@ class GameState:
         self.national_wonders_built_by_civ_id: dict[str, list[str]] = {}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
+        self.game_over = False
 
     def set_unit_and_city_hexes(self) -> None:
         for hex in self.hexes.values():
@@ -287,7 +288,7 @@ class GameState:
                         for ability in abilities:
                             if ability["name"] == "IncreasePopulationOfNewCities":
                                 for _ in range(ability["numbers"][0]):
-                                    city.grow_inner()
+                                    city.grow_inner(self)
 
                 self.refresh_foundability_by_civ()
                 city.adjust_projected_yields(self)
@@ -463,6 +464,11 @@ class GameState:
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
 
+        for game_player in self.game_player_by_player_num.values():
+            if game_player.score >= GAME_END_SCORE:
+                self.game_over = True
+                break
+
         self.add_animation_frame(sess, {
             "type": "StartOfNewTurn",
         })
@@ -629,6 +635,7 @@ class GameState:
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
             "advancement_level": self.advancement_level,
+            "game_over": self.game_over,
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
@@ -656,6 +663,7 @@ class GameState:
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.set_unit_and_city_hexes()
         game_state.set_civ_targets(hexes)
+        game_state.game_over = json["game_over"]
         return game_state
 
 

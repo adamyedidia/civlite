@@ -2287,7 +2287,7 @@ export default function GamePage() {
     const displayGameState = (gameState) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes)
-        return (
+        return gameState?.game_over ? (
             <>
                 <div className="basic-example">
                     <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140">
@@ -2525,6 +2525,19 @@ export default function GamePage() {
                     onClose={() => setConfirmEnterDecline(false)}
                     onConfirm={() => handleEnterDecline()}
                 />}
+            </>
+        ) : (
+            <>
+                <Grid container direction="column" spacing={2}>
+                    {Object.values(gameState?.game_player_by_player_num).map((gamePlayer) => {
+                        return (
+                            <Grid item key={gamePlayer.player_num}>
+                                <Typography variant="h5">{gamePlayer.username}</Typography>
+                                <Typography>Score: {gamePlayer.score}</Typography>
+                            </Grid>
+                        )
+                    })}
+                </Grid>
             </>
         )
     }

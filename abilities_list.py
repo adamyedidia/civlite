@@ -114,6 +114,16 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Receive {x} extra VP for each tech you research.",
         numbers=[x],
     ),
+    "ExtraVpsForCityCapture": lambda x: Ability(
+        name="ExtraVpsForCityCapture",
+        description=f"Receive {x} extra VP for each city you capture.",
+        numbers=[x],
+    ),
+    "EndTheGame": lambda x: Ability(
+        name="EndTheGame",
+        description=f"The game ends when this building is completed, and the player with the most victory points wins.",
+        numbers=[],
+    ),
 }
 
 UNIT_ABILITIES: dict[str, Callable] = {

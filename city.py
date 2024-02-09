@@ -419,6 +419,9 @@ class City:
             for _ in range(new_building.numbers_of_ability('GainFreeUnits')[1]):
                 self.build_unit(sess, game_state, UnitTemplate.from_json(UNITS[new_building.numbers_of_ability('GainFreeUnits')[0]]))
 
+        if new_building.has_ability('EndTheGame'):
+            game_state.game_over = True
+
         if building_template is not None and building_template.is_wonder:
             assert isinstance(building_template, BuildingTemplate)
             game_state.handle_wonder_built(sess, self.civ, building_template, national=False)

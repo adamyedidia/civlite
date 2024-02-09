@@ -23,6 +23,8 @@ GOOD_HEX_PROBABILITY = 0.2
 
 TECH_VP_REWARD = 2
 
+GAME_END_SCORE = 5
+
 DATABASE_URL = "postgresql://cl:cl@localhost:5432/cl"
 
 LOCAL = False
