@@ -45,6 +45,16 @@ def get_all_camps(hexes: dict[str, Hex]) -> list[Camp]:
     return camps
 
 
+def get_turn_ended_by_player_num(game_id: str) -> dict[int, bool]:
+    return rget_json(f'turn_ended_by_player_num:{game_id}') or {}
+
+
+def set_turn_ended_by_player_num(game_id: str, player_num, value: bool) -> None:
+    turn_ended = get_turn_ended_by_player_num(game_id)
+    turn_ended[player_num] = value
+    rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended)
+
+
 class GameState:
     def __init__(self, game_id: str, hexes: dict[str, Hex]):
         self.hexes: dict[str, Hex] = hexes
@@ -62,6 +72,13 @@ class GameState:
         self.advancement_level = 0
         self.game_over = False
         self.announcements = []
+        self.turn_ended_by_player_num: dict[int, bool] = {}
+
+    def turn_should_end(self, turn_ended_by_player_num: dict[int, bool]) -> bool:
+        for player_num, game_player in self.game_player_by_player_num.items():
+            if not game_player.is_bot and not turn_ended_by_player_num.get(player_num):
+                return False
+        return True
 
     def set_unit_and_city_hexes(self) -> None:
         for hex in self.hexes.values():
@@ -438,6 +455,8 @@ class GameState:
             rdel(f'staged_moves:{self.game_id}:{player_num}')
             rdel(f'staged_game_state:{self.game_id}:{player_num}')
 
+        rdel(f'turn_ended_by_player_num:{self.game_id}')
+
     def roll_turn(self, sess) -> None:
         self.turn_num += 1
 
@@ -670,6 +689,7 @@ class GameState:
             "advancement_level": self.advancement_level,
             "game_over": self.game_over,
             "announcements": self.announcements[:],
+            "turn_ended_by_player_num": rget_json('turn_ended_by_player_num') or {},
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:

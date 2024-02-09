@@ -1600,6 +1600,26 @@ export default function GamePage() {
             });
     }
 
+    const handleClickUnendTurn = () => {
+        const data = {
+            player_num: playerNum,
+        }
+
+        fetch(`${URL}/api/unend_turn/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    // setGameState(data.game_state);
+                }
+            });
+    }
+
     const handleClickBuildingChoice = (buildingName) => {
         const playerInput = {
             'building_name': (buildingName),
@@ -2469,10 +2489,10 @@ export default function GamePage() {
                                 marginBottom: '10px',
                             }} 
                             variant="contained"
-                            onClick={handleClickEndTurn}
+                            onClick={gameState?.turn_ended_by_player_num?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
                             disabled={animating}
                         >
-                            End turn
+                            {gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn"}
                         </Button>}
                         {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
                             style={{

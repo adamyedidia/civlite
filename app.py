@@ -17,7 +17,7 @@ from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game
 from game_player import GamePlayer
-from game_state import GameState, update_staged_moves, get_most_recent_game_state, get_most_recent_game_state_json
+from game_state import GameState, update_staged_moves, get_most_recent_game_state, get_most_recent_game_state_json, get_turn_ended_by_player_num, set_turn_ended_by_player_num
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
@@ -31,7 +31,7 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from user import User, add_or_get_user, add_bot_users, BOT_USERNAMES
 from utils import generate_unique_id
-from redis_utils import rget_json
+from redis_utils import rget_json, rset_json
 
 # Create a logger
 logger = logging.getLogger('__name__')
@@ -583,14 +583,43 @@ def end_turn(sess, game_id):
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
-    
+
     game_state = get_most_recent_game_state(sess, game_id)
 
-    game_state.end_turn(sess)
+    turn_ended_by_player_num = get_turn_ended_by_player_num(game_id)
 
-    broadcast(game_id)
+    turn_ended_by_player_num[player_num] = True
 
-    return jsonify({'game_state': game_state.to_json()})
+    if game_state.turn_should_end(turn_ended_by_player_num):
+        game_state.end_turn(sess)
+        broadcast(game_id)
+    else:
+        rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)
+
+    return jsonify({})
+
+
+@app.route('/api/unend_turn/<game_id>', methods=['POST'])
+@api_endpoint
+def unend_turn(sess, game_id):
+    data = request.json
+
+    if not data:
+        return jsonify({"error": "Invalid data"}), 400
+    
+    player_num = data.get('player_num')
+
+    if player_num is None:
+        return jsonify({"error": "Username is required"}), 400
+    
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+
+    set_turn_ended_by_player_num(game_id, player_num, False)
+
+    return jsonify({})
 
 
 @app.route('/api/building_choices/<game_id>/<city_id>', methods=['GET'])
