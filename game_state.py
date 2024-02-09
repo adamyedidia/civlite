@@ -92,6 +92,73 @@ class GameState:
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
 
+    def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str) -> None:
+        civ.city_power -= 100
+        city = City(civ, id=city_id)
+        city.hex = hex
+        city.hex.city = city
+        self.cities_by_id[city_id] = city
+
+        if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
+            if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
+                assert city.hex
+                numbers = civ.numbers_of_ability('IncreaseYieldsForTerrainNextToSecondCity')
+                for hex in [city.hex, city.hex.get_neighbors(self.hexes)]:
+                    if hex.terrain == numbers[2]:
+                        new_value = getattr(hex.yields, numbers[0]) + numbers[1]
+                        setattr(hex.yields, numbers[0], new_value)
+
+        if civ.has_ability('IncreaseYieldsForTerrain'):
+            assert city.hex
+            numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
+            for hex in [city.hex, city.hex.get_neighbors(self.hexes)]:
+                if hex.terrain == numbers[2]:
+                    new_value = getattr(hex.yields, numbers[0]) + numbers[1]
+                    setattr(hex.yields, numbers[0], new_value)
+    
+        for wonder in self.wonders_built_to_civ_id:
+            if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                for ability in abilities:
+                    if ability["name"] == "IncreasePopulationOfNewCities":
+                        for _ in range(ability["numbers"][0]):
+                            city.grow_inner(self)
+
+        self.refresh_foundability_by_civ()
+        city.adjust_projected_yields(self)
+        city.civ.adjust_projected_yields(self)        
+
+    def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
+        self.announcements.append(f'The civilization of {civ.moniker()} has entered decline!')                
+        civ.game_player = None
+        civ.in_decline = True
+        game_player.civ_id = None
+        self.special_mode_by_player_num[game_player.player_num] = 'choose_decline_option'
+
+        for other_civ in self.civs_by_id.values():
+            if other_civ.id != civ.id:
+                if other_civ.game_player:
+                    other_civ.game_player.score += SURVIVAL_BONUS
+                    other_civ.game_player.score_from_survival += SURVIVAL_BONUS
+
+    def make_new_civ_from_the_ashes(self, civ: Civ, game_player: GamePlayer, city: City) -> None:
+        civ.game_player = game_player
+        game_player.civ_id = civ.id
+
+        for tech in TECHS.values():
+            if tech['advancement_level'] <= self.advancement_level:
+                num_civs_with_tech = len([other_civ for other_civ in self.civs_by_id.values() if tech['name'] in other_civ.techs])
+
+                if num_civs_with_tech >= (len(self.civs_by_id) - 1) / 2:
+                    civ.techs[tech['name']] = True
+
+        self.refresh_foundability_by_civ()
+        self.refresh_visibility_by_civ()                        
+
+        for civ in self.civs_by_id.values():
+            civ.fill_out_available_buildings(self)
+
+        self.announcements.append(f'The civilization of {civ.moniker()} has been founded in {city.name}!')        
+
     def process_decline_option(self, decline_option: tuple[str, str, str], game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> tuple[GamePlayer, City]:
         coords, civ_name, city_id = decline_option
         hex = self.hexes[coords]
@@ -290,54 +357,18 @@ class GameState:
             if move['move_type'] == 'found_city':
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
-                civ.city_power -= 100
-                city_id = move['city_id']
-                city = City(civ, id=city_id)
-                city.hex = self.hexes[move['coords']]
-                city.hex.city = city
-                self.cities_by_id[city_id] = city
-
-                if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
-                    if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
-                        assert city.hex
-                        numbers = civ.numbers_of_ability('IncreaseYieldsForTerrainNextToSecondCity')
-                        for hex in [city.hex, city.hex.get_neighbors(self.hexes)]:
-                            if hex.terrain == numbers[2]:
-                                new_value = getattr(hex.yields, numbers[0]) + numbers[1]
-                                setattr(hex.yields, numbers[0], new_value)
-
-                if civ.has_ability('IncreaseYieldsForTerrain'):
-                    assert city.hex
-                    numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
-                    for hex in [city.hex, city.hex.get_neighbors(self.hexes)]:
-                        if hex.terrain == numbers[2]:
-                            new_value = getattr(hex.yields, numbers[0]) + numbers[1]
-                            setattr(hex.yields, numbers[0], new_value)
-            
-                for wonder in self.wonders_built_to_civ_id:
-                    if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
-                        for ability in abilities:
-                            if ability["name"] == "IncreasePopulationOfNewCities":
-                                for _ in range(ability["numbers"][0]):
-                                    city.grow_inner(self)
-
-                self.refresh_foundability_by_civ()
-                city.adjust_projected_yields(self)
-                city.civ.adjust_projected_yields(self)                
+                self.found_city_for_civ(self.civs_by_id[game_player.civ_id], self.hexes[move['coords']], move['city_id'])
+              
                 game_player_to_return = game_player
 
             if move['move_type'] == 'enter_decline':                
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
                 civ = self.civs_by_id[game_player.civ_id]
-                self.announcements.append(f'The civilization of {civ.moniker()} has entered decline!')                
-                civ.game_player = None
-                civ.in_decline = True
-                game_player.civ_id = None
+                self.enter_decline_for_civ(civ, game_player)
+
                 game_player_to_return = game_player
-                self.special_mode_by_player_num[player_num] = 'choose_decline_option'
-                game_state_to_store_json = self.to_json()
+                game_state_to_store_json = self.to_json()                            
 
                 if move_index == len(moves) - 1 and speculative:
                     from_civ_perspectives = []
@@ -346,12 +377,6 @@ class GameState:
                         self.refresh_foundability_by_civ()
                         self.refresh_visibility_by_civ(short_sighted=True)
                         game_state_to_return_json = self.to_json(from_civ_perspectives=from_civ_perspectives)
-
-                for other_civ in self.civs_by_id.values():
-                    if other_civ.id != civ.id:
-                        if other_civ.game_player:
-                            other_civ.game_player.score += SURVIVAL_BONUS
-                            other_civ.game_player.score_from_survival += SURVIVAL_BONUS
 
             if move['move_type'] == 'choose_decline_option':
                 game_player = self.game_player_by_player_num[player_num]
@@ -370,24 +395,7 @@ class GameState:
 
                 civ = from_civ_perspectives[0]
 
-                civ.game_player = game_player
-                game_player.civ_id = civ.id
-
-                for tech in TECHS.values():
-                    if tech['advancement_level'] <= self.advancement_level:
-                        num_civs_with_tech = len([other_civ for other_civ in self.civs_by_id.values() if tech['name'] in other_civ.techs])
-
-                        if num_civs_with_tech >= (len(self.civs_by_id) - 1) / 2:
-                            civ.techs[tech['name']] = True
-
-                self.refresh_foundability_by_civ()
-                self.refresh_visibility_by_civ()                        
-
-                for civ in self.civs_by_id.values():
-                    civ.fill_out_available_buildings(self)
-
-                self.announcements.append(f'The civilization of {civ.moniker()} has been founded in {city.name}!')
-
+                self.make_new_civ_from_the_ashes(civ, game_player, city)
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
             if from_civ_perspectives is None and game_player_to_return.civ_id is not None:

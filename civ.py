@@ -86,6 +86,20 @@ class Civ:
         self.available_unit_buildings = [unit.get("building_name") for unit in UNITS.values() if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and unit.get("building_name"))]  # type: ignore
 
     def bot_move(self, game_state: 'GameState') -> None:
+        if self.game_player and not self.in_decline and self.vitality < (0.3 + random.random() * 0.2):
+            game_state.enter_decline_for_civ(self, self.game_player)
+
+            decline_option = random.choice(self.game_player.decline_options)
+
+            from_civ_perspectives = []
+            _, city = game_state.process_decline_option(decline_option, self.game_player, from_civ_perspectives)
+            assert len(from_civ_perspectives) == 1
+            assert city is not None
+
+            civ = from_civ_perspectives[0]
+
+            game_state.make_new_civ_from_the_ashes(civ, self.game_player, city)
+
         if random.random() < 0.2 or self.target1 is None or self.target2 is None:
             enemy_cities = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             possible_target_hexes = [*[city.hex for city in enemy_cities if city.hex], *[camp.hex for camp in game_state.camps if camp.hex]]
@@ -103,6 +117,14 @@ class Civ:
 
         if len(techs) > 0:
             self.tech_queue.append(TechTemplate.from_json(techs[0]))
+
+        game_state.refresh_foundability_by_civ()
+
+        if not self.in_decline and self.city_power >= 100 and not self.template.name == 'Barbarians':
+            for hex in game_state.hexes.values():
+                if hex.is_foundable_by_civ.get(self.id):
+                    game_state.found_city_for_civ(self, hex, generate_unique_id())
+                    break
 
         for city in game_state.cities_by_id.values():
             if city.civ.id == self.id:
