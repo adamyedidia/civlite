@@ -6,7 +6,6 @@ from abilities_list import ABILITIES, UNIT_ABILITIES
 class UnitTemplate:
     def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[list[Union[str, list]]], type: str) -> None:
         self.name = name
-        print(name)
         self.building_name = building_name
         self.metal_cost = metal_cost
         self.wood_cost = wood_cost

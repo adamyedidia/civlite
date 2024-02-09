@@ -32,7 +32,7 @@ class Building:
 
     def to_json(self) -> dict:
         return {
-            "name": self.name,
+            "name": self.name if self.unit_template else self.building_template.name,  # type: ignore
             "unit_name": self.unit_name,
         }
     
