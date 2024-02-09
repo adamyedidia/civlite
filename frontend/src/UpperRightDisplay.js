@@ -69,7 +69,21 @@ const ScoreDisplay = ({ myGamePlayer }) => {
     );
 }
 
-const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, myCiv, myGamePlayer }) => {
+const AnnouncementsDisplay = ({ announcements }) => {
+    return (
+      <div className="announcements-display" style={{ maxHeight: '200px', overflowY: 'scroll' }}>
+        <Grid container direction="column" spacing={1}>
+          {announcements.map((announcement, index) => (
+            <Grid item key={index}>
+              <Typography>{announcement}</Typography>
+            </Grid>
+          ))}
+        </Grid>
+      </div>
+    );
+  };
+
+const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, myCiv, myGamePlayer, announcements }) => {
     return (
         <div className="upper-right-display">
             {city && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
@@ -77,6 +91,7 @@ const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit
             {myCiv && <CityPowerDisplay myCiv={myCiv} />}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} />}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
+            {announcements.length > 0 && <AnnouncementsDisplay announcements={announcements} />}
         </div>
     );
 };

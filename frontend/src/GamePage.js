@@ -2373,6 +2373,7 @@ export default function GamePage() {
                         myGamePlayer={myGamePlayer} 
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
                         unitTemplates={unitTemplates}
+                        announcements={gameState?.announcements}
                     />}
                     {selectedCityBuildingChoices && (
                         <div className="building-choices-container">
