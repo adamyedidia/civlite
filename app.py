@@ -376,7 +376,10 @@ def get_game_state(sess, game_id):
     if game_state is None:
         return jsonify({"error": "Game state not found"}), 404
     
-    return {'game_state': game_state}
+    return {'game_state': {
+        **game_state.to_json(),
+        "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},
+    }}
 
 
 @app.route('/api/movie/<game_id>', methods=['GET'])
@@ -426,8 +429,8 @@ def get_latest_turn_movie(sess, game_id):
                 game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
     return jsonify({
-        'animation_frames': [*[{'game_state': animation_frame.game_state, 'data': animation_frame.data} for animation_frame in animation_frames], 
-                             *([{'game_state': game_state_json, 'data': {}}] if game_state_json else [])], 
+        'animation_frames': [*[{'game_state': {**animation_frame.game_state, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {}}, 'data': animation_frame.data} for animation_frame in animation_frames], 
+                             *([{'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},}, 'data': {}}] if game_state_json else [])], 
         'turn_num': turn_num,
     })
 

@@ -685,6 +685,8 @@ class GameState:
         raise Exception(f"Civ not found: {civ_name}, {self.civs_by_id}")
     
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
+        print(f'turn_ended_by_player_num:{self.game_id}')
+        print(rget_json(f'turn_ended_by_player_num:{self.game_id}') or {})
         return {
             "game_id": self.game_id,
             "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
@@ -698,7 +700,7 @@ class GameState:
             "advancement_level": self.advancement_level,
             "game_over": self.game_over,
             "announcements": self.announcements[:],
-            "turn_ended_by_player_num": rget_json('turn_ended_by_player_num') or {},
+            "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{self.game_id}') or {},
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:

@@ -1597,6 +1597,7 @@ export default function GamePage() {
                 if (data.game_state) {
                     // setGameState(data.game_state);
                 }
+                getMovie(false);
             });
     }
 
@@ -1617,6 +1618,7 @@ export default function GamePage() {
                 if (data.game_state) {
                     // setGameState(data.game_state);
                 }
+                getMovie(false);
             });
     }
 
@@ -2329,6 +2331,8 @@ export default function GamePage() {
     const displayGameState = (gameState) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes)
+        console.log(hoveredTech);
+
         return !gameState?.game_over ? (
             <>
                 <div className="basic-example">

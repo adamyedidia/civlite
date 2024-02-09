@@ -46,7 +46,7 @@ const ScoreDisplay = ({ myGamePlayer }) => {
                 </Grid>
                 <Grid item>
                     <Typography>
-                        {myGamePlayer?.sfbv || 0} from building bonuses
+                        {myGamePlayer?.sfbv || 0} from building VP rewards
                     </Typography>
                 </Grid>
                 <Grid item>

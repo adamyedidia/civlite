@@ -43,6 +43,7 @@ const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuild
             <div className="building-card" onClick={onClick}>
                 <h2>{buildingTemplates[buildingName]?.name}</h2>
                 <p>Cost: {buildingTemplates[buildingName]?.cost} wood</p>
+                {buildingTemplates[buildingName]?.vp_reward && <p>VP reward: {buildingTemplates[buildingName]?.vp_reward}</p>}
                 <ul>
                     {buildingTemplates[buildingName]?.abilities.map((ability, index) => (
                         <li key={index}>{ability.description}</li>
