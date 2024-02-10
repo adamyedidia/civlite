@@ -545,7 +545,16 @@ class City:
             self.buildings_queue.append(random.choice(available_buildings))
         available_units = self.available_units
         if len(available_units) > 0:
-            self.units_queue.append(UnitTemplate.from_json(UNITS[random.choice(available_units)]))
+            # Make the unit queue 5 copies of the strongest unit available
+            strongest_unit = None
+            for unit in available_units:
+                if strongest_unit is None or UNITS[unit]['strength'] > UNITS[strongest_unit]['strength']:
+                    strongest_unit = unit
+
+            if strongest_unit is not None:
+                self.units_queue = [UnitTemplate.from_json(UNITS[strongest_unit]) for _ in range(5)]
+
+            # self.units_queue.append(UnitTemplate.from_json(UNITS[random.choice(available_units)]))
         
 
     def to_json(self) -> dict:
