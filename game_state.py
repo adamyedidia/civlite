@@ -177,7 +177,7 @@ class GameState:
                 old_civ.game_player.score_from_revolting_cities += points_from_yields
 
         new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player)
-        new_civ.vitality = min(2.0 + self.turn_num * 0.1, 4.0)
+        new_civ.vitality = 2.0 + self.turn_num * 0.1
 
         if new_civ.has_ability('ExtraCityPower'):
             new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]
