@@ -463,6 +463,10 @@ class City:
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         self.civ = civ
 
+        for building in self.buildings:
+            if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
+                game_state.wonders_built_to_civ_id[building.template.name] = civ.id
+
         if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
             civ.game_player.score += CITY_CAPTURE_REWARD
             civ.game_player.score_from_capturing_cities_and_camps += CITY_CAPTURE_REWARD

@@ -527,6 +527,9 @@ class GameState:
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
 
+        for city in self.cities_by_id.values():
+            city.refresh_available_buildings()
+
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= GAME_END_SCORE:
                 self.game_over = True

@@ -44,11 +44,13 @@ const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuild
                 <h2>{buildingTemplates[buildingName]?.name}</h2>
                 <p>Cost: {buildingTemplates[buildingName]?.cost} wood</p>
                 {buildingTemplates[buildingName]?.vp_reward && <p>VP reward: {buildingTemplates[buildingName]?.vp_reward}</p>}
+                {buildingTemplates[buildingName]?.is_wonder && <p>Wonder</p>}
+                {buildingTemplates[buildingName]?.is_national_wonder && <p>National Wonder</p>}
                 <ul>
                     {buildingTemplates[buildingName]?.abilities.map((ability, index) => (
                         <li key={index}>{ability.description}</li>
                     ))}
-                </ul>                
+                </ul>
             </div>
 
     );
