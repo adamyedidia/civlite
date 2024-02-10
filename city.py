@@ -197,7 +197,7 @@ class City:
         if self.hex is None:
             return
 
-        for hex in [*self.hex.get_hexes_within_distance_2(hexes), self.hex]:
+        for hex in [*self.hex.get_neighbors(hexes), self.hex]:
             for key in hex.is_foundable_by_civ:
                 hex.is_foundable_by_civ[key] = False            
 
@@ -489,6 +489,9 @@ class City:
                     game_state.national_wonders_built_by_civ_id[civ.id].append(building.template.name)
                 else:
                     game_state.national_wonders_built_by_civ_id[civ.id] = [building.template.name]
+
+        self.buildings_queue = []
+        self.units_queue = []
 
         if self.hex:
             game_state.add_animation_frame(sess, {
