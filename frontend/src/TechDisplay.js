@@ -2,8 +2,9 @@ import React from 'react';
 import UnitDisplay from './UnitDisplay'; // Adjust the path as needed
 import './TechDisplay.css'; // Assuming you have a separate CSS file for styling
 import BuildingDisplay from './BuildingDisplay';
+import { Button } from '@mui/material';
 
-export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech }) => {
+export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech, setTechListDialogOpen }) => {
     return (
         <div className="brief-tech-card"
             onMouseEnter={() => setHoveredTech(tech)}
@@ -12,6 +13,13 @@ export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech }) => {
             <p>Researching {tech.name}</p>
             <p>You currently have: {myCiv?.science?.toFixed(1)} (+{myCiv?.projected_science_income?.toFixed(1)}) science</p>
             <p>Cost: {tech.cost} science</p>
+            <Button 
+                variant="contained" 
+                color="primary"
+                onClick={() => setTechListDialogOpen(true)}
+            >
+                View researched techs
+            </Button>
         </div>
     );
 };

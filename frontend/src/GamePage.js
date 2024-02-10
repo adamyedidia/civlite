@@ -19,7 +19,7 @@ import {
 } from '@mui/material';
 import CivDisplay from './CivDisplay';
 import CityIcon from './images/city.svg';
-import TechDisplay from './TechDisplay';
+import TechDisplay, { BriefTechDisplay } from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
 import CityDisplay from './CityDisplay';
 import BuildingDisplay, { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
@@ -74,6 +74,27 @@ function ConfirmEnterDeclineDialog({open, onClose, onConfirm}) {
             </DialogActions>
         </Dialog>
     )
+}
+
+function TechListDialog({open, onClose, setHoveredTech, myCiv, techTemplates}) {
+    if (!myCiv || !techTemplates) return null;
+    
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>Researched Technologies</DialogTitle>
+            <DialogContent>
+                {Object.keys(myCiv.techs)?.map((tech, index) => (
+                    <Typography onMouseEnter={() => setHoveredTech(techTemplates[tech])} onMouseLeave={() => setHoveredTech(null)} key={index}>{tech}</Typography>
+                ))}
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+
 }
 
 export const FocusSelectorTitle = ({ title }) => {
@@ -159,6 +180,8 @@ export default function GamePage() {
 
     const [confirmEnterDecline, setConfirmEnterDecline] = useState(false);
 
+    const [techListDialogOpen, setTechListDialogOpen] = useState(false);
+
     const animationRunIdRef = React.useRef(null);
 
     const gameStateExistsRef = React.useRef(false);
@@ -169,6 +192,11 @@ export default function GamePage() {
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
+    console.log(myCiv);
+    console.log(hoveredTech);
+
+    console.log(techTemplates);
+    
     useEffect(() => {
         animationRunIdRef.current = animationRunIdUseState;
     }, [animationRunIdUseState]);
@@ -2431,6 +2459,7 @@ export default function GamePage() {
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
                         unitTemplates={unitTemplates}
                         announcements={gameState?.announcements}
+                        setTechListDialogOpen={setTechListDialogOpen}
                     />}
                     {selectedCityBuildingChoices && (
                         <div className="building-choices-container">
@@ -2582,6 +2611,13 @@ export default function GamePage() {
                     open={confirmEnterDecline}
                     onClose={() => setConfirmEnterDecline(false)}
                     onConfirm={() => handleEnterDecline()}
+                />}
+                {techListDialogOpen && <TechListDialog
+                    open={techListDialogOpen}
+                    onClose={() => setTechListDialogOpen(false)}
+                    setHoveredTech={setHoveredTech}
+                    techTemplates={techTemplates}
+                    myCiv={myCiv}
                 />}
             </>
         ) : (

@@ -7,7 +7,7 @@
     border-radius: 5px;
     background-color: #f9f9f9;
     z-index: 1000; /* Ensure it's above other elements */
-    max-height: 90vh; /* Adjust as needed */
+    max-height: 30vh; /* Adjust as needed */
     overflow-y: auto; /* Enable vertical scrolling */
     max-width: 30vw; /* Adjust as needed */
     /* Add other styles as needed */

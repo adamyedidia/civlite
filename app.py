@@ -659,7 +659,7 @@ def get_unit_templates(sess):
 @app.route('/api/tech_templates', methods=['GET'])
 @api_endpoint
 def get_tech_templates(sess):
-    return jsonify({tech_template['name']: TechTemplate.from_json(tech_template).to_json() for tech_template in TECHS.values()})
+    return jsonify({tech_template['name']: {**TechTemplate.from_json(tech_template).to_json(), 'unlocks_units': tech_template.get('unlocks_units') or [], 'unlocks_buildings': tech_template.get('unlocks_buildings') or []} for tech_template in TECHS.values()})
 
 
 @app.route('/api/building_templates', methods=['GET'])
