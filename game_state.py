@@ -189,6 +189,7 @@ class GameState:
             self.cities_by_id[city_id] = city
         else:
             hex.city.civ = new_civ
+        hex.city.capitalize()
         game_player_to_return = game_player
         self.civs_by_id[new_civ.id] = new_civ
         from_civ_perspectives.append(new_civ)

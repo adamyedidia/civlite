@@ -359,7 +359,7 @@ ANCIENT_CIVS = {
         "name": "Caralans",
         "abilities": [{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Warrior", 4]
+            "numbers": ["Warrior", 3]
         }],
         "advancement_level": 0,
     },
@@ -367,7 +367,7 @@ ANCIENT_CIVS = {
         "name": "Troy",
         "abilities": [{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Slinger", 3]
+            "numbers": ["Slinger", 2]
         }],
         "advancement_level": 0,
     },    
@@ -375,7 +375,7 @@ ANCIENT_CIVS = {
         "name": "Elamites",
         "abilities": [{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Archer", 3]
+            "numbers": ["Archer", 2]
         }],
         "advancement_level": 0,
     },
@@ -383,7 +383,7 @@ ANCIENT_CIVS = {
         "name": "Teotihuacan",
         "abilities": [{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Spearman", 3]
+            "numbers": ["Spearman", 2]
         }],
         "advancement_level": 0,
     },
@@ -391,7 +391,7 @@ ANCIENT_CIVS = {
         "name": "Scythians",
         "abilities": [{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Chariot", 3]
+            "numbers": ["Chariot", 2]
         }],
         "advancement_level": 0,
     },
@@ -421,452 +421,974 @@ ANCIENT_CIVS = {
     },    
     "Romans": {
         "name": "Romans",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["wood", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Swordsman", 3],
+        }],
         "advancement_level": 1,
     },
     "Greece": {
         "name": "Greece",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["science", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Spearman", 3],
+        }],
         "advancement_level": 1,
     },
     "Gokturks": {
         "name": "Gokturks",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["metal", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horse Archer", 3],
+        }],
         "advancement_level": 1,
     },
     "Persia": {
         "name": "Persia",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["food", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Spearman", 3],
+        }],
         "advancement_level": 1,
     },
     "Han": {
         "name": "Han",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraCityPower",
+            "numbers": [100],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Crossbowman", 3],
+        }],
         "advancement_level": 1,
     },
     "Huns": {
         "name": "Huns",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["metal", 20],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horse Archer", 3],
+        }],
         "advancement_level": 1,
     },
     "Carthage": {
         "name": "Carthage",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["food", 20],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horseman", 3],
+        }],
         "advancement_level": 1,
     },
     "Goths": {
         "name": "Goths",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraVpsPerCityCaptured",
+            "numbers": [5],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Swordsman", 3],
+        }],
         "advancement_level": 1,
     },
     "Franks": {
         "name": "Franks",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["wood", 20],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight", 3],
+        }],
         "advancement_level": 1,
     },
     "Celts": {
         "name": "Celts",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["wood", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Pikeman", 3],
+        }],
         "advancement_level": 1,
     },
     "Joseon": {
         "name": "Joseon",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["science", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Chariot", 3],
+        }],
         "advancement_level": 1,
     },
     "Jin": {
         "name": "Jin",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["food", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Crossbowman", 3],
+        }],
         "advancement_level": 1,
     },
     "Vikings": {
         "name": "Vikings",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["metal", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Swordsman", 3],
+        }],
         "advancement_level": 1,
     },
     "Byzantines": {
         "name": "Byzantines",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraVpsPerWonder",
+            "numbers": [5],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Trebuchet", 3],
+        }],
         "advancement_level": 1,
     },
     "Gupta": {
         "name": "Gupta",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["food", "grassland", 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Catapult", 3],
+        }],
         "advancement_level": 1,
     },
     "Polynesia": {
         "name": "Polynesia",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraCityPower",
+            "numbers": [100],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Slinger", 5],
+        }],
         "advancement_level": 1,
     },
     "Sukhothai": {
         "name": "Sukhothai",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", "forest", 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Pikeman", 3],
+        }],
         "advancement_level": 1,
     },
     "Srivijaya": {
         "name": "Srivijaya",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", "hills", 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Garrison", 3],
+        }],
         "advancement_level": 1,
     },
     "Sassanids": {
         "name": "Sassanids",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["metal", "plains", 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horseman", 3],
+        }],
         "advancement_level": 1,
     },
     "Abbasids": {
         "name": "Abbasids",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["metal", "hills", 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight", 3],
+        }],
         "advancement_level": 1,
     },
     "Umayyads": {
         "name": "Umayyads",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["food", "plains", 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight", 3],
+        }],
         "advancement_level": 1,
     },
     "Xhosa": {
         "name": "Xhosa",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", "grassland", 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Archer", 3],
+        }],
         "advancement_level": 1,
     },
     "Xiongnu": {
         "name": "Xiongnu",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraVpsPerUnitKilled",
+            "numbers": [1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horse Archer", 3],
+        }],
         "advancement_level": 1,
     },
     "Aksum": {
         "name": "Aksum",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["science", "plains", 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Archer", 3],
+        }],
         "advancement_level": 1,
     },
     "Cumans": {
         "name": "Cumans",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["metal", "forest", 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horse Archer", 3],
+        }],
         "advancement_level": 1,
     },
     "Majapahit": {
         "name": "Majapahit",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["wood", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Pikeman", 4],
+        }],
         "advancement_level": 2,
     },
     "Khmer": {
         "name": "Khmer",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["wood", 30],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cannon", 4],
+        }],
         "advancement_level": 2,
     },
     "Seljuks": {
         "name": "Seljuks",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["metal", 30],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cannon", 4],
+        }],
         "advancement_level": 2,
     },
     "Timurids": {
         "name": "Timurids",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["wood", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight", 4],
+        }],
         "advancement_level": 2,
     },
     "Mali": {
         "name": "Mali",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["science", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Pikeman", 4],
+        }],
         "advancement_level": 2,
     },
     "Songhai": {
         "name": "Songhai",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["food", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight", 4],
+        }],
         "advancement_level": 2,
     },
     "Mongols": {
         "name": "Mongols",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["metal", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horse Archer", 4],
+        }],
         "advancement_level": 2,
     },
     "Aztecs": {
         "name": "Aztecs",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraVpsPerUnitKilled",
+            "numbers": [1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Swordsman", 4],
+        }],
         "advancement_level": 2,
     },
     "Inca": {
         "name": "Inca",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["wood", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Pikeman", 4],
+        }],
         "advancement_level": 2,
     },
     "Mughals": {
         "name": "Mughals",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraVpsPerWonder",
+            "numbers": [5],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Musketman", 4],
+        }],
         "advancement_level": 2,
     },
     "Marathas": {
         "name": "Marathas",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["food", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Hussar", 4],
+        }],
         "advancement_level": 2,
     },
     "Zulu": {
         "name": "Zulu",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraCityPower",
+            "numbers": [150],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Pikeman", 4],
+        }],
         "advancement_level": 2,
     },
     "Maurya": {
         "name": "Maurya",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["food", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Musketman", 4],
+        }],
         "advancement_level": 2,
     },
     "Chola": {
         "name": "Chola",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["food", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight", 4],
+        }],
         "advancement_level": 2,
     },
     "Ming": {
         "name": "Ming",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["science", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Crossbowman", 4],
+        }],
         "advancement_level": 2,
     },
     "Qin": {
         "name": "Qin",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["science", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Crossbowman", 4],
+        }],
         "advancement_level": 2,
     },
     "Burgundy": {
         "name": "Burgundy",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["metal", "plains", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Musketman", 4],
+        }],
         "advancement_level": 2,
     },
     "Bohemia": {
         "name": "Bohemia",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["food", "grassland", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Militia", 4],
+        }],
         "advancement_level": 2,
     },
     "England": {
         "name": "England",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", "forest", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Crossbowman", 4],
+        }],
         "advancement_level": 2,
     },
     "Novgorod": {
         "name": "Novgorod",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", "hills", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Hussar", 4],
+        }],
         "advancement_level": 2,
     },
     "Castile": {
         "name": "Castile",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["food", "plains", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cavalry", 4],
+        }],
         "advancement_level": 2,
     },
     "Venice": {
         "name": "Venice",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["science", "grassland", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Musketman", 4],
+        }],
         "advancement_level": 2,
     },
     "Aragon": {
         "name": "Aragon",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["food", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Pikeman", 4],
+        }],
         "advancement_level": 2,
     },
     "Mamluks": {
         "name": "Mamluks",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["science", "plains", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight", 4],
+        }],
         "advancement_level": 2,
     },
     "Delhi": {
         "name": "Delhi",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["food", 30],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Musketman", 4],
+        }],
         "advancement_level": 2,
     },
     "Bahmani": {
         "name": "Bahmani",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseYieldsForTerrain",
+            "numbers": ["wood", "grassland", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Pikeman", 4],
+        }],
         "advancement_level": 2,
     },
     "Vijayanagara": {
         "name": "Vijayanagara",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["science", 30],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight", 4],
+        }],
         "advancement_level": 2,
     },
     "Iroquois": {
         "name": "Iroquois",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["wood", 5],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cavalry", 5],
+        }],
         "advancement_level": 4,
     },
     "Ottomans": {
         "name": "Ottomans",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["food", 5],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rifleman", 5],
+        }],
         "advancement_level": 4,
     },
     "Austria": {
         "name": "Austria",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["science", 5],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Gatling Gun", 5],
+        }],
         "advancement_level": 4,
     },
     "Sweden": {
         "name": "Sweden",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["science", 40],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rifleman", 5],
+        }],
         "advancement_level": 4,
     },
     "Russia": {
         "name": "Russia",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraCityPower",
+            "numbers": [250],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cavalry", 5],
+        }],
         "advancement_level": 4,
     },
     "Arabia": {
         "name": "Arabia",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["food", 40],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight", 5],
+        }],
         "advancement_level": 4,
     },
     "Portugal": {
         "name": "Portugal",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["science", 4],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Musketman", 5],
+        }],
         "advancement_level": 4,
     },
     "Spain": {
         "name": "Spain",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["metal", 4],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cavalry", 5],
+        }],
         "advancement_level": 4,
     },
     "France": {
         "name": "France",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["wood", 4],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rifleman", 5],
+        }],
         "advancement_level": 4,
     },
     "Prussia": {
         "name": "Prussia",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["metal", 4],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Artillery", 5],
+        }],
         "advancement_level": 4,
     },
     "Qing": {
         "name": "Qing",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["science", 4],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cannon", 5],
+        }],
         "advancement_level": 4,
     },
     "Poland": {
         "name": "Poland",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["wood", 5],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Hussar", 5],
+        }],
         "advancement_level": 4,
     },
     "Lithuania": {
         "name": "Lithuania",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["wood", 40],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Hussar", 5],
+        }],
         "advancement_level": 4,
     },
     "Netherlands": {
         "name": "Netherlands",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["science", 40],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Gatling Gun", 5],
+        }],
         "advancement_level": 4,
     },
     "Denmark": {
         "name": "Denmark",
-        "abilities": [],
-        "advancement_level": 4,
-    },
-    "Zulu": {
-        "name": "Zulu",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["metal", 40],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Gatling Gun", 5],
+        }],
         "advancement_level": 4,
     },
     "Brazil": {
         "name": "Brazil",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["metal", 50],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rifleman", 7],
+        }],
         "advancement_level": 6,
     },
     "United States": {
         "name": "United States",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraVpsPerCityCaptured",
+            "numbers": [5],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Infantry", 7],
+        }],
         "advancement_level": 6,
     },
     "Mexico": {
         "name": "Mexico",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["food", 8],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Artillery", 7],
+        }],
         "advancement_level": 6,
     },
     "United Kingdom": {
         "name": "United Kingdom",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["wood", 8],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rifleman", 7],
+        }],
         "advancement_level": 6,
     },
     "Indonesia": {
-        "name": "Ethiopia",
-        "abilities": [],
+        "name": "Indonesia",
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["food", 8],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cannon", 7],
+        }],
         "advancement_level": 6,
     },
     "Japan": {
         "name": "Japan",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["metal", 8],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Swordsman", 12],
+        }],
         "advancement_level": 6,
     },
     "Korea": {
         "name": "Korea",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["science", 8],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cannon", 7],
+        }],
         "advancement_level": 6,
     },
     "Ethiopia": {
         "name": "Ethiopia",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["science", 8],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rifleman", 7],
+        }],
         "advancement_level": 6,
     },    
     "Italy": {
         "name": "Italy",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["metal", 40],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Artillery", 7],
+        }],
         "advancement_level": 6,
     },
     "Germany": {
         "name": "Germany",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["metal", 6],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Tank", 7],
+        }],
         "advancement_level": 6,
     },
     "Comanches": {
         "name": "Comanches",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraVpsPerUnitKilled",
+            "numbers": [1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Cavalry", 7],
+        }],
         "advancement_level": 6,
     },
     "Canada": {
         "name": "Canada",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraCityPower",
+            "numbers": [1000],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Infantry", 8],
+        }],
         "advancement_level": 8,
     },
     "Australia": {
         "name": "Australia",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["food", 60],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Bazooka", 8],
+        }],
         "advancement_level": 8,
     },
     "Vietnam": {
         "name": "Vietnam",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["wood", 60],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Bazooka", 8],
+        }],
         "advancement_level": 8,
     },
     "India": {
         "name": "India",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["food", 120],
+        }],
         "advancement_level": 8,
     },
     "Soviet Union": {
         "name": "Soviet Union",
-        "abilities": [],
+        "abilities": [{
+            "name": "ExtraVpsPerCityCaptured",
+            "numbers": [5],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rocket Launcher", 8],
+        }],
         "advancement_level": 8,
     },
     "Communist China": {
         "name": "Communist China",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["metal", 10],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rocket Launcher", 8],
+        }],
         "advancement_level": 8,
     },
     "Turkey": {
         "name": "Turkey",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["wood", 10],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Infantry", 8],
+        }],
         "advancement_level": 8,
     },
     "Solaria": {
         "name": "Solaria",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["science", 100],
+        }],
         "advancement_level": 10,
     },
     "Arctic Alliance": {
         "name": "Arctic Alliance",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["food", 300],
+        }],
         "advancement_level": 10,
     },
     "Greater EuroZone": {
         "name": "Greater EuroZone",
-        "abilities": [],
+        "abilities": [{
+            "name": "IncreaseFocusYields",
+            "numbers": ["wood", 20],
+        }],
         "advancement_level": 10,
     },
     "Celestial Empire": {
         "name": "Celestial Empire",
-        "abilities": [],
+        "abilities": [{
+            "name": "StartWithResources",
+            "numbers": ["metal", 100],
+        }],
+        "advancement_level": 10,
+    },
+    "The Machine Intelligence": {
+        "name": "The Machine Intelligence",
+        "abilities": [{
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Giant Death Robot", 100],
+        }],
         "advancement_level": 10,
     },
 }

@@ -510,6 +510,21 @@ class City:
                 self.hex.yields.increase(civ.numbers_of_ability('IncreaseCapitalYields')[0],
                                             civ.numbers_of_ability('IncreaseCapitalYields')[1])
                 
+        if civ.has_ability('StartWithResources'):
+            if civ.numbers_of_ability('StartWithResources')[0] == 'food':
+                self.food += civ.numbers_of_ability('StartWithResources')[1]
+                self.civ.city_power += civ.numbers_of_ability('StartWithResources')[1]
+
+            if civ.numbers_of_ability('StartWithResources')[0] == 'metal':
+                self.metal += civ.numbers_of_ability('StartWithResources')[1]
+
+            if civ.numbers_of_ability('StartWithResources')[0] == 'wood':
+                self.wood += civ.numbers_of_ability('StartWithResources')[1]
+            
+            if civ.numbers_of_ability('StartWithResources')[0] == 'science':
+                self.civ.science += civ.numbers_of_ability('StartWithResources')[1]
+
+                
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         self.civ = civs_by_id[self.civ.id]
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    

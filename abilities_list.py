@@ -51,6 +51,11 @@ CIV_ABILITIES: dict[str, Callable] = {
         description=f"Receive {x} extra VP for each unit you kill.",
         numbers=[x],
     ),
+    "StartWithResources": lambda x, y: Ability(
+        name="StartWithResources",
+        description=f"Start the game with {y} {x}.",
+        numbers=[x, y],
+    ),
 }
 
 BUILDING_ABILITIES: dict[str, Callable] = {
