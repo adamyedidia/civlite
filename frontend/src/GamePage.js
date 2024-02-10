@@ -137,6 +137,7 @@ export default function GamePage() {
     });
 
     const [hoveredCiv, setHoveredCiv] = useState(null);
+    const [hoveredGamePlayer, setHoveredGamePlayer] = useState(null);
     const [hoveredHex, setHoveredHex] = useState(null);
 
     const [hoveredUnit, setHoveredUnit] = useState(null);
@@ -237,7 +238,7 @@ export default function GamePage() {
 
         try {
             let audio = new Audio(gunpowderRangedAttackSound);
-            audio.volume = 1.0 * volumeRef.current / 100;
+            audio.volume = 0.25 * volumeRef.current / 100;
             audio.play();
         } catch (error) {
             console.error('Error playing sound:', error);
@@ -2028,8 +2029,11 @@ export default function GamePage() {
         };
     
         // Darken colors if city is in decline
-        const finalPrimaryColor = city.civ.in_decline ? darkenColor(primaryColor) : primaryColor;
-        const finalSecondaryColor = city.civ.in_decline ? darkenColor(secondaryColor) : secondaryColor;
+        // const finalPrimaryColor = city.civ.in_decline ? darkenColor(primaryColor) : primaryColor;
+        // const finalSecondaryColor = city.civ.in_decline ? darkenColor(secondaryColor) : secondaryColor;
+
+        const finalPrimaryColor = primaryColor;
+        const finalSecondaryColor = secondaryColor;
     
         return (
             <>
@@ -2165,6 +2169,7 @@ export default function GamePage() {
         let hoveredCivPicked = false;
         if (hex.city) {
             setHoveredCiv(civTemplates[hex.city.civ.name]);
+            setHoveredGamePlayer(hex?.city?.civ?.game_player?.username);
             setHoveredCity(hex.city)
             hoveredCivPicked = true;
         }
@@ -2174,6 +2179,7 @@ export default function GamePage() {
         if (hex?.units?.length > 0) {
             setHoveredUnit(hex?.units?.[0]);
             setHoveredCiv(civTemplates[hex?.units?.[0]?.civ.name]);
+            setHoveredGamePlayer(hex?.city?.civ?.game_player?.username);
             hoveredCivPicked = true;
         }
         else {
@@ -2181,6 +2187,7 @@ export default function GamePage() {
         }
         if (!hoveredCivPicked) {
             setHoveredCiv(null);
+            setHoveredGamePlayer(null);
         }
     };
 
@@ -2410,7 +2417,7 @@ export default function GamePage() {
                     {!hoveredCiv && <Button onClick={() => setSettingsDialogOpen(!settingsDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', right: '10px', bottom: '10px'}}>
                         Settings
                     </Button>}
-                    {hoveredCiv && <CivDisplay civ={hoveredCiv} />}
+                    {hoveredCiv && <CivDisplay civ={hoveredCiv} hoveredGamePlayer={hoveredGamePlayer}/>}
                     {hoveredHex && (
                         <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                     )}

@@ -36,7 +36,10 @@ def get_tech_choices_for_civ(civ: "Civ") -> list[dict]:
 
     tech_level = len(civ.techs)
 
-    max_advancement_level = max(1, tech_level // 2)
+    max_advancement_level = max(1, tech_level // 3)
+
+    if characteristic_tech and (characteristic_tech['advancement_level'] > max_advancement_level or characteristic_tech['name'] in civ.techs):
+        characteristic_tech = None
 
     num_techs_to_offer = 3 if characteristic_tech is None else 2
 

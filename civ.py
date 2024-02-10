@@ -86,19 +86,19 @@ class Civ:
         self.available_unit_buildings = [unit.get("building_name") for unit in UNITS.values() if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and unit.get("building_name"))]  # type: ignore
 
     def bot_move(self, game_state: 'GameState') -> None:
-        if self.game_player and not self.in_decline and self.vitality < (0.3 + random.random() * 0.2):
+        if self.game_player and not self.in_decline and (self.vitality < (0.3 + random.random() * 0.2) or len([city for city in game_state.cities_by_id.values() if city.civ.id == self.id]) == 0):
+            game_player = self.game_player
+            decline_option = random.choice(self.game_player.decline_options)
             game_state.enter_decline_for_civ(self, self.game_player)
 
-            decline_option = random.choice(self.game_player.decline_options)
-
             from_civ_perspectives = []
-            _, city = game_state.process_decline_option(decline_option, self.game_player, from_civ_perspectives)
+            _, city = game_state.process_decline_option(decline_option, game_player, from_civ_perspectives)
             assert len(from_civ_perspectives) == 1
             assert city is not None
 
             civ = from_civ_perspectives[0]
 
-            game_state.make_new_civ_from_the_ashes(civ, self.game_player, city)
+            game_state.make_new_civ_from_the_ashes(civ, game_player, city)
 
         if random.random() < 0.2 or self.target1 is None or self.target2 is None:
             enemy_cities = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
@@ -149,7 +149,7 @@ class Civ:
                                 self.game_player.score += ability["numbers"][0]    
                                 self.game_player.score_from_abilities += ability["numbers"][0]
 
-            if tech.name == 'Renaissance':
+            if tech.name == 'Renaissance: when researched, multiply your civ\'s vitality by 1.5.':
                 self.vitality *= 1.5
 
             game_state.add_animation_frame_for_civ(sess, {

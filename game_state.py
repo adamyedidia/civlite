@@ -103,7 +103,7 @@ class GameState:
             if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
                 assert city.hex
                 numbers = civ.numbers_of_ability('IncreaseYieldsForTerrainNextToSecondCity')
-                for hex in [city.hex, city.hex.get_neighbors(self.hexes)]:
+                for hex in [city.hex, *city.hex.get_neighbors(self.hexes)]:
                     if hex.terrain == numbers[2]:
                         new_value = getattr(hex.yields, numbers[0]) + numbers[1]
                         setattr(hex.yields, numbers[0], new_value)
@@ -111,9 +111,9 @@ class GameState:
         if civ.has_ability('IncreaseYieldsForTerrain'):
             assert city.hex
             numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
-            for hex in [city.hex, city.hex.get_neighbors(self.hexes)]:
-                if hex.terrain == numbers[2]:
-                    new_value = getattr(hex.yields, numbers[0]) + numbers[1]
+            for hex in [city.hex, *city.hex.get_neighbors(self.hexes)]:
+                if hex.terrain == numbers[1]:
+                    new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                     setattr(hex.yields, numbers[0], new_value)
     
         for wonder in self.wonders_built_to_civ_id:
@@ -456,7 +456,9 @@ class GameState:
             staged_moves = rget_json(f'staged_moves:{self.game_id}:{player_num}') or []
             self.update_from_player_moves(player_num, staged_moves)
 
-        for civ in self.civs_by_id.values():
+        civs = list(self.civs_by_id.values())[:]
+
+        for civ in civs:
             if (not civ.game_player or civ.game_player.is_bot) and not civ.template.name == 'Barbarians':
                 civ.bot_move(self)
 

@@ -5,10 +5,12 @@ class CivDisplay extends React.Component {
     render() {
         const { name, abilities, primary_color, secondary_color } = this.props.civ;
 
+        const hoveredGamePlayerDisplay = this.props?.hoveredGamePlayer ? ` (${this.props.hoveredGamePlayer})` : '';
+
         return (
             <div className="civ-card" style={{ borderColor: secondary_color }}>
                 <div className="civ-card-inner" style={{ backgroundColor: primary_color }}>
-                    <h2>{name}</h2>
+                    <h2>{`${name} ${hoveredGamePlayerDisplay}`}</h2>
                     <ul>
                         {abilities.map((ability, index) => (
                             <li key={index}>{ability.description}</li>

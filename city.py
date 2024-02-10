@@ -390,12 +390,13 @@ class City:
         self.buildings.append(new_building)
 
         if new_building.has_ability('IncreaseYieldsForTerrain'):
-            assert self.hex
-            numbers = new_building.numbers_of_ability('IncreaseYieldsForTerrain')
-            for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
-                if hex.terrain == numbers[2]:
-                    new_value = getattr(hex.yields, numbers[0]) + numbers[1]
-                    setattr(hex.yields, numbers[0], new_value)
+            for ability in new_building.template.abilities:
+                assert self.hex
+                numbers = ability.numbers
+                for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                    if hex.terrain == numbers[2]:
+                        new_value = getattr(hex.yields, numbers[0]) + numbers[1]
+                        setattr(hex.yields, numbers[0], new_value)
 
         if new_building.has_ability('DoubleYieldsForTerrainInCity'):
             assert self.hex
@@ -470,6 +471,14 @@ class City:
             if civ.has_ability('ExtraVpsPerCityCaptured'):
                 civ.game_player.score += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
                 civ.game_player.score_from_abilities += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
+
+            if civ.has_ability('IncreaseYieldsForTerrain'):
+                assert self.hex
+                numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
+                for hex in [self.hex, self.hex.get_neighbors(game_state.hexes)]:
+                    if hex.terrain == numbers[1]:
+                        new_value = getattr(hex.yields, numbers[0]) + numbers[2]
+                        setattr(hex.yields, numbers[0], new_value)                
 
             for wonder in game_state.wonders_built_to_civ_id:
                 if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):

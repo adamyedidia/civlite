@@ -156,7 +156,7 @@ TECHS = {
         'unlocks_buildings': ['Himeji Castle'],
         'advancement_level': 4,
     },
-    'Renaissance': {
+    'Renaissance: when researched, multiply your civ\'s vitality by 1.5.': {
         'name': 'Renaissance: when researched, multiply your civ\'s vitality by 1.5.',
         'cost': 100,
         'advancement_level': 4,
