@@ -406,7 +406,7 @@ UNITS = {
         "movement": 1,
         "range": 2,
         "tags": ["infantry", "gunpowder"],
-        "prereq": "Rocketry",
+        "prereq": "Ballistics",
         "abilities": [{
             "name": "BonusAgainst",
             "numbers": ["armored", 30],
