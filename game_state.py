@@ -144,13 +144,17 @@ class GameState:
         civ.game_player = game_player
         game_player.civ_id = civ.id
 
-        for tech in TECHS.values():
-            if tech['advancement_level'] <= self.advancement_level:
-                num_civs_with_tech = len([other_civ for other_civ in self.civs_by_id.values() if tech['name'] in other_civ.techs])
+        civs_with_game_players = [civ for civ in self.civs_by_id.values() if civ.game_player]
 
-                if num_civs_with_tech >= (len(self.civs_by_id) - 1) / 2:
-                    civ.techs[tech['name']] = True
+        if len(civs_with_game_players) == 0:
+            median_civ_by_tech_advancement = sorted([civ for civ in self.civs_by_id.values()], key=lambda x: len(x.techs), reverse=True)[0]
+        else:
+            median_civ_by_tech_advancement = sorted(civs_with_game_players, key=lambda x: len(x.techs), reverse=True)[len(self.civs_by_id) // 2]
 
+        for tech in median_civ_by_tech_advancement.techs:
+            if not civ.techs.get(tech):
+                civ.techs[tech] = True
+            
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ()                        
 
