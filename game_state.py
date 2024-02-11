@@ -154,7 +154,7 @@ class GameState:
         for tech in median_civ_by_tech_advancement.techs:
             if not civ.techs.get(tech):
                 civ.techs[tech] = True
-            
+
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ()                        
 
@@ -568,9 +568,7 @@ class GameState:
 
         decline_choice_civ_pool = random.sample(decline_choice_big_civ_pool, num_civs_to_sample)
 
-        cities_by_civ = {civ.id: [city for city in self.cities_by_id.values() if city.civ.id == civ.id] for civ in self.civs_by_id.values()}
-
-        eligible_cities_for_declining = [city for city in self.cities_by_id.values() if len(cities_by_civ[city.civ.id]) > 1]
+        eligible_cities_for_declining = [city for city in self.cities_by_id.values() if city.civ.vitality < 1.0]
 
         eligible_locations_for_declining = generate_decline_locations(self.hexes, max(num_civs_to_sample - len(eligible_cities_for_declining) + num_players, 0))
 
