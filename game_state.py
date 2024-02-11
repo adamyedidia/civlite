@@ -189,7 +189,7 @@ class GameState:
             self.cities_by_id[city_id] = city
         else:
             hex.city.civ = new_civ
-        hex.city.capitalize()
+        hex.city.capitalize(self)
         game_player_to_return = game_player
         self.civs_by_id[new_civ.id] = new_civ
         from_civ_perspectives.append(new_civ)
@@ -221,7 +221,7 @@ class GameState:
                             self.game_player_by_player_num[player_num].civ_id = city.civ.id
                             city.civ.vitality = STARTING_CIV_VITALITY
 
-                            city.capitalize()
+                            city.capitalize(self)
                             city.adjust_projected_yields(self)
                             city.civ.adjust_projected_yields(self)
 

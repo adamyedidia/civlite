@@ -514,7 +514,7 @@ class City:
                 "vpReward": CITY_CAPTURE_REWARD,
             }, hexes_must_be_visible=[self.hex])
 
-    def capitalize(self) -> None:
+    def capitalize(self, game_state: 'GameState') -> None:
         civ = self.civ
         self.capital = True
     
@@ -536,6 +536,14 @@ class City:
             
             if civ.numbers_of_ability('StartWithResources')[0] == 'science':
                 self.civ.science += civ.numbers_of_ability('StartWithResources')[1]
+
+        if civ.has_ability('IncreaseYieldsForTerrain'):
+            assert self.hex
+            numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
+            for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                if hex.terrain == numbers[1]:
+                    new_value = getattr(hex.yields, numbers[0]) + numbers[2]
+                    setattr(hex.yields, numbers[0], new_value)
 
                 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
