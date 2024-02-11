@@ -537,6 +537,9 @@ class GameState:
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
 
+        for civ in self.civs_by_id.values():
+            civ.fill_out_available_buildings(self)
+
         for city in self.cities_by_id.values():
             city.refresh_available_buildings()
 
