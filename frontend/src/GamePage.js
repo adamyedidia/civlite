@@ -2803,7 +2803,10 @@ export default function GamePage() {
                         triggerAnimations(newGameState, data.animation_frames, true);
                     }
                     else {
-                        setGameState(newGameState);
+                        if (turnNum !== 1 && data.turn_num !== turnNum) {
+                        } else {
+                            setGameState(newGameState);
+                        }
                     }
 
                     setSelectedCity(null);

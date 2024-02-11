@@ -76,7 +76,7 @@ BUILDING_ABILITIES: dict[str, Callable] = {
     ),
     "CityGrowthCostReduction": lambda x: Ability(
         name="CityGrowthCostReduction",
-        description=f"Reduce the cost of city growth by {'{:.0%}'.format(x)}%.",
+        description=f"Reduce the cost of city growth by {'{:.0%}'.format(x)}.",
         numbers=[x],
     ),
     "IncreaseFocusYieldsPerPopulation": lambda x, y: Ability(

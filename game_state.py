@@ -141,15 +141,15 @@ class GameState:
                     other_civ.game_player.score_from_survival += SURVIVAL_BONUS
 
     def make_new_civ_from_the_ashes(self, civ: Civ, game_player: GamePlayer, city: City) -> None:
-        civ.game_player = game_player
-        game_player.civ_id = civ.id
-
         civs_with_game_players = [civ for civ in self.civs_by_id.values() if civ.game_player]
 
         if len(civs_with_game_players) == 0:
             median_civ_by_tech_advancement = sorted([civ for civ in self.civs_by_id.values()], key=lambda x: len(x.techs), reverse=True)[0]
         else:
-            median_civ_by_tech_advancement = sorted(civs_with_game_players, key=lambda x: len(x.techs), reverse=True)[len(self.civs_by_id) // 2]
+            median_civ_by_tech_advancement = sorted(civs_with_game_players, key=lambda x: len(x.techs))[len(civs_with_game_players) // 2]
+
+        civ.game_player = game_player
+        game_player.civ_id = civ.id
 
         for tech in median_civ_by_tech_advancement.techs:
             if not civ.techs.get(tech):
