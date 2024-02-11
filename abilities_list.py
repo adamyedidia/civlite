@@ -18,12 +18,12 @@ CIV_ABILITIES: dict[str, Callable] = {
     ),
     "IncreaseYieldsForTerrainNextToSecondCity": lambda x, y, z: Ability(
         name="IncreaseYieldsForTerrainNextToSecondCity",
-        description=f"Increase {x} yields in {y}s next to your second city by {z}.",
+        description=f"Increase {x} yields in {y}s around your second city by {z}.",
         numbers=[x, y, z],
     ),
     "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
         name="IncreaseYieldsForTerrain",
-        description=f"Increase {x} yields in {y}s next to each city by {z}.",
+        description=f"When you found or capture a city for the first time, increase {x} yields in {y}s around it by {z}.",
         numbers=[x, y, z],
     ),
     "IncreasedStrengthForUnit": lambda x, y: Ability(
@@ -61,7 +61,7 @@ CIV_ABILITIES: dict[str, Callable] = {
 BUILDING_ABILITIES: dict[str, Callable] = {
     "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
         name="IncreaseYieldsForTerrain",
-        description=f"Increase {x} yields in {z}s adjacent to and in the city by {y}.",
+        description=f"Increase {x} yields in {z}s around the city by {y}.",
         numbers=[x, y, z],
     ),
     "IncreaseYieldsInCity": lambda x, y: Ability(
