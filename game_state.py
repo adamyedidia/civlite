@@ -156,7 +156,7 @@ class GameState:
                 civ.techs[tech] = True
 
         self.refresh_foundability_by_civ()
-        self.refresh_visibility_by_civ()                        
+        self.refresh_visibility_by_civ()
 
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
@@ -410,6 +410,10 @@ class GameState:
                 civ = from_civ_perspectives[0]
 
                 self.make_new_civ_from_the_ashes(civ, game_player, city)
+
+                city.refresh_available_buildings()
+                city.refresh_available_units()
+                city.adjust_projected_yields(self)
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
             if from_civ_perspectives is None and game_player_to_return.civ_id is not None:
