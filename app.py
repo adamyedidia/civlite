@@ -21,7 +21,7 @@ from game_state import GameState, update_staged_moves, get_most_recent_game_stat
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
-from settings import LOCAL, STARTING_CIV_VITALITY
+from settings import LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, SURVIVAL_BONUS
 from tech import get_tech_choices_for_civ
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
@@ -642,6 +642,30 @@ def get_building_choices(sess, game_id, city_id):
     print('choices', building_choices)
 
     return jsonify({'building_choices': [building_choice.to_json() for building_choice in building_choices]})
+
+
+@app.route('/api/game_constants', methods=['GET'])
+@api_endpoint
+def get_game_constants(sess):
+    return jsonify({
+        'city_capture_reward': CITY_CAPTURE_REWARD,
+        'unit_kill_reward': UNIT_KILL_REWARD,
+        'camp_clear_reward': CAMP_CLEAR_VP_REWARD,
+        'camp_clear_city_power_reward': CAMP_CLEAR_CITY_POWER_REWARD,
+        'base_food_cost_of_pop': BASE_FOOD_COST_OF_POP,
+        'additional_per_pop_food_cost': ADDITIONAL_PER_POP_FOOD_COST,
+        'fast_vitality_decay_rate': FAST_VITALITY_DECAY_RATE,
+        'vitality_decay_rate': VITALITY_DECAY_RATE,
+        'map_homogeneity_level': MAP_HOMOGENEITY_LEVEL,
+        'num_starting_location_options': NUM_STARTING_LOCATION_OPTIONS,
+        'per_player_area': PER_PLAYER_AREA,
+        'starting_civ_vitality': STARTING_CIV_VITALITY,
+        'good_hex_probability': GOOD_HEX_PROBABILITY,
+        'tech_vp_reward': TECH_VP_REWARD,
+        'game_end_score': GAME_END_SCORE,
+        'base_city_power_income': BASE_CITY_POWER_INCOME,
+        'survival_bonus': SURVIVAL_BONUS,
+    })
 
 
 @app.route('/api/civ_templates', methods=['GET'])

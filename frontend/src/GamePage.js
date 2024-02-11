@@ -97,6 +97,111 @@ function TechListDialog({open, onClose, setHoveredTech, myCiv, techTemplates}) {
 
 }
 
+function RulesDialog({open, onClose, gameConstants}) {
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>Rules</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Civlite is a turn-based strategy game. On the first turn of the game, you choose your starting city and civilization from three options. Afterwards, you 
+                    queue up units and buildings at your cities and choose technologies from among three options.
+                </DialogContentText>
+                <br />
+                <DialogContentText>
+                    <b>Resources</b>
+                </DialogContentText>
+                <DialogContentText>
+                    The game has four resources: food, wood, metal, and science. Food is used to grow your cities. Your city automatically grows after it collects food; growing 
+                    a population costs {gameConstants?.base_food_cost_of_pop} food + {gameConstants?.additional_per_pop_food_cost} per current population. Metal is used to build units.
+                    Every unit in the game (except Warriors and Scouts) require a building a production building before you can build them in the city. Wood is used to build buildings.
+                    There are a few kinds of buildings: unit production buildings do nothing, except for unlock the ability to build their corresponding unit in a single city. Wonders 
+                    can be built only once in the game. National wonders can be built once per civilization. Science is used to research technologies, which unlock more units and buildings.
+                    Science is shared across your civilization, but food, metal, and wood are stored in each city. In general, everything is infinitely stockpilable; if you fail to put anything
+                    in your queue, there's no penalty and you can just accumulate more resources and spend them later. Putting something in your queue doesn't have any effect until you 
+                    actually accumulate enough resources to build it, at which point it will be built and removed from your queue.
+                </DialogContentText>
+                <DialogContentText>
+                    You collect food, wood, metal, and science yields from two sources: the hexes around your cities, and the city's population. Your cities always collect yields from 
+                    the seven hexes that are adjacent to or underneath them. Also, each population in each of your cities collects 1 science + 1 yield of your choice (the "focus" of your city).
+                    Certain buildings and civ abilities can enhance the yields of hexes; when you enhance the yield of a hex, that hex's yields are increased permanently, and the enhancement
+                    applies to other cities working that hex as well.
+                </DialogContentText>
+                <br />
+                <DialogContentText>
+                    <b>Founding cities</b>
+                </DialogContentText>
+                <DialogContentText>
+                    There's another resource, called "city power", which you collect passively; your city power income is equal to {gameConstants?.base_city_power_income} plus the 
+                    total food income across all your cities. Cities passively make 2 food. When you have enough city power, you can found a new city. Founding a new city costs 100 city power.
+                    You can only found cities on hexes that satisfy all of the following properties:
+                    <ul>
+                        <li>There is a friendly unit on the hex</li>
+                        <li>The hex is not adjacent to any other city</li>
+                        <li>The hex is not adjacent to any enemy units</li>
+                        <li>The hex is not adjacent to any barbarian camps</li>
+                    </ul>
+                    When you found a new city, you spend 100 of your city power. You get {gameConstants.camp_clear_city_power_reward} city power for clearing a barbarian camp.
+                </DialogContentText>
+                <br />
+                <DialogContentText>
+                    <b>Civ vitality</b>
+                </DialogContentText>
+                <DialogContentText>
+                    Your civilization has a "vitality" statistic, which starts out high and then declines over time. Your civilization's starting vitality is equal 200% plus another 10% 
+                    per turn since the start of the game. Vitality declines by {Math.round((1 - gameConstants.fast_vitality_decay_rate) * 100)}% per turn when it's above 100%, and by{' '}
+                    {Math.round((1 - gameConstants.vitality_decay_rate) * 100)}% per turn when it's below 100%. Vitality is a multiplier that gets applied to your income of all resources in all your cities. 
+                </DialogContentText>
+                <br />
+                <DialogContentText>
+                    <b>Entering decline</b>
+                </DialogContentText>
+                <DialogContentText>
+                    When your civilization's vitality has fallen too low, or things have started going badly for you, you can choose to have your civilization "enter decline." When this happens,
+                    a bot takes over your current civilization, and you start a new civilization somewhere else. The way this works is that your presented with three options for new civilizations to found, in 
+                    three different cities where you can found them. The city you take over might be an existing city on the map, if you do this, you'll take over that city, and all units adjancent to that city. 
+                    That city will be your new capital. Your new civilization will start with a high vitality (200% + 10% per turn since the start of the game). You'll also start with some technologies, corresponding
+                    to the median player-controlled civilization's techs. When you enter decline and start a new civilization, you are starting over from scratch, and leaving literally everything behind 
+                    with just one exception: your victory points.
+                </DialogContentText>
+                <br />
+                <DialogContentText>
+                    <b>Victory points</b>
+                </DialogContentText>
+                <DialogContentText>
+                    The goal of the game is to get to the most victory points, and your victory points are held by you, the player. The game ends when someone reaches {gameConstants.game_end_score} VPs. 
+                    You get VPs from a variety of sources:
+                    <ul>
+                        <li>{gameConstants.unit_kill_reward} VP per unit killed</li>
+                        <li>{gameConstants.city_capture_reward} VP per city captured that wasn't previously controlled by you</li>
+                        <li>{gameConstants.camp_clear_reward} VP per barbarian camp cleared</li>
+                        <li>{gameConstants.tech_vp_reward} VP per tech researched</li>
+                        <li>Some buildings give you VPs for building them (almost all wonders give 5 VP, and a few basic buildings give you 1 VP and have no other abilities)</li>
+                        <li>Whenever a player enters decline, all other players get {gameConstants.survival_bonus} VP</li>
+                        <li>When a player's city "revolts" and becomes part of a new player's civilization, that player is compensated with a pile of victory points; 5 VP + 1 VP per (between 10 and 30ish depending on turn number) city base yields + 1 VP per unit stolen</li>
+                    </ul>
+                </DialogContentText>
+                <br />
+                <DialogContentText>
+                    <b>Unit movement and combat</b>
+                </DialogContentText>
+                <DialogContentText>
+                    You don't have fine-grained control over your units in this game. Instead, you set two "targets" on the map, repesented by flags. Your units will attack-move to those flags, and choose whichever of the two
+                    is closer. If a unit is adjacent to an enemy unit, it will attack that unit. When two units fight, they each deal damage to the other according to a complicated function of their respective strengths, meant to 
+                    approximately imitate what would happen in Civ 5 or other games with this system. Ranged units don't take damage back when they attack. If you occupy an enemy city or a camp, that city or camp is now "under siege"
+                    (and will appear as on fire); if you then occupy it for a second turn in a row, you'll capture the city or clear the camp. Cities don't take any damage or population loss from being captured. Barbarian camps spawn a 
+                    Warrior unit every other turn.
+                </DialogContentText>
+            </DialogContent>
+
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
 export const FocusSelectorTitle = ({ title }) => {
     return (
         <div 
@@ -183,6 +288,10 @@ export default function GamePage() {
     const [techListDialogOpen, setTechListDialogOpen] = useState(false);
 
     const animationRunIdRef = React.useRef(null);
+
+    const [gameConstants, setGameConstants] = useState(null);
+
+    const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
 
     const gameStateExistsRef = React.useRef(false);
 
@@ -1835,6 +1944,10 @@ export default function GamePage() {
         fetch(`${URL}/api/building_templates`)
             .then(response => response.json())
             .then(data => setBuildingTemplates(data));
+        
+        fetch(`${URL}/api/game_constants`)
+            .then(response => response.json())
+            .then(data => setGameConstants(data));
     }, [])
 
 
@@ -2442,9 +2555,18 @@ export default function GamePage() {
                         })}
                     </Layout>         
                     </HexGrid>
-                    {!hoveredCiv && <Button onClick={() => setSettingsDialogOpen(!settingsDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', right: '10px', bottom: '10px'}}>
-                        Settings
-                    </Button>}
+                    {!hoveredCiv && <Grid container direction="row" spacing={2} style={{position: 'fixed', right: '10px', bottom: '10px'}}>
+                            <Grid item>
+                                <Button onClick={() => setRulesDialogOpen(!rulesDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', right: '130px', bottom: '10px'}}>
+                                    Rules
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Button onClick={() => setSettingsDialogOpen(!settingsDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', right: '10px', bottom: '10px'}}>
+                                    Settings
+                                </Button>
+                            </Grid>
+                        </Grid>}
                     {hoveredCiv && <CivDisplay civ={hoveredCiv} hoveredGamePlayer={hoveredGamePlayer}/>}
                     {hoveredHex && (
                         <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
@@ -2762,6 +2884,13 @@ export default function GamePage() {
                     onClose={() => setSettingsDialogOpen(false)}
                     volume={volume}
                     setVolume={setVolume}
+                />
+            )}
+            {rulesDialogOpen && (
+                <RulesDialog
+                    open={rulesDialogOpen}
+                    onClose={() => setRulesDialogOpen(false)}
+                    gameConstants={gameConstants}
                 />
             )}
         </div>
