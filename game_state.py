@@ -196,7 +196,13 @@ class GameState:
 
         for neighbor_hex in [hex, *hex.get_neighbors(self.hexes)]:
             for unit in neighbor_hex.units:
+                old_unit_civ = unit.civ
                 unit.civ = new_civ
+                
+                if old_unit_civ.game_player:
+                    old_unit_civ.game_player.score += 1
+                    old_unit_civ.game_player.score_from_revolting_cities += 1
+
             neighbor_hex.camp = None
 
         return game_player_to_return, hex.city
