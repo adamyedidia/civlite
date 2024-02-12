@@ -2627,7 +2627,7 @@ export default function GamePage() {
                             ))}
                         </div>
                     )};
-                    {selectedCity && (
+                    {selectedCity && !gameState?.special_mode_by_player_num?.[playerNum] && (
                         <div className="focus-container">
                             <FocusSelectorTitle title="City Focus" />
                             <FocusSelectionOption focus="food" isSelected={selectedCity.focus === 'food'} onClick={() => handleClickFocus('food')} />
