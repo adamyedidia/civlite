@@ -2339,7 +2339,7 @@ export default function GamePage() {
         return hex1?.q === hex2?.q && hex1?.r === hex2?.r && hex1?.s === hex2?.s;
     }
 
-    const handleClickHex = (hex) => {
+    const handleClickHex = (hex, event) => {
         if (foundingCity) {
             if (!hex?.is_foundable_by_civ?.[myCivId]) {
                 return;
@@ -2383,7 +2383,7 @@ export default function GamePage() {
                 return;
             }
 
-            if ((!hex.city) || (hex?.city?.civ?.id !== myCivId)) {
+            if ((!hex.city) || (hex?.city?.civ?.id !== myCivId) || event.shiftKey) {
                 setTarget(hex, !target1 ? false : !target2 ? true : lastSetPrimaryTarget ? true : false);
             }
         }   
@@ -2506,7 +2506,7 @@ export default function GamePage() {
                                                     hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
                                                     : 
                                                     hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
-                                            onClick={() => handleClickHex(hex)} 
+                                            onClick={(e) => handleClickHex(hex, e)} 
                                             onMouseOver={() => handleMouseOverHex(hex)}
                                             onMouseLeave={() => handleMouseLeaveHex(hex)}
                                             // ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
