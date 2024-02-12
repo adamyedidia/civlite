@@ -250,3 +250,17 @@ body {
 .focus-selection-option.selected {
   border: 2px solid black;
 }
+
+.turn-num-card {
+  border: 1px solid #ddd;
+  padding: 5px;
+  margin: 5px;
+  border-radius: 5px;
+  background-color: #ffffff;
+  max-width: 20vw; /* Adjust as needed */
+  display: flex; /* Display content in a line */
+  justify-content: space-between; /* Distribute space evenly between the elements */
+  align-items: center; /* Align items vertically in the center */
+  font-size: 1.2em; /* Smaller font size */
+  font-weight: bold; /* Make the text bold */
+}

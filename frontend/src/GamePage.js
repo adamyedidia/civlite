@@ -2646,6 +2646,11 @@ export default function GamePage() {
                         {hoveredTech && (
                             <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName}/>
                         )}
+                        {!hoveredBuilding && !hoveredUnit && !hoveredTech && <div className='turn-num-card'>
+                            <Typography variant="h4">
+                                Turn {gameState?.turn_num}
+                            </Typography>
+                        </div>}
                     </div>
                     {!animating && <div style={{
                         position: 'fixed', 

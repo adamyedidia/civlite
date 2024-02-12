@@ -158,7 +158,7 @@ class Civ:
             }, self)
 
         if self.vitality > 1:
-            self.vitality *= FAST_VITALITY_DECAY_RATE
+            self.vitality = max(self.vitality * FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE)
         else:
             self.vitality *= VITALITY_DECAY_RATE
 

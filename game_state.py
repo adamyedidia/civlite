@@ -175,7 +175,7 @@ class GameState:
 
                 total_city_yields = sum([x for x in hex.city.get_projected_yields(self).values()]) / old_civ.vitality
 
-                points_from_yields = int(total_city_yields / (10 * 1.03 ** (self.turn_num - 1)))
+                points_from_yields = int(total_city_yields / (10 * 1.025 ** (self.turn_num - 1)))
 
                 old_civ.game_player.score += points_from_yields
                 old_civ.game_player.score_from_revolting_cities += points_from_yields
