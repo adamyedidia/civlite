@@ -100,7 +100,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["science", 1],
         }],
-        "prereq": "University",
+        "prereq": "Education",
     },
     "Factory": {
         "name": "Factory",
@@ -121,7 +121,7 @@ BUILDINGS: dict[str, dict] = {
         "cost": 15,
         "abilities": [{
             "name": "IncreaseYieldsInCity",
-            "numbers": ["science", 2],
+            "numbers": ["science", 4],
         }],
         "prereq": "Compass",
     },
@@ -268,6 +268,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["food", 2],
         }],
+        "prereq": "Mechanized Agriculture",
     },
     "Internet": {
         "name": "Internet",
@@ -286,6 +287,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["science", 2],
         }],        
+        "prereq": "Computers",
     },
     "Hanging Gardens": {
         "name": "Hanging Gardens",
@@ -487,6 +489,7 @@ BUILDINGS: dict[str, dict] = {
         "cost": 350,
         "abilities": [{
             "name": "TripleCityPopulation",
+            "numbers": [],
         }],
         "is_wonder": True,
         "vp_reward": 5,

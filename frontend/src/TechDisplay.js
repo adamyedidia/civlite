@@ -5,14 +5,15 @@ import BuildingDisplay from './BuildingDisplay';
 import { Button } from '@mui/material';
 
 export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech, techTemplates, setTechListDialogOpen }) => {
+    console.log(tech);
     return (
         <div className="brief-tech-card"
-            onMouseEnter={() => setHoveredTech(techTemplates[tech.name])}
+            onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}        
         >
-            <p>Researching {tech.name}</p>
+            {tech && <p>Researching {tech.name}</p>}
             <p>You currently have: {myCiv?.science?.toFixed(1)} (+{myCiv?.projected_science_income?.toFixed(1)}) science</p>
-            <p>Cost: {tech.cost} science</p>
+            {tech && <p>Cost: {tech.cost} science</p>}
             <Button 
                 variant="contained" 
                 color="primary"

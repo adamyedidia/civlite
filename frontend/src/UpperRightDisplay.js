@@ -87,7 +87,7 @@ const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit
     return (
         <div className="upper-right-display">
             {city && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
-            {myCiv?.tech_queue?.[0] && <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} setHoveredTech={setHoveredTech} setTechListDialogOpen={setTechListDialogOpen} techTemplates={techTemplates}/>}
+            <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} setHoveredTech={setHoveredTech} setTechListDialogOpen={setTechListDialogOpen} techTemplates={techTemplates}/>
             {myCiv && <CityPowerDisplay myCiv={myCiv} />}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} />}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}

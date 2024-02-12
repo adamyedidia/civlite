@@ -214,7 +214,8 @@ class City:
 
         if self.civ.game_player:
             for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                    print(abilities)
                     for ability in abilities:
                         if ability["name"] == "ExtraVpsForCityGrowth":
                             self.civ.game_player.score += ability["numbers"][0]    
@@ -483,13 +484,13 @@ class City:
             if civ.has_ability('IncreaseYieldsForTerrain'):
                 assert self.hex
                 numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
-                for hex in [self.hex, self.hex.get_neighbors(game_state.hexes)]:
+                for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
                     if hex.terrain == numbers[1]:
                         new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                         setattr(hex.yields, numbers[0], new_value)                
 
             for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
                     for ability in abilities:
                         if ability["name"] == "ExtraVpsForCityCapture":
                             civ.game_player.score += ability["numbers"][0]
@@ -571,7 +572,14 @@ class City:
             # Make the unit queue 5 copies of the strongest unit available
             strongest_unit = None
             for unit in available_units:
-                if strongest_unit is None or UNITS[unit]['strength'] > UNITS[strongest_unit]['strength']:
+                unit_json = UNITS[unit]
+                effective_unit_strength = unit_json['strength'] if unit_json['movement'] > 0 else 0.5 * unit_json['strength']
+                if strongest_unit is not None:
+                    strongest_unit_json = UNITS[strongest_unit]
+                    effective_strongest_unit_strength = strongest_unit_json['strength'] if strongest_unit_json['movement'] > 0 else 0.5 * strongest_unit_json['strength']
+                else:
+                    effective_strongest_unit_strength = 0
+                if strongest_unit is None or effective_unit_strength > effective_strongest_unit_strength:
                     strongest_unit = unit
 
             if strongest_unit is not None:

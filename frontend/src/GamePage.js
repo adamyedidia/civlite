@@ -375,7 +375,7 @@ export default function GamePage() {
 
         try {
             let audio = new Audio(gunpowderRangedAttackSound);
-            audio.volume = 0.25 * volumeRef.current / 100;
+            audio.volume = 0.2 * volumeRef.current / 100;
             audio.play();
         } catch (error) {
             console.error('Error playing sound:', error);
@@ -2323,7 +2323,7 @@ export default function GamePage() {
         if (hex?.units?.length > 0) {
             setHoveredUnit(hex?.units?.[0]);
             setHoveredCiv(civTemplates[hex?.units?.[0]?.civ.name]);
-            setHoveredGamePlayer(hex?.city?.civ?.game_player?.username);
+            setHoveredGamePlayer(hex?.units?.[0]?.civ?.game_player?.username);
             hoveredCivPicked = true;
         }
         else {

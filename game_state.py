@@ -566,9 +566,12 @@ class GameState:
 
         decline_choice_big_civ_pool = []
 
+        civs_already_in_game = [civ.template.name for civ in self.civs_by_id.values()]
+
         for min_advancement_level in range(advancement_level_to_use, 0, -1):
             decline_choice_big_civ_pool = [civ['name'] for civ in ANCIENT_CIVS.values() 
-                                           if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level]
+                                           if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level
+                                           and civ['name'] not in civs_already_in_game]
 
             if len(decline_choice_big_civ_pool) >= num_civs_to_sample:
                 break
