@@ -666,10 +666,12 @@ ANCIENT_CIVS = {
         "abilities": [{
             "name": "ExtraVpsPerUnitKilled",
             "numbers": [1],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horse Archer", 3],
-        }],
+        }, 
+        # {
+        #     "name": "IncreasedStrengthForUnit",
+        #     "numbers": ["Horse Archer", 3],
+        # }
+        ],
         "advancement_level": 1,
     },
     "Aksum": {
@@ -776,10 +778,12 @@ ANCIENT_CIVS = {
         "abilities": [{
             "name": "ExtraVpsPerUnitKilled",
             "numbers": [1],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Swordsman", 4],
-        }],
+        }, 
+        # {
+        #     "name": "IncreasedStrengthForUnit",
+        #     "numbers": ["Swordsman", 4],
+        # }
+        ],
         "advancement_level": 2,
     },
     "Inca": {
@@ -1271,10 +1275,12 @@ ANCIENT_CIVS = {
         "abilities": [{
             "name": "ExtraVpsPerUnitKilled",
             "numbers": [1],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 7],
-        }],
+        }, 
+        # {
+        #     "name": "IncreasedStrengthForUnit",
+        #     "numbers": ["Cavalry", 7],
+        # }
+        ],
         "advancement_level": 6,
     },
     "Canada": {
