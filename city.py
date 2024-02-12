@@ -226,15 +226,15 @@ class City:
             self.food -= self.growth_cost()
             self.grow_inner(game_state)
 
-    def growth_cost(self) -> int:
-        total_growth_cost_reduction = 0
+    def growth_cost(self) -> float:
+        total_growth_cost_reduction = 0.0
 
         for building in self.buildings:
             for ability in building.template.abilities:
                 if ability.name == 'CityGrowthCostReduction':
                     total_growth_cost_reduction += ability.numbers[0]
 
-        return (BASE_FOOD_COST_OF_POP + self.population * ADDITIONAL_PER_POP_FOOD_COST) * (1 - total_growth_cost_reduction)
+        return (BASE_FOOD_COST_OF_POP + self.population * ADDITIONAL_PER_POP_FOOD_COST) * max(1 - total_growth_cost_reduction, 0.3)
 
     def handle_siege(self, sess, game_state: 'GameState') -> None:
         siege_state = self.get_siege_state(game_state)
