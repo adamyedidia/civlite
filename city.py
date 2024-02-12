@@ -403,8 +403,9 @@ class City:
             numbers = new_building.numbers_of_ability('DoubleYieldsForTerrainInCity')
             for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
                 if hex.terrain == numbers[0]:
-                    new_value = getattr(hex.yields, numbers[1]) * 2
-                    setattr(hex.yields, numbers[1], new_value)
+                    for yield_name in ['food', 'metal', 'wood', 'science']:
+                        new_value = getattr(hex.yields, yield_name) * 2
+                        setattr(hex.yields, yield_name, new_value)
 
         if new_building.has_ability('ExistingUnitsGainBonusStrength'):
             for unit in game_state.units:
