@@ -23,7 +23,7 @@ GOOD_HEX_PROBABILITY = 0.2
 
 TECH_VP_REWARD = 2
 
-GAME_END_SCORE = 400
+GAME_END_SCORE = 500
 
 DATABASE_URL = "postgresql://cl:cl@localhost:5432/cl"
 
@@ -31,7 +31,7 @@ LOCAL = False
 
 BASE_CITY_POWER_INCOME = 10.0
 
-SURVIVAL_BONUS = 20
+SURVIVAL_BONUS = 25
 
 if os.path.exists('local_settings.py'):
     from local_settings import *
