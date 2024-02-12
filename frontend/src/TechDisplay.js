@@ -4,10 +4,10 @@ import './TechDisplay.css'; // Assuming you have a separate CSS file for styling
 import BuildingDisplay from './BuildingDisplay';
 import { Button } from '@mui/material';
 
-export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech, setTechListDialogOpen }) => {
+export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech, techTemplates, setTechListDialogOpen }) => {
     return (
         <div className="brief-tech-card"
-            onMouseEnter={() => setHoveredTech(tech)}
+            onMouseEnter={() => setHoveredTech(techTemplates[tech.name])}
             onMouseLeave={() => setHoveredTech(null)}        
         >
             <p>Researching {tech.name}</p>
