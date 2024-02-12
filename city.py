@@ -432,6 +432,9 @@ class City:
         if new_building.has_ability('EndTheGame'):
             game_state.game_over = True
 
+        if new_building.has_ability('TripleCityPopulation'):
+            self.population *= 3
+
         if building_template is not None and building_template.is_wonder:
             assert isinstance(building_template, BuildingTemplate)
             game_state.handle_wonder_built(sess, self.civ, building_template, national=False)

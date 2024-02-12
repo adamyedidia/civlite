@@ -134,6 +134,11 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"The game ends when this building is completed, and the player with the most victory points wins.",
         numbers=[],
     ),
+    "TripleCityPopulation": lambda: Ability(
+        name="TripleCityPopulation",
+        description=f"Triple the population of the city upon completion.",
+        numbers=[],
+    ),
 }
 
 UNIT_ABILITIES: dict[str, Callable] = {

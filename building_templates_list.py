@@ -70,7 +70,7 @@ BUILDINGS: dict[str, dict] = {
         "cost": 20,
         "abilities": [{
             "name": "CityGrowthCostReduction",
-            "numbers": [0.4],
+            "numbers": [0.5],
         }],
         "prereq": "Construction",
     },
@@ -88,7 +88,7 @@ BUILDINGS: dict[str, dict] = {
         "cost": 15,
         "abilities": [{
             "name": "IncreaseYieldsInCity",
-            "numbers": ["metal", 2],
+            "numbers": ["metal", 4],
         }],
         "prereq": "Mathematics",
     },
@@ -109,6 +109,9 @@ BUILDINGS: dict[str, dict] = {
         "abilities": [{
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["metal", 1],
+        }, {
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["wood", 1],
         }],
         "prereq": "Industrialization",
     },
@@ -128,7 +131,7 @@ BUILDINGS: dict[str, dict] = {
         "cost": 15,
         "abilities": [{
             "name": "IncreaseYieldsInCity",
-            "numbers": ["wood", 2],
+            "numbers": ["wood", 4],
         }],
         "prereq": "Paper",
     },
@@ -257,7 +260,33 @@ BUILDINGS: dict[str, dict] = {
         "is_national_wonder": True,
         "prereq": "Chivalry",
     },
-    
+    'Industrial Farm': {
+        "name": "Industrial Farm",
+        "type": "economy",
+        "cost": 60,
+        "abilities": [{
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["food", 2],
+        }],
+    },
+    "Internet": {
+        "name": "Internet",
+        "type": "economy",
+        "cost": 100,
+        "abilities": [{
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["food", 2],
+        }, {
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["wood", 2],
+        }, {
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["metal", 2],
+        }, {
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["science", 2],
+        }],        
+    },
     "Hanging Gardens": {
         "name": "Hanging Gardens",
         "type": "economy",
@@ -451,6 +480,17 @@ BUILDINGS: dict[str, dict] = {
         "is_wonder": True,
         "vp_reward": 5,
         "prereq": "Communism",
+    },
+    "Fast Food Chains": {
+        "name": "Fast Food Chains",
+        "type": "economy",
+        "cost": 350,
+        "abilities": [{
+            "name": "TripleCityPopulation",
+        }],
+        "is_wonder": True,
+        "vp_reward": 5,
+        "prereq": "Mechanized Agriculture",
     },
     "Apollo Program": {
         "name": "Apollo Program",
