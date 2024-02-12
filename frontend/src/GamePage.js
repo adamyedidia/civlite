@@ -149,8 +149,8 @@ function RulesDialog({open, onClose, gameConstants}) {
                 </DialogContentText>
                 <DialogContentText>
                     Your civilization has a "vitality" statistic, which starts out high and then declines over time. Your civilization's starting vitality is equal 200% plus another 10% 
-                    per turn since the start of the game. Vitality declines by {Math.round((1 - gameConstants.fast_vitality_decay_rate) * 100)}% per turn when it's above 100%, and by{' '}
-                    {Math.round((1 - gameConstants.vitality_decay_rate) * 100)}% per turn when it's below 100%. Vitality is a multiplier that gets applied to your income of all resources in all your cities. 
+                    per turn since the start of the game. Vitality decays exponentially at a rate of x{gameConstants.fast_vitality_decay_rate} per turn when it's above 100%, and by{' '}
+                    x{gameConstants.vitality_decay_rate} per turn when it's below 100%. Vitality is a multiplier that gets applied to your income of all resources in all your cities. 
                 </DialogContentText>
                 <br />
                 <DialogContentText>
