@@ -16,6 +16,7 @@ import {
     DialogContentText,
     DialogActions,
     Grid,
+    TextField,
 } from '@mui/material';
 import CivDisplay from './CivDisplay';
 import CityIcon from './images/city.svg';
@@ -232,7 +233,6 @@ export const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
 }
 
 export default function GamePage() {
-
     const { gameId } = useParams();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
@@ -2836,6 +2836,18 @@ export default function GamePage() {
           }
         })
     }, [])
+
+    // if (!username) {
+    //     return (
+    //         <div>
+    //             <TextField 
+    //                 label="Username"
+    //                 value={username}
+    //                 onChange={(e) => setUsername}
+    //             />
+    //         </div>
+    //     )
+    // }
 
     const handleAddBotPlayer = () => {
         const data = {

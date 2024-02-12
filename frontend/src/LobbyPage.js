@@ -46,12 +46,14 @@ export default function LobbyPage() {
     }
 
     useEffect(() => {
+        if (username) {
         socket.emit('join', { room: 'lobby', username: username });
         fetchOpenGames();
         socket.on('updateGames', () => {
           fetchOpenGames();
       })
-    }, []);
+    }
+    }, [username]);
 
     const hostGame = () => {
         const data = {
