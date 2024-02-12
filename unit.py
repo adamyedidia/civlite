@@ -232,17 +232,24 @@ class Unit:
             neighbors = self.hex.get_neighbors(game_state.hexes)
             shuffle(neighbors)
 
+            if (self.hex.city and self.hex.city.civ.id != self.civ.id) or self.hex.camp:
+                return False
 
             for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
+                if ((neighboring_hex.city and neighboring_hex.city.civ.id != self.civ.id) or neighboring_hex.camp) and not neighboring_hex.is_occupied(self.template.type, self.civ):
+                    self.take_one_step_to_hex(neighboring_hex)
+                    coord_strs.append(neighboring_hex.coords)
+                    return True
 
-                if sensitive:
-                    my_sensitive_distance_to_target = self.hex.sensitive_distance_to(closest_target)
-                    neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(closest_target)
-                    is_better_distance = neighboring_hex_sensitive_distance_to_target < my_sensitive_distance_to_target
                 else:
-                    my_distance_to_target = self.hex.distance_to(closest_target)
-                    neighboring_hex_distance_to_target = neighboring_hex.distance_to(closest_target)
-                    is_better_distance = neighboring_hex_distance_to_target < my_distance_to_target
+                    if sensitive:
+                        my_sensitive_distance_to_target = self.hex.sensitive_distance_to(closest_target)
+                        neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(closest_target)
+                        is_better_distance = neighboring_hex_sensitive_distance_to_target < my_sensitive_distance_to_target
+                    else:
+                        my_distance_to_target = self.hex.distance_to(closest_target)
+                        neighboring_hex_distance_to_target = neighboring_hex.distance_to(closest_target)
+                        is_better_distance = neighboring_hex_distance_to_target < my_distance_to_target
 
                 if is_better_distance and not neighboring_hex.is_occupied(self.template.type, self.civ):
                     self.take_one_step_to_hex(neighboring_hex)
