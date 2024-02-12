@@ -12,7 +12,7 @@ export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech, techTemplates, s
             onMouseLeave={() => setHoveredTech(null)}        
         >
             {tech && <p>Researching {tech.name}</p>}
-            <p>You currently have: {myCiv?.science?.toFixed(1)} (+{myCiv?.projected_science_income?.toFixed(1)}) science</p>
+            {myCiv && <p>You currently have: {myCiv?.science?.toFixed(1)} (+{myCiv?.projected_science_income?.toFixed(1)}) science</p>}
             {tech && <p>Cost: {tech.cost} science</p>}
             <Button 
                 variant="contained" 
