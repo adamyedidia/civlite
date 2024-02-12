@@ -104,8 +104,8 @@ class GameState:
                 assert city.hex
                 numbers = civ.numbers_of_ability('IncreaseYieldsForTerrainNextToSecondCity')
                 for hex in [city.hex, *city.hex.get_neighbors(self.hexes)]:
-                    if hex.terrain == numbers[2]:
-                        new_value = getattr(hex.yields, numbers[0]) + numbers[1]
+                    if hex.terrain == numbers[1]:
+                        new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                         setattr(hex.yields, numbers[0], new_value)
 
         if civ.has_ability('IncreaseYieldsForTerrain'):

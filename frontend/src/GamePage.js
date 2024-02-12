@@ -2230,9 +2230,12 @@ export default function GamePage() {
         };
     
         // Darken colors if unit's civ is in decline
-        const finalPrimaryColor = unit.civ.in_decline ? darkenColor(primaryColor) : primaryColor;
-        const finalSecondaryColor = unit.civ.in_decline ? darkenColor(secondaryColor) : secondaryColor;
+        // const finalPrimaryColor = unit.civ.in_decline ? darkenColor(primaryColor) : primaryColor;
+        // const finalSecondaryColor = unit.civ.in_decline ? darkenColor(secondaryColor) : secondaryColor;
     
+        const finalPrimaryColor = primaryColor;
+        const finalSecondaryColor = secondaryColor;
+
         return (
             <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (isCityInHex ? 1 : 0)}>
                 <circle cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.5} />

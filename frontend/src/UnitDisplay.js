@@ -32,6 +32,8 @@ const UnitDisplay = ({ unit, hover }) => {
         return null;
     }
 
+    const unitAbilities = unit?.abilities?.length > 0 ? unit.abilities : unit?.template?.abilities
+
     return (
         <div className="unit-card">
             <h2>{unit?.name || unit?.template?.name}</h2>
@@ -42,9 +44,9 @@ const UnitDisplay = ({ unit, hover }) => {
             <p>Movement: {unit?.movement || unit?.template?.movement}</p>
             <p>Range: {unit?.range || unit?.template?.range}</p>
             <p>{unit?.tags?.join(', ') || unit?.template?.tags?.join(', ')}</p>
-            {(unit?.abilities || unit?.template?.abilities)?.map((ability) => {
+            {unitAbilities?.map((ability) => (
                 <p>{ability.description}</p>
-            })}
+            ))}
         </div>
     );
 };
