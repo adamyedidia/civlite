@@ -22,6 +22,7 @@ class Unit:
         self.has_moved = False
         self.hex: Optional['Hex'] = None
         self.strength = self.template.strength
+        self.has_attacked = False
 
     def has_ability(self, ability_name: str) -> bool:
         return any([ability.name == ability_name for ability in self.template.abilities])
@@ -64,7 +65,7 @@ class Unit:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
-        if self.has_moved or self.hex is None or self.get_closest_target() is None:
+        if self.has_moved or self.hex is None or self.get_closest_target() is None or self.has_attacked:
             return
         should_move_sensitively = sensitive
         starting_hex = self.hex
@@ -88,7 +89,7 @@ class Unit:
             #     self.target = target.hex
 
     def attack(self, sess, game_state: 'GameState') -> None:
-        if self.hex is None or self.get_closest_target() is None:
+        if self.hex is None or self.get_closest_target() is None or self.has_attacked:
             return
         hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
 
@@ -96,6 +97,7 @@ class Unit:
 
         if best_target is not None:
             self.fight(sess, game_state, best_target)
+            self.has_attacked = True
 
     def get_best_target(self, hexes_to_check: list['Hex']) -> Optional['Unit']:
         if self.hex is None or self.get_closest_target() is None:
@@ -292,6 +294,7 @@ class Unit:
             "coords": self.hex.coords if self.hex is not None else None,
             "strength": self.strength,
             "template": self.template.to_json(),
+            "has_attacked": self.has_attacked,
         }
     
     @staticmethod
@@ -304,5 +307,6 @@ class Unit:
         unit.health = json["health"]
         unit.has_moved = json["has_moved"]
         unit.strength = json["strength"]
+        unit.has_attacked = json["has_attacked"]
 
         return unit

@@ -501,12 +501,14 @@ class GameState:
         random.shuffle(units_copy)
         for unit in units_copy:
             unit.move(sess, self)
+            unit.attack(sess, self)
         random.shuffle(units_copy)
         for unit in units_copy:
             unit.move(sess, self, sensitive=True)
-        random.shuffle(units_copy)
-        for unit in units_copy:
             unit.attack(sess, self)
+        # random.shuffle(units_copy)
+        # for unit in units_copy:
+        #     unit.attack(sess, self)
 
         cities_copy = list(self.cities_by_id.values())
         random.shuffle(cities_copy)
@@ -525,6 +527,7 @@ class GameState:
 
         for unit in units_copy:
             unit.has_moved = False
+            unit.has_attacked = False
 
         for city in self.cities_by_id.values():
             city.adjust_projected_yields(self)

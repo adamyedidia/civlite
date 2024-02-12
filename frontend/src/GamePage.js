@@ -159,8 +159,9 @@ function RulesDialog({open, onClose, gameConstants}) {
                 <DialogContentText>
                     When your civilization's vitality has fallen too low, or things have started going badly for you, you can choose to have your civilization "enter decline." When this happens,
                     a bot takes over your current civilization, and you start a new civilization somewhere else. The way this works is that your presented with three options for new civilizations to found, in 
-                    three different cities where you can found them. The city you take over might be an existing city on the map, if you do this, you'll take over that city, and all units adjancent to that city. 
-                    That city will be your new capital. Your new civilization will start with a high vitality (200% + 10% per turn since the start of the game). You'll also start with some technologies, corresponding
+                    three different cities where you can found them. The city you take over might be an already-existing city on the map that belongs to a different player. If you choose such a city as your starting city, 
+                    that city will "revolt": you'll take over that city, and all units adjacent to that city, and the player who previously owned the city and units will be compensated with victory points. 
+                    Whatever city you choose will be your new capital. Your new civilization will start with a high vitality (200% + 10% per turn since the start of the game). You'll also start with some technologies, corresponding
                     to the median player-controlled civilization's techs. When you enter decline and start a new civilization, you are starting over from scratch, and leaving literally everything behind 
                     with just one exception: your victory points.
                 </DialogContentText>
@@ -178,7 +179,7 @@ function RulesDialog({open, onClose, gameConstants}) {
                         <li>{gameConstants.tech_vp_reward} VP per tech researched</li>
                         <li>Some buildings give you VPs for building them (almost all wonders give 5 VP, and a few basic buildings give you 1 VP and have no other abilities)</li>
                         <li>Whenever a player enters decline, all other players get {gameConstants.survival_bonus} VP</li>
-                        <li>When a player's city "revolts" and becomes part of a new player's civilization, that player is compensated with a pile of victory points; 5 VP + 1 VP per (between 10 and 30ish depending on turn number) city base yields + 1 VP per unit stolen</li>
+                        <li>When a player's city "revolts" and becomes part of a new player's civilization, that player is compensated with a pile of victory points; 5 VP + 1 VP per (between 10 and 40ish depending on turn number) city base yields + 1 VP per unit stolen</li>
                     </ul>
                 </DialogContentText>
                 <br />
