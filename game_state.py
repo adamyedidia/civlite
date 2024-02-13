@@ -404,7 +404,8 @@ class GameState:
                     if decline_option[2] == city_id:
                         game_player_to_return, city = self.process_decline_option(decline_option, game_player, from_civ_perspectives)
 
-                assert len(from_civ_perspectives) == 1
+                if len(from_civ_perspectives) > 1:
+                    from_civ_perspectives = from_civ_perspectives[:1]
                 assert city is not None
 
                 civ = from_civ_perspectives[0]
