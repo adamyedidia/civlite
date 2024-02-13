@@ -32,6 +32,7 @@ from building_templates_list import BUILDINGS
 from user import User, add_or_get_user, add_bot_users, BOT_USERNAMES
 from utils import generate_unique_id
 from redis_utils import rget_json, rset_json
+from threading import Timer
 
 # Create a logger
 logger = logging.getLogger('__name__')
@@ -84,6 +85,22 @@ def api_endpoint(func):
             return jsonify({"error": "Unexpected error"}), 500
 
     return wrapper
+
+
+def load_and_roll_turn_in_game(sess, game_id):
+    with SessionLocal() as sess:
+        game = sess.query(Game).filter(Game.id == game_id).first()
+
+        if not game:
+            return jsonify({"error": "Game not found"}), 404
+        
+        game_state = get_most_recent_game_state(sess, game_id)
+
+        game_state.roll_turn(sess)
+
+        broadcast(game_id)
+
+        return jsonify(game_state.to_json())
 
 
 @app.route('/api/host_game', methods=['POST'])
