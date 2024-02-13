@@ -2076,13 +2076,11 @@ export default function GamePage() {
     }
 
     const isFriendlyCity = (city) => {
-        const playerNum = city?.civ?.game_player?.player_num;
         if (gameState?.special_mode_by_player_num[playerNum]) {
-            console.log('returning true!')
             return true;
         }
         if (playerNum !== null && playerNum !== undefined) {
-            return city.civ.game_player.player_num == playerNum
+            return city.civ.game_player.player_num === playerNum
         }
         return false;
     }
@@ -2487,7 +2485,6 @@ export default function GamePage() {
     const displayGameState = (gameState) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes)
-        console.log(hoveredTech);
 
         return !gameState?.game_over ? (
             <>
