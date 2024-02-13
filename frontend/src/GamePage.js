@@ -2076,9 +2076,9 @@ export default function GamePage() {
     }
 
     const isFriendlyCity = (city) => {
-        if (gameState?.special_mode_by_player_num[playerNum]) {
-            return true;
-        }
+        // if (gameState?.special_mode_by_player_num[playerNum]) {
+        //     return true;
+        // }
         if (playerNum !== null && playerNum !== undefined) {
             return city?.civ?.game_player?.player_num === playerNum
         }
