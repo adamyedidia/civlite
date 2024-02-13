@@ -2080,7 +2080,7 @@ export default function GamePage() {
             return true;
         }
         if (playerNum !== null && playerNum !== undefined) {
-            return city.civ.game_player.player_num === playerNum
+            return city?.civ?.game_player?.player_num === playerNum
         }
         return false;
     }
