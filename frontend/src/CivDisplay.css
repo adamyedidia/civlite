@@ -4,7 +4,8 @@
     border-radius: 5px;
     position: fixed;
     right: 10px;
-    bottom: 10px;    
+    bottom: 10px;
+    z-index: 1000; /* Ensure it's above other elements */
 }
 
 .civ-card-inner {
