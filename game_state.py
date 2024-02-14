@@ -1,5 +1,6 @@
 from typing import Any, Optional
 from animation_frame import AnimationFrame
+from building import Building
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
@@ -161,6 +162,31 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
+        best_unit_building_available: Optional[str] = None
+        best_unit_available: Optional[str] = None
+        best_strength_so_far = 0
+
+        for tech in civ.techs:
+            print(tech)
+            if (tech_template := TECHS[tech]) and (unlocked_units := tech_template.get('unlocks_units')):
+                for unit_name in unlocked_units:
+                    if unit_name in UNITS:
+                        unit = UNITS[unit_name]
+                        unit_building = unit.get('building_name')
+
+                        if unit['strength'] > best_strength_so_far:
+                            best_unit_building_available = unit_building
+                            best_unit_available = unit_name
+                            best_strength_so_far = unit['strength']
+
+        if best_unit_building_available is not None and not any([building.template.name == best_unit_building_available for building in city.buildings]):
+            city.buildings.append(Building(unit_template=UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[best_unit_building_available]), building_template=None))
+
+        if city.hex and len(city.hex.units) == 0 and best_unit_available is not None:
+            unit = Unit(UnitTemplate.from_json(UNITS[best_unit_available]), civ)
+            unit.hex = city.hex
+            city.hex.units.append(unit)
+
         self.announcements.append(f'The civilization of {civ.moniker()} has been founded in {city.name}!')        
 
     def process_decline_option(self, decline_option: tuple[str, str, str], game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> tuple[GamePlayer, City]:
@@ -194,6 +220,7 @@ class GameState:
         else:
             hex.city.civ = new_civ
         hex.city.capitalize(self)
+        hex.city.population = max(hex.city.population, self.turn_num // 7)
         game_player_to_return = game_player
         self.civs_by_id[new_civ.id] = new_civ
         from_civ_perspectives.append(new_civ)
