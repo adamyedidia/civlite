@@ -1286,8 +1286,8 @@ ANCIENT_CIVS = {
     "Canada": {
         "name": "Canada",
         "abilities": [{
-            "name": "ExtraCityPower",
-            "numbers": [1000],
+            "name": "StartWithResources",
+            "numbers": ["science", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Infantry", 8],
@@ -1298,7 +1298,7 @@ ANCIENT_CIVS = {
         "name": "Australia",
         "abilities": [{
             "name": "StartWithResources",
-            "numbers": ["food", 60],
+            "numbers": ["food", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Bazooka", 8],
@@ -1309,7 +1309,7 @@ ANCIENT_CIVS = {
         "name": "Vietnam",
         "abilities": [{
             "name": "StartWithResources",
-            "numbers": ["wood", 60],
+            "numbers": ["wood", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Bazooka", 8],
@@ -1320,7 +1320,7 @@ ANCIENT_CIVS = {
         "name": "India",
         "abilities": [{
             "name": "StartWithResources",
-            "numbers": ["food", 120],
+            "numbers": ["food", 150],
         }],
         "advancement_level": 8,
     },
@@ -1361,7 +1361,7 @@ ANCIENT_CIVS = {
         "name": "Solaria",
         "abilities": [{
             "name": "StartWithResources",
-            "numbers": ["science", 100],
+            "numbers": ["science", 200],
         }],
         "advancement_level": 10,
     },
@@ -1369,7 +1369,7 @@ ANCIENT_CIVS = {
         "name": "Arctic Alliance",
         "abilities": [{
             "name": "StartWithResources",
-            "numbers": ["food", 300],
+            "numbers": ["food", 400],
         }],
         "advancement_level": 10,
     },
@@ -1377,7 +1377,7 @@ ANCIENT_CIVS = {
         "name": "Greater EuroZone",
         "abilities": [{
             "name": "IncreaseFocusYields",
-            "numbers": ["wood", 20],
+            "numbers": ["wood", 30],
         }],
         "advancement_level": 10,
     },
@@ -1385,7 +1385,7 @@ ANCIENT_CIVS = {
         "name": "Celestial Empire",
         "abilities": [{
             "name": "StartWithResources",
-            "numbers": ["metal", 100],
+            "numbers": ["metal", 150],
         }],
         "advancement_level": 10,
     },

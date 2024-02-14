@@ -12,11 +12,12 @@ const CityPowerDisplay = ({ myCiv }) => {
     );
 };
 
-const CivVitalityDisplay = ({ civVitality }) => {
+const CivVitalityDisplay = ({ civVitality, turnNum }) => {
     const percentage = (civVitality * 100).toFixed(1);
+    const newCivPercentage = ((2.0 + turnNum * 0.1) * 100).toFixed(1);
     return (
         <div className="civ-vitality-display">
-            <p>Civ vitality: {percentage}%</p>
+            <p>Civ vitality: {percentage}% (New civ vitality: {newCivPercentage}%)</p>
         </div>
     );
 }
@@ -83,13 +84,13 @@ const AnnouncementsDisplay = ({ announcements }) => {
     );
   };
 
-const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen }) => {
+const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen, turnNum }) => {
     return (
         <div className="upper-right-display">
             {city && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
             <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} setHoveredTech={setHoveredTech} setTechListDialogOpen={setTechListDialogOpen} techTemplates={techTemplates}/>
             {myCiv && <CityPowerDisplay myCiv={myCiv} />}
-            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} />}
+            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} />}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
             {announcements.length > 0 && <AnnouncementsDisplay announcements={announcements} />}
         </div>

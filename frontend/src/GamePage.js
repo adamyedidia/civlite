@@ -2586,6 +2586,7 @@ export default function GamePage() {
                         unitTemplates={unitTemplates}
                         announcements={gameState?.announcements}
                         setTechListDialogOpen={setTechListDialogOpen}
+                        turnNum={turnNum}
                     />}
                     {selectedCityBuildingChoices && (
                         <div className="building-choices-container">
