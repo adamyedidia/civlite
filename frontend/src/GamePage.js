@@ -2245,10 +2245,12 @@ export default function GamePage() {
         );
     };
 
-    const TargetMarker = ({ }) => {
+    const TargetMarker = ({ purple }) => {
+        console.log(purple);
+
         return (
             <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={-1.5}>
-                <image href="/images/flag.svg" x="0" y="0" height="3" width="3" />
+                <image href={purple ? "/images/purple_flag.svg" : "/images/flag.svg"} x="0" y="0" height="3" width="3" />
             </svg>
         );
     };
@@ -2549,7 +2551,7 @@ export default function GamePage() {
                                             isCityInHex={hex?.city || hex?.camp}
                                         />}
                                         {target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
-                                        {target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker />}
+                                        {target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
                                     </Hexagon>
                                 // </div>
                             );
