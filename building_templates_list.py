@@ -497,7 +497,7 @@ BUILDINGS: dict[str, dict] = {
     },
     "Apollo Program": {
         "name": "Apollo Program",
-        "type": "science",
+        "type": "economy",
         "cost": 400,
         "abilities": [{
             "name": "ExtraVpsForTechs",
@@ -507,9 +507,9 @@ BUILDINGS: dict[str, dict] = {
         "vp_reward": 5,
         "prereq": "Rocketry",
     },
-    'Artificial Intelligence': {
+    'AGI': {
         "name": "AGI",
-        "type": "science",
+        "type": "economy",
         "cost": 750,
         "abilities": [{
             "name": "EndTheGame",

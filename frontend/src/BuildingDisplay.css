@@ -59,10 +59,6 @@
     margin-top: 10px;
 }
 
-.building-card:hover {
-    border: 3px solid black; /* Thick black border on hover */
-}
-
 .brief-building-card .building-name {
     margin-right: 15px; /* Adjust as needed */
 }
