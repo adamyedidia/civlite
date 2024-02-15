@@ -17,6 +17,8 @@ import {
     DialogActions,
     Grid,
     TextField,
+    Select,
+    MenuItem,
 } from '@mui/material';
 import CivDisplay from './CivDisplay';
 import CityIcon from './images/city.svg';
@@ -294,6 +296,8 @@ export default function GamePage() {
 
     const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
 
+    const [turnTimer, setTurnTimer] = useState(-1);
+
     const gameStateExistsRef = React.useRef(false);
 
     const myGamePlayer = gameState?.game_player_by_player_num?.[playerNum];
@@ -310,6 +314,20 @@ export default function GamePage() {
     useEffect(() => {
         animationRunIdRef.current = animationRunIdUseState;
     }, [animationRunIdUseState]);
+
+    useEffect(() => {
+        const data = {
+            seconds_per_turn: turnTimer === -1 ? null : turnTimer,
+        }
+
+        fetch(`${URL}/api/set_turn_timer/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        })
+    }, [turnTimer]);
 
     useEffect(() => {
         if (gameState) {
@@ -2789,13 +2807,13 @@ export default function GamePage() {
         fetch(`${URL}/api/game_state/${gameId}?player_num=${playerNum}&turn_num=${turnNum}&frame_num=${frameNum}`)
             .then(response => response.json())
             .then(data => {
-
                 if (data.game_state) {
                     getMovie(false);
                 }
                 if (data.players) {
                     setPlayersInGame(data.players);
                 }
+                setTurnTimer(!data.turn_timer ? -1 : data.turn_timer);
             });
     
     }
@@ -2888,6 +2906,24 @@ export default function GamePage() {
             ) : 'Loading...'}
             {gameState ? displayGameState(gameState) : (
                 <Grid item container direction="column" spacing={2}>
+                    <Grid item>
+                        <Select
+                            value={turnTimer}
+                            onChange={(e) => setTurnTimer(e.target.value)}
+                            variant="outlined"
+                        >
+                            <MenuItem value={5}>5 seconds per turn</MenuItem>
+                            <MenuItem value={10}>10 seconds per turn</MenuItem>
+                            <MenuItem value={15}>15 seconds per turn</MenuItem>
+                            <MenuItem value={20}>20 seconds per turn</MenuItem>
+                            <MenuItem value={30}>30 seconds per turn</MenuItem>
+                            <MenuItem value={45}>45 seconds per turn</MenuItem>
+                            <MenuItem value={60}>60 seconds per turn</MenuItem>
+                            <MenuItem value={90}>90 seconds per turn</MenuItem>
+                            <MenuItem value={120}>2 minutes per turn</MenuItem>
+                            <MenuItem value={-1}>No timer</MenuItem>                            
+                        </Select>
+                    </Grid>
                     <Grid item>
                         <Button onClick={handleAddBotPlayer} variant="contained" style={{backgroundColor: '#880088'}}>Add Bot Player</Button>
                     </Grid>

@@ -180,6 +180,29 @@ def join_game(sess, game_id: str):
     return jsonify({'game': game.to_json(), 'player_num': player.player_num})
 
 
+@app.route('/api/set_turn_timer/<game_id>', methods=['POST'])
+@api_endpoint
+def set_turn_timer(sess, game_id: str):
+    data = request.json
+
+    seconds_per_turn = None
+    if data:    
+        seconds_per_turn = data.get('seconds_per_turn')
+
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game.seconds_per_turn = seconds_per_turn
+
+    sess.commit()
+
+    socketio.emit('update', room=game.id)  # type: ignore
+
+    return jsonify(game.to_json())
+
+
 @app.route('/api/add_bot_to_game/<game_id>', methods=['POST'])
 @api_endpoint
 def add_bot_to_game(sess, game_id: str):
@@ -382,7 +405,8 @@ def get_game_state(sess, game_id):
                 .all()
             )
 
-            return jsonify({'players': [player.user.username for player in players]})
+            return jsonify({'players': [player.user.username for player in players],
+                            "turn_timer": game.seconds_per_turn,})
 
         return jsonify({"error": "Animation frame not found"}), 404
     
@@ -734,6 +758,6 @@ if __name__ == '__main__':
     with SessionLocal() as sess:
         add_bot_users(sess)
     if LOCAL:
-        socketio.run(app, host='0.0.0.0', port=5001, debug=True)  # type: ignore
+        socketio.run(app, host='0.0.0.0', port=5002, debug=True)  # type: ignore
     else:
         socketio.run(app, host='0.0.0.0', port=5023)  # type: ignore
