@@ -32,6 +32,7 @@ from building_templates_list import BUILDINGS
 from user import User, add_or_get_user, add_bot_users, BOT_USERNAMES
 from utils import generate_unique_id
 from redis_utils import rget_json, rset_json
+from threading import Timer
 
 # Create a logger
 logger = logging.getLogger('__name__')
@@ -43,7 +44,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)
 logger.addHandler(handler)
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 CORS(app)
 
 def recurse_to_json(obj):
@@ -84,6 +85,40 @@ def api_endpoint(func):
             return jsonify({"error": "Unexpected error"}), 500
 
     return wrapper
+
+
+def load_and_roll_turn_in_game(sess, game_id, turn_num):
+    with SessionLocal() as sess:
+        game = sess.query(Game).filter(Game.id == game_id).first()
+
+        if not game:
+            return jsonify({"error": "Game not found"}), 404
+        
+        game_state = get_most_recent_game_state(sess, game_id)
+        game_state_copy = get_most_recent_game_state(sess, game_id)
+
+        for player_num in game_state_copy.game_player_by_player_num.keys():
+            staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
+            game_state_copy.update_from_player_moves(player_num, staged_moves)
+
+        # Don't end turn if someone's in decline
+        for game_player in game_state_copy.game_player_by_player_num.values():
+            if not game_player.civ_id:
+                return
+
+        if turn_num == game_state.turn_num:
+            if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
+                seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
+                next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
+
+                Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, turn_num + 1]).start()
+                game_state.next_forced_roll_at = next_forced_roll_at
+             
+            game_state.end_turn(sess)
+           
+            print('Broadcasting: ', game_id)
+            socketio.emit('update', room=game_id)  # type: ignore
+
 
 
 @app.route('/api/host_game', methods=['POST'])
@@ -161,6 +196,29 @@ def join_game(sess, game_id: str):
     socketio.emit('update', room=game.id)  # type: ignore
 
     return jsonify({'game': game.to_json(), 'player_num': player.player_num})
+
+
+@app.route('/api/set_turn_timer/<game_id>', methods=['POST'])
+@api_endpoint
+def set_turn_timer(sess, game_id: str):
+    data = request.json
+
+    seconds_per_turn = None
+    if data:    
+        seconds_per_turn = data.get('seconds_per_turn')
+
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    game.seconds_per_turn = seconds_per_turn
+
+    sess.commit()
+
+    socketio.emit('update', room=game.id)  # type: ignore
+
+    return jsonify(game.to_json())
 
 
 @app.route('/api/add_bot_to_game/<game_id>', methods=['POST'])
@@ -365,7 +423,8 @@ def get_game_state(sess, game_id):
                 .all()
             )
 
-            return jsonify({'players': [player.user.username for player in players]})
+            return jsonify({'players': [player.user.username for player in players],
+                            "turn_timer": game.seconds_per_turn,})
 
         return jsonify({"error": "Animation frame not found"}), 404
     
@@ -590,8 +649,19 @@ def end_turn(sess, game_id):
 
     turn_ended_by_player_num[player_num] = True
 
+    print('game_seconds_per_turn', game.seconds_per_turn)
+
     if game_state.turn_should_end(turn_ended_by_player_num):
+        if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
+            seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
+            next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
+
+            Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, game_state.turn_num + 1]).start()
+            game_state.next_forced_roll_at = next_forced_roll_at
+
         game_state.end_turn(sess)
+
+        print('Broadcasting from end turn: ', game_id)
         broadcast(game_id)
     else:
         rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)
@@ -717,6 +787,6 @@ if __name__ == '__main__':
     with SessionLocal() as sess:
         add_bot_users(sess)
     if LOCAL:
-        socketio.run(app, host='0.0.0.0', port=5001, debug=True)  # type: ignore
+        socketio.run(app, host='0.0.0.0', port=5002, debug=True)  # type: ignore
     else:
         socketio.run(app, host='0.0.0.0', port=5023)  # type: ignore

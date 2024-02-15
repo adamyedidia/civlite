@@ -3,6 +3,7 @@ import './UpperRightDisplay.css';
 import CityDisplay from './CityDisplay';
 import { BriefTechDisplay } from './TechDisplay';
 import { Grid, Typography } from '@mui/material';
+import Timer from './Timer';
 
 const CityPowerDisplay = ({ myCiv }) => {
     return (
@@ -26,7 +27,7 @@ const ScoreDisplay = ({ myGamePlayer }) => {
     const score = myGamePlayer?.score;
     return (
         <div className="score-display">
-            <Grid container direction="column" spacing={1}>
+            <Grid container direction="column" spacing={0}>
                 <Grid item>
                     <Typography variant="h5">You have {score} VPs</Typography>
                 </Grid>
@@ -72,8 +73,8 @@ const ScoreDisplay = ({ myGamePlayer }) => {
 
 const AnnouncementsDisplay = ({ announcements }) => {
     return (
-      <div className="announcements-display" style={{ maxHeight: '200px', overflowY: 'scroll' }}>
-        <Grid container direction="column" spacing={1}>
+      <div className="announcements-display" style={{ maxHeight: '120px', overflowY: 'scroll' }}>
+        <Grid container direction="column" spacing={0}>
           {announcements.map((announcement, index) => (
             <Grid item key={index}>
               <Typography>{announcement}</Typography>
@@ -84,9 +85,11 @@ const AnnouncementsDisplay = ({ announcements }) => {
     );
   };
 
-const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen, turnNum }) => {
+const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen, turnNum, nextForcedRollAt }) => {
+    console.log('nextForcedRollAt', nextForcedRollAt);
     return (
         <div className="upper-right-display">
+            {nextForcedRollAt && <Timer nextForcedRollAt={nextForcedRollAt} />}
             {city && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
             <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} setHoveredTech={setHoveredTech} setTechListDialogOpen={setTechListDialogOpen} techTemplates={techTemplates}/>
             {myCiv && <CityPowerDisplay myCiv={myCiv} />}

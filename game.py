@@ -14,6 +14,8 @@ class Game(Base):
 
     launched = Column(Boolean, nullable=False, default=False, server_default='f')
 
+    seconds_per_turn = Column(Integer, nullable=True)
+
     def to_json(self):
         return {
             "id": self.id,

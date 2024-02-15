@@ -5,7 +5,6 @@ import BuildingDisplay from './BuildingDisplay';
 import { Button } from '@mui/material';
 
 export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech, techTemplates, setTechListDialogOpen }) => {
-    console.log(tech);
     return (
         <div className="brief-tech-card"
             onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
