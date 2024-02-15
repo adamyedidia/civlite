@@ -44,7 +44,7 @@ handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)
 logger.addHandler(handler)
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 CORS(app)
 
 def recurse_to_json(obj):
@@ -87,7 +87,7 @@ def api_endpoint(func):
     return wrapper
 
 
-def load_and_roll_turn_in_game(sess, game_id):
+def load_and_roll_turn_in_game(sess, game_id, turn_num):
     with SessionLocal() as sess:
         game = sess.query(Game).filter(Game.id == game_id).first()
 
@@ -95,12 +95,30 @@ def load_and_roll_turn_in_game(sess, game_id):
             return jsonify({"error": "Game not found"}), 404
         
         game_state = get_most_recent_game_state(sess, game_id)
+        game_state_copy = get_most_recent_game_state(sess, game_id)
 
-        game_state.roll_turn(sess)
+        for player_num in game_state_copy.game_player_by_player_num.keys():
+            staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
+            game_state_copy.update_from_player_moves(player_num, staged_moves)
 
-        broadcast(game_id)
+        # Don't end turn if someone's in decline
+        for game_player in game_state_copy.game_player_by_player_num.values():
+            if not game_player.civ_id:
+                return
 
-        return jsonify(game_state.to_json())
+        if turn_num == game_state.turn_num:
+            if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
+                seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
+                next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
+
+                Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, turn_num + 1]).start()
+                game_state.next_forced_roll_at = next_forced_roll_at
+             
+            game_state.end_turn(sess)
+           
+            print('Broadcasting: ', game_id)
+            socketio.emit('update', room=game_id)  # type: ignore
+
 
 
 @app.route('/api/host_game', methods=['POST'])
@@ -631,8 +649,19 @@ def end_turn(sess, game_id):
 
     turn_ended_by_player_num[player_num] = True
 
+    print('game_seconds_per_turn', game.seconds_per_turn)
+
     if game_state.turn_should_end(turn_ended_by_player_num):
+        if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
+            seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
+            next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
+
+            Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, game_state.turn_num + 1]).start()
+            game_state.next_forced_roll_at = next_forced_roll_at
+
         game_state.end_turn(sess)
+
+        print('Broadcasting from end turn: ', game_id)
         broadcast(game_id)
     else:
         rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)

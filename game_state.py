@@ -74,6 +74,7 @@ class GameState:
         self.game_over = False
         self.announcements = []
         self.turn_ended_by_player_num: dict[int, bool] = {}
+        self.next_forced_roll_at: Optional[float] = None
 
     def turn_should_end(self, turn_ended_by_player_num: dict[int, bool]) -> bool:
         for player_num, game_player in self.game_player_by_player_num.items():
@@ -743,8 +744,6 @@ class GameState:
         raise Exception(f"Civ not found: {civ_name}, {self.civs_by_id}")
     
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
-        print(f'turn_ended_by_player_num:{self.game_id}')
-        print(rget_json(f'turn_ended_by_player_num:{self.game_id}') or {})
         return {
             "game_id": self.game_id,
             "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
@@ -759,6 +758,7 @@ class GameState:
             "game_over": self.game_over,
             "announcements": self.announcements[:],
             "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{self.game_id}') or {},
+            "next_forced_roll_at": self.next_forced_roll_at,
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
@@ -788,6 +788,8 @@ class GameState:
         game_state.set_civ_targets(hexes)
         game_state.game_over = json["game_over"]
         game_state.announcements = json["announcements"][:]
+        game_state.turn_ended_by_player_num = json["turn_ended_by_player_num"]
+        game_state.next_forced_roll_at = json.get("next_forced_roll_at")
         return game_state
 
 

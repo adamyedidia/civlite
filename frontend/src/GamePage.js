@@ -299,6 +299,7 @@ export default function GamePage() {
     const [turnTimer, setTurnTimer] = useState(-1);
 
     const gameStateExistsRef = React.useRef(false);
+    const firstRenderRef = React.useRef(true);
 
     const myGamePlayer = gameState?.game_player_by_player_num?.[playerNum];
     const myCivId = gameState?.game_player_by_player_num?.[playerNum]?.civ_id;
@@ -306,18 +307,13 @@ export default function GamePage() {
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
-    console.log(myCiv);
-    console.log(hoveredTech);
-
-    console.log(techTemplates);
-    
     useEffect(() => {
         animationRunIdRef.current = animationRunIdUseState;
     }, [animationRunIdUseState]);
 
-    useEffect(() => {
+    const handleChangeTurnTimer = (value) => {
         const data = {
-            seconds_per_turn: turnTimer === -1 ? null : turnTimer,
+            seconds_per_turn: value === -1 ? null : value,
         }
 
         fetch(`${URL}/api/set_turn_timer/${gameId}`, {
@@ -327,7 +323,11 @@ export default function GamePage() {
             },
             body: JSON.stringify(data),
         })
-    }, [turnTimer]);
+    }
+
+    useEffect(() => {
+        firstRenderRef.current = false;
+    }, []);
 
     useEffect(() => {
         if (gameState) {
@@ -1677,12 +1677,6 @@ export default function GamePage() {
         '20,0,-20': React.createRef(),
     });
 
-    // console.log(myCivId);
-
-    // console.log(myCiv);
-
-    console.log(gameState);
-
     // const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
 
 
@@ -2214,8 +2208,6 @@ export default function GamePage() {
     const Camp = ({ camp, isUnitInHex }) => {
         const primaryColor = 'red';
         const secondaryColor = 'black';
-
-        console.log(camp.under_siege_by_civ)
     
         return (
             <>
@@ -2264,8 +2256,6 @@ export default function GamePage() {
     };
 
     const TargetMarker = ({ purple }) => {
-        console.log(purple);
-
         return (
             <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={-1.5}>
                 <image href={purple ? "/images/purple_flag.svg" : "/images/flag.svg"} x="0" y="0" height="3" width="3" />
@@ -2605,6 +2595,7 @@ export default function GamePage() {
                         announcements={gameState?.announcements}
                         setTechListDialogOpen={setTechListDialogOpen}
                         turnNum={turnNum}
+                        nextForcedRollAt={gameState?.next_forced_roll_at}
                     />}
                     {selectedCityBuildingChoices && (
                         <div className="building-choices-container">
@@ -2813,6 +2804,7 @@ export default function GamePage() {
                 if (data.players) {
                     setPlayersInGame(data.players);
                 }
+                console.log('fetched!')
                 setTurnTimer(!data.turn_timer ? -1 : data.turn_timer);
             });
     
@@ -2909,7 +2901,7 @@ export default function GamePage() {
                     <Grid item>
                         <Select
                             value={turnTimer}
-                            onChange={(e) => setTurnTimer(e.target.value)}
+                            onChange={(e) => handleChangeTurnTimer(e.target.value)}
                             variant="outlined"
                         >
                             <MenuItem value={5}>5 seconds per turn</MenuItem>
