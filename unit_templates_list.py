@@ -359,7 +359,7 @@ UNITS = {
         "wood_cost": 45,
         "strength": 60,
         "movement": 2,
-        "range": 3,
+        "range": 1,
         "tags": ["armored"],
         "prereq": "Combined Arms",
         "abilities": [],
