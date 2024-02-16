@@ -75,6 +75,7 @@ class GameState:
         self.announcements = []
         self.turn_ended_by_player_num: dict[int, bool] = {}
         self.next_forced_roll_at: Optional[float] = None
+        self.roll_id: Optional[str] = None
 
     def turn_should_end(self, turn_ended_by_player_num: dict[int, bool]) -> bool:
         for player_num, game_player in self.game_player_by_player_num.items():
@@ -759,6 +760,7 @@ class GameState:
             "announcements": self.announcements[:],
             "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{self.game_id}') or {},
             "next_forced_roll_at": self.next_forced_roll_at,
+            "roll_id": self.roll_id,
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
@@ -790,6 +792,7 @@ class GameState:
         game_state.announcements = json["announcements"][:]
         game_state.turn_ended_by_player_num = json["turn_ended_by_player_num"]
         game_state.next_forced_roll_at = json.get("next_forced_roll_at")
+        game_state.roll_id = json.get("roll_id")
         return game_state
 
 

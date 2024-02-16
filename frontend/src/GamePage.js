@@ -2596,6 +2596,7 @@ export default function GamePage() {
                         setTechListDialogOpen={setTechListDialogOpen}
                         turnNum={turnNum}
                         nextForcedRollAt={gameState?.next_forced_roll_at}
+                        gameId={gameId}
                     />}
                     {selectedCityBuildingChoices && (
                         <div className="building-choices-container">

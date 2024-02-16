@@ -87,7 +87,7 @@ def api_endpoint(func):
     return wrapper
 
 
-def load_and_roll_turn_in_game(sess, game_id, turn_num):
+def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
     with SessionLocal() as sess:
         game = sess.query(Game).filter(Game.id == game_id).first()
 
@@ -102,17 +102,25 @@ def load_and_roll_turn_in_game(sess, game_id, turn_num):
             game_state_copy.update_from_player_moves(player_num, staged_moves)
 
         # Don't end turn if someone's in decline
+        print('roll_id', roll_id, game_state.roll_id)
+
         for game_player in game_state_copy.game_player_by_player_num.values():
+            print(game_player.username, game_player.civ_id)
+
             if not game_player.civ_id:
                 return
 
-        if turn_num == game_state.turn_num:
+        print('roll_id', roll_id, game_state.roll_id)
+
+        if turn_num == game_state.turn_num and roll_id == game_state.roll_id:
             if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
                 seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
                 next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
+                new_roll_id = generate_unique_id()
 
-                Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, turn_num + 1]).start()
+                Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, turn_num + 1, new_roll_id]).start()
                 game_state.next_forced_roll_at = next_forced_roll_at
+                game_state.roll_id = new_roll_id
              
             game_state.end_turn(sess)
            
@@ -304,6 +312,7 @@ def _launch_game_inner(sess, game: Game) -> None:
             civ.vitality = STARTING_CIV_VITALITY
             starting_city.hex.city = starting_city
             starting_civs_for_players[player_num] = [civ]
+            game_player.civ_id = civ.id
 
         else:
             starting_civs_for_players[player_num] = []
@@ -655,9 +664,14 @@ def end_turn(sess, game_id):
         if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
             seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
             next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
+            new_roll_id = generate_unique_id()
 
-            Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, game_state.turn_num + 1]).start()
+            print('new_roll_id', new_roll_id)
+
+            Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, game_state.turn_num + 1, new_roll_id]).start()
             game_state.next_forced_roll_at = next_forced_roll_at
+            game_state.roll_id = new_roll_id
+            print(game_state.roll_id)
 
         game_state.end_turn(sess)
 
@@ -665,6 +679,35 @@ def end_turn(sess, game_id):
         broadcast(game_id)
     else:
         rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)
+
+    return jsonify({})
+
+
+@app.route('/api/pause/<game_id>', methods=['POST'])
+@api_endpoint
+def pause_game(sess, game_id):
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    most_recent_game_state_animation_frame = (
+        sess.query(AnimationFrame)
+        .filter(AnimationFrame.game_id == game_id)
+        .filter(AnimationFrame.player_num == None)
+        .order_by(AnimationFrame.turn_num.desc())
+        .order_by(AnimationFrame.frame_num.desc())
+        .first()
+    )
+
+    game_state = GameState.from_json(most_recent_game_state_animation_frame.game_state)
+
+    game_state.roll_id = None
+    game_state.next_forced_roll_at = None
+
+    most_recent_game_state_animation_frame.game_state = game_state.to_json()
+
+    sess.commit()
 
     return jsonify({})
 
