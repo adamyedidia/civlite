@@ -149,8 +149,8 @@ class Civ:
                                 self.game_player.score += ability["numbers"][0]    
                                 self.game_player.score_from_abilities += ability["numbers"][0]
 
-            if tech.name == 'Renaissance: when researched, multiply your civ\'s vitality by 1.5.':
-                self.vitality *= 1.5
+            if tech.name == 'Renaissance: when researched, multiply your civ\'s vitality by 1.2.':
+                self.vitality *= 1.2
 
             game_state.add_animation_frame_for_civ(sess, {
                 "type": "TechResearched",
