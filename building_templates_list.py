@@ -171,7 +171,7 @@ BUILDINGS: dict[str, dict] = {
         "cost": 30,
         "abilities": [{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 2, "mountains"],
+            "numbers": ["metal", 2, "mountain"],
         }, {
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", 2, "plains"],
