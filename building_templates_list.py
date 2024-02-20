@@ -47,7 +47,7 @@ BUILDINGS: dict[str, dict] = {
             "numbers": ["metal", 1, "hills"],
         }, {
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 1, "mountains"],
+            "numbers": ["metal", 1, "mountain"],
         }],
         "prereq": "Mining",
     },
