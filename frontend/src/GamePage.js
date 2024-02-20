@@ -2433,7 +2433,7 @@ export default function GamePage() {
                 return;
             }
 
-            if (event.shiftKey) {
+            if ((!hex.city) || (hex?.city?.civ?.id !== myCivId) || event.shiftKey) {
                 setTarget(hex, !target1 ? false : !target2 ? true : lastSetPrimaryTarget ? true : false);
             }
         }   
