@@ -284,7 +284,7 @@ UNITS = {
         "metal_cost": 30,
         "wood_cost": 25,
         "strength": 25,
-        "movement": 1,
+        "movement": 2,
         "range": 1,
         "tags": ["mounted"],
         "prereq": "Military Science",
@@ -348,7 +348,7 @@ UNITS = {
         "movement": 1,
         "range": 1,
         "tags": ["infantry", "gunpowder"],
-        "prereq": "Military Science",
+        "prereq": "Radio",
         "abilities": [],
     },
     "Tank": {
