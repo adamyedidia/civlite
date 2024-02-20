@@ -1714,9 +1714,6 @@ export default function GamePage() {
                 return description1?.value - description2?.value;
             }
         });
-        selectedCityBuildingChoices = selectedCityBuildingChoices.filter((buildingName) => {
-            return !!descriptions[buildingName];
-        })
     }
     else {
         selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices;
