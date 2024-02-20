@@ -35,6 +35,7 @@ class City:
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
         self.buildings: list[Building] = []
         self.available_buildings: list[str] = []
+        self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, int]]] = {}
         self.capital = False
         self.available_units: list[str] = []
         self.projected_food_income = 0.0
@@ -42,6 +43,7 @@ class City:
         self.projected_wood_income = 0.0
         self.projected_science_income = 0.0
         self.projected_city_power_income = 0.0
+        self.terrains_dict = {}
 
         self.handle_cleanup()
 
@@ -248,8 +250,77 @@ class City:
             else:
                 self.capture(sess, siege_state, game_state)
 
+    def populate_terrains_dict(self, game_state: 'GameState') -> None:
+        if self.hex is None:
+            return
+
+        for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+            if not hex.terrain in self.terrains_dict:
+                self.terrains_dict[hex.terrain] = 1
+            else:
+                self.terrains_dict[hex.terrain] += 1
+
     def refresh_available_buildings(self) -> None:
         self.available_buildings = [building_name for building_name in self.civ.available_buildings if not self.has_building(building_name) and not self.building_is_in_queue(building_name)]
+
+        if not self.hex:
+            return
+
+        for template in self.get_available_buildings():
+            building_template = template if isinstance(template, BuildingTemplate) else None
+            unit_template = template if isinstance(template, UnitTemplate) else None
+
+            if building_template is not None:
+                total_yields = 0
+                is_economic_building = False
+                for ability in building_template.abilities:
+                    if ability.name == 'IncreaseYieldsForTerrain':
+                        is_economic_building = True
+                        terrain = ability.numbers[2]
+                        total_yields += ability.numbers[1] * (self.terrains_dict.get(terrain) or 0)
+
+                    if ability.name == 'IncreaseYieldsInCity':
+                        is_economic_building = True
+                        total_yields += ability.numbers[1]
+
+                    if ability.name == 'IncreaseYieldsPerPopulation':
+                        is_economic_building = True
+                        total_yields += ability.numbers[1] * self.population
+
+                if is_economic_building:
+                    if total_yields > 0:
+                        self.available_buildings_to_descriptions[building_template.name] = {
+                            "type": "yield",
+                            "value": total_yields,
+                        }
+                    else:
+                        if not self.terrains_dict:
+                            self.available_buildings_to_descriptions[building_template.name] = {
+                                "type": "yield",
+                                "value": 0,
+                            }                            
+                        else:
+                            self.available_buildings = [building for building in self.available_buildings if building != building_template.name]
+
+                elif not building_template.is_wonder:
+                    self.available_buildings_to_descriptions[building_template.name] = {
+                        "type": "yield",
+                        "value": 0,
+                    }
+
+                if building_template.is_wonder:
+                    self.available_buildings_to_descriptions[building_template.name] = {
+                        "type": "wonder_cost",
+                        "value": building_template.cost,
+                    }
+
+            if unit_template is not None:
+                self.available_buildings_to_descriptions[unit_template.building_name] = {
+                    "type": "strength",
+                    "value": unit_template.strength,
+                }
+
+
 
     def refresh_available_units(self) -> None:
         self.available_units = [unit['name'] for unit in UNITS.values() if unit['building_name'] is None or self.has_production_building_for_unit(unit['name'])]
@@ -261,7 +332,7 @@ class City:
         self.refresh_available_units()
         self.refresh_available_buildings()
 
-    def get_available_buildings(self, game_state: 'GameState') -> list[Union[BuildingTemplate, UnitTemplate]]:
+    def get_available_buildings(self) -> list[Union[BuildingTemplate, UnitTemplate]]:
         building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
         buildings = [BuildingTemplate.from_json(BUILDINGS[building_name]) for building_name in self.available_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
         unit_buildings = [UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building_name]) for building_name in self.civ.available_unit_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
@@ -564,7 +635,7 @@ class City:
 
     def bot_move(self, game_state: 'GameState') -> None:
         self.focus = random.choice(['food', 'metal', 'wood', 'science'])
-        available_buildings = self.get_available_buildings(game_state)
+        available_buildings = self.get_available_buildings()
         if len(available_buildings) > 0:
             self.buildings_queue.append(random.choice(available_buildings))
         available_units = self.available_units
@@ -607,7 +678,8 @@ class City:
             "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
             "buildings": [building.to_json() for building in self.buildings],
             "available_buildings": self.available_buildings,
-            "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings(None)],  # type: ignore
+            "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
+            "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
             "capital": self.capital,
             "available_units": self.available_units,
             "projected_food_income": self.projected_food_income,
@@ -616,6 +688,7 @@ class City:
             "projected_science_income": self.projected_science_income,
             "projected_city_power_income": self.projected_city_power_income,
             "growth_cost": self.growth_cost(),
+            "terrains_dict": self.terrains_dict,
         }
 
     @staticmethod
@@ -635,6 +708,7 @@ class City:
         city.capital = json["capital"]
         city.buildings_queue = [UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building]) if building in UNITS_BY_BUILDING_NAME else BuildingTemplate.from_json(BUILDINGS[building]) for building in json["buildings_queue"]]
         city.available_buildings = json["available_buildings"][:]
+        city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.available_units = json["available_units"][:]
         city.units_queue = [UnitTemplate.from_json(UNITS[unit]) for unit in json["units_queue"]]
         city.focus = json["focus"]
@@ -643,6 +717,7 @@ class City:
         city.projected_wood_income = json["projected_wood_income"]
         city.projected_science_income = json["projected_science_income"]
         city.projected_city_power_income = json["projected_city_power_income"]
+        city.terrains_dict = json.get("terrains_dict") or {}
 
         city.handle_cleanup()
 

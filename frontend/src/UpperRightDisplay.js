@@ -86,7 +86,6 @@ const AnnouncementsDisplay = ({ announcements }) => {
   };
 
 const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen, turnNum, nextForcedRollAt, gameId }) => {
-    console.log('nextForcedRollAt', nextForcedRollAt);
     return (
         <div className="upper-right-display">
             {nextForcedRollAt && <Timer nextForcedRollAt={nextForcedRollAt} gameId={gameId}/>}

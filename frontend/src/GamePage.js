@@ -307,6 +307,8 @@ export default function GamePage() {
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
+    console.log(selectedCity);
+
     useEffect(() => {
         animationRunIdRef.current = animationRunIdUseState;
     }, [animationRunIdUseState]);
@@ -1679,8 +1681,47 @@ export default function GamePage() {
 
     // const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
 
+    const descriptions = selectedCity?.available_buildings_to_descriptions;
 
-    const selectedCityBuildingChoices = selectedCity?.available_building_names;
+    const unsortedSelectedCityBuildingChoices = selectedCity?.available_building_names;
+
+    let selectedCityBuildingChoices = [];
+
+    if (descriptions && Object.keys(descriptions).length > 0) {
+        selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices?.sort((buildingName1, buildingName2) => {
+            const description1 = descriptions[buildingName1];
+            const description2 = descriptions[buildingName2];
+        
+            const getTypeOrder = (type) => {
+                switch (type) {
+                    case 'yield':
+                        return 1;
+                    case 'wonder_cost':
+                        return 2;
+                    case 'strength':
+                        return 3;
+                    default:
+                        return 4;
+                }
+            };
+        
+            const typeOrder1 = getTypeOrder(description1?.type);
+            const typeOrder2 = getTypeOrder(description2?.type);
+        
+            if (typeOrder1 !== typeOrder2) {
+                return typeOrder1 - typeOrder2;
+            } else {
+                return description1?.value - description2?.value;
+            }
+        });
+        selectedCityBuildingChoices = selectedCityBuildingChoices.filter((buildingName) => {
+            return !!descriptions[buildingName];
+        })
+    }
+    else {
+        selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices;
+    }
+
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
     const selectedCityBuildings = selectedCity?.buildings?.map(building => building.name);
 
@@ -2602,7 +2643,7 @@ export default function GamePage() {
                         <div className="building-choices-container">
                             <BriefBuildingDisplayTitle title="Building Choices" />
                             {selectedCityBuildingChoices.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} />
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
                             ))}
                         </div>
                     )};
@@ -2610,7 +2651,7 @@ export default function GamePage() {
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCityBuildingQueue.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)}/>
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
                             ))}
                         </div>
                     )};                
@@ -2618,7 +2659,7 @@ export default function GamePage() {
                         <div className="existing-buildings-container">
                             <BriefBuildingDisplayTitle title="Existing buildings" />
                             {selectedCityBuildings.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} />
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
                             ))}
                         </div>
                     )};  

@@ -5,8 +5,6 @@ import { URL } from './settings';
 function Timer({ nextForcedRollAt, onTimerElapsed, gameId }) {
   const [secondsElapsed, setSecondsElapsed] = useState(0);
 
-  console.log(nextForcedRollAt);
-
   const handlePause = () => {
     const data = {
     }

@@ -307,6 +307,7 @@ def _launch_game_inner(sess, game: Game) -> None:
             starting_city = City(civ)
             starting_location.city = starting_city
             starting_city.hex = starting_location
+            starting_city.populate_terrains_dict(game_state)
             game_state.cities_by_id[starting_city.id] = starting_city
             game_state.civs_by_id[civ.id] = civ
             civ.vitality = STARTING_CIV_VITALITY
@@ -322,6 +323,7 @@ def _launch_game_inner(sess, game: Game) -> None:
                 starting_city = City(civ)
                 starting_location.city = starting_city
                 starting_city.hex = starting_location
+                starting_city.populate_terrains_dict(game_state)
                 game_state.cities_by_id[starting_city.id] = starting_city
                 game_state.civs_by_id[civ.id] = civ
                 civ.vitality = STARTING_CIV_VITALITY
@@ -750,7 +752,7 @@ def get_building_choices(sess, game_id, city_id):
     if not city:
         return jsonify({"error": "City not found"}), 404
 
-    building_choices = city.get_available_buildings(game_state)
+    building_choices = city.get_available_buildings()
 
     print('choices', building_choices)
 

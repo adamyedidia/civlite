@@ -101,6 +101,7 @@ class GameState:
         city.hex = hex
         city.hex.city = city
         self.cities_by_id[city_id] = city
+        city.populate_terrains_dict(self)
 
         if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
             if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
@@ -219,6 +220,7 @@ class GameState:
             city.hex = hex
             hex.city = city
             self.cities_by_id[city_id] = city
+            city.populate_terrains_dict(self)
         else:
             hex.city.civ = new_civ
         hex.city.capitalize(self)

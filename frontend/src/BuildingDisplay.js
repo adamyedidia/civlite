@@ -12,8 +12,16 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick, setHoveredBuilding }) => {
+export const BriefBuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions }) => {
     const building = unitTemplatesByBuildingName[buildingName] || buildingTemplates[buildingName];
+
+    const description = descriptions?.[buildingName];
+
+    let descriptionStr = null;
+
+    if (description?.type === 'yield' && description.value > 0) {
+        descriptionStr = ` (+${description.value})`;
+    }
 
     return (
         <div 
@@ -22,14 +30,13 @@ export const BriefBuildingDisplay = ({ buildingName, buildingTemplates, unitTemp
             onMouseEnter={() => setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => setHoveredBuilding(null)} // clear on mouse leave
         >
-            <span className="building-name">{building?.building_name || building?.name}</span>
+            <span className="building-name">{`${building?.building_name || building?.name}${descriptionStr !== null ? descriptionStr : ''}`}</span>
             <span className="building-cost">{building?.wood_cost || building?.cost} wood</span>
         </div>
     );
 };
 
 const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick }) => {
-
     return (
         unitTemplatesByBuildingName[buildingName] ? 
             <div className="building-card" onClick={onClick}>
@@ -52,7 +59,6 @@ const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuild
                     ))}
                 </ul>
             </div>
-
     );
 };
 
