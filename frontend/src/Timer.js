@@ -46,7 +46,7 @@ function Timer({ nextForcedRollAt, onTimerElapsed, gameId }) {
 
   return (
       <div className="announcements-display" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-            <Typography variant="h2" style={{ color: isTimeLow ? 'red' : 'inherit', marginLeft: '5px'}}>
+            <Typography variant="h2" style={{ color: isTimeLow ? 'red' : 'inherit', marginRight: '30px'}}>
                 {formatTime(secondsElapsed)}
             </Typography>
             <Button onClick={handlePause} variant="contained">
