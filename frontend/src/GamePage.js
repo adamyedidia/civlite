@@ -307,7 +307,38 @@ export default function GamePage() {
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
-    console.log(selectedCity);
+    const hoveredHexRef = React.useRef(hoveredHex);
+    const lastSetPrimaryTargetRef = React.useRef(lastSetPrimaryTarget);
+
+    useEffect(() => {
+        hoveredHexRef.current = hoveredHex;
+    }, [hoveredHex]);
+
+    useEffect(() => {
+        lastSetPrimaryTargetRef.current = lastSetPrimaryTarget;
+    }, [lastSetPrimaryTarget]);
+
+    // console.log(selectedCity);
+
+    // console.log(hoveredHex);
+
+    const handleContextMenu = (e) => {
+        if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
+            e.preventDefault();
+        } 
+        if (hoveredHexRef.current) {
+            setTarget(hoveredHexRef.current, !target1 ? false : !target2 ? true : lastSetPrimaryTargetRef.current ? true : false);
+        }
+    }
+
+    useEffect(() => {
+
+        document.addEventListener('contextmenu', handleContextMenu);
+
+        return () => {
+            document.removeEventListener('contextmenu', handleContextMenu);
+        };
+    }, []);
 
     useEffect(() => {
         animationRunIdRef.current = animationRunIdUseState;
@@ -2353,6 +2384,7 @@ export default function GamePage() {
     };
 
     const handleMouseLeaveHex = (hex) => {
+        setHoveredHex(null);
     };
 
     const handleMouseOverHex = (hex) => {
