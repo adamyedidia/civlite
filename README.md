@@ -16,3 +16,12 @@ To run the backend, do python app.py. You'll want python 3.9 or later. You can p
 
 To run the frontend, go to the frontend/ directory, do npm install, and then npm start.
 
+Make a file called local_settings.py in the root directory, and add `LOCAL = True` to it.
+
+Make a file called .env.local in the frontend/ directory, and add:
+
+`REACT_APP_URL=http://127.0.0.1:5002`
+`REACT_APP_LOCAL='true'`
+
+to it.
+
