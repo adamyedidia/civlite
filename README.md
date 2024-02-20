@@ -21,6 +21,7 @@ Make a file called local_settings.py in the root directory, and add `LOCAL = Tru
 Make a file called .env.local in the frontend/ directory, and add:
 
 `REACT_APP_URL=http://127.0.0.1:5002`
+
 `REACT_APP_LOCAL='true'`
 
 to it.
