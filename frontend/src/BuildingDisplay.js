@@ -36,7 +36,7 @@ export const BriefBuildingDisplay = ({ buildingName, buildingTemplates, unitTemp
     );
 };
 
-const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick }) => {
+const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, disabledMsg, onClick }) => {
     return (
         unitTemplatesByBuildingName[buildingName] ? 
             <div className="building-card" onClick={onClick}>
@@ -47,7 +47,8 @@ const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuild
                 </div>
             </div>
             :
-            <div className="building-card" onClick={onClick}>
+            <div className={`building-card ${disabledMsg ? 'wonder-disabled' : ''}`} onClick={onClick}>
+                {disabledMsg && <p class='wonder-disabled-msg'>{disabledMsg}</p>}
                 <h2>{buildingTemplates[buildingName]?.name}</h2>
                 <p>Cost: {buildingTemplates[buildingName]?.cost} wood</p>
                 {buildingTemplates[buildingName]?.vp_reward && <p>VP reward: {buildingTemplates[buildingName]?.vp_reward}</p>}

@@ -2725,7 +2725,7 @@ export default function GamePage() {
                             <UnitDisplay unit={hoveredUnit} />
                         )}
                         {hoveredTech && (
-                            <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName}/>
+                            <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
                         )}
                         {!hoveredBuilding && !hoveredUnit && !hoveredTech && <div className='turn-num-card'>
                             <Typography variant="h4">
@@ -2998,7 +2998,7 @@ export default function GamePage() {
             {techChoices && (
                 <div className="tech-choices-container">
                     {techChoices.map((tech, index) => (
-                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} onClick={() => handleClickTech(tech)} />
+                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(tech)} />
                     ))}
                 </div>
             )}
