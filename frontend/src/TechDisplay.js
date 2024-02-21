@@ -26,7 +26,7 @@ export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech, techTemplates, s
 
 // const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick }) => {
 
-const TechDisplay = ({ tech, unitTemplates, buildingTemplates, unitTemplatesByBuildingName, onClick }) => {
+const TechDisplay = ({ tech, unitTemplates, buildingTemplates, unitTemplatesByBuildingName, gameState, onClick }) => {
     return (
         <div 
             className="tech-card" 
@@ -41,7 +41,14 @@ const TechDisplay = ({ tech, unitTemplates, buildingTemplates, unitTemplatesByBu
             </div>
             <div className="unlocked-units">
                 {tech.unlocks_buildings && tech.unlocks_buildings.map((buildingName, index) => (
-                    <BuildingDisplay key={index} buildingName={buildingName} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} onClick={() => {}} />
+                    <BuildingDisplay 
+                        key={index} 
+                        buildingName={buildingName} 
+                        buildingTemplates={buildingTemplates} 
+                        unitTemplatesByBuildingName={unitTemplatesByBuildingName} 
+                        disabledMsg={gameState.wonders_built_to_civ_id.hasOwnProperty(buildingName) ? `==  Built by ${gameState.civs_by_id[gameState.wonders_built_to_civ_id[buildingName]].name}  ==` : ""} 
+                        onClick={() => {}} 
+                    />
                 ))}
             </div>
         </div>
