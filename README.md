@@ -18,6 +18,8 @@ Do CTRL-D to leave the shell.
 
 Then run `alembic upgrade head`` to run the alembic migrations. You'll need to pip install alembic if you don't already have it.
 
+1.5 Install redis. If you are on windows this is a bit of a nightmare involving WSL, good luck.
+
 2. Local configs
 * Make a file called local_settings.py in the root directory, and add `LOCAL = True` to it.
 * Make a file called .env.local in the frontend/ directory, and add:
