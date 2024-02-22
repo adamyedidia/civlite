@@ -2692,6 +2692,7 @@ export default function GamePage() {
                         gamePlayerByPlayerNum={gameState?.game_player_by_player_num}
                         turnEndedByPlayerNum={turnEndedByPlayerNum}
                         animating={animating}
+                        isHoveredHex={!!hoveredHex}
                     />}
                     {<UpperRightDisplay 
                         city={selectedCity || hoveredCity} 
