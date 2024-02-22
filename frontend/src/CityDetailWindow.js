@@ -329,7 +329,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         <div className="bar stored" style={{ width: `${foodProgressStoredDisplay}%`, }}></div>
                         <div className="bar produced" style={{ width: `${foodProgressProducedDisplay}%`}}></div>
                     <div className="food-progress-text" style={{ position: 'absolute', width: '100%', textAlign: 'center', color: 'black', fontWeight: 'bold' }}>
-                        {Math.floor(selectedCity.food + selectedCity.projected_food_income)} / {Math.floor(selectedCity.growth_cost)}
+                        {selectedCity.growth_cost} to grow
                     </div>
                     {foodProgressWillGrow && (<div className="checkmark">✅</div>)}
                     </div>
