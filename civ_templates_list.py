@@ -1017,8 +1017,8 @@ ANCIENT_CIVS = {
         }],
         "advancement_level": 4,
     },
-    "Austria": {
-        "name": "Austria",
+    "Austria-Hungary": {
+        "name": "Austria-Hungary",
         "abilities": [{
             "name": "IncreaseCapitalYields",
             "numbers": ["science", 5],
