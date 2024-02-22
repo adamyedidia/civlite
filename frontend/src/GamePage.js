@@ -21,21 +21,19 @@ import {
     MenuItem,
 } from '@mui/material';
 import CivDisplay from './CivDisplay';
-import CityIcon from './images/city.svg';
-import TechDisplay, { BriefTechDisplay } from './TechDisplay';
+import TechDisplay from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
-import CityDisplay from './CityDisplay';
-import BuildingDisplay, { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
-import UnitDisplay, {BriefUnitDisplay, BriefUnitDisplayTitle} from './UnitDisplay';
+import BuildingDisplay from './BuildingDisplay';
+import UnitDisplay from './UnitDisplay';
 import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
-import spawnSound from './sounds/spawn.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
+import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -209,10 +207,6 @@ function RulesDialog({open, onClose, gameConstants}) {
 
 const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
-}
-
-const lowercaseAndReplaceSpacesWithUnderscores = (str) => {
-    return str.toLowerCase().replace(/ /g, '_');
 }
 
 export default function GamePage() {

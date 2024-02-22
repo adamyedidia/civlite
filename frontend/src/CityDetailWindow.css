@@ -6,7 +6,6 @@
     position: fixed;
     top: 10px;
     left: 10px;
-    max-height: 70%;
 }
 .city-detail-header {
   display: flex;
@@ -26,11 +25,17 @@
     display: flex; /* So that the columns are horizontally adjacent. */
 }
 .city-detail-column {
-  padding: 5px
+  padding: 5px;
 }
 
 .city-detail-panel {
     padding: 20px 5px 20px 5px;
+
+    /* 
+    Had to add this width explicitly so that later things that are 100% know what to be 100% of. 
+    The value is just what it turned out to be when it was not set.
+    */
+    width: 304px; 
 }
 
 .panel-icon img {
@@ -193,28 +198,31 @@
 }
 
 .unit-choices-container {
-  /* display: flex; */
-  justify-content: center;
-  align-items: center;
-  /* gap: 5px; */
+  display: flex;
+  gap: 5px;
 
-  /* transform: translate(-50%, -50%); */
   overflow-y: auto; /* Enable vertical scrolling */
-  flex-direction: column;
-  margin-bottom: 50px;
+  margin-bottom: 10px;
 }
 
 .unit-queue-container {
-  /* display: flex; */
-  justify-content: center;
-  align-items: center;
-  /* gap: 5px; */
-
-  /* transform: translate(-50%, -50%); */
-  overflow-y: auto; /* Enable vertical scrolling */
-  flex-direction: column;
-  margin-bottom: 50px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 100%;
+  gap: 5px;
 }
+
+.unit-choice {
+  cursor: pointer; /* Change cursor to indicate clickable */
+}
+
+.unit-choice:hover {
+  background-color: #f0f0f0; /* Light grey background on hover */
+  transform: scale(1.05); /* Slightly increase size to indicate selection */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
+}
+
 
 .focus-selection-option {
   text-transform: capitalize;

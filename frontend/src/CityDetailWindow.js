@@ -2,7 +2,7 @@ import React from 'react';
 import './CityDetailWindow.css';
 
 import { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
-import {BriefUnitDisplay, BriefUnitDisplayTitle} from './UnitDisplay';
+import {BriefUnitDisplay, BriefUnitDisplayTitle, IconUnitDisplay} from './UnitDisplay';
 import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
@@ -343,20 +343,29 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                 <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
                     {selectedCityUnitChoices && (
                         <div className="unit-choices-container">
-                            <BriefUnitDisplayTitle title="Unit Choices" />
                             {selectedCityUnitChoices.map((unitName, index) => (
-                                <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)} />
+                                <div className='unit-choice'>
+                                    <IconUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)}
+                                        style={{borderRadius: '25%'}} />
+                                    <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px"}}>
+                                        {unitTemplates[unitName].metal_cost}
+                                        <img src={metalImg} height="10px"/>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     )}
-                    {selectedCityUnitQueue && (
-                        <div className="unit-queue-container">
-                            <BriefUnitDisplayTitle title="Unit Queue" />
-                            {selectedCityUnitQueue.map((unitName, index) => (
-                                <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
-                            ))}
+                    {selectedCityUnitQueue && 
+                        <div>
+                            <h2> Unit Queue </h2>
+                            <div className="unit-queue-container">
+                                
+                                {selectedCityUnitQueue.map((unitName, index) => (
+                                    <IconUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
+                                ))}
+                            </div>
                         </div>
-                    )}
+                    }
                 </CityDetailPanel>
             </div>
             </div>
