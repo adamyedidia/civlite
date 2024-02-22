@@ -88,8 +88,10 @@ const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFoc
     switch (title) {
         case 'science':
             totalAmountTooltip = `${projected_total_rounded_2} ${title} produced by this city.`
+            break;
         case 'food':
             totalAmountTooltip = `${projected_total_rounded_2} ${title} after this turn.`
+            break;
         default:
             totalAmountTooltip = `${projected_total_rounded_2} ${title} available to spend this turn.`
     }
@@ -121,7 +123,7 @@ const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFoc
     );
 }
 
-const CityDetailWindow = ({ gameState, myCivTemplate, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
+const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
     selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
     selectedCityUnitChoices, selectedCityUnitQueue, selectedCity,
     unitTemplatesByBuildingName, buildingTemplates, unitTemplates, descriptions,
@@ -133,6 +135,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, playerNum, playerApiUrl, s
     }
 
     const handleClickBuildingChoice = (buildingName) => {
+        if (declinePreviewMode) return;
         const playerInput = {
             'building_name': (buildingName),
             'move_type': 'choose_building',
@@ -162,6 +165,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, playerNum, playerApiUrl, s
     }
 
     const handleCancelBuilding = (buildingName) => {
+        if (declinePreviewMode) return;
         const playerInput = {
             'building_name': (buildingName),
             'move_type': 'cancel_building',
@@ -191,6 +195,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, playerNum, playerApiUrl, s
     }
 
     const handleClickUnitChoice = (unitName) => {
+        if (declinePreviewMode) return;
         const playerInput = {
             'unit_name': (unitName),
             'move_type': 'choose_unit',
@@ -218,6 +223,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, playerNum, playerApiUrl, s
     }
 
     const handleCancelUnit = (unitIndex) => {
+        if (declinePreviewMode) return;
         const playerInput = {
             'unit_index_in_queue': unitIndex,
             'move_type': 'cancel_unit',
@@ -245,6 +251,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, playerNum, playerApiUrl, s
     }
     
     const handleClickFocus = (focus) => {
+        if (declinePreviewMode) return;
         const playerInput = {
             'city_id': selectedCity.id,
             'focus': focus,
@@ -283,6 +290,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, playerNum, playerApiUrl, s
                 <h1 style={{ margin: '0', display: 'flex' }}>
                     <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
                     {selectedCity.name}
+                    {declinePreviewMode ? " (preview)": ""}
                 </h1>
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
             </div>
