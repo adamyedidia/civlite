@@ -54,14 +54,14 @@ const TextOnIcon = ({ image, style, children, tooltip }) => {
     );
 }
 
-const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
+const FocusSelectionOption = ({ focus, amount, onClick, isSelected }) => {
     return (
         <div
             className={`focus-selection-option ${focus} ${isSelected ? 'selected' : ''}`}
             onClick={onClick}
         >
-            <TextOnIcon image={workerImg}>
-                {/* TODO(dfarhi) Get the amount contributed by focus*/}
+            <TextOnIcon image={workerImg} tooltip={isSelected ? `+${amount.toFixed(2)} ${focus} from city focus` : "Click to focus"}>
+                {amount.toFixed(1)}
             </TextOnIcon>
         </div>
     );
@@ -70,8 +70,10 @@ const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
 const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFocus, children }) => {
     
     const storedAmount = selectedCity[title]
-    const projected_income = selectedCity[`projected_${title}_income`]
-    const projected_total = title == 'science' ? projected_income : storedAmount + projected_income
+    const projected_income_total = selectedCity[`projected_income`][title]
+    const projected_income_base = selectedCity['projected_income_base'][title]
+    const projected_income_focus = selectedCity['projected_income_focus'][title]
+    const projected_total = title == 'science' ? projected_income_total : storedAmount + projected_income_total
     const projected_total_rounded = Math.floor(projected_total) 
     let projected_total_display;
     switch (title) {
@@ -112,8 +114,9 @@ const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFoc
                     =
                     <TextOnIcon image={crateImg} style={storedStyle} tooltip={hideStored ? null : `${storedAmount.toFixed(2)} ${title} stored from last turn.`}> {roundValue(storedAmount)} </TextOnIcon>
                     <div>+</div>
-                    <TextOnIcon image={hexesImg} tooltip={`${projected_income.toFixed(2)} ${title} produced this turn.`}> {roundValue(projected_income)} </TextOnIcon>
-                    <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} onClick={() => handleClickFocus(title)} />
+                    <TextOnIcon image={hexesImg} tooltip={`${projected_income_base.toFixed(2)} ${title} produced this turn without focus.`}> {roundValue(projected_income_base)} </TextOnIcon>
+                    +
+                    <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} amount={projected_income_focus} onClick={() => handleClickFocus(title)} />
                 </div>
             </div>
             <div className="panel-content">
@@ -278,7 +281,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     }
 
     const foodProgressStored = selectedCity.food / selectedCity.growth_cost;
-    const foodProgressProduced = selectedCity.projected_food_income / selectedCity.growth_cost;
+    const foodProgressProduced = selectedCity.projected_income['food'] / selectedCity.growth_cost;
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100)).toString()
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay).toString()
     const foodProgressWillGrow = foodProgressStored + foodProgressProduced > 1

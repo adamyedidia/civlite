@@ -264,6 +264,14 @@
   position: relative;
 }
 
+.focus-selection-option:not(.selected) {
+  opacity: 0.25; /* Grey out the option when not selected */
+}
+
+.focus-selection-option:not(.selected):hover {
+  opacity: 1; /* Reset opacity to full when not selected but hovered */
+}
+
 .focus-selection-option.selected::after {
   content: '';
   position: absolute;
@@ -275,4 +283,5 @@
   border: 6px dashed;
   border-color: inherit;
   animation: rotateDash 6s linear infinite;
+  pointer-events: none;
 }

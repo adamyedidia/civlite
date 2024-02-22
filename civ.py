@@ -55,8 +55,8 @@ class Civ:
 
         for city in game_state.cities_by_id.values():
             if city.civ.id == self.id:
-                self.projected_science_income += city.projected_science_income
-                self.projected_city_power_income += city.projected_city_power_income
+                self.projected_science_income += city.projected_income['science']
+                self.projected_city_power_income += city.projected_income['city_power']
 
     def to_json(self) -> dict:
         return {
