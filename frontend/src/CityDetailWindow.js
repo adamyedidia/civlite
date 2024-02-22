@@ -287,10 +287,11 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     const foodProgressWillGrow = foodProgressStored + foodProgressProduced > 1
 
     let metalAvailable = selectedCity.metal + selectedCity.projected_income['metal']
-    let unitQueueMaxIndexFinishing = -1;
+    let unitQueueMaxIndexFinishing = 9999;
     for (let index = 0; index < selectedCityUnitQueue.length; index++) {
         const unitName = selectedCityUnitQueue[index];
         const unitMetalCost = unitTemplates[unitName].metal_cost;
+        console.log(unitName, metalAvailable, unitMetalCost)
         metalAvailable -= unitMetalCost;
         if (metalAvailable < 0) {
             unitQueueMaxIndexFinishing = index - 1;
