@@ -286,6 +286,18 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay).toString()
     const foodProgressWillGrow = foodProgressStored + foodProgressProduced > 1
 
+    let metalAvailable = selectedCity.metal + selectedCity.projected_income['metal']
+    let unitQueueMaxIndexFinishing = -1;
+    for (let index = 0; index < selectedCityUnitQueue.length; index++) {
+        const unitName = selectedCityUnitQueue[index];
+        const unitMetalCost = unitTemplates[unitName].metal_cost;
+        metalAvailable -= unitMetalCost;
+        if (metalAvailable < 0) {
+            unitQueueMaxIndexFinishing = index - 1;
+            break;
+        }
+    }
+
     return (
         <div className="city-detail-window" 
             style={{borderColor: myCivTemplate.secondary_color}}>
@@ -359,9 +371,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         <div>
                             <h2> Unit Queue </h2>
                             <div className="unit-queue-container">
-                                
                                 {selectedCityUnitQueue.map((unitName, index) => (
-                                    <IconUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
+                                    <IconUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}
+                                        style={{opacity: `${index > unitQueueMaxIndexFinishing ? 0.25 : 1.0}`}}/>
                                 ))}
                             </div>
                         </div>
