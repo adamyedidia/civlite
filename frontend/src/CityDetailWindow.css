@@ -7,13 +7,12 @@
     position: fixed;
     top: 10px;
     left: 10px;
-    max-width: 30%;
     max-height: 70%;
+    display: flex; /* So that the columns are horizontally adjacent. */
 }
 
 .city-detail-panel {
-    margin: 5px 5px 30px 5px;
-    border-radius: 5px;
+    padding: 20px 5px 20px 5px;
 }
 
 .panel-icon img {
@@ -66,6 +65,8 @@
 .panel-content{
     border: 8px solid;
     padding: 5px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
 }
 
 .wood-area .panel-content {
@@ -138,6 +139,7 @@
   max-height: 27%; /* Adjust as needed */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
+  margin-bottom: 50px;
 }
 
 .building-queue-container {
@@ -148,6 +150,7 @@
   /* transform: translate(-50%, -50%); */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
+  margin-bottom: 50px;
 }
 
 .existing-buildings-container {
@@ -158,6 +161,7 @@
   /* transform: translate(-50%, -50%); */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
+  margin-bottom: 50px;
 }
 
 .unit-choices-container {
@@ -169,6 +173,7 @@
   /* transform: translate(-50%, -50%); */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
+  margin-bottom: 50px;
 }
 
 .unit-queue-container {
@@ -180,46 +185,7 @@
   /* transform: translate(-50%, -50%); */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
-}
-
-.focus-container {
-  /* display: flex; */
-  justify-content: center;
-  align-items: center;
-  /* gap: 5px; */
-
-  /* transform: translate(-50%, -50%); */
-  z-index: 1000; /* Ensure it's above other elements */
-  overflow-y: auto; /* Enable vertical scrolling */
-  flex-direction: column; 
-}
-
-.existing-units-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* gap: 5px; */
-  position: fixed;
-  top: 60%;
-  left: 20%;
-  /* transform: translate(-50%, -50%); */
-  z-index: 1000; /* Ensure it's above other elements */
-  overflow-y: auto; /* Enable vertical scrolling */
-  flex-direction: column;
-}
-
-.focus-title-card {
-  border: 1px solid #ddd;
-  padding: 5px;
-  margin: 5px;
-  border-radius: 5px;
-  background-color: #bbbbbb;
-  max-width: 20vw; /* Adjust as needed */
-  display: flex; /* Display content in a line */
-  justify-content: space-between; /* Distribute space evenly between the elements */
-  align-items: center; /* Align items vertically in the center */
-  font-size: 1.2em; /* Smaller font size */
-  font-weight: bold; /* Make the text bold */
+  margin-bottom: 50px;
 }
 
 .focus-selection-option {

@@ -233,63 +233,67 @@ const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, re
 
     return (
         <div className="city-detail-window">
-            <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
-                <div className="food-progress-bar">
-                    <div className="bar stored" style={{ width: `${foodProgressStoredDisplay}%`, }}></div>
-                    <div className="bar produced" style={{ width: `${foodProgressProducedDisplay}%`}}></div>
-                <div className="food-progress-text" style={{ position: 'absolute', width: '100%', textAlign: 'center', color: 'black', fontWeight: 'bold' }}>
-                    {Math.floor(selectedCity.food + selectedCity.projected_food_income)} / {Math.floor(selectedCity.growth_cost)}
-                </div>
-                {foodProgressWillGrow && (<div className="checkmark">✅</div>)}
-                </div>
-            </CityDetailPanel>
-            <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
-                {selectedCityBuildingChoices && (
-                    <div className="building-choices-container">
-                        <BriefBuildingDisplayTitle title="Building Choices" />
-                        {selectedCityBuildingChoices.map((buildingName, index) => (
-                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
-                        ))}
+            <div className="city-detail-column">
+                <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                    {selectedCityBuildingChoices && (
+                        <div className="building-choices-container">
+                            <BriefBuildingDisplayTitle title="Building Choices" />
+                            {selectedCityBuildingChoices.map((buildingName, index) => (
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
+                            ))}
+                        </div>
+                    )}
+                    {selectedCityBuildingQueue && (
+                        <div className="building-queue-container">
+                            <BriefBuildingDisplayTitle title="Building Queue" />
+                            {selectedCityBuildingQueue.map((buildingName, index) => (
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
+                            ))}
+                        </div>
+                    )}               
+                    {selectedCityBuildings && (
+                        <div className="existing-buildings-container">
+                            <BriefBuildingDisplayTitle title="Existing buildings" />
+                            {selectedCityBuildings.map((buildingName, index) => (
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
+                            ))}
+                        </div>
+                    )}
+                </CityDetailPanel>
+            </div>
+            <div className="city-detail-column">
+                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                    <div className="food-progress-bar">
+                        <div className="bar stored" style={{ width: `${foodProgressStoredDisplay}%`, }}></div>
+                        <div className="bar produced" style={{ width: `${foodProgressProducedDisplay}%`}}></div>
+                    <div className="food-progress-text" style={{ position: 'absolute', width: '100%', textAlign: 'center', color: 'black', fontWeight: 'bold' }}>
+                        {Math.floor(selectedCity.food + selectedCity.projected_food_income)} / {Math.floor(selectedCity.growth_cost)}
                     </div>
-                )}
-                {selectedCityBuildingQueue && (
-                    <div className="building-queue-container">
-                        <BriefBuildingDisplayTitle title="Building Queue" />
-                        {selectedCityBuildingQueue.map((buildingName, index) => (
-                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
-                        ))}
+                    {foodProgressWillGrow && (<div className="checkmark">✅</div>)}
                     </div>
-                )}               
-                {selectedCityBuildings && (
-                    <div className="existing-buildings-container">
-                        <BriefBuildingDisplayTitle title="Existing buildings" />
-                        {selectedCityBuildings.map((buildingName, index) => (
-                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
-                        ))}
-                    </div>
-                )}
-            </CityDetailPanel>
-            <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
-                {selectedCityUnitChoices && (
-                    <div className="unit-choices-container">
-                        <BriefUnitDisplayTitle title="Unit Choices" />
-                        {selectedCityUnitChoices.map((unitName, index) => (
-                            <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)} />
-                        ))}
-                    </div>
-                )}
-                {selectedCityUnitQueue && (
-                    <div className="unit-queue-container">
-                        <BriefUnitDisplayTitle title="Unit Queue" />
-                        {selectedCityUnitQueue.map((unitName, index) => (
-                            <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
-                        ))}
-                    </div>
-                )}
-            </CityDetailPanel>
-            <CityDetailPanel title='science' icon={scienceImg} hideStored='true' selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                </CityDetailPanel>
+                <CityDetailPanel title='science' icon={scienceImg} hideStored='true' selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
 
-            </CityDetailPanel>
+                </CityDetailPanel>
+                <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                    {selectedCityUnitChoices && (
+                        <div className="unit-choices-container">
+                            <BriefUnitDisplayTitle title="Unit Choices" />
+                            {selectedCityUnitChoices.map((unitName, index) => (
+                                <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)} />
+                            ))}
+                        </div>
+                    )}
+                    {selectedCityUnitQueue && (
+                        <div className="unit-queue-container">
+                            <BriefUnitDisplayTitle title="Unit Queue" />
+                            {selectedCityUnitQueue.map((unitName, index) => (
+                                <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
+                            ))}
+                        </div>
+                    )}
+                </CityDetailPanel>
+            </div>
         </div>
     );
 };
