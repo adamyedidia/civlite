@@ -17,10 +17,41 @@ const roundValue = (value) => {
 };
 
 
-const NumberOnImage = ({image, style, children}) => {
-    return  <div className="icon-bg-text" style={{ ...style, backgroundImage: `url(${image})`}}>                          
-                <span style={{ textAlign: 'center' }}>{children}</span>
-            </div>
+const TextOnIcon = ({ image, style, children, tooltip }) => {
+    const tooltipRef = React.useRef(null);
+
+    const showTooltip = () => {
+        if (tooltipRef.current) {
+            tooltipRef.current.style.visibility = 'visible';
+            tooltipRef.current.style.opacity = '1';
+        }
+    };
+
+    const hideTooltip = () => {
+        if (tooltipRef.current) {
+            tooltipRef.current.style.visibility = 'hidden';
+            tooltipRef.current.style.opacity = '0';
+        }
+    };
+
+    const containerStyle = {
+        position: 'relative',
+        backgroundImage: image ? `url(${image})` : "",
+        ...style
+    };
+
+    return (
+        <div className="icon-bg-text" style={containerStyle} 
+            onMouseOver={showTooltip} onMouseOut={hideTooltip}>
+            <span style={{ textAlign: 'center' }}>{children}</span>
+            {tooltip && (
+                <div ref={tooltipRef} className="tooltip"
+                >
+                    {tooltip}
+                </div>
+            )}
+        </div>
+    );
 }
 
 const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
@@ -29,18 +60,18 @@ const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
             className={`focus-selection-option ${focus} ${isSelected ? 'selected' : ''}`}
             onClick={onClick}
         >
-            <NumberOnImage image={workerImg}>
+            <TextOnIcon image={workerImg}>
                 {/* TODO(dfarhi) Get the amount contributed by focus*/}
-            </NumberOnImage>
+            </TextOnIcon>
         </div>
     );
 }
 
 const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFocus, children }) => {
     
-    const stored = selectedCity[title]
+    const storedAmount = selectedCity[title]
     const projected_income = selectedCity[`projected_${title}_income`]
-    const projected_total = title == 'science' ? projected_income : stored + projected_income
+    const projected_total = title == 'science' ? projected_income : storedAmount + projected_income
     const projected_total_rounded = Math.floor(projected_total) 
     let projected_total_display;
     switch (title) {
@@ -52,6 +83,16 @@ const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFoc
             projected_total_display = projected_total_rounded.toString();
             break;
     }
+    const projected_total_rounded_2 = Math.floor(projected_total * 100) / 100;
+    let totalAmountTooltip;
+    switch (title) {
+        case 'science':
+            totalAmountTooltip = `${projected_total_rounded_2} ${title} produced by this city.`
+        case 'food':
+            totalAmountTooltip = `${projected_total_rounded_2} ${title} after this turn.`
+        default:
+            totalAmountTooltip = `${projected_total_rounded_2} ${title} available to spend this turn.`
+    }
 
     const storedStyle = hideStored ? { visibility: 'hidden' } : {};
 
@@ -62,14 +103,14 @@ const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFoc
                     <img src={icon}/>
                 </div>
                 <div className="amount-total">
-                    {projected_total_display}
+                    <TextOnIcon tooltip={totalAmountTooltip}>{projected_total_display}</TextOnIcon>
                 </div>
                 
                 <div className="panel-banner">
                     =
-                    <NumberOnImage image={crateImg} style={storedStyle}> {roundValue(stored)} </NumberOnImage>
+                    <TextOnIcon image={crateImg} style={storedStyle} tooltip={hideStored ? null : `${storedAmount.toFixed(2)} ${title} stored from last turn.`}> {roundValue(storedAmount)} </TextOnIcon>
                     <div>+</div>
-                    <NumberOnImage image={hexesImg}> {roundValue(projected_income)} </NumberOnImage>
+                    <TextOnIcon image={hexesImg} tooltip={`${projected_income.toFixed(2)} ${title} produced this turn.`}> {roundValue(projected_income)} </TextOnIcon>
                     <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} onClick={() => handleClickFocus(title)} />
                 </div>
             </div>
@@ -240,7 +281,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, playerNum, playerApiUrl, s
             style={{borderColor: myCivTemplate.secondary_color}}>
             <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate.primary_color}e0`}}>
                 <h1 style={{ margin: '0', display: 'flex' }}>
-                    <NumberOnImage image={workerImg}>{selectedCity.population}</NumberOnImage>
+                    <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
                     {selectedCity.name}
                 </h1>
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
