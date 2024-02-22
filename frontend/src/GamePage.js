@@ -307,8 +307,13 @@ export default function GamePage() {
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
+    const myCivIdRef = React.useRef(myCivId);
     const hoveredHexRef = React.useRef(hoveredHex);
     const lastSetPrimaryTargetRef = React.useRef(lastSetPrimaryTarget);
+    const target1Ref = React.useRef(target1);
+    const target2Ref = React.useRef(target2);
+    const playerNumRef = React.useRef(playerNum);
+    const gameStateRef = React.useRef(gameState);
 
     useEffect(() => {
         hoveredHexRef.current = hoveredHex;
@@ -318,6 +323,26 @@ export default function GamePage() {
         lastSetPrimaryTargetRef.current = lastSetPrimaryTarget;
     }, [lastSetPrimaryTarget]);
 
+    useEffect(() => {
+        target1Ref.current = target1;
+    }, [target1]);
+
+    useEffect(() => {
+        target2Ref.current = target2;
+    }, [target2]);
+
+    useEffect(() => {
+        myCivIdRef.current = myCivId;
+    }, [myCivId]);
+
+    useEffect(() => {
+        playerNumRef.current = playerNum;
+    }, [playerNum]);
+
+    useEffect(() => {
+        gameStateRef.current = gameState;
+    }, [gameState]);
+
     // console.log(selectedCity);
 
     // console.log(hoveredHex);
@@ -326,8 +351,21 @@ export default function GamePage() {
         if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
             e.preventDefault();
         } 
+
         if (hoveredHexRef.current) {
-            setTarget(hoveredHexRef.current, !target1 ? false : !target2 ? true : lastSetPrimaryTargetRef.current ? true : false);
+            setHoveredCity(null);
+
+            if (hexesAreEqual(hoveredHexRef.current, target1Ref.current)) {
+                removeTarget(false);
+                return;
+            }
+
+            if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
+                removeTarget(true);
+                return;
+            }
+
+            setTarget(hoveredHexRef.current, !target1Ref.current ? false : !target2Ref.current ? true : lastSetPrimaryTargetRef.current ? true : false);
         }
     }
 
@@ -2451,25 +2489,11 @@ export default function GamePage() {
         }
         else {
             setHoveredCity(null);
-
-            if (hexesAreEqual(hex, target1)) {
-                removeTarget(false);
-                return;
-            }
-
-            if (hexesAreEqual(hex, target2)) {
-                removeTarget(true);
-                return;
-            }
-
-            if ((!hex.city) || (hex?.city?.civ?.id !== myCivId) || event.shiftKey) {
-                setTarget(hex, !target1 ? false : !target2 ? true : lastSetPrimaryTarget ? true : false);
-            }
         }   
     };
 
     const setTarget = (hex, isSecondary) => {
-        if (!myCivId || gameState?.special_mode_by_player_num?.[playerNum]) return;
+        if (!myCivIdRef.current || gameStateRef?.current?.special_mode_by_player_num?.[playerNumRef.current]) return;
 
         if (isSecondary) {
             setLastSetPrimaryTarget(false);
@@ -2484,7 +2508,7 @@ export default function GamePage() {
         }
 
         const data = {
-            player_num: playerNum,
+            player_num: playerNumRef.current,
             player_input: playerInput,
         }
 
@@ -2505,14 +2529,14 @@ export default function GamePage() {
     }
 
     const removeTarget = (isSecondary) => {
-        if (!myCivId) return;
+        if (!myCivIdRef.current) return;
 
         const playerInput = {
             'move_type': `remove_civ_${isSecondary ? "secondary" : "primary"}_target`,
         }
 
         const data = {
-            player_num: playerNum,
+            player_num: playerNumRef.current,
             player_input: playerInput,
         }
 
