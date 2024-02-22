@@ -711,6 +711,8 @@ def pause_game(sess, game_id):
 
     sess.commit()
 
+    socketio.emit('mute_timer', {'turn_num': game_state.turn_num}, room=game_id)  # type: ignore
+
     return jsonify({})
 
 

@@ -297,6 +297,7 @@ export default function GamePage() {
     const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
 
     const [turnTimer, setTurnTimer] = useState(-1);
+    const [timerMutedOnTurn, setTimerMutedOnTurn] = useState(null);
 
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
@@ -2691,6 +2692,7 @@ export default function GamePage() {
                         turnNum={turnNum}
                         nextForcedRollAt={gameState?.next_forced_roll_at}
                         gameId={gameId}
+                        timerMuted={timerMutedOnTurn === turnNum}
                     />}
                     {selectedCityBuildingChoices && (
                         <div className="building-choices-container">
@@ -2946,6 +2948,9 @@ export default function GamePage() {
           else {
             fetchGameState();
           }
+        })
+        socket.on('mute_timer', (data) => {
+            setTimerMutedOnTurn(data.turn_num);
         })
     }, [])
 
