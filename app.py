@@ -99,6 +99,11 @@ def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
 
         for player_num in game_state_copy.game_player_by_player_num.keys():
             staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
+
+            for move in staged_moves:
+                if move.get('move_type') == 'enter_decline':
+                    return
+
             game_state_copy.update_from_player_moves(player_num, staged_moves)
 
         # Don't end turn if someone's in decline
@@ -627,6 +632,9 @@ def enter_player_input(sess, game_id):
     print(player_input)
 
     _, from_civ_perspectives, game_state_to_return_json = update_staged_moves(sess, game_id, player_num, [player_input])
+
+    if player_input.get('move_type') == 'enter_decline':
+        socketio.emit('mute_timer', {'turn_num': game_state_to_return_json['turn_num']}, room=game_id)  # type: ignore
 
     # print(game_state.to_json())
 
