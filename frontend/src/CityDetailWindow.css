@@ -1,5 +1,5 @@
 .city-detail-window {
-    border: 1px solid black;
+    border: 8px solid; /* color overwridden from js */
     background-color: #ffffff80;
     z-index: 1000;
 

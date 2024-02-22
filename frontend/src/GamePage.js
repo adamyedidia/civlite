@@ -2513,6 +2513,7 @@ export default function GamePage() {
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
+                        myCivTemplate={civTemplates[myCiv.name]}
                         playerNum={playerNum}
                         playerApiUrl={playerApiUrl}
                         setGameState={setGameState}

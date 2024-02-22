@@ -80,7 +80,7 @@ const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFoc
     );
 }
 
-const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
+const CityDetailWindow = ({ gameState, myCivTemplate, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
     selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
     selectedCityUnitChoices, selectedCityUnitQueue, selectedCity,
     unitTemplatesByBuildingName, buildingTemplates, unitTemplates, descriptions,
@@ -228,6 +228,7 @@ const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, re
                 }
             });
     }
+
     const foodProgressStored = selectedCity.food / selectedCity.growth_cost;
     const foodProgressProduced = selectedCity.projected_food_income / selectedCity.growth_cost;
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100)).toString()
@@ -235,8 +236,9 @@ const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, re
     const foodProgressWillGrow = foodProgressStored + foodProgressProduced > 1
 
     return (
-        <div className="city-detail-window">
-            <div className="city-detail-header">
+        <div className="city-detail-window" 
+            style={{borderColor: myCivTemplate.secondary_color}}>
+            <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate.primary_color}e0`}}>
                 <h1 style={{ margin: '0', display: 'flex' }}>
                     <NumberOnImage image={workerImg}>{selectedCity.population}</NumberOnImage>
                     {selectedCity.name}
