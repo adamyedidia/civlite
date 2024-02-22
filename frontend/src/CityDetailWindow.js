@@ -84,9 +84,12 @@ const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, re
     selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
     selectedCityUnitChoices, selectedCityUnitQueue, selectedCity,
     unitTemplatesByBuildingName, buildingTemplates, unitTemplates, descriptions,
-    setHoveredUnit, setHoveredBuilding,
-
+    setHoveredUnit, setHoveredBuilding, setSelectedCity
      }) => {
+
+    const handleClickClose = () => {
+        setSelectedCity(null);
+    }
 
     const handleClickBuildingChoice = (buildingName) => {
         const playerInput = {
@@ -233,6 +236,14 @@ const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, re
 
     return (
         <div className="city-detail-window">
+            <div className="city-detail-header">
+                <h1 style={{ margin: '0', display: 'flex' }}>
+                    <NumberOnImage image={workerImg}>{selectedCity.population}</NumberOnImage>
+                    {selectedCity.name}
+                </h1>
+                <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
+            </div>
+            <div className="city-detail-columns">
             <div className="city-detail-column">
                 <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
                     {selectedCityBuildingChoices && (
@@ -293,6 +304,7 @@ const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, re
                         </div>
                     )}
                 </CityDetailPanel>
+            </div>
             </div>
         </div>
     );

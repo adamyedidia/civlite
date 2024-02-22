@@ -2529,6 +2529,7 @@ export default function GamePage() {
                         descriptions={descriptions}
                         setHoveredUnit={setHoveredUnit}
                         setHoveredBuilding={setHoveredBuilding}
+                        setSelectedCity={setSelectedCity}
                         />}
                     <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
                         {hoveredBuilding && (
