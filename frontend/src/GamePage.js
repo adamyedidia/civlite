@@ -2950,6 +2950,8 @@ export default function GamePage() {
           }
         })
         socket.on('mute_timer', (data) => {
+            console.log('muted timer', data, data.turn_num, turnNum);
+
             setTimerMutedOnTurn(data.turn_num);
         })
     }, [])
