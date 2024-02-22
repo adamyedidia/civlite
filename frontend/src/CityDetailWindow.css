@@ -1,6 +1,6 @@
 .city-detail-window {
     border: 8px solid; /* color overwridden from js */
-    background-color: #ffffff80;
+    background-color: #ffffffa0;
     z-index: 1000;
 
     position: fixed;
@@ -267,10 +267,10 @@
 .focus-selection-option.selected::after {
   content: '';
   position: absolute;
-  top: -6px;
-  right: -6px;
-  bottom: -6px;
-  left: -6px;
+  top: -3px;
+  right: -3px;
+  bottom: -3px;
+  left: -3px;
   border-radius: inherit;
   border: 6px dashed;
   border-color: inherit;
