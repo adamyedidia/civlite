@@ -201,7 +201,6 @@
   display: flex;
   gap: 5px;
 
-  overflow-y: auto; /* Enable vertical scrolling */
   margin-bottom: 10px;
 }
 
