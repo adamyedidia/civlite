@@ -17,8 +17,8 @@ const roundValue = (value) => {
 };
 
 
-const NumberOnImage = ({image, children}) => {
-    return  <div className="icon-bg-text" style={{ backgroundImage: `url(${image})`}}>                          
+const NumberOnImage = ({image, style, children}) => {
+    return  <div className="icon-bg-text" style={{ ...style, backgroundImage: `url(${image})`}}>                          
                 <span style={{ textAlign: 'center' }}>{children}</span>
             </div>
 }
@@ -36,7 +36,7 @@ const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
     );
 }
 
-const CityDetailPanel = ({ title, icon, selectedCity, handleClickFocus, children }) => {
+const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFocus, children }) => {
     
     const stored = selectedCity[title]
     const projected_income = selectedCity[`projected_${title}_income`]
@@ -53,6 +53,7 @@ const CityDetailPanel = ({ title, icon, selectedCity, handleClickFocus, children
             break;
     }
 
+    const storedStyle = hideStored ? { visibility: 'hidden' } : {};
 
     return (
         <div className={`city-detail-panel ${title}-area`}>
@@ -66,7 +67,7 @@ const CityDetailPanel = ({ title, icon, selectedCity, handleClickFocus, children
                 
                 <div className="panel-banner">
                     =
-                    <NumberOnImage image={crateImg}> {roundValue(stored)} </NumberOnImage>
+                    <NumberOnImage image={crateImg} style={storedStyle}> {roundValue(stored)} </NumberOnImage>
                     <div>+</div>
                     <NumberOnImage image={hexesImg}> {roundValue(projected_income)} </NumberOnImage>
                     <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} onClick={() => handleClickFocus(title)} />
@@ -286,7 +287,7 @@ const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, re
                     </div>
                 )}
             </CityDetailPanel>
-            <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+            <CityDetailPanel title='science' icon={scienceImg} hideStored='true' selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
 
             </CityDetailPanel>
         </div>
