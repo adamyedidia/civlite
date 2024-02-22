@@ -211,10 +211,9 @@
   border: 1px solid #ddd;
   padding: 5px;
   margin: 5px;
-  border-radius: 5px;
+  border-radius: 100%;
   background-color: #bbbbbb;
   cursor: pointer;
-  max-width: 20vw; /* Adjust as needed */
   display: flex; /* Display content in a line */
   justify-content: space-between; /* Distribute space evenly between the elements */
   align-items: center; /* Align items vertically in the center */
@@ -223,20 +222,47 @@
 
 .focus-selection-option.food {
   background-color: #ccffaa; /* Replace with the color you want for food */
+  border-color: #012e01;
 }
 
 .focus-selection-option.metal {
   background-color: #bbbbbb; /* Replace with the color you want for metal */
+  border-color: #111111;
 }
 
 .focus-selection-option.wood {
   background-color: #e0b096; /* Replace with the color you want for wood */
+  border-color: #501e03;
 }
 
 .focus-selection-option.science {
   background-color: #b0e0e6; /* Replace with the color you want for science */
+  border-color: #192b2e;
+}
+
+@keyframes rotateDash {
+  to {
+    transform: rotate(360deg)
+  }
+  from {
+    transform: rotate(0)
+  }
 }
 
 .focus-selection-option.selected {
-  border: 3px solid black;
+  border-style: solid;
+  position: relative;
+}
+
+.focus-selection-option.selected::after {
+  content: '';
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  bottom: -6px;
+  left: -6px;
+  border-radius: inherit;
+  border: 6px dashed;
+  border-color: inherit;
+  animation: rotateDash 6s linear infinite;
 }
