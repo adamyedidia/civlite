@@ -2511,7 +2511,7 @@ export default function GamePage() {
                         nextForcedRollAt={gameState?.next_forced_roll_at}
                         gameId={gameId}
                     />}
-                    <CityDetailWindow 
+                    {selectedCity && <CityDetailWindow 
                         gameState={gameState}
                         playerNum={playerNum}
                         playerApiUrl={playerApiUrl}
@@ -2529,7 +2529,7 @@ export default function GamePage() {
                         descriptions={descriptions}
                         setHoveredUnit={setHoveredUnit}
                         setHoveredBuilding={setHoveredBuilding}
-                        />
+                        />}
                     <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
                         {hoveredBuilding && (
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />

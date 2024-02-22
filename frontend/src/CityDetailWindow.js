@@ -3,6 +3,25 @@ import './CityDetailWindow.css';
 
 import { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
 import {BriefUnitDisplay, BriefUnitDisplayTitle} from './UnitDisplay';
+import foodImg from './images/food.png';
+import woodImg from './images/wood.png';
+import metalImg from './images/metal.png';
+import scienceImg from './images/science.png';
+
+import crateImg from './images/crate.png';
+import hexesImg from './images/hexes.png';
+import workerImg from './images/worker.png';
+
+const roundValue = (value) => {
+    return value < 10 ? value.toFixed(1) : Math.round(value);
+};
+
+
+const NumberOnImage = ({image, children}) => {
+    return  <div className="icon-bg-text" style={{ backgroundImage: `url(${image})`}}>                          
+                <span style={{ textAlign: 'center' }}>{children}</span>
+            </div>
+}
 
 const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
     return (
@@ -10,18 +29,53 @@ const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
             className={`focus-selection-option ${focus} ${isSelected ? 'selected' : ''}`}
             onClick={onClick}
         >
-            <span>{focus}</span>
+            <NumberOnImage image={workerImg}>
+                {/* TODO(dfarhi) Get the amount contributed by focus*/}
+            </NumberOnImage>
         </div>
     );
 }
 
-const FocusSelectorTitle = ({ title }) => {
+const CityDetailPanel = ({ title, icon, selectedCity, handleClickFocus, children }) => {
+    
+    const stored = selectedCity[title]
+    const projected_income = selectedCity[`projected_${title}_income`]
+    const projected_total = title == 'science' ? projected_income : stored + projected_income
+    const projected_total_rounded = Math.floor(projected_total) 
+    let projected_total_display;
+    switch (title) {
+        case 'science':
+            projected_total_display = `+${projected_total_rounded}`;
+            break;
+        // If we need custom display for any others, can add it here.
+        default:
+            projected_total_display = projected_total_rounded.toString();
+            break;
+    }
+
+
     return (
-        <div 
-            className="focus-title-card" 
-        >
-            <span>{title}</span>
-        </div>        
+        <div className={`city-detail-panel ${title}-area`}>
+            <div className="panel-header">    
+                <div className="panel-icon">
+                    <img src={icon}/>
+                </div>
+                <div className="amount-total">
+                    {projected_total_display}
+                </div>
+                
+                <div className="panel-banner">
+                    =
+                    <NumberOnImage image={crateImg}> {roundValue(stored)} </NumberOnImage>
+                    <div>+</div>
+                    <NumberOnImage image={hexesImg}> {roundValue(projected_income)} </NumberOnImage>
+                    <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} onClick={() => handleClickFocus(title)} />
+                </div>
+            </div>
+            <div className="panel-content">
+                {children}
+            </div>
+        </div>
     );
 }
 
@@ -29,7 +83,8 @@ const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, re
     selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
     selectedCityUnitChoices, selectedCityUnitQueue, selectedCity,
     unitTemplatesByBuildingName, buildingTemplates, unitTemplates, descriptions,
-    setHoveredUnit, setHoveredBuilding
+    setHoveredUnit, setHoveredBuilding,
+
      }) => {
 
     const handleClickBuildingChoice = (buildingName) => {
@@ -169,58 +224,71 @@ const CityDetailWindow = ({ gameState, playerNum, playerApiUrl, setGameState, re
                 }
             });
     }
+    const foodProgressStored = selectedCity.food / selectedCity.growth_cost;
+    const foodProgressProduced = selectedCity.projected_food_income / selectedCity.growth_cost;
+    const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100)).toString()
+    const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay).toString()
+    const foodProgressWillGrow = foodProgressStored + foodProgressProduced > 1
 
     return (
         <div className="city-detail-window">
-            {selectedCityBuildingChoices && (
-                <div className="building-choices-container">
-                    <BriefBuildingDisplayTitle title="Building Choices" />
-                    {selectedCityBuildingChoices.map((buildingName, index) => (
-                        <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
-                    ))}
+            <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                <div className="food-progress-bar">
+                    <div className="bar stored" style={{ width: `${foodProgressStoredDisplay}%`, }}></div>
+                    <div className="bar produced" style={{ width: `${foodProgressProducedDisplay}%`}}></div>
+                <div className="food-progress-text" style={{ position: 'absolute', width: '100%', textAlign: 'center', color: 'black', fontWeight: 'bold' }}>
+                    {Math.floor(selectedCity.food + selectedCity.projected_food_income)} / {Math.floor(selectedCity.growth_cost)}
                 </div>
-            )};
-            {selectedCityBuildingQueue && (
-                <div className="building-queue-container">
-                    <BriefBuildingDisplayTitle title="Building Queue" />
-                    {selectedCityBuildingQueue.map((buildingName, index) => (
-                        <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
-                    ))}
+                {foodProgressWillGrow && (<div className="checkmark">✅</div>)}
                 </div>
-            )};                
-            {selectedCityBuildings && (
-                <div className="existing-buildings-container">
-                    <BriefBuildingDisplayTitle title="Existing buildings" />
-                    {selectedCityBuildings.map((buildingName, index) => (
-                        <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
-                    ))}
-                </div>
-            )};  
-            {selectedCityUnitChoices && (
-                <div className="unit-choices-container">
-                    <BriefUnitDisplayTitle title="Unit Choices" />
-                    {selectedCityUnitChoices.map((unitName, index) => (
-                        <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)} />
-                    ))}
-                </div>
-            )};
-            {selectedCityUnitQueue && (
-                <div className="unit-queue-container">
-                    <BriefUnitDisplayTitle title="Unit Queue" />
-                    {selectedCityUnitQueue.map((unitName, index) => (
-                        <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
-                    ))}
-                </div>
-            )};
-            {selectedCity && !gameState?.special_mode_by_player_num?.[playerNum] && (
-                <div className="focus-container">
-                    <FocusSelectorTitle title="City Focus" />
-                    <FocusSelectionOption focus="food" isSelected={selectedCity.focus === 'food'} onClick={() => handleClickFocus('food')} />
-                    <FocusSelectionOption focus="wood" isSelected={selectedCity.focus === 'wood'} onClick={() => handleClickFocus('wood')} />
-                    <FocusSelectionOption focus="metal" isSelected={selectedCity.focus === 'metal'} onClick={() => handleClickFocus('metal')} />
-                    <FocusSelectionOption focus="science" isSelected={selectedCity.focus === 'science'} onClick={() => handleClickFocus('science')} />
-                </div>
-            )}
+            </CityDetailPanel>
+            <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                {selectedCityBuildingChoices && (
+                    <div className="building-choices-container">
+                        <BriefBuildingDisplayTitle title="Building Choices" />
+                        {selectedCityBuildingChoices.map((buildingName, index) => (
+                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
+                        ))}
+                    </div>
+                )}
+                {selectedCityBuildingQueue && (
+                    <div className="building-queue-container">
+                        <BriefBuildingDisplayTitle title="Building Queue" />
+                        {selectedCityBuildingQueue.map((buildingName, index) => (
+                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
+                        ))}
+                    </div>
+                )}               
+                {selectedCityBuildings && (
+                    <div className="existing-buildings-container">
+                        <BriefBuildingDisplayTitle title="Existing buildings" />
+                        {selectedCityBuildings.map((buildingName, index) => (
+                            <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
+                        ))}
+                    </div>
+                )}
+            </CityDetailPanel>
+            <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                {selectedCityUnitChoices && (
+                    <div className="unit-choices-container">
+                        <BriefUnitDisplayTitle title="Unit Choices" />
+                        {selectedCityUnitChoices.map((unitName, index) => (
+                            <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)} />
+                        ))}
+                    </div>
+                )}
+                {selectedCityUnitQueue && (
+                    <div className="unit-queue-container">
+                        <BriefUnitDisplayTitle title="Unit Queue" />
+                        {selectedCityUnitQueue.map((unitName, index) => (
+                            <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
+                        ))}
+                    </div>
+                )}
+            </CityDetailPanel>
+            <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+
+            </CityDetailPanel>
         </div>
     );
 };

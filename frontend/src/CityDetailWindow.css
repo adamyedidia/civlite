@@ -1,13 +1,140 @@
+.city-detail-window {
+    border: 1px solid black;
+    background-color: #ffffff80;
+    padding: 5px;
+    z-index: 1000;
+
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    max-width: 30%;
+    max-height: 70%;
+}
+
+.city-detail-panel {
+    margin: 5px 5px 30px 5px;
+    border-radius: 5px;
+}
+
+.panel-icon img {
+  width: 60px;
+}
+
+.panel-header{
+    display:flex;
+    height: 60px;
+    align-items: center;
+}
+
+.panel-header .amount-total {
+  font-size: 32px;
+  min-width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-banner{
+    font-size: 16px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding-left: 8px;
+}
+
+.icon-bg-text {
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    width: 40px;
+    position:relative;
+}
+
+.panel-banner.icon-bg-text {
+    height: 100%;
+}
+
+.panel-banner.icon-bg-text img {
+    width: 20px;
+}
+
+.panel-content{
+    border: 8px solid;
+    padding: 5px;
+}
+
+.wood-area .panel-content {
+    border-color: #e46c2b;
+}
+
+.wood-area .panel-banner {
+    background-color: #e46c2b;
+}
+
+.metal-area .panel-content{
+  border-color: #888888;
+}
+
+.metal-area .panel-banner {
+    background-color: #888888;
+}
+
+.food-area .panel-content{
+  border-color: #65ac37;
+}
+
+.food-area .panel-banner {
+    background-color: #65ac37;
+}
+
+.science-area .panel-content{
+  border-color: #5ca7b1;
+}
+
+.science-area .panel-banner {
+    background-color: #5ca7b1;
+}
+
+.food-progress-bar {
+  width: 100%;
+  background-color: #e5e5e5;
+  height: 20px;
+  border-radius: 5px;
+  display: flex;
+  position: relative;
+}
+
+.food-progress-bar .bar {
+  height: 100%;
+}
+
+.food-progress-bar .bar.stored {
+  border-radius: 5px 0 0 5px;
+  background-color: #006400;
+}
+
+.food-progress-bar .bar.produced {
+  border-radius: 0 5px 5px 0;
+  background-color: #90EE90
+}
+
+.food-progress-bar .checkmark {
+  position: absolute;
+  right: 5px;
+  font-size: 24px
+}
+
 .building-choices-container {
   /* display: flex; */
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
-  position: fixed;
-  top: 10px;
-  left: 10px;
   /* transform: translate(-50%, -50%); */
-  z-index: 1000; /* Ensure it's above other elements */
   max-height: 27%; /* Adjust as needed */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
@@ -18,12 +145,7 @@
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
-  position: fixed;
-  top: 30%;
-  max-height: 20%;
-  left: 10px;
   /* transform: translate(-50%, -50%); */
-  z-index: 1000; /* Ensure it's above other elements */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
 }
@@ -33,12 +155,7 @@
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
-  position: fixed;
-  top: 55%;
-  left: 10px;
-  max-height: 27%;
   /* transform: translate(-50%, -50%); */
-  z-index: 1000; /* Ensure it's above other elements */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
 }
@@ -48,12 +165,8 @@
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
-  position: fixed;
-  top: 10px;
-  left: 20%;
-  max-height: 27%; /* Adjust as needed */
+
   /* transform: translate(-50%, -50%); */
-  z-index: 1000; /* Ensure it's above other elements */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
 }
@@ -63,12 +176,8 @@
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
-  position: fixed;
-  top: 30%;
-  max-height: 20%;
-  left: 20%;
+
   /* transform: translate(-50%, -50%); */
-  z-index: 1000; /* Ensure it's above other elements */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
 }
@@ -78,10 +187,7 @@
   justify-content: center;
   align-items: center;
   /* gap: 5px; */
-  position: fixed;
-  top: 55%;
-  left: 20%;
-  max-height: 27%; /* Adjust as needed */
+
   /* transform: translate(-50%, -50%); */
   z-index: 1000; /* Ensure it's above other elements */
   overflow-y: auto; /* Enable vertical scrolling */
