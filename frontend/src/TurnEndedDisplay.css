@@ -1,0 +1,10 @@
+.turn-ended-display {
+    position: fixed;
+    left: 200px;
+    bottom: 10px;
+    background-color: white;
+    border: 1px solid black;
+    padding: 10px;
+    border-radius: 5px;
+    /* z-index: 1000; Ensure it's above other elements */
+}

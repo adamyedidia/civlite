@@ -670,6 +670,8 @@ def end_turn(sess, game_id):
 
     print('game_seconds_per_turn', game.seconds_per_turn)
 
+    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)
+
     if game_state.turn_should_end(turn_ended_by_player_num):
         if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
             seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
@@ -743,6 +745,8 @@ def unend_turn(sess, game_id):
         return jsonify({"error": "Game not found"}), 404
 
     set_turn_ended_by_player_num(game_id, player_num, False)
+
+    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)
 
     return jsonify({})
 

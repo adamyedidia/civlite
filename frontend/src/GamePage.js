@@ -35,6 +35,7 @@ import spawnSound from './sounds/spawn.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
+import TurnEndedDisplay from './TurnEndedDisplay';
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -299,6 +300,8 @@ export default function GamePage() {
     const [turnTimer, setTurnTimer] = useState(-1);
     const [timerMutedOnTurn, setTimerMutedOnTurn] = useState(null);
 
+    const [turnEndedByPlayerNum, setTurnEndedByPlayerNum] = useState({});
+
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
 
@@ -315,6 +318,7 @@ export default function GamePage() {
     const target2Ref = React.useRef(target2);
     const playerNumRef = React.useRef(playerNum);
     const gameStateRef = React.useRef(gameState);
+    const turnEndedByPlayerNumRef = React.useRef(turnEndedByPlayerNum);
 
     useEffect(() => {
         hoveredHexRef.current = hoveredHex;
@@ -344,9 +348,15 @@ export default function GamePage() {
         gameStateRef.current = gameState;
     }, [gameState]);
 
+    useEffect(() => {
+        turnEndedByPlayerNumRef.current = turnEndedByPlayerNum;
+    }, [turnEndedByPlayerNum]);
+
     // console.log(selectedCity);
 
     // console.log(hoveredHex);
+
+    console.log(gameState);
 
     const handleContextMenu = (e) => {
         if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
@@ -2186,7 +2196,8 @@ export default function GamePage() {
         }
 
         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
-        setGameState(finalGameState);        
+        setGameState(finalGameState);
+        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
 
         setAnimating(false);
     }
@@ -2677,6 +2688,11 @@ export default function GamePage() {
                     {hoveredHex && (
                         <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                     )}
+                    {gameState && <TurnEndedDisplay 
+                        gamePlayerByPlayerNum={gameState?.game_player_by_player_num}
+                        turnEndedByPlayerNum={turnEndedByPlayerNum}
+                        animating={animating}
+                    />}
                     {<UpperRightDisplay 
                         city={selectedCity || hoveredCity} 
                         setHoveredUnit={setHoveredUnit} 
@@ -2951,6 +2967,9 @@ export default function GamePage() {
         })
         socket.on('mute_timer', (data) => {
             setTimerMutedOnTurn(data.turn_num);
+        })
+        socket.on('turn_end_change', (data) => {
+            setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});
         })
     }, [])
 
