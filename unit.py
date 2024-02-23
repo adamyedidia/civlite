@@ -86,7 +86,7 @@ class Unit:
             }, hexes_must_be_visible=[starting_hex, new_hex], no_commit=True)
 
     def attack(self, sess, game_state: 'GameState') -> None:
-        if self.hex is None or self.get_closest_target() is None or self.has_attacked:
+        if self.hex is None or self.has_attacked:
             return
 
         hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
@@ -98,7 +98,7 @@ class Unit:
             self.has_attacked = True
 
     def get_best_target(self, hexes_to_check: list['Hex']) -> Optional['Unit']:
-        if self.hex is None or self.get_closest_target() is None:
+        if self.hex is None:
             return None
 
         type_scores = {
@@ -111,11 +111,15 @@ class Unit:
         best_target_type_score = 10
         best_target_strength = 10000
 
+        closest_target = self.get_closest_target()
+        if closest_target is None:
+            closest_target = self.hex
+
         for hex in hexes_to_check:
             if hex.visibility_by_civ.get(self.civ.id):
                 for unit in hex.units:
                     if unit.civ.id != self.civ.id:
-                        distance = self.hex.distance_to(hex)
+                        distance = closest_target.distance_to(hex)
                         if distance < best_target_distance:
                             best_target = unit
                             best_target_distance = distance
