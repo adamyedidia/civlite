@@ -77,11 +77,11 @@
     position:relative;
 }
 
-.icon-bg-text .tooltip {
+.tooltip {
   position: absolute;
   background-color: black;
   color: white;
-  text-align: center;
+  text-align: left;
   width: 200px;
   font-size: 16px;
   border-radius: 6px;
@@ -230,6 +230,7 @@
 
 .unit-choice {
   cursor: pointer; /* Change cursor to indicate clickable */
+  border-radius: 10px;
 }
 
 .unit-choice:hover {
@@ -237,6 +238,27 @@
   transform: scale(1.05); /* Slightly increase size to indicate selection */
   box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
 }
+
+.unit-choice.infinite-queue {
+  position: relative;
+  animation: dash-around 1.5s linear infinite;
+}
+
+@keyframes dash-around {
+  0% {
+    border-color: rgba(0, 0, 0, 0);
+    box-shadow: 0 0 10px 2px #000 inset, 0 0 10px 2px #000;
+  }
+  50% {
+    border-color: #000;
+    box-shadow: 0 0 1px 2px #000 inset, 0 0 5px 2px #000;
+  }
+  100% {
+    border-color: rgba(0, 0, 0, 0);
+    box-shadow: 0 0 10px 2px #000 inset, 0 0 10px 2px #000;
+  }
+}
+
 
 .queue-not-building {
   opacity: 40%;

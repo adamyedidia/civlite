@@ -16,6 +16,9 @@ class UnitTemplate:
         self.abilities: list[Ability] = [UNIT_ABILITIES[ability[0]](*ability[1]) for ability in abilities]  # type: ignore
         self.type = type
 
+    def __repr__(self):
+        return f"<UnitTemplate {self.name}>"
+
     def has_tag(self, tag: str) -> bool:
         return tag in self.tags
 

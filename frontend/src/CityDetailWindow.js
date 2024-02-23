@@ -54,6 +54,55 @@ const TextOnIcon = ({ image, style, children, tooltip }) => {
     );
 }
 
+const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUnit, handleSetInfiniteQueue, handleClickUnitChoice}) => {
+    const tooltipRef = React.useRef(null);
+
+    const showTooltip = () => {
+        if (tooltipRef.current) {
+            tooltipRef.current.style.visibility = 'visible';
+            tooltipRef.current.style.opacity = '1';
+        }
+    };
+
+    const hideTooltip = () => {
+        if (tooltipRef.current) {
+            tooltipRef.current.style.visibility = 'hidden';
+            tooltipRef.current.style.opacity = '0';
+        }
+    };
+
+    return (<div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''}`}
+        onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={(event) => {
+            if (event.shiftKey) {
+                // Shift-click to add a single unit.
+                handleClickUnitChoice(unitName);
+            } else {
+                // click to toggle infinite queue
+                if (isCurrentIQUnit) {
+                    handleSetInfiniteQueue("")
+                } else {
+                    handleSetInfiniteQueue(unitName);
+                }
+            }
+        }}>
+        <IconUnitDisplay 
+            unitName={unitName} 
+            unitTemplates={unitTemplates} 
+            setHoveredUnit={setHoveredUnit} 
+            style={{borderRadius: '25%'}} 
+        />
+        <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px"}}>
+            {unitTemplates[unitName].metal_cost}
+            <img src={metalImg} height="10px"/>
+        </div>
+        <div ref={tooltipRef} className="tooltip">
+            <p>&#x1F5B1;Toggle infinite queue.</p>
+            <p>&#x21E7;&#x1F5B1;Insert one {unitName}. </p>
+        </div>
+    </div>
+    );
+}
+
 const FocusSelectionOption = ({ focus, amount, onClick, isSelected }) => {
     return (
         <div
@@ -241,6 +290,35 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             });
     }
 
+    const handleSetInfiniteQueue = (unitName) => {
+        if (declinePreviewMode) return;
+        const playerInput = {
+            'unit_name': (unitName),
+            'move_type': 'select_infinite_queue',
+            'city_id': selectedCity.id,
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+
+        fetch(playerApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });
+    }
+
+
     const handleCancelUnit = (unitIndex) => {
         if (declinePreviewMode) return;
         const playerInput = {
@@ -381,14 +459,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                     {selectedCityUnitChoices && (
                         <div className="unit-choices-container">
                             {selectedCityUnitChoices.map((unitName, index) => (
-                                <div key={index} className='unit-choice'>
-                                    <IconUnitDisplay unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)}
-                                        style={{borderRadius: '25%'}} />
-                                    <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px"}}>
-                                        {unitTemplates[unitName].metal_cost}
-                                        <img src={metalImg} height="10px"/>
-                                    </div>
-                                </div>
+                                <UnitQueueOption key={index} unitName={unitName} isCurrentIQUnit={selectedCity.infinite_queue_unit === unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue} handleClickUnitChoice={handleClickUnitChoice}/>
                             ))}
                         </div>
                     )}

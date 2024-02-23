@@ -42,6 +42,7 @@ class City:
         self.hex: Optional['Hex'] = None
         self.autobuild_unit: Optional[UnitTemplate] = None
         self.units_queue: list[UnitTemplate] = []
+        self.infinite_queue_unit: Optional[UnitTemplate] = None
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
         self.buildings: list[Building] = []
         self.available_buildings: list[str] = []
@@ -60,6 +61,29 @@ class City:
 
     def building_is_in_queue(self, building_name: str) -> bool:
         return any([(building.building_name if hasattr(building, 'building_name') else building.name) == building_name for building in self.buildings_queue])  # type: ignore
+
+    def midturn_update(self, game_state: 'GameState') -> None:
+        """
+        Update things that could have changed due to the controlling player fiddling with focus etc.
+        """
+        self.adjust_projected_yields(game_state)
+        self._apply_infinite_queue()
+
+    def _apply_infinite_queue(self):
+        """ 
+        Fill the queue with the appropraite unit as many as I can build this turn. 
+        Assumes self.projected_income can be trusted.
+        """
+        print(f"applying iq {self.infinite_queue_unit}")
+        if self.infinite_queue_unit is None: 
+            return
+
+        available_metal = self.metal + self.projected_income["metal"]
+        for unit_template in self.units_queue:
+            available_metal -= unit_template.metal_cost
+        while available_metal > self.infinite_queue_unit.metal_cost:
+            self.units_queue.append(self.infinite_queue_unit)
+            available_metal -= self.infinite_queue_unit.metal_cost
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -677,6 +701,7 @@ class City:
             "hex": self.hex.coords if self.hex else None,
             "autobuild_unit": self.autobuild_unit.name if self.autobuild_unit else None,
             "units_queue": [unit.name for unit in self.units_queue],
+            "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
             "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
             "buildings": [building.to_json() for building in self.buildings],
             "available_buildings": self.available_buildings,
@@ -711,6 +736,7 @@ class City:
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.available_units = json["available_units"][:]
         city.units_queue = [UnitTemplate.from_json(UNITS[unit]) for unit in json["units_queue"]]
+        city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UnitTemplate.from_json(UNITS[json["infinite_queue_unit"]])
         city.focus = json["focus"]
         city.projected_income = json["projected_income"]
         city.projected_income_base = json["projected_income_base"]

@@ -131,7 +131,7 @@ class GameState:
                             city.grow_inner(self)
 
         self.refresh_foundability_by_civ()
-        city.adjust_projected_yields(self)
+        city.midturn_update(self)
         city.civ.adjust_projected_yields(self)        
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
@@ -265,7 +265,7 @@ class GameState:
                             city.civ.vitality = STARTING_CIV_VITALITY
 
                             city.capitalize(self)
-                            city.adjust_projected_yields(self)
+                            city.midturn_update(self)
                             city.civ.adjust_projected_yields(self)
 
                         else:
@@ -342,6 +342,23 @@ class GameState:
                 city.units_queue.append(unit)
                 game_player_to_return = game_player
 
+            if move['move_type'] == 'select_infinite_queue':
+                unit_name = move['unit_name']
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                city_id = move['city_id']
+                city = self.cities_by_id[city_id]
+
+                if unit_name == "":
+                    unit = None
+                else:
+                    unit = UnitTemplate.from_json(UNITS[unit_name])
+
+                city.infinite_queue_unit = unit
+                city.midturn_update(self)
+                game_player_to_return = game_player
+
             if move['move_type'] == 'cancel_unit':
                 unit_index_in_queue = move['unit_index_in_queue']
                 game_player = self.game_player_by_player_num[player_num]
@@ -398,7 +415,7 @@ class GameState:
                 city.focus = move['focus']
                 game_player_to_return = game_player
 
-                city.adjust_projected_yields(self)
+                city.midturn_update(self)
                 city.civ.adjust_projected_yields(self)
 
             if move['move_type'] == 'found_city':
@@ -447,7 +464,7 @@ class GameState:
 
                 city.refresh_available_buildings()
                 city.refresh_available_units()
-                city.adjust_projected_yields(self)
+                city.midturn_update(self)
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
             if from_civ_perspectives is None and game_player_to_return.civ_id is not None:
@@ -570,7 +587,7 @@ class GameState:
             unit.has_attacked = False
 
         for city in self.cities_by_id.values():
-            city.adjust_projected_yields(self)
+            city.midturn_update(self)
 
         for civ in self.civs_by_id.values():
             civ.adjust_projected_yields(self)        
