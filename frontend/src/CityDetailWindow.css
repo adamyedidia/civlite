@@ -100,6 +100,8 @@
     padding: 5px;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
+    max-height: 800px;
+    overflow-y: auto;
 }
 
 .wood-area .panel-content {
@@ -177,6 +179,7 @@
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
   margin-bottom: 50px;
+  max-height: 300px;
 }
 
 .building-queue-container {
@@ -188,6 +191,7 @@
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
   margin-bottom: 50px;
+  max-height: 300px;
 }
 
 .existing-buildings-container {
@@ -198,6 +202,7 @@
   /* transform: translate(-50%, -50%); */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
+  max-height: 300px;
 }
 
 .collapse-expand-button {
@@ -215,7 +220,7 @@
 .unit-choices-container {
   display: flex;
   gap: 5px;
-
+  flex-wrap: wrap;
   margin-bottom: 10px;
 }
 

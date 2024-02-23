@@ -74,7 +74,6 @@ class City:
         Fill the queue with the appropraite unit as many as I can build this turn. 
         Assumes self.projected_income can be trusted.
         """
-        print(f"applying iq {self.infinite_queue_unit}")
         if self.infinite_queue_unit is None: 
             return
 
@@ -121,9 +120,6 @@ class City:
                 if ability.name == 'IncreaseYieldsPerPopulation':
                     yields_per_population[ability.numbers[0]] += ability.numbers[1]
 
-                if ability.name == 'IncreaseFocusYieldsPerPopulation' and self.focus == ability.numbers[0]:
-                    yields_per_population[self.focus] += ability.numbers[1]
-
         for key in yields_per_population:
             yields[key] += self.population * yields_per_population[key] * vitality
 
@@ -145,6 +141,11 @@ class City:
         if self.civ.has_ability('IncreaseFocusYields'):
             bonus_resource, count = self.civ.numbers_of_ability('IncreaseFocusYields')
             yields[bonus_resource] += count
+        for building in self.buildings:
+            for ability in building.template.abilities:
+                if ability.name == 'IncreaseFocusYieldsPerPopulation':
+                    focus, amount_per_pop = ability.numbers
+                    yields[focus] += amount_per_pop * self.population * vitality
 
         return yields
 

@@ -387,7 +387,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     const woodAvailable = selectedCity.wood + selectedCity.projected_income['wood']
 
     const unitQueueMaxIndexFinishing = queueBuildDepth(metalAvailable, selectedCityUnitQueue, (item) => unitTemplates[item].metal_cost)
-    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => buildingTemplates[item].cost)
+    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => buildingTemplates[item] ? buildingTemplates[item].cost : unitTemplatesByBuildingName[item].wood_cost)
 
 
     return (
