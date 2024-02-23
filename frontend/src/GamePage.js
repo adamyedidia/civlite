@@ -207,6 +207,33 @@ function RulesDialog({open, onClose, gameConstants}) {
     )
 }
 
+function GameOverDialog({open, onClose, gameState}) {
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>
+                <Typography variant="h2">Game over</Typography>
+            </DialogTitle>
+            <DialogContent>
+                <Grid container direction="column" spacing={2}>
+                    {Object.values(gameState?.game_player_by_player_num).map((gamePlayer) => {
+                        return (
+                            <Grid item key={gamePlayer.player_num}>
+                                <Typography variant="h5">{gamePlayer.username}</Typography>
+                                <Typography>Score: {gamePlayer.score}</Typography>
+                            </Grid>
+                        )
+                    })}
+                </Grid>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
 const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
 }
@@ -276,6 +303,7 @@ export default function GamePage() {
     const [timerMutedOnTurn, setTimerMutedOnTurn] = useState(null);
 
     const [turnEndedByPlayerNum, setTurnEndedByPlayerNum] = useState({});
+    const [gameOverDialogOpen, setGameOverDialogOpen] = useState(false);
 
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
@@ -327,6 +355,12 @@ export default function GamePage() {
     useEffect(() => {
         turnEndedByPlayerNumRef.current = turnEndedByPlayerNum;
     }, [turnEndedByPlayerNum]);
+
+    useEffect(() => {
+        if (gameState?.game_over) {
+            setGameOverDialogOpen(true);
+        }
+    }, [gameState?.game_over]);
 
     // console.log(selectedCity);
 
@@ -2440,7 +2474,7 @@ export default function GamePage() {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes)
 
-        return !gameState?.game_over ? (
+        return (
             <>
                 <div className="basic-example">
                     <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140">
@@ -2597,7 +2631,7 @@ export default function GamePage() {
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && myCiv?.city_power > 100 && <Button 
+                        {!gameState?.special_mode_by_player_num?.[playerNum] && myCiv?.city_power > 100 && !gameState?.game_over && <Button 
                             style={{
                                 backgroundColor: "#ccffaa",
                                 color: "black",
@@ -2611,7 +2645,7 @@ export default function GamePage() {
                         >
                             {foundingCity ? 'Cancel found city' : 'Found city'}
                         </Button>}
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && <Button 
+                        {!gameState?.special_mode_by_player_num?.[playerNum] && !gameState?.game_over && <Button 
                             style={{
                                 backgroundColor: "#cccc88",
                                 color: "black",
@@ -2626,7 +2660,7 @@ export default function GamePage() {
                         >
                             {gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn"}
                         </Button>}
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
+                        {!gameState?.special_mode_by_player_num?.[playerNum] && !gameState?.game_over && <Button
                             style={{
                                 backgroundColor: "#BBAABB",
                                 color: "black",
@@ -2671,6 +2705,21 @@ export default function GamePage() {
                         >
                             Make {selectedCity.name} my capital
                         </Button>}
+                        {gameState?.game_over && !gameOverDialogOpen && <Button
+                            style={{
+                                backgroundColor: "#ccccff",
+                                color: "black",
+                                marginLeft: '20px',
+                                padding: '10px 20px', // Increase padding for larger button
+                                fontSize: '1.5em', // Increase font size for larger text
+                                marginBottom: '10px',
+                            }} 
+                            variant="contained"
+                            onClick={() => setGameOverDialogOpen(true)}
+                            disabled={animating}
+                        >
+                            See end game info
+                        </Button>}
                     </div>}
                 </div>
                 {confirmEnterDecline && <ConfirmEnterDeclineDialog
@@ -2685,24 +2734,13 @@ export default function GamePage() {
                     techTemplates={techTemplates}
                     myCiv={myCiv}
                 />}
+                {gameOverDialogOpen && <GameOverDialog
+                    open={gameOverDialogOpen}
+                    onClose={() => setGameOverDialogOpen(false)}
+                    gameState={gameState}
+                />}
             </>
-        ) : (
-            <>
-                <Grid container direction="column" spacing={2}>
-                    <Grid item>
-                        <Typography variant="h2">Game over</Typography>
-                    </Grid>
-                    {Object.values(gameState?.game_player_by_player_num).map((gamePlayer) => {
-                        return (
-                            <Grid item key={gamePlayer.player_num}>
-                                <Typography variant="h5">{gamePlayer.username}</Typography>
-                                <Typography>Score: {gamePlayer.score}</Typography>
-                            </Grid>
-                        )
-                    })}
-                </Grid>
-            </>
-        )
+        );
     }
 
     const launchGame = () => {
