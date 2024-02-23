@@ -355,6 +355,7 @@ class GameState:
                 else:
                     unit = UnitTemplate.from_json(UNITS[unit_name])
 
+                city.units_queue.clear()
                 city.infinite_queue_unit = unit
                 city.midturn_update(self)
                 game_player_to_return = game_player
