@@ -106,16 +106,9 @@ def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
 
             game_state_copy.update_from_player_moves(player_num, staged_moves)
 
-        # Don't end turn if someone's in decline
-        print('roll_id', roll_id, game_state.roll_id)
-
         for game_player in game_state_copy.game_player_by_player_num.values():
-            print(game_player.username, game_player.civ_id)
-
             if not game_player.civ_id:
                 return
-
-        print('roll_id', roll_id, game_state.roll_id)
 
         if turn_num == game_state.turn_num and roll_id == game_state.roll_id:
             if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
@@ -525,8 +518,6 @@ def get_open_games(sess):
     else:
         user_filters = []
 
-    print(user)
-
     games = (
         sess.query(Game)
         .join(Player)
@@ -629,16 +620,10 @@ def enter_player_input(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    print(player_input)
-
     _, from_civ_perspectives, game_state_to_return_json = update_staged_moves(sess, game_id, player_num, [player_input])
 
     if player_input.get('move_type') == 'enter_decline':
         socketio.emit('mute_timer', {'turn_num': game_state_to_return_json['turn_num']}, room=game_id)  # type: ignore
-
-    # print(game_state.to_json())
-
-    # print(from_civ_perspectives)
 
     return jsonify({'game_state': game_state_to_return_json})
     # return jsonify({'game_state': game_state.to_json()})
@@ -668,8 +653,6 @@ def end_turn(sess, game_id):
 
     turn_ended_by_player_num[player_num] = True
 
-    print('game_seconds_per_turn', game.seconds_per_turn)
-
     socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)
 
     if game_state.turn_should_end(turn_ended_by_player_num):
@@ -678,16 +661,12 @@ def end_turn(sess, game_id):
             next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
             new_roll_id = generate_unique_id()
 
-            print('new_roll_id', new_roll_id)
-
             Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, game_state.turn_num + 1, new_roll_id]).start()
             game_state.next_forced_roll_at = next_forced_roll_at
             game_state.roll_id = new_roll_id
-            print(game_state.roll_id)
 
         game_state.end_turn(sess)
 
-        print('Broadcasting from end turn: ', game_id)
         broadcast(game_id)
     else:
         rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)

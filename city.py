@@ -217,7 +217,6 @@ class City:
         if self.civ.game_player:
             for wonder in game_state.wonders_built_to_civ_id:
                 if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
-                    print(abilities)
                     for ability in abilities:
                         if ability["name"] == "ExtraVpsForCityGrowth":
                             self.civ.game_player.score += ability["numbers"][0]    
