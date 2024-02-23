@@ -3,6 +3,7 @@ from functools import wraps
 import logging
 from logging.handlers import RotatingFileHandler
 import traceback
+from typing import Optional
 
 from flask import Flask, jsonify, request
 from flask_cors import CORS

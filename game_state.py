@@ -769,6 +769,9 @@ class GameState:
         raise Exception(f"Civ not found: {civ_name}, {self.civs_by_id}")
     
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
+        if self.game_over:
+            from_civ_perspectives = None
+
         return {
             "game_id": self.game_id,
             "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
