@@ -21,7 +21,7 @@ from game_state import GameState, update_staged_moves, get_most_recent_game_stat
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
-from settings import LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, SURVIVAL_BONUS
+from settings import LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER
 from tech import get_tech_choices_for_civ
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
@@ -771,6 +771,7 @@ def get_game_constants(sess):
         'good_hex_probability': GOOD_HEX_PROBABILITY,
         'tech_vp_reward': TECH_VP_REWARD,
         'game_end_score': GAME_END_SCORE,
+        'extra_game_end_score_per_player': EXTRA_GAME_END_SCORE_PER_PLAYER,
         'base_city_power_income': BASE_CITY_POWER_INCOME,
         'survival_bonus': SURVIVAL_BONUS,
     })

@@ -13,7 +13,7 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations
 from redis_utils import rget_json, rlock, rset_json, rdel
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -589,7 +589,7 @@ class GameState:
             city.refresh_available_buildings()       
 
         for game_player in self.game_player_by_player_num.values():
-            if game_player.score >= GAME_END_SCORE:
+            if game_player.score >= GAME_END_SCORE + EXTRA_GAME_END_SCORE_PER_PLAYER * len(self.game_player_by_player_num):
                 self.game_over = True
                 break
 

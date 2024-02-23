@@ -173,7 +173,8 @@ function RulesDialog({open, onClose, gameConstants}) {
                     <b>Victory points</b>
                 </DialogContentText>
                 <DialogContentText>
-                    The goal of the game is to get to the most victory points, and your victory points are held by you, the player. The game ends when someone reaches {gameConstants.game_end_score} VPs. 
+                    The goal of the game is to get to the most victory points, and your victory points are held by you, the player. The game ends when someone reaches a sufficiently high score, which is given by {gameConstants.game_end_score} VPs + {gameConstants.extra_game_end_score_per_player} VPs per player. 
+                    (So, for example, in a 4-player game, the game ends at {gameConstants.game_end_score + 4*gameConstants.extra_game_end_score_per_player} VPs.)
                     You get VPs from a variety of sources:
                     <ul>
                         <li>{gameConstants.unit_kill_reward} VP per unit killed</li>
