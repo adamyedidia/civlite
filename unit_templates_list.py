@@ -27,7 +27,7 @@ UNITS = {
         "name": "Slinger",
         "building_name": "Pebble Pile",
         "type": "military",
-        "metal_cost": 5,
+        "metal_cost": 4,
         "wood_cost": 3,
         "strength": 4,
         "movement": 1,
