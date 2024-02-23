@@ -111,7 +111,7 @@ def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
             if not game_player.civ_id:
                 return
 
-        if turn_num == game_state.turn_num and roll_id == game_state.roll_id:
+        if turn_num == game_state.turn_num and roll_id == game_state.roll_id and not game_state.game_over:
             if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
                 seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
                 next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()

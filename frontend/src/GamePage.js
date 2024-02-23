@@ -2581,7 +2581,7 @@ export default function GamePage() {
                         turnNum={turnNum}
                         nextForcedRollAt={gameState?.next_forced_roll_at}
                         gameId={gameId}
-                        timerMuted={timerMutedOnTurn === turnNum}
+                        timerMuted={timerMutedOnTurn === turnNum || gameState.game_over}
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}

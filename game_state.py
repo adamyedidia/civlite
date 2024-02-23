@@ -517,6 +517,9 @@ class GameState:
             camp.update_nearby_hexes_hostile_foundability(self.hexes)
 
     def end_turn(self, sess) -> None:
+        if self.game_over:
+            return
+
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = rget_json(f'staged_moves:{self.game_id}:{player_num}') or []
             self.update_from_player_moves(player_num, staged_moves)
