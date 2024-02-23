@@ -67,6 +67,19 @@ const FocusSelectionOption = ({ focus, amount, onClick, isSelected }) => {
     );
 }
 
+const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
+    let available = resourcesAvailable
+    for (let index = 0; index < queue.length; index++) {
+        const item = queue[index];
+        const itemCost = getCostOfItem(item);
+        available -= itemCost;
+        if (available < 0) {
+            return index - 1;
+        }
+    }
+    return 9999
+}
+
 const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFocus, children }) => {
     
     const storedAmount = selectedCity[title]
@@ -280,24 +293,21 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             });
     }
 
+    // A bit silly that we calculate the amount available of each resource here
+    // And then recalculate each one in the CityDetailPanel.
+ 
     const foodProgressStored = selectedCity.food / selectedCity.growth_cost;
     const foodProgressProduced = selectedCity.projected_income['food'] / selectedCity.growth_cost;
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100)).toString()
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay).toString()
     const foodProgressWillGrow = foodProgressStored + foodProgressProduced > 1
 
-    let metalAvailable = selectedCity.metal + selectedCity.projected_income['metal']
-    let unitQueueMaxIndexFinishing = 9999;
-    for (let index = 0; index < selectedCityUnitQueue.length; index++) {
-        const unitName = selectedCityUnitQueue[index];
-        const unitMetalCost = unitTemplates[unitName].metal_cost;
-        console.log(unitName, metalAvailable, unitMetalCost)
-        metalAvailable -= unitMetalCost;
-        if (metalAvailable < 0) {
-            unitQueueMaxIndexFinishing = index - 1;
-            break;
-        }
-    }
+    const metalAvailable = selectedCity.metal + selectedCity.projected_income['metal']
+    const woodAvailable = selectedCity.wood + selectedCity.projected_income['wood']
+
+    const unitQueueMaxIndexFinishing = queueBuildDepth(metalAvailable, selectedCityUnitQueue, (item) => unitTemplates[item].metal_cost)
+    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => buildingTemplates[item].cost)
+
 
     return (
         <div className="city-detail-window" 
@@ -325,7 +335,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCityBuildingQueue.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
+                                <div className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
+                                    <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
+                                </div>
                             ))}
                         </div>
                     )}               
@@ -373,8 +385,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                             <h2> Unit Queue </h2>
                             <div className="unit-queue-container">
                                 {selectedCityUnitQueue.map((unitName, index) => (
-                                    <IconUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}
-                                        style={{opacity: `${index > unitQueueMaxIndexFinishing ? 0.25 : 1.0}`}}/>
+                                    <div className={index > unitQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
+                                        <IconUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
+                                    </div>
                                 ))}
                             </div>
                         </div>
