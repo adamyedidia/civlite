@@ -70,20 +70,37 @@ class Unit:
         should_move_sensitively = sensitive
         starting_hex = self.hex
         coord_strs = [starting_hex.coords]
+        import time 
+        t = time.time()
         for _ in range(self.template.movement):
             if self.move_one_step(game_state, coord_strs, sensitive=should_move_sensitively):
                 self.has_moved = True
                 should_move_sensitively = True
 
+        print('aa', time.time() - t)
+        t = time.time()
+
         if self.has_moved:
             new_hex = self.hex
 
+            print('aaa', time.time() - t)
+            t = time.time()
+
             self.update_nearby_hexes_visibility(game_state)
+
+            print('aab', time.time() - t)
+            t = time.time()
 
             game_state.add_animation_frame(sess, {
                 "type": "UnitMovement",
                 "coords": coord_strs,
             }, hexes_must_be_visible=[starting_hex, new_hex])
+
+            print('aac', time.time() - t)
+            t = time.time()            
+
+        print('ab', time.time() - t)
+        t = time.time()            
 
             # if new_hex.coords == self.target.coords and (target := self.get_best_target(new_hex.get_hexes_within_range(game_state.hexes, 2))) is not None:
             #     self.target = target.hex
@@ -91,13 +108,26 @@ class Unit:
     def attack(self, sess, game_state: 'GameState') -> None:
         if self.hex is None or self.get_closest_target() is None or self.has_attacked:
             return
+        
+        import time
+        t = time.time()
+
         hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
 
+        print('ba', time.time() - t)
+        t = time.time()
+
         best_target = self.get_best_target(hexes_to_check)
+        
+        print('bb', time.time() - t)
+        t = time.time()        
 
         if best_target is not None:
             self.fight(sess, game_state, best_target)
             self.has_attacked = True
+
+        print('bc', time.time() - t)
+        t = time.time()
 
     def get_best_target(self, hexes_to_check: list['Hex']) -> Optional['Unit']:
         if self.hex is None or self.get_closest_target() is None:
@@ -183,11 +213,17 @@ class Unit:
         if self.hex is None or target.hex is None:
             return
 
+        import time
+        t = time.time()
+
         self_hex_coords = self.hex.coords
         target_hex_coords = target.hex.coords
 
         self_hex = self.hex
         target_hex = target.hex
+
+        print('bba', time.time() - t)
+        t = time.time()
 
         self.punch(game_state, target)
 
@@ -197,11 +233,17 @@ class Unit:
                     if unit.civ.id != self.civ.id:
                         self.punch(game_state, unit, self.numbers_of_ability('Splash')[0])
 
+        print('bbb', time.time() - t)
+        t = time.time()
+
         if self.template.has_tag('ranged'):
             # target.target = self.hex
             pass
         else:
             target.punch(game_state, self)
+
+        print('bbc', time.time() - t)
+        t = time.time()
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
@@ -211,6 +253,9 @@ class Unit:
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
         }, hexes_must_be_visible=[self_hex, target_hex])
+
+        print('bbd', time.time() - t)
+        t = time.time()
 
     def die(self, game_state: 'GameState', killer: 'Unit'):
         if self.hex is None:

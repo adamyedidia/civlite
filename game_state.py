@@ -526,8 +526,15 @@ class GameState:
         self.barbarians.target1_coords = self.barbarians.target1.coords
         self.barbarians.target2_coords = self.barbarians.target2.coords
 
+        import time
+
+        t = time.time()
+
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
+
+        print('a', time.time() - t)
+        t = time.time()
 
         units_copy = self.units[:]
         random.shuffle(units_copy)
@@ -538,6 +545,10 @@ class GameState:
         for unit in units_copy:
             unit.move(sess, self, sensitive=True)
             unit.attack(sess, self)
+
+        print('b', time.time() - t)
+        t = time.time()
+
         # random.shuffle(units_copy)
         # for unit in units_copy:
         #     unit.attack(sess, self)
@@ -551,11 +562,20 @@ class GameState:
         for city in cities_copy:
             city.roll_turn(sess, self)
 
+        print('c', time.time() - t)
+        t = time.time()            
+
         for camp in camps_copy:
             camp.roll_turn(sess, self)
 
+        print('d', time.time() - t)
+        t = time.time()            
+
         for civ in self.civs_by_id.values():
             civ.roll_turn(sess, self)
+
+        print('e', time.time() - t)
+        t = time.time()
 
         for unit in units_copy:
             unit.has_moved = False
@@ -564,28 +584,52 @@ class GameState:
         for city in self.cities_by_id.values():
             city.adjust_projected_yields(self)
 
+        print('f', time.time() - t)
+        t = time.time()            
+
         for civ in self.civs_by_id.values():
             civ.adjust_projected_yields(self)
 
+        print('g', time.time() - t)
+        t = time.time()            
+
         self.sync_advancement_level()
 
+        print('h', time.time() - t)
+        t = time.time() 
+
         self.prepare_decline_choices()
+
+        print('i', time.time() - t)
+        t = time.time()         
 
         # print([game_player.to_json() for key, game_player in self.game_player_by_player_num.items()])
 
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
 
+        print('j', time.time() - t)
+        t = time.time()         
+
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
+        print('k', time.time() - t)
+        t = time.time() 
+
         for city in self.cities_by_id.values():
             city.refresh_available_buildings()
+
+        print('l', time.time() - t)
+        t = time.time()             
 
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= GAME_END_SCORE:
                 self.game_over = True
                 break
+
+        print('m', time.time() - t)
+        t = time.time() 
 
         self.add_animation_frame(sess, {
             "type": "StartOfNewTurn",
@@ -689,7 +733,7 @@ class GameState:
             
             self.announcements.append(f'{civ.moniker()} has built the {building_template.name}!')
 
-    def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ]) -> None:
+    def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:
         if civ is not None and (game_player := civ.game_player) is not None:
             highest_existing_frame_num = (
                 sess.query(func.max(AnimationFrame.frame_num))
@@ -709,7 +753,8 @@ class GameState:
             )
 
             sess.add(frame)
-            sess.commit()
+            if not no_commit:
+                sess.commit()
 
         elif civ is None:
             highest_existing_frame_num = (
@@ -730,14 +775,17 @@ class GameState:
             )
 
             sess.add(frame)
-            sess.commit()
+            if not no_commit:
+                sess.commit()
 
     def add_animation_frame(self, sess, data: dict[str, Any], hexes_must_be_visible: Optional[list[Hex]] = None) -> None:
-        self.add_animation_frame_for_civ(sess, data, None)
+        self.add_animation_frame_for_civ(sess, data, None, no_commit=True)
 
         for civ in self.civs_by_id.values():
             if hexes_must_be_visible is None or any(hex.visibility_by_civ.get(civ.id) for hex in hexes_must_be_visible):
-                self.add_animation_frame_for_civ(sess, data, civ)
+                self.add_animation_frame_for_civ(sess, data, civ, no_commit=True)
+
+        sess.commit()
 
 
     def get_civ_by_name(self, civ_name: str) -> Civ:
