@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './CityDetailWindow.css';
 
 import { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
@@ -145,6 +145,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     unitTemplatesByBuildingName, buildingTemplates, unitTemplates, descriptions,
     setHoveredUnit, setHoveredBuilding, setSelectedCity
      }) => {
+
+    const [isBuildingListExpanded, setIsBuildingListExpanded] = useState(false);
+
 
     const handleClickClose = () => {
         setSelectedCity(null);
@@ -342,12 +345,38 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         </div>
                     )}               
                     {selectedCityBuildings && (
-                        <div className="existing-buildings-container">
-                            <BriefBuildingDisplayTitle title="Existing buildings" />
-                            {selectedCityBuildings.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
-                            ))}
+                        <div>
+                            <button 
+                                className="collapse-expand-button" 
+                                onClick={() => setIsBuildingListExpanded(!isBuildingListExpanded)} 
+                                style={{
+                                    border: 'none',
+                                    textAlign: 'center',
+                                    textDecoration: 'none',
+                                    display: 'inline-block',
+                                    fontSize: '16px',
+                                    cursor: 'pointer',
+                                    borderRadius: '12px',
+                                    transition: '0.3s',
+                                    width: '100%',
+                                }}
+                            >
+                                <BriefBuildingDisplayTitle title={`${isBuildingListExpanded ? '▼' : '▶'} Existing buildings`} />
+                            </button>
+                            {isBuildingListExpanded && (
+                                <div className="existing-buildings-container">
+                                    {selectedCityBuildings.map((buildingName, index) => (
+                                        <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
+                                    ))}
+                                </div>
+                            )}
                         </div>
+                        // <div className="existing-buildings-container">
+                        //     <BriefBuildingDisplayTitle title="Existing buildings" />
+                        //     {selectedCityBuildings.map((buildingName, index) => (
+                        //         <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
+                        //     ))}
+                        // </div>
                     )}
                 </CityDetailPanel>
             </div>
