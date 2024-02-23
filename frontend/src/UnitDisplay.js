@@ -1,6 +1,6 @@
 import React from 'react';
 import './UnitDisplay.css'; // Assuming you have a separate CSS file for styling
-import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
+import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores.js';
 
 export const BriefUnitDisplayTitle = ({ title }) => {
     return (
