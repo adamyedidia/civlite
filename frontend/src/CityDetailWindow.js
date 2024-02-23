@@ -371,12 +371,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                                 </div>
                             )}
                         </div>
-                        // <div className="existing-buildings-container">
-                        //     <BriefBuildingDisplayTitle title="Existing buildings" />
-                        //     {selectedCityBuildings.map((buildingName, index) => (
-                        //         <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
-                        //     ))}
-                        // </div>
                     )}
                 </CityDetailPanel>
             </div>
