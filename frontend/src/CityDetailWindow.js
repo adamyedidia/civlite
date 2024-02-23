@@ -338,8 +338,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCityBuildingQueue.map((buildingName, index) => (
-                                <div className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                    <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
+                                <div key={index} className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
+                                    <BriefBuildingDisplay buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
                                 </div>
                             ))}
                         </div>
@@ -392,8 +392,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                     {selectedCityUnitChoices && (
                         <div className="unit-choices-container">
                             {selectedCityUnitChoices.map((unitName, index) => (
-                                <div className='unit-choice'>
-                                    <IconUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)}
+                                <div key={index} className='unit-choice'>
+                                    <IconUnitDisplay unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)}
                                         style={{borderRadius: '25%'}} />
                                     <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px"}}>
                                         {unitTemplates[unitName].metal_cost}
@@ -408,8 +408,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                             <h2> Unit Queue </h2>
                             <div className="unit-queue-container">
                                 {selectedCityUnitQueue.map((unitName, index) => (
-                                    <div className={index > unitQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                        <IconUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
+                                    <div key={index} className={index > unitQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
+                                        <IconUnitDisplay unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
                                     </div>
                                 ))}
                             </div>
