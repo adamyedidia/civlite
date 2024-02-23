@@ -222,7 +222,7 @@
 }
 
 .unit-choice:hover {
-  background-color: #f0f0f0; /* Light grey background on hover */
+  background-color: #ffffff; /* Light grey background on hover */
   transform: scale(1.05); /* Slightly increase size to indicate selection */
   box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
 }
