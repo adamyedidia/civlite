@@ -356,7 +356,10 @@ class GameState:
                     unit = UnitTemplate.from_json(UNITS[unit_name])
 
                 city.units_queue.clear()
-                city.infinite_queue_unit = unit
+                if unit_name == 'Scout' and unit is not None:
+                    city.units_queue.append(unit)
+                else:
+                    city.infinite_queue_unit = unit
                 city.midturn_update(self)
                 game_player_to_return = game_player
 
