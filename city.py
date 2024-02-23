@@ -10,11 +10,21 @@ from unit_template import UnitTemplate
 from unit_templates_list import PRODUCTION_BUILDINGS_BY_UNIT_NAME, UNITS, UNITS_BY_BUILDING_NAME
 from utils import generate_unique_id
 import random
+from typing import Dict
 
 if TYPE_CHECKING:
     from hex import Hex
     from game_state import GameState
 
+
+def resourcedict() -> Dict[str, float]:
+    return {
+        "food": 0.0,
+        "wood": 0.0,
+        "metal": 0.0,
+        "science": 0.0,
+        "city_power": 0.0,
+    }
 
 class City:
     def __init__(self, civ: Civ, id: Optional[str] = None):
@@ -38,9 +48,9 @@ class City:
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, int]]] = {}
         self.capital = False
         self.available_units: list[str] = []
-        self.projected_income = defaultdict(float)
-        self.projected_income_base = defaultdict(float)  # income without focus
-        self.projected_income_focus = defaultdict(float)  # income from focus
+        self.projected_income = resourcedict()
+        self.projected_income_base = resourcedict()  # income without focus
+        self.projected_income_focus = resourcedict()  # income from focus
         self.terrains_dict = {}
 
         self.handle_cleanup()
@@ -53,25 +63,9 @@ class City:
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
-            self.projected_income = {
-                "food": 0,
-                "metal": 0,
-                "wood": 0,
-                "science": 0,
-                "city_power": 0,
-            }
-            self.projected_income_base = {
-                "food": 0,
-                "metal": 0,
-                "wood": 0,
-                "science": 0,
-            }
-            self.projected_income_focus = {
-                "food": 0,
-                "metal": 0,
-                "wood": 0,
-                "science": 0,
-            }
+            self.projected_income = resourcedict()
+            self.projected_income_base = resourcedict()
+            self.projected_income_focus = resourcedict()
         self.projected_income_base = self._get_projected_yields_without_focus(game_state)
         self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
 
@@ -82,7 +76,7 @@ class City:
 
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
-        yields = defaultdict(float)
+        yields = resourcedict()
 
         for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
             yields["food"] += hex.yields.food * vitality
@@ -118,7 +112,7 @@ class City:
 
     def _get_projected_yields_from_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
-        yields = defaultdict(float)
+        yields = resourcedict()
         yields["food"] += self.population * vitality
         yields["metal"] += self.population * vitality
         yields["wood"] += self.population * vitality
