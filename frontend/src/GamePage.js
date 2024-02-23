@@ -33,6 +33,7 @@ import rangedAttackSound from './sounds/ranged_attack.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
+import TurnEndedDisplay from './TurnEndedDisplay';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
 const coordsToObject = (coords) => {
@@ -171,7 +172,8 @@ function RulesDialog({open, onClose, gameConstants}) {
                     <b>Victory points</b>
                 </DialogContentText>
                 <DialogContentText>
-                    The goal of the game is to get to the most victory points, and your victory points are held by you, the player. The game ends when someone reaches {gameConstants.game_end_score} VPs. 
+                    The goal of the game is to get to the most victory points, and your victory points are held by you, the player. The game ends when someone reaches a sufficiently high score, which is given by {gameConstants.game_end_score} VPs + {gameConstants.extra_game_end_score_per_player} VPs per player. 
+                    (So, for example, in a 4-player game, the game ends at {gameConstants.game_end_score + 4*gameConstants.extra_game_end_score_per_player} VPs.)
                     You get VPs from a variety of sources:
                     <ul>
                         <li>{gameConstants.unit_kill_reward} VP per unit killed</li>
@@ -180,7 +182,7 @@ function RulesDialog({open, onClose, gameConstants}) {
                         <li>{gameConstants.tech_vp_reward} VP per tech researched</li>
                         <li>Some buildings give you VPs for building them (almost all wonders give 5 VP, and a few basic buildings give you 1 VP and have no other abilities)</li>
                         <li>Whenever a player enters decline, all other players get {gameConstants.survival_bonus} VP</li>
-                        <li>When a player's city "revolts" and becomes part of a new player's civilization, that player is compensated with a pile of victory points; 5 VP + 1 VP per (between 10 and 40ish depending on turn number) city base yields + 1 VP per unit stolen</li>
+                        <li>When a player's city "revolts" and becomes part of a new player's civilization, that player is compensated with a pile of victory points; 5 VP + 1 VP per (between 5 and 20ish depending on turn number) city base yields + 1 VP per unit stolen</li>
                     </ul>
                 </DialogContentText>
                 <br />
@@ -271,6 +273,9 @@ export default function GamePage() {
     const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
 
     const [turnTimer, setTurnTimer] = useState(-1);
+    const [timerMutedOnTurn, setTimerMutedOnTurn] = useState(null);
+
+    const [turnEndedByPlayerNum, setTurnEndedByPlayerNum] = useState({});
 
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
@@ -281,9 +286,15 @@ export default function GamePage() {
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
+    const myCivIdRef = React.useRef(myCivId);
     const hoveredHexRef = React.useRef(hoveredHex);
     const lastSetPrimaryTargetRef = React.useRef(lastSetPrimaryTarget);
     const playerApiUrl= `${URL}/api/player_input/${gameId}`
+    const target1Ref = React.useRef(target1);
+    const target2Ref = React.useRef(target2);
+    const playerNumRef = React.useRef(playerNum);
+    const gameStateRef = React.useRef(gameState);
+    const turnEndedByPlayerNumRef = React.useRef(turnEndedByPlayerNum);
 
     useEffect(() => {
         hoveredHexRef.current = hoveredHex;
@@ -293,16 +304,55 @@ export default function GamePage() {
         lastSetPrimaryTargetRef.current = lastSetPrimaryTarget;
     }, [lastSetPrimaryTarget]);
 
+    useEffect(() => {
+        target1Ref.current = target1;
+    }, [target1]);
+
+    useEffect(() => {
+        target2Ref.current = target2;
+    }, [target2]);
+
+    useEffect(() => {
+        myCivIdRef.current = myCivId;
+    }, [myCivId]);
+
+    useEffect(() => {
+        playerNumRef.current = playerNum;
+    }, [playerNum]);
+
+    useEffect(() => {
+        gameStateRef.current = gameState;
+    }, [gameState]);
+
+    useEffect(() => {
+        turnEndedByPlayerNumRef.current = turnEndedByPlayerNum;
+    }, [turnEndedByPlayerNum]);
+
     // console.log(selectedCity);
 
     // console.log(hoveredHex);
+
+    console.log(gameState);
 
     const handleContextMenu = (e) => {
         if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
             e.preventDefault();
         } 
+
         if (hoveredHexRef.current) {
-            setTarget(hoveredHexRef.current, !target1 ? false : !target2 ? true : lastSetPrimaryTargetRef.current ? true : false);
+            setHoveredCity(null);
+
+            if (hexesAreEqual(hoveredHexRef.current, target1Ref.current)) {
+                removeTarget(false);
+                return;
+            }
+
+            if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
+                removeTarget(true);
+                return;
+            }
+
+            setTarget(hoveredHexRef.current, !target1Ref.current ? false : !target2Ref.current ? true : lastSetPrimaryTargetRef.current ? true : false);
         }
     }
 
@@ -1985,7 +2035,8 @@ export default function GamePage() {
         }
 
         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
-        setGameState(finalGameState);        
+        setGameState(finalGameState);
+        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
 
         setAnimating(false);
     }
@@ -2288,25 +2339,11 @@ export default function GamePage() {
         }
         else {
             setHoveredCity(null);
-
-            if (hexesAreEqual(hex, target1)) {
-                removeTarget(false);
-                return;
-            }
-
-            if (hexesAreEqual(hex, target2)) {
-                removeTarget(true);
-                return;
-            }
-
-            if ((!hex.city) || (hex?.city?.civ?.id !== myCivId) || event.shiftKey) {
-                setTarget(hex, !target1 ? false : !target2 ? true : lastSetPrimaryTarget ? true : false);
-            }
         }   
     };
 
     const setTarget = (hex, isSecondary) => {
-        if (!myCivId || gameState?.special_mode_by_player_num?.[playerNum]) return;
+        if (!myCivIdRef.current || gameStateRef?.current?.special_mode_by_player_num?.[playerNumRef.current]) return;
 
         if (isSecondary) {
             setLastSetPrimaryTarget(false);
@@ -2321,7 +2358,7 @@ export default function GamePage() {
         }
 
         const data = {
-            player_num: playerNum,
+            player_num: playerNumRef.current,
             player_input: playerInput,
         }
 
@@ -2342,14 +2379,14 @@ export default function GamePage() {
     }
 
     const removeTarget = (isSecondary) => {
-        if (!myCivId) return;
+        if (!myCivIdRef.current) return;
 
         const playerInput = {
             'move_type': `remove_civ_${isSecondary ? "secondary" : "primary"}_target`,
         }
 
         const data = {
-            player_num: playerNum,
+            player_num: playerNumRef.current,
             player_input: playerInput,
         }
 
@@ -2489,6 +2526,12 @@ export default function GamePage() {
                     {hoveredHex && (
                         <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                     )}
+                    {gameState && <TurnEndedDisplay 
+                        gamePlayerByPlayerNum={gameState?.game_player_by_player_num}
+                        turnEndedByPlayerNum={turnEndedByPlayerNum}
+                        animating={animating}
+                        isHoveredHex={!!hoveredHex}
+                    />}
                     {<UpperRightDisplay 
                         city={selectedCity || hoveredCity} 
                         setHoveredUnit={setHoveredUnit} 
@@ -2504,6 +2547,7 @@ export default function GamePage() {
                         turnNum={turnNum}
                         nextForcedRollAt={gameState?.next_forced_roll_at}
                         gameId={gameId}
+                        timerMuted={timerMutedOnTurn === turnNum}
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
@@ -2732,6 +2776,12 @@ export default function GamePage() {
           else {
             fetchGameState();
           }
+        })
+        socket.on('mute_timer', (data) => {
+            setTimerMutedOnTurn(data.turn_num);
+        })
+        socket.on('turn_end_change', (data) => {
+            setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});
         })
     }, [])
 

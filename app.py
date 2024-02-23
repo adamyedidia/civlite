@@ -21,7 +21,7 @@ from game_state import GameState, update_staged_moves, get_most_recent_game_stat
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
-from settings import LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, SURVIVAL_BONUS
+from settings import LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER
 from tech import get_tech_choices_for_civ
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
@@ -99,18 +99,16 @@ def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
 
         for player_num in game_state_copy.game_player_by_player_num.keys():
             staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
+
+            for move in staged_moves:
+                if move.get('move_type') == 'enter_decline':
+                    return
+
             game_state_copy.update_from_player_moves(player_num, staged_moves)
 
-        # Don't end turn if someone's in decline
-        print('roll_id', roll_id, game_state.roll_id)
-
         for game_player in game_state_copy.game_player_by_player_num.values():
-            print(game_player.username, game_player.civ_id)
-
             if not game_player.civ_id:
                 return
-
-        print('roll_id', roll_id, game_state.roll_id)
 
         if turn_num == game_state.turn_num and roll_id == game_state.roll_id:
             if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
@@ -520,8 +518,6 @@ def get_open_games(sess):
     else:
         user_filters = []
 
-    print(user)
-
     games = (
         sess.query(Game)
         .join(Player)
@@ -624,13 +620,10 @@ def enter_player_input(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    print(player_input)
-
     _, from_civ_perspectives, game_state_to_return_json = update_staged_moves(sess, game_id, player_num, [player_input])
 
-    # print(game_state.to_json())
-
-    # print(from_civ_perspectives)
+    if player_input.get('move_type') == 'enter_decline':
+        socketio.emit('mute_timer', {'turn_num': game_state_to_return_json['turn_num']}, room=game_id)  # type: ignore
 
     return jsonify({'game_state': game_state_to_return_json})
     # return jsonify({'game_state': game_state.to_json()})
@@ -660,7 +653,7 @@ def end_turn(sess, game_id):
 
     turn_ended_by_player_num[player_num] = True
 
-    print('game_seconds_per_turn', game.seconds_per_turn)
+    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)
 
     if game_state.turn_should_end(turn_ended_by_player_num):
         if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
@@ -668,16 +661,12 @@ def end_turn(sess, game_id):
             next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
             new_roll_id = generate_unique_id()
 
-            print('new_roll_id', new_roll_id)
-
             Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, game_state.turn_num + 1, new_roll_id]).start()
             game_state.next_forced_roll_at = next_forced_roll_at
             game_state.roll_id = new_roll_id
-            print(game_state.roll_id)
 
         game_state.end_turn(sess)
 
-        print('Broadcasting from end turn: ', game_id)
         broadcast(game_id)
     else:
         rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)
@@ -711,6 +700,8 @@ def pause_game(sess, game_id):
 
     sess.commit()
 
+    socketio.emit('mute_timer', {'turn_num': game_state.turn_num}, room=game_id)  # type: ignore
+
     return jsonify({})
 
 
@@ -733,6 +724,8 @@ def unend_turn(sess, game_id):
         return jsonify({"error": "Game not found"}), 404
 
     set_turn_ended_by_player_num(game_id, player_num, False)
+
+    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)
 
     return jsonify({})
 
@@ -778,6 +771,7 @@ def get_game_constants(sess):
         'good_hex_probability': GOOD_HEX_PROBABILITY,
         'tech_vp_reward': TECH_VP_REWARD,
         'game_end_score': GAME_END_SCORE,
+        'extra_game_end_score_per_player': EXTRA_GAME_END_SCORE_PER_PLAYER,
         'base_city_power_income': BASE_CITY_POWER_INCOME,
         'survival_bonus': SURVIVAL_BONUS,
     })

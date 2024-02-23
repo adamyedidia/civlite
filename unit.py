@@ -83,14 +83,12 @@ class Unit:
             game_state.add_animation_frame(sess, {
                 "type": "UnitMovement",
                 "coords": coord_strs,
-            }, hexes_must_be_visible=[starting_hex, new_hex])
-
-            # if new_hex.coords == self.target.coords and (target := self.get_best_target(new_hex.get_hexes_within_range(game_state.hexes, 2))) is not None:
-            #     self.target = target.hex
+            }, hexes_must_be_visible=[starting_hex, new_hex], no_commit=True)
 
     def attack(self, sess, game_state: 'GameState') -> None:
         if self.hex is None or self.get_closest_target() is None or self.has_attacked:
             return
+
         hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
 
         best_target = self.get_best_target(hexes_to_check)
@@ -210,7 +208,7 @@ class Unit:
                             else ("gunpowder_melee" if not self.template.has_tag('ranged') else "gunpowder_ranged"),
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
-        }, hexes_must_be_visible=[self_hex, target_hex])
+        }, hexes_must_be_visible=[self_hex, target_hex], no_commit=True)
 
     def die(self, game_state: 'GameState', killer: 'Unit'):
         if self.hex is None:

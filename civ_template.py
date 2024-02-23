@@ -20,9 +20,6 @@ class CivTemplate:
     
     @staticmethod
     def from_json(json: dict) -> "CivTemplate":
-        # print(json["abilities"])
-        # print([[ability["name"], ability["numbers"]] for ability in json["abilities"]])
-
         return CivTemplate(
             name=json["name"],
             primary_color=json["primary_color"],
