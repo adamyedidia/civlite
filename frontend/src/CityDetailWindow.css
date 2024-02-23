@@ -104,6 +104,7 @@
 
 .wood-area .panel-content {
     border-color: #e46c2b;
+    background-color: #ffeedde0;
 }
 
 .wood-area .panel-banner {
@@ -112,6 +113,7 @@
 
 .metal-area .panel-content{
   border-color: #888888;
+  background-color: #eeeeeee0;
 }
 
 .metal-area .panel-banner {
@@ -120,6 +122,7 @@
 
 .food-area .panel-content{
   border-color: #65ac37;
+  background-color: #ddffdde0;
 }
 
 .food-area .panel-banner {
@@ -128,6 +131,7 @@
 
 .science-area .panel-content{
   border-color: #5ca7b1;
+  background-color: #ddeeffe0;
 }
 
 .science-area .panel-banner {
@@ -136,7 +140,7 @@
 
 .food-progress-bar {
   width: 100%;
-  background-color: #e5e5e5;
+  background-color: #ccc;
   height: 20px;
   border-radius: 5px;
   display: flex;
@@ -203,6 +207,7 @@
 
   margin-bottom: 10px;
 }
+
 
 .unit-queue-container {
   display: flex;
