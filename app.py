@@ -329,7 +329,7 @@ def _launch_game_inner(sess, game: Game) -> None:
     game_state.special_mode_by_player_num = {game_player.player_num: 'starting_location' if not game_player.is_bot else None for game_player in game_players}
 
     for city in game_state.cities_by_id.values():
-        city.adjust_projected_yields(game_state)
+        city.midturn_update(game_state)
     game_state.refresh_visibility_by_civ(short_sighted=True)
 
     animation_frame = AnimationFrame(

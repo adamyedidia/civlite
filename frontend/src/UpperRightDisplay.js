@@ -89,7 +89,7 @@ const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit
     return (
         <div className="upper-right-display">
             {nextForcedRollAt && !timerMuted && <Timer nextForcedRollAt={nextForcedRollAt} gameId={gameId}/>}
-            {city && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
+            {city && !isFriendlyCity && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
             <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} setHoveredTech={setHoveredTech} setTechListDialogOpen={setTechListDialogOpen} techTemplates={techTemplates}/>
             {myCiv && <CityPowerDisplay myCiv={myCiv} />}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} />}

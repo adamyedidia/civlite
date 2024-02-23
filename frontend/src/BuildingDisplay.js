@@ -25,7 +25,7 @@ export const BriefBuildingDisplay = ({ buildingName, buildingTemplates, unitTemp
 
     return (
         <div 
-            className="brief-building-card" 
+            className={`brief-building-card ${building?.is_wonder ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : unitTemplatesByBuildingName[buildingName] ? 'military' : 'economic'}`} 
             onClick={onClick}
             onMouseEnter={() => setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => setHoveredBuilding(null)} // clear on mouse leave

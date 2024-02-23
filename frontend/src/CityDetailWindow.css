@@ -1,0 +1,343 @@
+.city-detail-window {
+    border: 8px solid; /* color overwridden from js */
+    background-color: #ffffffa0;
+    z-index: 1000;
+
+    position: fixed;
+    top: 10px;
+    left: 10px;
+}
+.city-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  background: #ffffffb0;
+  padding: 5px;
+}
+.city-detail-close-button {
+  cursor: pointer;
+  padding: 5px 10px;
+  font-size: 16px;
+  background-color: #a0a0a0;
+}
+.city-detail-columns { 
+    display: flex; /* So that the columns are horizontally adjacent. */
+}
+.city-detail-column {
+  padding: 5px;
+}
+
+.city-detail-panel {
+    padding: 20px 5px 20px 5px;
+
+    /* 
+    Had to add this width explicitly so that later things that are 100% know what to be 100% of. 
+    The value is just what it turned out to be when it was not set.
+    */
+    width: 304px; 
+}
+
+.panel-icon img {
+  width: 60px;
+}
+
+.panel-header{
+    display:flex;
+    height: 60px;
+    align-items: center;
+}
+
+.panel-header .amount-total {
+  font-size: 32px;
+  min-width: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-banner{
+    font-size: 16px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding-left: 8px;
+}
+
+.icon-bg-text {
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    width: 40px;
+    position:relative;
+}
+
+.tooltip {
+  position: absolute;
+  background-color: black;
+  color: white;
+  text-align: left;
+  width: 200px;
+  font-size: 16px;
+  border-radius: 6px;
+  padding: 5px 10px;
+  z-index: 1;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.panel-content{
+    border: 8px solid;
+    padding: 5px;
+    border-bottom-left-radius: 20px;
+    border-bottom-right-radius: 20px;
+    max-height: 800px;
+    overflow-y: auto;
+}
+
+.wood-area .panel-content {
+    border-color: #e46c2b;
+    background-color: #ffeedde0;
+}
+
+.wood-area .panel-banner {
+    background-color: #e46c2b;
+}
+
+.metal-area .panel-content{
+  border-color: #888888;
+  background-color: #eeeeeee0;
+}
+
+.metal-area .panel-banner {
+    background-color: #888888;
+}
+
+.food-area .panel-content{
+  border-color: #65ac37;
+  background-color: #ddffdde0;
+}
+
+.food-area .panel-banner {
+    background-color: #65ac37;
+}
+
+.science-area .panel-content{
+  border-color: #5ca7b1;
+  background-color: #ddeeffe0;
+}
+
+.science-area .panel-banner {
+    background-color: #5ca7b1;
+}
+
+.food-progress-bar {
+  width: 100%;
+  background-color: #ccc;
+  height: 20px;
+  border-radius: 5px;
+  display: flex;
+  position: relative;
+}
+
+.food-progress-bar .bar {
+  height: 100%;
+}
+
+.food-progress-bar .bar.stored {
+  border-radius: 5px 0 0 5px;
+  background-color: #65ac37;
+}
+
+.food-progress-bar .bar.produced {
+  border-radius: 0 5px 5px 0;
+  background-color: #a4e079
+}
+
+.food-progress-bar .checkmark {
+  position: absolute;
+  right: 5px;
+  font-size: 24px
+}
+
+.building-choices-container {
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+  /* gap: 5px; */
+  /* transform: translate(-50%, -50%); */
+  max-height: 27%; /* Adjust as needed */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-direction: column;
+  margin-bottom: 50px;
+  max-height: 300px;
+}
+
+.building-queue-container {
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+  /* gap: 5px; */
+  /* transform: translate(-50%, -50%); */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-direction: column;
+  margin-bottom: 50px;
+  max-height: 300px;
+}
+
+.existing-buildings-container {
+  /* display: flex; */
+  justify-content: center;
+  align-items: center;
+  /* gap: 5px; */
+  /* transform: translate(-50%, -50%); */
+  overflow-y: auto; /* Enable vertical scrolling */
+  flex-direction: column;
+  max-height: 300px;
+}
+
+.collapse-expand-button {
+  border: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: 0.3s;
+  width: 100%;
+}
+
+.unit-choices-container {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+
+.unit-queue-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 100%;
+  gap: 5px;
+}
+
+.unit-choice {
+  cursor: pointer; /* Change cursor to indicate clickable */
+  border-radius: 10px;
+}
+
+.unit-choice:hover {
+  background-color: #ffffff; /* Light grey background on hover */
+  transform: scale(1.05); /* Slightly increase size to indicate selection */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
+}
+
+.unit-choice.infinite-queue {
+  position: relative;
+  animation: dash-around 1.5s linear infinite;
+}
+
+@keyframes dash-around {
+  0% {
+    border-color: rgba(0, 0, 0, 0);
+    box-shadow: 0 0 10px 2px #000 inset, 0 0 10px 2px #000;
+  }
+  50% {
+    border-color: #000;
+    box-shadow: 0 0 1px 2px #000 inset, 0 0 5px 2px #000;
+  }
+  100% {
+    border-color: rgba(0, 0, 0, 0);
+    box-shadow: 0 0 10px 2px #000 inset, 0 0 10px 2px #000;
+  }
+}
+
+
+.queue-not-building {
+  opacity: 40%;
+}
+
+.focus-selection-option {
+  text-transform: capitalize;
+  border: 1px solid #ddd;
+  padding: 5px;
+  margin: 5px;
+  border-radius: 100%;
+  background-color: #bbbbbb;
+  cursor: pointer;
+  display: flex; /* Display content in a line */
+  justify-content: space-between; /* Distribute space evenly between the elements */
+  align-items: center; /* Align items vertically in the center */
+  font-size: 1.2em; /* Smaller font size */  
+}
+
+.focus-selection-option.food {
+  background-color: #ccffaa; /* Replace with the color you want for food */
+  border-color: #012e01;
+}
+
+.focus-selection-option.metal {
+  background-color: #bbbbbb; /* Replace with the color you want for metal */
+  border-color: #111111;
+}
+
+.focus-selection-option.wood {
+  background-color: #e0b096; /* Replace with the color you want for wood */
+  border-color: #501e03;
+}
+
+.focus-selection-option.science {
+  background-color: #b0e0e6; /* Replace with the color you want for science */
+  border-color: #192b2e;
+}
+
+@keyframes rotateDash {
+  to {
+    transform: rotate(360deg)
+  }
+  from {
+    transform: rotate(0)
+  }
+}
+
+.focus-selection-option.selected {
+  border-style: solid;
+  position: relative;
+}
+
+.focus-selection-option:not(.selected) {
+  opacity: 0.25; /* Grey out the option when not selected */
+}
+
+.focus-selection-option:not(.selected):hover {
+  opacity: 1; /* Reset opacity to full when not selected but hovered */
+  background-color: #f0f0f0; /* Light grey background on hover */
+  transform: scale(1.05); /* Slightly increase size to indicate selection */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
+}
+
+.focus-selection-option.selected::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  bottom: -3px;
+  left: -3px;
+  border-radius: inherit;
+  border: 6px dashed;
+  border-color: inherit;
+  animation: rotateDash 6s linear infinite;
+  pointer-events: none;
+}

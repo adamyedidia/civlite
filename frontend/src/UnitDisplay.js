@@ -1,5 +1,6 @@
 import React from 'react';
 import './UnitDisplay.css'; // Assuming you have a separate CSS file for styling
+import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
 export const BriefUnitDisplayTitle = ({ title }) => {
     return (
@@ -24,6 +25,21 @@ export const BriefUnitDisplay = ({ unitName, unitTemplates, onClick, setHoveredU
             <span className="unit-name">{unit?.name}</span>
             <span className="unit-cost">{unit?.metal_cost} metal</span>
         </div>
+    );
+};
+
+export const IconUnitDisplay = ({ unitName, unitTemplates, style, onClick, setHoveredUnit }) => {
+    const unit = unitTemplates[unitName];
+    const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
+
+    return (
+        <div 
+            className="unit-icon" 
+            onClick={onClick}
+            onMouseEnter={() => setHoveredUnit(unit)} // set on mouse enter
+            onMouseLeave={() => setHoveredUnit(null)} // clear on mouse leave
+            style={{ ...style, backgroundImage: `url(${unitImage})`}}
+        />
     );
 };
 

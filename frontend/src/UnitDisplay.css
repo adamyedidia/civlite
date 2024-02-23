@@ -50,3 +50,13 @@
 .brief-unit-card:hover {
     border: 2px solid black; /* Thicker black border on hover */
 }
+
+.unit-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 100%;
+    background-size: 75% 75%;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 3px solid black;
+}

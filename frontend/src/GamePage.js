@@ -21,21 +21,20 @@ import {
     MenuItem,
 } from '@mui/material';
 import CivDisplay from './CivDisplay';
-import CityIcon from './images/city.svg';
-import TechDisplay, { BriefTechDisplay } from './TechDisplay';
+import TechDisplay from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
-import CityDisplay from './CityDisplay';
-import BuildingDisplay, { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
-import UnitDisplay, {BriefUnitDisplay, BriefUnitDisplayTitle} from './UnitDisplay';
+import BuildingDisplay from './BuildingDisplay';
+import UnitDisplay from './UnitDisplay';
+import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
-import spawnSound from './sounds/spawn.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
 import TurnEndedDisplay from './TurnEndedDisplay';
+import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -208,33 +207,8 @@ function RulesDialog({open, onClose, gameConstants}) {
     )
 }
 
-export const FocusSelectorTitle = ({ title }) => {
-    return (
-        <div 
-            className="focus-title-card" 
-        >
-            <span>{title}</span>
-        </div>        
-    );
-}
-
 const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
-}
-
-const lowercaseAndReplaceSpacesWithUnderscores = (str) => {
-    return str.toLowerCase().replace(/ /g, '_');
-}
-
-export const FocusSelectionOption = ({ focus, onClick, isSelected }) => {
-    return (
-        <div
-            className={`focus-selection-option ${focus} ${isSelected ? 'selected' : ''}`}
-            onClick={onClick}
-        >
-            <span>{focus}</span>
-        </div>
-    );
 }
 
 export default function GamePage() {
@@ -315,6 +289,7 @@ export default function GamePage() {
     const myCivIdRef = React.useRef(myCivId);
     const hoveredHexRef = React.useRef(hoveredHex);
     const lastSetPrimaryTargetRef = React.useRef(lastSetPrimaryTarget);
+    const playerApiUrl= `${URL}/api/player_input/${gameId}`
     const target1Ref = React.useRef(target1);
     const target2Ref = React.useRef(target2);
     const playerNumRef = React.useRef(playerNum);
@@ -1896,118 +1871,7 @@ export default function GamePage() {
             });
     }
 
-    const handleClickBuildingChoice = (buildingName) => {
-        const playerInput = {
-            'building_name': (buildingName),
-            'move_type': 'choose_building',
-            'city_id': selectedCity.id,
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-
-        setHoveredBuilding(null);
-
-        fetch(`${URL}/api/player_input/${gameId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
-    }
-
-    const handleCancelBuilding = (buildingName) => {
-        const playerInput = {
-            'building_name': (buildingName),
-            'move_type': 'cancel_building',
-            'city_id': selectedCity.id,
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-
-        setHoveredBuilding(null);
-
-        fetch(`${URL}/api/player_input/${gameId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
-    }
-
-    const handleClickUnitChoice = (unitName) => {
-        const playerInput = {
-            'unit_name': (unitName),
-            'move_type': 'choose_unit',
-            'city_id': selectedCity.id,
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-
-        fetch(`${URL}/api/player_input/${gameId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
-    }
-
-    const handleCancelUnit = (unitIndex) => {
-        const playerInput = {
-            'unit_index_in_queue': unitIndex,
-            'move_type': 'cancel_unit',
-            'city_id': selectedCity.id,
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-
-        fetch(`${URL}/api/player_input/${gameId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
-    }
-
+    
     const handleClickTech = (tech) => {
 
         const playerInput = {
@@ -2019,7 +1883,7 @@ export default function GamePage() {
             player_num: playerNum,
             player_input: playerInput,
         }
-        fetch(`${URL}/api/player_input/${gameId}`, {
+        fetch(playerApiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2033,33 +1897,7 @@ export default function GamePage() {
                 }
             });
     }
-
-    const handleClickFocus = (focus) => {
-        const playerInput = {
-            'city_id': selectedCity.id,
-            'focus': focus,
-            'move_type': 'choose_focus',
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-        fetch(`${URL}/api/player_input/${gameId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
-    }
-
+   
     useEffect(() => {
         fetch(`${URL}/api/civ_templates`)
             .then(response => response.json())
@@ -2255,7 +2093,6 @@ export default function GamePage() {
                     setTechChoices(data.tech_choices);
                     if (data.game_state) {
                         setGameState(data.game_state);
-                        // refreshSelectedCity(data.game_state);
                         refreshSelectedCity(data.game_state);
                     }
                 });
@@ -2267,7 +2104,7 @@ export default function GamePage() {
                     move_type: 'choose_decline_option',
                 },
             }
-            fetch(`${URL}/api/player_input/${gameId}`, {
+            fetch(playerApiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -2485,7 +2322,7 @@ export default function GamePage() {
                 player_input: playerInput,
             }
 
-            fetch(`${URL}/api/player_input/${gameId}`, {
+            fetch(playerApiUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -2525,7 +2362,7 @@ export default function GamePage() {
             player_input: playerInput,
         }
 
-        fetch(`${URL}/api/player_input/${gameId}`, {
+        fetch(playerApiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2553,7 +2390,7 @@ export default function GamePage() {
             player_input: playerInput,
         }
 
-        fetch(`${URL}/api/player_input/${gameId}`, {
+        fetch(playerApiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2582,7 +2419,7 @@ export default function GamePage() {
             player_input: playerInput,
         }
 
-        fetch(`${URL}/api/player_input/${gameId}`, {
+        fetch(playerApiUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2712,55 +2549,28 @@ export default function GamePage() {
                         gameId={gameId}
                         timerMuted={timerMutedOnTurn === turnNum}
                     />}
-                    {selectedCityBuildingChoices && (
-                        <div className="building-choices-container">
-                            <BriefBuildingDisplayTitle title="Building Choices" />
-                            {selectedCityBuildingChoices.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
-                            ))}
-                        </div>
-                    )};
-                    {selectedCityBuildingQueue && (
-                        <div className="building-queue-container">
-                            <BriefBuildingDisplayTitle title="Building Queue" />
-                            {selectedCityBuildingQueue.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
-                            ))}
-                        </div>
-                    )};                
-                    {selectedCityBuildings && (
-                        <div className="existing-buildings-container">
-                            <BriefBuildingDisplayTitle title="Existing buildings" />
-                            {selectedCityBuildings.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
-                            ))}
-                        </div>
-                    )};  
-                    {selectedCityUnitChoices && (
-                        <div className="unit-choices-container">
-                            <BriefUnitDisplayTitle title="Unit Choices" />
-                            {selectedCityUnitChoices.map((unitName, index) => (
-                                <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleClickUnitChoice(unitName)} />
-                            ))}
-                        </div>
-                    )};
-                    {selectedCityUnitQueue && (
-                        <div className="unit-queue-container">
-                            <BriefUnitDisplayTitle title="Unit Queue" />
-                            {selectedCityUnitQueue.map((unitName, index) => (
-                                <BriefUnitDisplay key={index} unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
-                            ))}
-                        </div>
-                    )};
-                    {selectedCity && !gameState?.special_mode_by_player_num?.[playerNum] && (
-                        <div className="focus-container">
-                            <FocusSelectorTitle title="City Focus" />
-                            <FocusSelectionOption focus="food" isSelected={selectedCity.focus === 'food'} onClick={() => handleClickFocus('food')} />
-                            <FocusSelectionOption focus="wood" isSelected={selectedCity.focus === 'wood'} onClick={() => handleClickFocus('wood')} />
-                            <FocusSelectionOption focus="metal" isSelected={selectedCity.focus === 'metal'} onClick={() => handleClickFocus('metal')} />
-                            <FocusSelectionOption focus="science" isSelected={selectedCity.focus === 'science'} onClick={() => handleClickFocus('science')} />
-                        </div>
-                    )}
+                    {selectedCity && <CityDetailWindow 
+                        gameState={gameState}
+                        myCivTemplate={civTemplates[selectedCity.civ.name]}
+                        declinePreviewMode={!myCiv || selectedCity.civ.name != myCiv.name}
+                        playerNum={playerNum}
+                        playerApiUrl={playerApiUrl}
+                        setGameState={setGameState}
+                        refreshSelectedCity={refreshSelectedCity}
+                        selectedCityBuildingChoices={selectedCityBuildingChoices} 
+                        selectedCityBuildingQueue={selectedCityBuildingQueue}
+                        selectedCityBuildings={selectedCityBuildings}
+                        selectedCityUnitChoices={selectedCityUnitChoices}
+                        selectedCityUnitQueue={selectedCityUnitQueue}
+                        selectedCity={selectedCity} 
+                        unitTemplatesByBuildingName={unitTemplatesByBuildingName}
+                        buildingTemplates={buildingTemplates}
+                        unitTemplates={unitTemplates}
+                        descriptions={descriptions}
+                        setHoveredUnit={setHoveredUnit}
+                        setHoveredBuilding={setHoveredBuilding}
+                        setSelectedCity={setSelectedCity}
+                        />}
                     <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
                         {hoveredBuilding && (
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />

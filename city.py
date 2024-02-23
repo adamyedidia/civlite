@@ -10,11 +10,21 @@ from unit_template import UnitTemplate
 from unit_templates_list import PRODUCTION_BUILDINGS_BY_UNIT_NAME, UNITS, UNITS_BY_BUILDING_NAME
 from utils import generate_unique_id
 import random
+from typing import Dict
 
 if TYPE_CHECKING:
     from hex import Hex
     from game_state import GameState
 
+
+def resourcedict() -> Dict[str, float]:
+    return {
+        "food": 0.0,
+        "wood": 0.0,
+        "metal": 0.0,
+        "science": 0.0,
+        "city_power": 0.0,
+    }
 
 class City:
     def __init__(self, civ: Civ, id: Optional[str] = None):
@@ -32,17 +42,16 @@ class City:
         self.hex: Optional['Hex'] = None
         self.autobuild_unit: Optional[UnitTemplate] = None
         self.units_queue: list[UnitTemplate] = []
+        self.infinite_queue_unit: Optional[UnitTemplate] = None
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
         self.buildings: list[Building] = []
         self.available_buildings: list[str] = []
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, int]]] = {}
         self.capital = False
         self.available_units: list[str] = []
-        self.projected_food_income = 0.0
-        self.projected_metal_income = 0.0
-        self.projected_wood_income = 0.0
-        self.projected_science_income = 0.0
-        self.projected_city_power_income = 0.0
+        self.projected_income = resourcedict()
+        self.projected_income_base = resourcedict()  # income without focus
+        self.projected_income_focus = resourcedict()  # income from focus
         self.terrains_dict = {}
 
         self.handle_cleanup()
@@ -53,27 +62,44 @@ class City:
     def building_is_in_queue(self, building_name: str) -> bool:
         return any([(building.building_name if hasattr(building, 'building_name') else building.name) == building_name for building in self.buildings_queue])  # type: ignore
 
+    def midturn_update(self, game_state: 'GameState') -> None:
+        """
+        Update things that could have changed due to the controlling player fiddling with focus etc.
+        """
+        self.adjust_projected_yields(game_state)
+        self._apply_infinite_queue()
+
+    def _apply_infinite_queue(self):
+        """ 
+        Fill the queue with the appropraite unit as many as I can build this turn. 
+        Assumes self.projected_income can be trusted.
+        """
+        if self.infinite_queue_unit is None: 
+            return
+
+        available_metal = self.metal + self.projected_income["metal"]
+        for unit_template in self.units_queue:
+            available_metal -= unit_template.metal_cost
+        while available_metal > self.infinite_queue_unit.metal_cost:
+            self.units_queue.append(self.infinite_queue_unit)
+            available_metal -= self.infinite_queue_unit.metal_cost
+
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
-        projected_yields = self.get_projected_yields(game_state)
-
-        self.projected_food_income = projected_yields['food']
-        self.projected_metal_income = projected_yields['metal']
-        self.projected_wood_income = projected_yields['wood']
-        self.projected_science_income = projected_yields['science']
-        self.projected_city_power_income = projected_yields['city_power']
-
-    def get_projected_yields(self, game_state: 'GameState') -> dict[str, float]:
         if self.hex is None:
-            return {
-                "food": 0,
-                "metal": 0,
-                "wood": 0,
-                "science": 0,
-                "city_power": 0,
-            }
+            self.projected_income = resourcedict()
+            self.projected_income_base = resourcedict()
+            self.projected_income_focus = resourcedict()
+        self.projected_income_base = self._get_projected_yields_without_focus(game_state)
+        self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
 
+        self.projected_income = self.projected_income_base.copy()
+        self.projected_income[self.focus] += self.projected_income_focus[self.focus]
+        if self.focus == 'food':
+            self.projected_income['city_power'] += self.projected_income_focus['food']
+
+    def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
-        yields = defaultdict(float)
+        yields = resourcedict()
 
         for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
             yields["food"] += hex.yields.food * vitality
@@ -94,9 +120,6 @@ class City:
                 if ability.name == 'IncreaseYieldsPerPopulation':
                     yields_per_population[ability.numbers[0]] += ability.numbers[1]
 
-                if ability.name == 'IncreaseFocusYieldsPerPopulation' and self.focus == ability.numbers[0]:
-                    yields_per_population[self.focus] += ability.numbers[1]
-
         for key in yields_per_population:
             yields[key] += self.population * yields_per_population[key] * vitality
 
@@ -105,19 +128,24 @@ class City:
 
         yields["food"] += 2 * vitality
         yields["city_power"] += 2 * vitality
+        return yields
 
-        if self.focus == 'food':
-            yields["food"] += self.population * vitality
-            yields["city_power"] += self.population * vitality
-        elif self.focus == 'metal':
-            yields["metal"] += self.population * vitality
-        elif self.focus == 'wood':
-            yields["wood"] += self.population * vitality
-        elif self.focus == 'science':
-            yields["science"] += self.population * vitality
+    def _get_projected_yields_from_focus(self, game_state) -> dict[str, float]:
+        vitality = self.civ.vitality
+        yields = resourcedict()
+        yields["food"] += self.population * vitality
+        yields["metal"] += self.population * vitality
+        yields["wood"] += self.population * vitality
+        yields["science"] += self.population * vitality
 
-        if self.civ.has_ability('IncreaseFocusYields') and self.focus == self.civ.numbers_of_ability('IncreaseFocusYields')[0]:
-            yields[self.focus] += self.civ.numbers_of_ability('IncreaseFocusYields')[1]
+        if self.civ.has_ability('IncreaseFocusYields'):
+            bonus_resource, count = self.civ.numbers_of_ability('IncreaseFocusYields')
+            yields[bonus_resource] += count
+        for building in self.buildings:
+            for ability in building.template.abilities:
+                if ability.name == 'IncreaseFocusYieldsPerPopulation':
+                    focus, amount_per_pop = ability.numbers
+                    yields[focus] += amount_per_pop * self.population * vitality
 
         return yields
 
@@ -674,6 +702,7 @@ class City:
             "hex": self.hex.coords if self.hex else None,
             "autobuild_unit": self.autobuild_unit.name if self.autobuild_unit else None,
             "units_queue": [unit.name for unit in self.units_queue],
+            "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
             "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
             "buildings": [building.to_json() for building in self.buildings],
             "available_buildings": self.available_buildings,
@@ -681,11 +710,9 @@ class City:
             "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
             "capital": self.capital,
             "available_units": self.available_units,
-            "projected_food_income": self.projected_food_income,
-            "projected_metal_income": self.projected_metal_income,
-            "projected_wood_income": self.projected_wood_income,
-            "projected_science_income": self.projected_science_income,
-            "projected_city_power_income": self.projected_city_power_income,
+            "projected_income": self.projected_income,
+            "projected_income_base": self.projected_income_base,
+            "projected_income_focus": self.projected_income_focus,
             "growth_cost": self.growth_cost(),
             "terrains_dict": self.terrains_dict,
         }
@@ -710,12 +737,11 @@ class City:
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.available_units = json["available_units"][:]
         city.units_queue = [UnitTemplate.from_json(UNITS[unit]) for unit in json["units_queue"]]
+        city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UnitTemplate.from_json(UNITS[json["infinite_queue_unit"]])
         city.focus = json["focus"]
-        city.projected_food_income = json["projected_food_income"]
-        city.projected_metal_income = json["projected_metal_income"]
-        city.projected_wood_income = json["projected_wood_income"]
-        city.projected_science_income = json["projected_science_income"]
-        city.projected_city_power_income = json["projected_city_power_income"]
+        city.projected_income = json["projected_income"]
+        city.projected_income_base = json["projected_income_base"]
+        city.projected_income_focus = json["projected_income_focus"]
         city.terrains_dict = json.get("terrains_dict") or {}
 
         city.handle_cleanup()
