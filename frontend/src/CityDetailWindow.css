@@ -153,12 +153,12 @@
 
 .food-progress-bar .bar.stored {
   border-radius: 5px 0 0 5px;
-  background-color: #006400;
+  background-color: #65ac37;
 }
 
 .food-progress-bar .bar.produced {
   border-radius: 0 5px 5px 0;
-  background-color: #90EE90
+  background-color: #a4e079
 }
 
 .food-progress-bar .checkmark {
@@ -198,7 +198,18 @@
   /* transform: translate(-50%, -50%); */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
-  margin-bottom: 50px;
+}
+
+.collapse-expand-button {
+  border: none;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 12px;
+  transition: 0.3s;
+  width: 100%;
 }
 
 .unit-choices-container {

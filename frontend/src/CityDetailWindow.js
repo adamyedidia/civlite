@@ -349,17 +349,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                             <button 
                                 className="collapse-expand-button" 
                                 onClick={() => setIsBuildingListExpanded(!isBuildingListExpanded)} 
-                                style={{
-                                    border: 'none',
-                                    textAlign: 'center',
-                                    textDecoration: 'none',
-                                    display: 'inline-block',
-                                    fontSize: '16px',
-                                    cursor: 'pointer',
-                                    borderRadius: '12px',
-                                    transition: '0.3s',
-                                    width: '100%',
-                                }}
                             >
                                 <BriefBuildingDisplayTitle title={`${isBuildingListExpanded ? '▼' : '▶'} Existing buildings`} />
                             </button>
