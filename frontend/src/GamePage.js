@@ -30,6 +30,8 @@ import UpperRightDisplay from './UpperRightDisplay';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
+import medievalCitySound from './sounds/medieval_city.mp3';
+import modernCitySound from './sounds/modern_city.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
@@ -468,6 +470,27 @@ export default function GamePage() {
             console.error('Error playing sound:', error);
         }
     }
+
+    function playCitySound(medievalCitySound, modernCitySound, isModern) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(isModern ? modernCitySound : medievalCitySound);
+            audio.volume = 0.6 * volumeRef.current / 100;
+            audio.play();
+            const fadeOutInterval = setInterval(() => {
+                if (audio.volume >= 0.1) {
+                    audio.volume -= 0.1;
+                } else {
+                    clearInterval(fadeOutInterval);
+                    audio.pause();
+                }
+            }, 1000); // Adjust the interval for desired fade out speed
+        }
+        catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }        
 
     function playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound) {
         if (!userHasInteracted) return;
@@ -2105,6 +2128,7 @@ export default function GamePage() {
         }
         else {
             if (isFriendlyCity(city)) {
+                playCitySound(medievalCitySound, modernCitySound, myCiv.advancement_level >= 7);
                 setSelectedCity(city);
             }
         }

@@ -11,6 +11,7 @@ from tech_template import TechTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
 from building_templates_list import BUILDINGS
+from tech_templates_list import TECHS
 
 import random
 
@@ -58,6 +59,12 @@ class Civ:
                 self.projected_science_income += city.projected_income['science']
                 self.projected_city_power_income += city.projected_income['city_power']
 
+    def get_advancement_level(self) -> int:
+        my_techs = [TECHS[tech]['advancement_level'] for tech in self.techs]
+        if len(my_techs) == 0:
+            return 0
+        return max([TECHS[tech]['advancement_level'] for tech in self.techs])
+
     def to_json(self) -> dict:
         return {
             "id": self.id,
@@ -75,6 +82,7 @@ class Civ:
             "projected_science_income": self.projected_science_income,
             "projected_city_power_income": self.projected_city_power_income,
             "in_decline": self.in_decline,
+            "advancement_level": self.get_advancement_level(),
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
