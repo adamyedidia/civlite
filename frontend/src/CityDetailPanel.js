@@ -22,36 +22,20 @@ const FocusSelectionOption = ({ focus, amount, onClick, isSelected }) => {
     );
 };
 
-export const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleClickFocus, children }) => {
+export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity, 
+    override_stored_amount, override_income, override_income_base, override_income_focus, 
+    total_prefix, total_tooltip, handleClickFocus, children }) => {
 
-    const storedAmount = selectedCity[title];
-    const projected_income_total = selectedCity[`projected_income`][title];
-    const projected_income_base = selectedCity['projected_income_base'][title];
-    const projected_income_focus = selectedCity['projected_income_focus'][title];
-    const projected_total = title == 'science' ? projected_income_total : storedAmount + projected_income_total;
+    const storedAmount = override_stored_amount !== undefined ? override_stored_amount : selectedCity[title];
+    const projected_income_total = override_income !== undefined ? override_income : selectedCity[`projected_income`][title];
+    const projected_income_base = override_income_base !== undefined ? override_income_base : selectedCity['projected_income_base'][title];
+    const projected_income_focus = (override_income_focus !== undefined || noFocus) ? override_income_focus : selectedCity['projected_income_focus'][title];
+    const projected_total = storedAmount + projected_income_total;
     const projected_total_rounded = Math.floor(projected_total);
-    let projected_total_display;
-    switch (title) {
-        case 'science':
-            projected_total_display = `+${projected_total_rounded}`;
-            break;
-        // If we need custom display for any others, can add it here.
-        default:
-            projected_total_display = projected_total_rounded.toString();
-            break;
-    }
+    const projected_total_display = `${total_prefix ? total_prefix : ""}${projected_total_rounded}`;
+
     const projected_total_rounded_2 = Math.floor(projected_total * 100) / 100;
-    let totalAmountTooltip;
-    switch (title) {
-        case 'science':
-            totalAmountTooltip = `${projected_total_rounded_2} ${title} produced by this city.`;
-            break;
-        case 'food':
-            totalAmountTooltip = `${projected_total_rounded_2} ${title} after this turn.`;
-            break;
-        default:
-            totalAmountTooltip = `${projected_total_rounded_2} ${title} available to spend this turn.`;
-    }
+    const totalAmountTooltip = `${projected_total_rounded_2} ${title} ${total_tooltip}`;
 
     const storedStyle = hideStored ? { visibility: 'hidden' } : {};
 
@@ -69,9 +53,13 @@ export const CityDetailPanel = ({ title, icon, hideStored, selectedCity, handleC
                     =
                     <TextOnIcon image={crateImg} style={storedStyle} tooltip={hideStored ? null : `${storedAmount.toFixed(2)} ${title} stored from last turn.`}> {roundValue(storedAmount)} </TextOnIcon>
                     <div>+</div>
-                    <TextOnIcon image={hexesImg} tooltip={`${projected_income_base.toFixed(2)} ${title} produced this turn without focus.`}> {roundValue(projected_income_base)} </TextOnIcon>
-                    +
-                    <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} amount={projected_income_focus} onClick={() => handleClickFocus(title)} />
+                    <TextOnIcon image={hexesImg} tooltip={`${projected_income_base.toFixed(2)} ${title} produced this turn.`}> {roundValue(projected_income_base)} </TextOnIcon>
+                    {!noFocus && (
+                        <>
+                            +
+                            <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} amount={projected_income_focus} onClick={() => handleClickFocus(title)} />
+                        </>
+                    )}
                 </div>
             </div>
             <div className="panel-content">

@@ -52,3 +52,69 @@
     background-color: #cccccc;
     font-size: 1em; /* Smaller font size */
 }
+
+.science-area .progress-bar .bar.stored {
+    background-color: #5ca7b1;
+  }
+  
+.science-area .progress-bar .bar.produced {
+    background-color: #92d3dd;
+}
+
+.science-area button {
+    margin: 5px;
+}
+
+h2.tech-name {
+    margin: 5px;
+}
+
+.city-power-new-cities {
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+    height: 40px;
+}
+
+.new-city-icon {
+    height: 30px;
+    width: 30px;
+    border: 4px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.civ-detail-panel {
+    display: flex;
+    align-items: flex-start;
+    padding: 5px;
+}
+
+.civ-detail-panel .panel-content {
+    width: 250px;
+}
+
+.civ-detail-panel .icon {
+    padding: 5px;
+    font-size: 32px;
+    position: relative;
+    width: 80px;
+}
+
+.civ-detail-panel .icon span {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.civ-detail-panel .icon img {
+    width: 100%;
+}
+
+
+.civ-detail-panel.science-area .icon span {
+    /* offset it because the image is asymmetric */
+    padding-top: 40px;
+}

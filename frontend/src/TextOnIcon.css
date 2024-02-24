@@ -1,0 +1,11 @@
+.icon-bg-text {
+    background-size: 100% auto;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 40px;
+    width: 40px;
+    position:relative;
+}

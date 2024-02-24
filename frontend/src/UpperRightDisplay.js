@@ -1,16 +1,48 @@
 import React from 'react';
 import './UpperRightDisplay.css';
 import CityDisplay from './CityDisplay';
-import { BriefTechDisplay } from './TechDisplay';
 import { Grid, Typography } from '@mui/material';
 import Timer from './Timer';
+import { CityDetailPanel } from './CityDetailPanel';
+import foodImg from './images/food.png';
+import scienceImg from './images/science.png';
+import ProgressBar from './ProgressBar';
+import { Button } from '@mui/material';
+import { TextOnIcon } from './TextOnIcon';
 
-const CityPowerDisplay = ({ myCiv }) => {
+const CivDetailPanel = ({title, icon, income, children}) => {
     return (
-        <div className="city-power-display">
-            <p>City power: {myCiv?.city_power?.toFixed(1)} (+{myCiv?.projected_city_power_income?.toFixed(1)})</p>
+        <div className={`civ-detail-panel ${title}-area`}>
+            <div className="icon">
+                <img src={icon}></img>
+                <span>+{Math.floor(income)}</span>
+            </div>
+            <div className="panel-content">
+                {children}
+            </div>
         </div>
     );
+}
+
+const NewCityIcon = ({  civTemplate, size, children}) => {
+    return <div className="new-city-icon" style={{height: size, width:size, backgroundColor: civTemplate.primary_color, borderColor: civTemplate.secondary_color}}> {children} </div>
+}
+
+const CityPowerDisplay = ({ civ, civTemplates }) => {
+    const cityPowerCost = 100; // TODO is this const already defined somewhere?
+    const storedProgress = (civ.city_power % cityPowerCost) / cityPowerCost * 100;
+    const incomeProgress = civ.projected_city_power_income / cityPowerCost * 100;
+    const newCitites = Math.floor(civ.city_power / cityPowerCost);
+    const civTemplate = civTemplates[civ.name];
+
+    return <CivDetailPanel icon={foodImg} title='food' income={civ.projected_city_power_income}>
+        <div className="city-power-new-cities">
+            {[...Array(newCitites)].map((_, index) => (
+                <NewCityIcon key={index} civTemplate={civTemplate}>+</NewCityIcon>
+            ))}
+        </div>
+        <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={`${Math.floor(civ.city_power % cityPowerCost)} / ${cityPowerCost}`}/>
+    </CivDetailPanel>
 };
 
 const CivVitalityDisplay = ({ civVitality, turnNum }) => {
@@ -85,13 +117,34 @@ const AnnouncementsDisplay = ({ announcements }) => {
     );
   };
 
-const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen, turnNum, nextForcedRollAt, gameId, timerMuted }) => {
+const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTech}) => {
+    const tech = civ.tech_queue?.[0];
+    const storedProgress = tech ? civ.science / tech.cost * 100 : 0;
+    const incomeProgress = tech ? civ.projected_science_income / tech.cost * 100 : 0;
+    return <CivDetailPanel title='science' icon={scienceImg} income={civ.projected_science_income}>
+        <h2 className="tech-name" 
+            onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
+            onMouseLeave={() => setHoveredTech(null)}  
+        > {tech?.name} </h2>
+        <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={tech ? `${Math.floor(civ.science)} / ${tech.cost}` : `${Math.floor(civ.science)} / ???`}/>
+        <Button variant="contained" color="primary" onClick={() => setTechListDialogOpen(true)}>
+            Researched
+        </Button>
+        <Button variant="contained" color="primary" onClick={() => {
+            alert(`Haha nice try, this isn't implemented yet. You're stuck with ${tech.name}.`);
+        }}>
+            Change
+        </Button>
+    </CivDetailPanel>
+}
+
+const UpperRightDisplay = ({ city, isFriendlyCity, unitTemplates, civTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen, turnNum, nextForcedRollAt, gameId, timerMuted }) => {
     return (
         <div className="upper-right-display">
             {nextForcedRollAt && !timerMuted && <Timer nextForcedRollAt={nextForcedRollAt} gameId={gameId}/>}
             {city && !isFriendlyCity && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
-            <BriefTechDisplay tech={myCiv?.tech_queue?.[0]} myCiv={myCiv} setHoveredTech={setHoveredTech} setTechListDialogOpen={setTechListDialogOpen} techTemplates={techTemplates}/>
-            {myCiv && <CityPowerDisplay myCiv={myCiv} />}
+            {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setHoveredTech={setHoveredTech} techTemplates={techTemplates}/>}
+            {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} />}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} />}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
             {announcements.length > 0 && <AnnouncementsDisplay announcements={announcements} />}

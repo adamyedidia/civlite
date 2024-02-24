@@ -9,8 +9,9 @@ import metalImg from './images/metal.png';
 import scienceImg from './images/science.png';
 
 import workerImg from './images/worker.png';
-import { CityDetailPanel } from './CityDetailPanel';
-import { TextOnIcon } from './TextOnIcon';
+import { CityDetailPanel } from './CityDetailPanel.js';
+import { TextOnIcon } from './TextOnIcon.js';
+import ProgressBar from './ProgressBar.js';
 
 const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUnit, handleSetInfiniteQueue, handleClickUnitChoice}) => {
     const tooltipRef = React.useRef(null);
@@ -267,7 +268,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     const foodProgressProduced = selectedCity.projected_income['food'] / selectedCity.growth_cost;
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100)).toString()
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay).toString()
-    const foodProgressWillGrow = foodProgressStored + foodProgressProduced > 1
 
     const metalAvailable = selectedCity.metal + selectedCity.projected_income['metal']
     const woodAvailable = selectedCity.wood + selectedCity.projected_income['wood']
@@ -289,7 +289,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             </div>
             <div className="city-detail-columns">
             <div className="city-detail-column">
-                <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus}>
                     {selectedCityBuildingChoices && (
                         <div className="building-choices-container">
                             <BriefBuildingDisplayTitle title="Building Choices" />
@@ -328,20 +328,13 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                 </CityDetailPanel>
             </div>
             <div className="city-detail-column">
-                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
-                    <div className="food-progress-bar">
-                        <div className="bar stored" style={{ width: `${foodProgressStoredDisplay}%`, }}></div>
-                        <div className="bar produced" style={{ width: `${foodProgressProducedDisplay}%`}}></div>
-                    <div className="food-progress-text" style={{ position: 'absolute', width: '100%', textAlign: 'center', color: 'black', fontWeight: 'bold' }}>
-                        {selectedCity.growth_cost} to grow
-                    </div>
-                    {foodProgressWillGrow && (<div className="checkmark">✅</div>)}
-                    </div>
+                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} total_tooltip="after this turn." handleClickFocus={handleClickFocus}>
+                    <ProgressBar darkPercent={foodProgressStoredDisplay} lightPercent={foodProgressProducedDisplay} barText={`${selectedCity.growth_cost} to grow`}/>
                 </CityDetailPanel>
-                <CityDetailPanel title='science' icon={scienceImg} hideStored='true' selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                <CityDetailPanel title='science' icon={scienceImg} hideStored='true' selectedCity={selectedCity} override_stored_amount={0} total_prefix="+" total_tooltip="produced by this city." handleClickFocus={handleClickFocus}>
 
                 </CityDetailPanel>
-                <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} handleClickFocus={handleClickFocus}>
+                <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus}>
                     {selectedCityUnitChoices && (
                         <div className="unit-choices-container">
                             {selectedCityUnitChoices.map((unitName, index) => (

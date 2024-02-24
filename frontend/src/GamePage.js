@@ -2538,6 +2538,7 @@ export default function GamePage() {
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
                         techTemplates={techTemplates}
+                        civTemplates={civTemplates}
                         myCiv={myCiv} 
                         myGamePlayer={myGamePlayer} 
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
