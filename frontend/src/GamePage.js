@@ -476,11 +476,11 @@ export default function GamePage() {
 
         try {
             let audio = new Audio(isModern ? modernCitySound : medievalCitySound);
-            audio.volume = 0.6 * volumeRef.current / 100;
+            audio.volume = 0.3 * volumeRef.current / 100;
             audio.play();
             const fadeOutInterval = setInterval(() => {
-                if (audio.volume >= 0.1) {
-                    audio.volume -= 0.1;
+                if (audio.volume >= 0.05 * volumeRef.current / 100) {
+                    audio.volume -= 0.05 * volumeRef.current / 100;
                 } else {
                     clearInterval(fadeOutInterval);
                     audio.pause();
