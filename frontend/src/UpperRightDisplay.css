@@ -74,6 +74,7 @@ h2.tech-name {
     gap: 5px;
     padding: 5px;
     height: 40px;
+    position: relative;
 }
 
 .new-city-icon {
@@ -113,8 +114,58 @@ h2.tech-name {
     width: 100%;
 }
 
-
 .civ-detail-panel.science-area .icon span {
     /* offset it because the image is asymmetric */
     padding-top: 40px;
+}
+
+.new-city-button {
+    cursor: pointer;
+}
+
+.new-city-button.enabled:hover {
+    transform: scale(1.2); /* Slightly increase size to indicate selection */
+    box-shadow: 0 0 5px 5px rgba(0,0,0,0.5); /* Add shadow for depth */  
+    animation: none;
+    z-index: 10; /* Above the buttons next to it */
+}
+
+.new-city-button.active:hover::after {
+    content: "Cancel";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 5px;
+    background-color: #fffb;
+    border: 2px solid black;
+    border-radius: 3px;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+@keyframes pulseAnimation {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.new-city-button.enabled {
+    animation: pulseAnimation 1s infinite;
+}
+
+.new-city-button.active {
+    animation: shake 0.5s infinite;
+}
+@keyframes shake {
+    0% { transform: translate(1px, 1px) rotate(0deg); }
+    10% { transform: translate(-1px, -2px) rotate(-1deg); }
+    20% { transform: translate(-3px, 0px) rotate(1deg); }
+    30% { transform: translate(3px, 2px) rotate(0deg); }
+    40% { transform: translate(1px, -1px) rotate(1deg); }
+    50% { transform: translate(-1px, 2px) rotate(-1deg); }
+    60% { transform: translate(-3px, 1px) rotate(0deg); }
+    70% { transform: translate(3px, 1px) rotate(-1deg); }
+    80% { transform: translate(-1px, -1px) rotate(1deg); }
+    90% { transform: translate(1px, 2px) rotate(0deg); }
+    100% { transform: translate(1px, -2px) rotate(-1deg); }
 }

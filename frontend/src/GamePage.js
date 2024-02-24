@@ -334,6 +334,22 @@ export default function GamePage() {
 
     console.log(gameState);
 
+    useEffect(() => {
+        // When the user presses escape
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                setSelectedCity(null);
+                setFoundingCity(false);
+            }
+        };
+    
+        // Add event listener
+        window.addEventListener('keydown', handleKeyDown);
+    
+        // Remove event listener on cleanup
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []); // Empty dependency array ensures this effect runs only once after the initial render
+
     const handleContextMenu = (e) => {
         if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
             e.preventDefault();
@@ -2440,6 +2456,8 @@ export default function GamePage() {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes)
 
+        const canFoundCity = hexagons.some(hex => hex.is_foundable_by_civ?.[myCivId]);
+
         return !gameState?.game_over ? (
             <>
                 <div className="basic-example">
@@ -2537,6 +2555,9 @@ export default function GamePage() {
                         setHoveredUnit={setHoveredUnit} 
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
+                        toggleFoundingCity={toggleFoundingCity}
+                        canFoundCity={canFoundCity}
+                        isFoundingCity={foundingCity}
                         techTemplates={techTemplates}
                         civTemplates={civTemplates}
                         myCiv={myCiv} 
@@ -2598,20 +2619,6 @@ export default function GamePage() {
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && myCiv?.city_power > 100 && <Button 
-                            style={{
-                                backgroundColor: "#ccffaa",
-                                color: "black",
-                                padding: '10px 20px', // Increase padding for larger button
-                                fontSize: '1.5em', // Increase font size for larger text
-                                marginBottom: '10px',
-                            }} 
-                            variant="contained"
-                            disabled={animating}
-                            onClick={toggleFoundingCity}
-                        >
-                            {foundingCity ? 'Cancel found city' : 'Found city'}
-                        </Button>}
                         {!gameState?.special_mode_by_player_num?.[playerNum] && <Button 
                             style={{
                                 backgroundColor: "#cccc88",
