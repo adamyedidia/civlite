@@ -10,11 +10,12 @@ import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
 
 const CivDetailPanel = ({title, icon, income, children}) => {
+    const incomeCharLen = income.length;
     return (
         <div className={`civ-detail-panel ${title}-area`}>
             <div className="icon">
                 <img src={icon}></img>
-                <span>{income}</span>
+                <span className={incomeCharLen > 3 ? "small-font" : ""}>{income}</span>
             </div>
             <div className="panel-content">
                 {children}
@@ -177,12 +178,12 @@ const UpperRightDisplay = ({ city, isFriendlyCity, canFoundCity, isFoundingCity,
     return (
         <div className="upper-right-display">
             {nextForcedRollAt && !timerMuted && <Timer nextForcedRollAt={nextForcedRollAt} gameId={gameId}/>}
-            {city && !isFriendlyCity && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
             {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
             {announcements.length > 0 && <AnnouncementsDisplay announcements={announcements} />}
+            {city && !isFriendlyCity && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
         </div>
     );
 };

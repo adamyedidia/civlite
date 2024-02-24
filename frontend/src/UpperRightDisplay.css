@@ -50,6 +50,10 @@
     transform: translate(-50%, -50%);
 }
 
+.civ-detail-panel .icon span.small-font {
+    font-size: 24px;
+}
+
 .civ-detail-panel .icon img {
     width: 100%;
 }
