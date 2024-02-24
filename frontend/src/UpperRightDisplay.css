@@ -8,33 +8,6 @@
     /* Add other styles as needed */
 }
 
-.brief-tech-card {
-    border: 1px solid #ddd;
-    padding: 5px;
-    margin: 5px;
-    border-radius: 5px;
-    background-color: #b0e0e6;
-    font-size: 1em; /* Smaller font size */
-}
-
-.city-power-display {
-    border: 1px solid #ddd;
-    margin: 5px;
-    padding: 5px;
-    border-radius: 5px;
-    background-color: #ccffaa;
-    font-size: 1em; /* Smaller font size */
-}
-
-.civ-vitality-display {
-    border: 1px solid #ddd;
-    margin: 5px;
-    padding: 5px;
-    border-radius: 5px;
-    background-color: #cccccc;
-    font-size: 1em; /* Smaller font size */
-}
-
 .score-display {
     border: 1px solid #ddd;
     margin: 5px;
@@ -51,39 +24,6 @@
     border-radius: 5px;
     background-color: #cccccc;
     font-size: 1em; /* Smaller font size */
-}
-
-.science-area .progress-bar .bar.stored {
-    background-color: #5ca7b1;
-  }
-  
-.science-area .progress-bar .bar.produced {
-    background-color: #92d3dd;
-}
-
-.science-area button {
-    margin: 5px;
-}
-
-h2.tech-name {
-    margin: 5px;
-}
-
-.city-power-new-cities {
-    display: flex;
-    gap: 5px;
-    padding: 5px;
-    height: 40px;
-    position: relative;
-}
-
-.new-city-icon {
-    height: 30px;
-    width: 30px;
-    border: 4px solid black;
-    display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .civ-detail-panel {
@@ -114,10 +54,56 @@ h2.tech-name {
     width: 100%;
 }
 
+/*
+==========================================
+============= SCIENCE AREA ============
+==========================================
+*/
+
+.science-area .progress-bar .bar.stored {
+    background-color: #5ca7b1;
+  }
+  
+.science-area .progress-bar .bar.produced {
+    background-color: #92d3dd;
+}
+
+.science-area button {
+    margin: 5px;
+}
+
+h2.tech-name {
+    margin: 5px;
+}
+
 .civ-detail-panel.science-area .icon span {
     /* offset it because the image is asymmetric */
     padding-top: 40px;
 }
+
+/*
+==========================================
+============= CITY POWER AREA ============
+==========================================
+*/
+
+.city-power-new-cities {
+    display: flex;
+    gap: 5px;
+    padding: 5px;
+    height: 40px;
+    position: relative;
+}
+
+.new-city-icon {
+    height: 30px;
+    width: 30px;
+    border: 4px solid black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 
 .new-city-button {
     cursor: pointer;
@@ -168,4 +154,30 @@ h2.tech-name {
     80% { transform: translate(-1px, -1px) rotate(1deg); }
     90% { transform: translate(1px, 2px) rotate(0deg); }
     100% { transform: translate(1px, -2px) rotate(-1deg); }
+}
+
+/*
+==========================================
+=============== VITALITY AREA ============
+==========================================
+*/
+
+.civ-detail-panel.vitality-area .icon span {
+    /* offset it because the image is asymmetric */
+    padding-bottom: 30px;
+}
+
+.vitality-area .panel-content{
+    border-color: #d32c2c;
+    background-color: #ecb0b0;
+    display: flex;
+    justify-content: center;
+}
+
+.decline-button-label {
+    font-size: 24px;
+}
+
+.decline-button-new-vitality {
+    height: 20px;
 }

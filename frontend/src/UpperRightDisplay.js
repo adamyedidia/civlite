@@ -5,6 +5,7 @@ import { Grid, Typography } from '@mui/material';
 import Timer from './Timer';
 import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
+import vitalityImg from './images/heart.png';
 import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
 
@@ -13,7 +14,7 @@ const CivDetailPanel = ({title, icon, income, children}) => {
         <div className={`civ-detail-panel ${title}-area`}>
             <div className="icon">
                 <img src={icon}></img>
-                <span>+{Math.floor(income)}</span>
+                <span>{income}</span>
             </div>
             <div className="panel-content">
                 {children}
@@ -26,7 +27,7 @@ const NewCityIcon = ({  civTemplate, size, disabled, children}) => {
     return <div className="new-city-icon" style={{height: size, width:size, backgroundColor: disabled? "#aaa" : civTemplate.primary_color, borderColor: disabled? "#888" : civTemplate.secondary_color}}> {children} </div>
 }
 
-const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity, isFoundingCity}) => {
+const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity, isFoundingCity, disableUI}) => {
     const cityPowerCost = 100; // TODO is this const already defined somewhere?
     const storedProgress = (civ.city_power % cityPowerCost) / cityPowerCost * 100;
     const incomeProgress = civ.projected_city_power_income / cityPowerCost * 100;
@@ -49,10 +50,10 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
         }
     };
 
-    return <CivDetailPanel icon={foodImg} title='food' income={civ.projected_city_power_income}>
+    return <CivDetailPanel icon={foodImg} title='food' income={`+${Math.floor(civ.projected_city_power_income)}`}>
         <div className={`city-power-new-cities`} onMouseOver={showTooltip} onMouseOut={hideTooltip}>
             {[...Array(newCitites)].map((_, index) => (
-                <div key={index} class={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={toggleFoundingCity}>
+                <div key={index} class={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? "" :toggleFoundingCity}>
                     <NewCityIcon civTemplate={civTemplate} disabled={!canFoundCity || (isFoundingCity & index > 0)}>
                         +
                     </NewCityIcon>
@@ -68,14 +69,25 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
     </CivDetailPanel>
 };
 
-const CivVitalityDisplay = ({ civVitality, turnNum }) => {
-    const percentage = (civVitality * 100).toFixed(1);
-    const newCivPercentage = ((2.0 + turnNum * 0.1) * 100).toFixed(1);
-    return (
-        <div className="civ-vitality-display">
-            <p>Civ vitality: {percentage}% (New civ vitality: {newCivPercentage}%)</p>
-        </div>
-    );
+const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disableUI }) => {
+    const newCivPercentage = Math.round((2.0 + turnNum * 0.1) * 100);
+    return <CivDetailPanel icon={vitalityImg} title='vitality' income={`${Math.round(civVitality * 100)}%`}>
+        <Button
+            color="primary"
+            variant="contained"
+            width= "100%"
+            onClick={() => setConfirmEnterDecline(true)}
+            disabled={disableUI}
+        >
+            <div className="decline-button-content">
+                <div className="decline-button-label">Enter decline</div>
+                <div className="decline-button-new-vitality">
+                    New Civ = {newCivPercentage}%
+                    <img src={vitalityImg} height="75%"/>
+                </div>
+            </div>
+        </Button>
+    </CivDetailPanel>
 }
 
 const ScoreDisplay = ({ myGamePlayer }) => {
@@ -140,11 +152,11 @@ const AnnouncementsDisplay = ({ announcements }) => {
     );
   };
 
-const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTech}) => {
+const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTech, disableUI}) => {
     const tech = civ.tech_queue?.[0];
     const storedProgress = tech ? civ.science / tech.cost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income / tech.cost * 100 : 0;
-    return <CivDetailPanel title='science' icon={scienceImg} income={civ.projected_science_income}>
+    return <CivDetailPanel title='science' icon={scienceImg} income={`+${Math.floor(civ.projected_science_income)}`}>
         <h2 className="tech-name" 
             onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}  
@@ -153,7 +165,7 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTe
         <Button variant="contained" color="primary" onClick={() => setTechListDialogOpen(true)}>
             Researched
         </Button>
-        <Button variant="contained" color="primary" onClick={() => {
+        <Button variant="contained" color="primary" disabled={disableUI} onClick={() => {
             alert(`Haha nice try, this isn't implemented yet. You're stuck with ${tech.name}.`);
         }}>
             Change
@@ -161,14 +173,14 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTe
     </CivDetailPanel>
 }
 
-const UpperRightDisplay = ({ city, isFriendlyCity, canFoundCity, isFoundingCity, unitTemplates, civTemplates, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen, turnNum, nextForcedRollAt, gameId, timerMuted }) => {
+const UpperRightDisplay = ({ city, isFriendlyCity, canFoundCity, isFoundingCity, disableUI, unitTemplates, civTemplates, setConfirmEnterDecline, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen, turnNum, nextForcedRollAt, gameId, timerMuted }) => {
     return (
         <div className="upper-right-display">
             {nextForcedRollAt && !timerMuted && <Timer nextForcedRollAt={nextForcedRollAt} gameId={gameId}/>}
             {city && !isFriendlyCity && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
-            {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setHoveredTech={setHoveredTech} techTemplates={techTemplates}/>}
-            {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity}/>}
-            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} />}
+            {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
+            {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
+            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
             {announcements.length > 0 && <AnnouncementsDisplay announcements={announcements} />}
         </div>

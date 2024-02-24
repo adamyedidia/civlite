@@ -2566,6 +2566,8 @@ export default function GamePage() {
                         unitTemplates={unitTemplates}
                         announcements={gameState?.announcements}
                         setTechListDialogOpen={setTechListDialogOpen}
+                        setConfirmEnterDecline={setConfirmEnterDecline}
+                        disableUI={animating}
                         turnNum={turnNum}
                         nextForcedRollAt={gameState?.next_forced_roll_at}
                         gameId={gameId}
@@ -2633,21 +2635,6 @@ export default function GamePage() {
                             disabled={animating}
                         >
                             {gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn"}
-                        </Button>}
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
-                            style={{
-                                backgroundColor: "#BBAABB",
-                                color: "black",
-                                marginLeft: '20px',
-                                padding: '10px 20px', // Increase padding for larger button
-                                fontSize: '1.5em', // Increase font size for larger text
-                                marginBottom: '10px',
-                            }} 
-                            variant="contained"
-                            onClick={() => setConfirmEnterDecline(true)}
-                            disabled={animating}
-                        >
-                            Enter decline
                         </Button>}
                         {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
                             style={{
