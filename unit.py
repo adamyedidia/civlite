@@ -30,7 +30,6 @@ class Unit:
 
     def midturn_update(self, game_state):
         self.calculate_destination_hex(game_state)
-        print(f"Calculating for {self} => {self.destination.coords if self.destination else None}")
 
     def has_ability(self, ability_name: str) -> bool:
         return any([ability.name == ability_name for ability in self.template.abilities])
@@ -73,7 +72,6 @@ class Unit:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
-        print(f"Moving {self} => {self.destination}")
         if self.has_moved or self.hex is None or self.get_closest_target() is None or self.has_attacked:
             return
         should_move_sensitively = sensitive
