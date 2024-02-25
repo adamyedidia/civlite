@@ -2623,7 +2623,7 @@ export default function GamePage() {
                         announcements={gameState?.announcements}
                         setTechListDialogOpen={setTechListDialogOpen}
                         setConfirmEnterDecline={setConfirmEnterDecline}
-                        disableUI={animating}
+                        disableUI={animating || gameState?.game_over}
                         turnNum={turnNum}
                         nextForcedRollAt={gameState?.next_forced_roll_at}
                         gameId={gameId}
