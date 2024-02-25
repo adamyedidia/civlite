@@ -2142,7 +2142,7 @@ export default function GamePage() {
         }
         else {
             if (isFriendlyCity(city)) {
-                playCitySound(medievalCitySound, modernCitySound, myCiv.advancement_level >= 7);
+                playCitySound(medievalCitySound, modernCitySound, myCiv?.advancement_level >= 7);
                 setSelectedCity(city);
             }
         }
