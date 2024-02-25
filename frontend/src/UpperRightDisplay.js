@@ -34,7 +34,7 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
     const cityPowerCost = 100; // TODO is this const already defined somewhere?
     const storedProgress = (civ.city_power % cityPowerCost) / cityPowerCost * 100;
     const incomeProgress = civ.projected_city_power_income / cityPowerCost * 100;
-    const newCitites = Math.floor(civ.city_power / cityPowerCost);
+    const newCities = Math.floor(civ.city_power / cityPowerCost);
     const civTemplate = civTemplates[civ.name];
 
     const tooltipRef = React.useRef(null);
@@ -55,7 +55,7 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
 
     return <CivDetailPanel icon={foodImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}>
         <div className={`city-power-new-cities`} onMouseOver={showTooltip} onMouseOut={hideTooltip}>
-            {[...Array(newCitites)].map((_, index) => (
+            {[...Array(newCities)].map((_, index) => (
                 <div key={index} className={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? "" :toggleFoundingCity}>
                     <NewCityIcon civTemplate={civTemplate} disabled={!canFoundCity || (isFoundingCity & index > 0)}>
                         +
@@ -63,9 +63,10 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
                 </div>
             ))}
             <div ref={tooltipRef} className="tooltip">
-                {!canFoundCity && "No Valid City Sites"}
-                {canFoundCity && !isFoundingCity && "Click to found city"}
-                {canFoundCity && isFoundingCity && "Click to cancel found city"}
+                {newCities == 0  &&  "Gather City Power to build new cities"}
+                {newCities > 0 && !canFoundCity && "No Valid City Sites"}
+                {newCities > 0 && canFoundCity && !isFoundingCity && "Click to found city"}
+                {newCities > 0 && canFoundCity && isFoundingCity && "Click to cancel found city"}
             </div>
         </div>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={`${Math.floor(civ.city_power % cityPowerCost)} / ${cityPowerCost}`}/>
