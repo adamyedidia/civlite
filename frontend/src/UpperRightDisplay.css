@@ -32,6 +32,9 @@
     font-size: 32px;
     position: relative;
     width: 80px;
+    background-color: #fffa;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
 }
 
 .civ-detail-panel .icon span {

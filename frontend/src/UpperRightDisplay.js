@@ -93,7 +93,7 @@ const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disa
     };
 
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
-        <div className="decline-button" onMouseOver={showTooltip} onMouseOut={hideTooltip}>
+        <div className="decline-button" onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={setConfirmEnterDecline}>
             <span> Decline </span>
             <div id="decline-button-vitality">
                 <img id="decline-button-vitality-icon" src={vitalityImg}/>
