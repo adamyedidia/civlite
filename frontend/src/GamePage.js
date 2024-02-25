@@ -368,8 +368,6 @@ export default function GamePage() {
 
     // console.log(hoveredHex);
 
-    console.log(gameState);
-
     useEffect(() => {
         // When the user presses escape
         const handleKeyDown = (event) => {
