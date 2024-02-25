@@ -152,20 +152,6 @@ const ScoreDisplay = ({ myGamePlayer }) => {
     </CivDetailPanel>
 }
 
-const AnnouncementsDisplay = ({ announcements }) => {
-    return (
-      <div className="announcements-display" style={{ maxHeight: '120px', overflowY: 'scroll' }}>
-        <Grid container direction="column" spacing={0}>
-          {announcements.map((announcement, index) => (
-            <Grid item key={index}>
-              <Typography>{announcement}</Typography>
-            </Grid>
-          ))}
-        </Grid>
-      </div>
-    );
-  };
-
 const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTech, disableUI}) => {
     const tech = civ.tech_queue?.[0];
     const storedProgress = tech ? civ.science / tech.cost * 100 : 0;
@@ -187,7 +173,7 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTe
     </CivDetailPanel>
 }
 
-const UpperRightDisplay = ({ city, isFriendlyCity, canFoundCity, isFoundingCity, disableUI, unitTemplates, civTemplates, setConfirmEnterDecline, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, announcements, setTechListDialogOpen, turnNum, nextForcedRollAt, gameId, timerMuted }) => {
+const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, civTemplates, setConfirmEnterDecline, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, turnNum, nextForcedRollAt, gameId, timerMuted }) => {
     return (
         <div className="upper-right-display">
             {nextForcedRollAt && !timerMuted && <Timer nextForcedRollAt={nextForcedRollAt} gameId={gameId}/>}
@@ -195,7 +181,6 @@ const UpperRightDisplay = ({ city, isFriendlyCity, canFoundCity, isFoundingCity,
             {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
-            {announcements.length > 0 && <AnnouncementsDisplay announcements={announcements} />}
         </div>
     );
 };

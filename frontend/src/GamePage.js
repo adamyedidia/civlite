@@ -27,6 +27,7 @@ import BuildingDisplay from './BuildingDisplay';
 import UnitDisplay from './UnitDisplay';
 import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
+import AnnouncementsDisplay from './AnnouncementsDisplay.js';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
@@ -2584,6 +2585,7 @@ export default function GamePage() {
                         })}
                     </Layout>         
                     </HexGrid>
+                    {gameState?.announcements.length > -1 && <AnnouncementsDisplay announcements={gameState?.announcements} />}
                     {!hoveredCiv && <Grid container direction="row" spacing={2} style={{position: 'fixed', right: '10px', bottom: '10px'}}>
                             <Grid item>
                                 <Button onClick={() => setRulesDialogOpen(!rulesDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', right: '130px', bottom: '10px'}}>
@@ -2607,7 +2609,6 @@ export default function GamePage() {
                         isHoveredHex={!!hoveredHex}
                     />}
                     {<UpperRightDisplay 
-                        city={selectedCity || hoveredCity} 
                         setHoveredUnit={setHoveredUnit} 
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
@@ -2620,7 +2621,6 @@ export default function GamePage() {
                         myGamePlayer={myGamePlayer} 
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
                         unitTemplates={unitTemplates}
-                        announcements={gameState?.announcements}
                         setTechListDialogOpen={setTechListDialogOpen}
                         setConfirmEnterDecline={setConfirmEnterDecline}
                         disableUI={animating || gameState?.game_over}

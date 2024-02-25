@@ -8,14 +8,7 @@
     /* Add other styles as needed */
 }
 
-.announcements-display {
-    border: 1px solid #ddd;
-    margin: 5px;
-    padding: 5px;
-    border-radius: 5px;
-    background-color: #cccccc;
-    font-size: 1em; /* Smaller font size */
-}
+
 
 .civ-detail-panel {
     display: flex;
