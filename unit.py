@@ -23,6 +23,14 @@ class Unit:
         self.hex: Optional['Hex'] = None
         self.strength = self.template.strength
         self.has_attacked = False
+        self.destination = None
+
+    def __repr__(self):
+        return f"<Unit {self.civ.moniker()} {self.template.name} @ {self.hex.coords if self.hex is not None else None}"
+
+    def midturn_update(self, game_state):
+        self.calculate_destination_hex(game_state)
+        print(f"Calculating for {self} => {self.destination.coords if self.destination else None}")
 
     def has_ability(self, ability_name: str) -> bool:
         return any([ability.name == ability_name for ability in self.template.abilities])
@@ -65,6 +73,7 @@ class Unit:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
+        print(f"Moving {self} => {self.destination}")
         if self.has_moved or self.hex is None or self.get_closest_target() is None or self.has_attacked:
             return
         should_move_sensitively = sensitive
@@ -230,51 +239,64 @@ class Unit:
             my_hex.units.append(new_unit)
             game_state.units.append(new_unit)
 
+    def calculate_destination_hex(self, game_state):
+        assert self.hex is not None  # Not sure how this could possibly happen.
+        # Don't leave besieging cities
+        if (self.hex.city and self.hex.city.civ.id != self.civ.id) or self.hex.camp:
+            self.destination = None
+            return self.destination
+
+        neighbors = self.hex.get_neighbors(game_state.hexes)
+        # shuffle(neighbors)  Do not duffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
+        for neighboring_hex in neighbors:
+            # Attack neighboring cities
+            if neighboring_hex.camp or (neighboring_hex.city and neighboring_hex.city.civ.id != self.civ.id):
+                self.destination = neighboring_hex
+                return self.destination
+            
+            # Attack neighboring friendly cities under seige
+            if (neighboring_hex.city and neighboring_hex.city.civ.id == self.civ.id and neighboring_hex.units and neighboring_hex.units[0].civ.id != self.civ.id):
+                self.destination = neighboring_hex
+                return self.destination
+            
+            # Don't abandon threatened cities
+            # Debatable: should others next to the city help defend?
+            if self.hex.city and neighboring_hex.units and neighboring_hex.units[0].civ.id != self.civ.id:
+                self.destination =  None
+                return self.destination
+
+        # If none of the other things applied, go to nearest flag.
+        target = self.get_closest_target()
+        self.destination = target
+        return self.destination
+
     def move_one_step(self, game_state: 'GameState', coord_strs: list[str], sensitive: bool = False) -> bool:
-        closest_target = self.get_closest_target()
-        if self.hex is not None:
-            if closest_target is None:
-                closest_target = self.hex
+        if self.destination is None: return False
 
-            best_hex = None
-            best_distance = self.hex.distance_to(closest_target) if not sensitive else self.hex.sensitive_distance_to(closest_target)
-                        
-            neighbors = self.hex.get_neighbors(game_state.hexes)
-            shuffle(neighbors)
+        best_hex = None
+        best_distance = self.hex.distance_to(self.destination) if not sensitive else self.hex.sensitive_distance_to(self.destination)
 
-            if (self.hex.city and self.hex.city.civ.id != self.civ.id) or self.hex.camp:
-                return False
+        neighbors = self.hex.get_neighbors(game_state.hexes)
+        shuffle(neighbors)
 
-            for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
-                print('neighboring_hex', neighboring_hex.coords, neighboring_hex.is_occupied(self.template.type, self.civ))
-                if ((neighboring_hex.city and neighboring_hex.city.civ.id != self.civ.id) or neighboring_hex.camp) and not neighboring_hex.is_occupied(self.template.type, self.civ):
-                    self.take_one_step_to_hex(neighboring_hex)
-                    coord_strs.append(neighboring_hex.coords)
-                    return True
+        for neighboring_hex in neighbors:
+            neighboring_hex_sensitive_distance_to_target = 10000
+            neighboring_hex_distance_to_target = 10000
+            if sensitive:
+                neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(self.destination)
 
-                else:
-                    neighboring_hex_sensitive_distance_to_target = 10000
-                    neighboring_hex_distance_to_target = 10000
-                    if sensitive:
-                        neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(closest_target)
-                        print(neighboring_hex_sensitive_distance_to_target, neighboring_hex.coords, neighboring_hex.sensitive_distance_to(closest_target), neighboring_hex.distance_to(closest_target))
+                is_better_distance = neighboring_hex_sensitive_distance_to_target < best_distance
+            else:
+                neighboring_hex_distance_to_target = neighboring_hex.distance_to(self.destination)
+                is_better_distance = neighboring_hex_distance_to_target < best_distance
 
-                        is_better_distance = neighboring_hex_sensitive_distance_to_target < best_distance
-                    else:
-                        print(neighboring_hex.distance_to(closest_target), neighboring_hex.coords)
-                        neighboring_hex_distance_to_target = neighboring_hex.distance_to(closest_target)
-                        is_better_distance = neighboring_hex_distance_to_target < best_distance
-
-                if is_better_distance and not neighboring_hex.is_occupied(self.template.type, self.civ):
-                    best_hex = neighboring_hex
-                    best_distance = neighboring_hex_sensitive_distance_to_target if sensitive else neighboring_hex_distance_to_target
-
-            if best_hex is not None:
-                self.take_one_step_to_hex(best_hex)
-                coord_strs.append(best_hex.coords)
-
-                return True
-                
+            if is_better_distance and not neighboring_hex.is_occupied(self.template.type, self.civ):
+                best_hex = neighboring_hex
+                best_distance = neighboring_hex_sensitive_distance_to_target if sensitive else neighboring_hex_distance_to_target
+        if best_hex is not None:
+            self.take_one_step_to_hex(best_hex)
+            coord_strs.append(best_hex.coords)
+            return True
         return False
 
     def take_one_step_to_hex(self, hex: 'Hex') -> None:
@@ -311,6 +333,7 @@ class Unit:
             "strength": self.strength,
             "template": self.template.to_json(),
             "has_attacked": self.has_attacked,
+            "closest_target": self.destination.coords if self.destination is not None else None,  # TODO make this respect priority of attacks, defends.
         }
     
     @staticmethod

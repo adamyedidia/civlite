@@ -29,7 +29,6 @@ export const TextOnIcon = ({ image, style, children, tooltip }) => {
         <div className="icon-bg-text" style={containerStyle}
             onMouseOver={showTooltip} onMouseOut={hideTooltip}>
             <span style={{ textAlign: 'center' }}>{children}</span>
-            {console.log(containerStyle)}
             {tooltip && (
                 <div ref={tooltipRef} className="tooltip"
                 >

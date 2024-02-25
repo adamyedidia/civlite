@@ -280,6 +280,10 @@ export default function GamePage() {
     const [hoveredTech, setHoveredTech] = useState(null);
 
     const [hoveredCity, setHoveredCity] = useState(null);
+
+    const [showFlagArrows, setShowFlagArrows] = useState(false);
+    const flagArrowsTimeoutRef = React.useRef(null);
+
     const [selectedCity, setSelectedCity] = useState(null);
 
     const [techChoices, setTechChoices] = useState(null);
@@ -375,6 +379,7 @@ export default function GamePage() {
             if (event.key === 'Escape') {
                 setSelectedCity(null);
                 setFoundingCity(false);
+                setShowFlagArrows(false);
             }
         };
     
@@ -395,15 +400,16 @@ export default function GamePage() {
 
             if (hexesAreEqual(hoveredHexRef.current, target1Ref.current)) {
                 removeTarget(false);
-                return;
-            }
-
-            if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
+            } else if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
                 removeTarget(true);
-                return;
+            } else {
+                setTarget(hoveredHexRef.current, !target1Ref.current ? false : !target2Ref.current ? true : lastSetPrimaryTargetRef.current ? true : false);
             }
-
-            setTarget(hoveredHexRef.current, !target1Ref.current ? false : !target2Ref.current ? true : lastSetPrimaryTargetRef.current ? true : false);
+            
+            // Show flag arrows for 1s. Start after 100ms so there's time for the system to react to the update.
+            clearTimeout(flagArrowsTimeoutRef.current);
+            setTimeout(() => setShowFlagArrows(true), 100);
+            flagArrowsTimeoutRef.current = setTimeout(() => setShowFlagArrows(false), 1000);
         }
     }
 
@@ -2113,6 +2119,77 @@ export default function GamePage() {
         setAnimating(false);
     }
 
+    const FlagArrow = ({hex}) => {
+        const unit = hex.units[0]
+        const destCoords = unit.closest_target
+        if (!destCoords) {return;}
+        const fromHexClientRef = hexRefs?.current?.[`${hex.q},${hex.r},${hex.s}`]?.current?.getBoundingClientRect();
+        const toHexClientRef = hexRefs?.current?.[destCoords]?.current?.getBoundingClientRect();
+
+        const dx = toHexClientRef.left - fromHexClientRef.left;
+        const dy = toHexClientRef.top - fromHexClientRef.top;
+        const angleRads = Math.atan2(dy, dx);
+        const jitterAmnt = 20 * (Math.sin(hex.q * 13 + hex.r * 23 + hex.s * 31));
+        const jitteredFrom = {
+            left: fromHexClientRef.left + jitterAmnt * Math.sin(angleRads),
+            top: fromHexClientRef.top - jitterAmnt * Math.cos(angleRads),
+        }
+        const Jittereddx = toHexClientRef.left - jitteredFrom.left;
+        const Jittereddy = toHexClientRef.top - jitteredFrom.top;
+        const JitteredAngleDegs = Math.atan2(Jittereddy, Jittereddx) * (180 / Math.PI);
+
+        const distance = Math.sqrt(Jittereddx * Jittereddx + Jittereddy * Jittereddy);
+        return <div className='flag-arrow' style={{
+            position: 'absolute', // Make sure it's set to absolute
+            left: `${jitteredFrom.left + window.scrollX - 2}px`,
+            top: `${jitteredFrom.top + window.scrollY - 2}px`,
+            width: `${distance}px`, // Set the length of the arrow
+            transform: `rotate(${JitteredAngleDegs}deg)`,
+            transformOrigin: "0 50%",
+        }}>
+        </div>
+    }
+
+    const FlagArrows = ({hexagons, myCiv}) => {
+        if (!showFlagArrows) { return; }
+        return (
+            <div className="flag-arrows-container">
+                {hexagons.map((hex, index) => {
+                    if (!hex.units?.length) {return;}
+                    if (hex.units[0].civ.name != myCiv.name) {return;}
+                    return <FlagArrow key={index} hex={hex} />
+                })}
+            </div>
+        );
+    }
+
+    // Event handler for keydown event for the flag arrows
+    const handleKeyDown = (event) => {
+        if (event.key === 'f' || event.key === 'F') {
+            console.log("Showing flag arrows")
+            setShowFlagArrows(true);
+        }
+    };
+
+    // Event handler for keydown event for the flag arrows
+    const handleKeyUp = (event) => {
+        if (event.key === 'f' || event.key === 'F') {
+            flagArrowsTimeoutRef.current = setTimeout(() => setShowFlagArrows(false), 200);
+        }
+    };
+
+    // Add event listeners for flag arrows when the component mounts
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        // Remove event listeners on cleanup
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, []);
+
     const isFriendlyCityHex = (hex) => {
         return isFriendlyCity(hex?.city);
     }
@@ -2667,6 +2744,7 @@ export default function GamePage() {
                             </Typography>
                         </div>}
                     </div>
+                    {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons}/>}
                     {!animating && <div style={{
                         position: 'fixed', 
                         bottom: '10px', 
