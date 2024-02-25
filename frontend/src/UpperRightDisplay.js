@@ -6,16 +6,18 @@ import Timer from './Timer';
 import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
 import vitalityImg from './images/heart.png';
+import vpImg from './images/crown.png';
+import declineImg from './images/phoenix.png';
 import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
 
-const CivDetailPanel = ({title, icon, income, children}) => {
-    const incomeCharLen = income.length;
+const CivDetailPanel = ({title, icon, bignum, children}) => {
+    const bignumCharLen = bignum.length;
     return (
         <div className={`civ-detail-panel ${title}-area`}>
             <div className="icon">
                 <img src={icon}></img>
-                <span className={incomeCharLen > 3 ? "small-font" : ""}>{income}</span>
+                <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>
             </div>
             <div className="panel-content">
                 {children}
@@ -51,7 +53,7 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
         }
     };
 
-    return <CivDetailPanel icon={foodImg} title='food' income={`+${Math.floor(civ.projected_city_power_income)}`}>
+    return <CivDetailPanel icon={foodImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}>
         <div className={`city-power-new-cities`} onMouseOver={showTooltip} onMouseOut={hideTooltip}>
             {[...Array(newCitites)].map((_, index) => (
                 <div key={index} class={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? "" :toggleFoundingCity}>
@@ -72,71 +74,82 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
 
 const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disableUI }) => {
     const newCivPercentage = Math.round((2.0 + turnNum * 0.1) * 100);
-    return <CivDetailPanel icon={vitalityImg} title='vitality' income={`${Math.round(civVitality * 100)}%`}>
-        <Button
-            color="primary"
-            variant="contained"
-            width= "100%"
-            onClick={() => setConfirmEnterDecline(true)}
-            disabled={disableUI}
-        >
-            <div className="decline-button-content">
-                <div className="decline-button-label">Enter decline</div>
-                <div className="decline-button-new-vitality">
-                    New Civ = {newCivPercentage}%
-                    <img src={vitalityImg} height="75%"/>
+
+
+    const tooltipRef = React.useRef(null);
+
+    const showTooltip = () => {
+        if (tooltipRef.current) {
+            tooltipRef.current.style.visibility = 'visible';
+            tooltipRef.current.style.opacity = '1';
+        }
+    };
+
+    const hideTooltip = () => {
+        if (tooltipRef.current) {
+            tooltipRef.current.style.visibility = 'hidden';
+            tooltipRef.current.style.opacity = '0';
+        }
+    };
+
+    return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
+        <div className="decline-button" onMouseOver={showTooltip} onMouseOut={hideTooltip}>
+            <span> Decline </span>
+            <div id="decline-button-vitality">
+                <img id="decline-button-vitality-icon" src={vitalityImg}/>
+                <div id="decline-button-new-vitality">
+                    {newCivPercentage}%
                 </div>
             </div>
-        </Button>
+            <img id="decline-phoenix-icon" src={declineImg} />
+            <div ref={tooltipRef} className="tooltip">
+                Enter Decline and begin as a new civ.
+            </div>
+        </div>
     </CivDetailPanel>
 }
 
 const ScoreDisplay = ({ myGamePlayer }) => {
     const score = myGamePlayer?.score;
-    return (
-        <div className="score-display">
-            <Grid container direction="column" spacing={0}>
-                <Grid item>
-                    <Typography variant="h5">You have {score} VPs</Typography>
-                </Grid>
-                <Grid item>
-                    <Typography>
-                        {myGamePlayer?.sfku || 0} from killing units
-                    </Typography>
-                </Grid>
-                <Grid item>
-                    <Typography>
-                        {myGamePlayer?.sfccac || 0} from camp/city captures
-                    </Typography>
-                </Grid>
-                <Grid item>
-                    <Typography>
-                        {myGamePlayer?.sfrt || 0} from research
-                    </Typography>
-                </Grid>
-                <Grid item>
-                    <Typography>
-                        {myGamePlayer?.sfbv || 0} from building VP rewards
-                    </Typography>
-                </Grid>
-                <Grid item>
-                    <Typography>
-                        {myGamePlayer?.sfa || 0} from abilities
-                    </Typography>
-                </Grid>
-                <Grid item>
-                    <Typography>
-                        {myGamePlayer?.sfs || 0} from survival
-                    </Typography>
-                </Grid>
-                <Grid item>
-                    <Typography>
-                        {myGamePlayer?.sfrc || 0} from revolting cities
-                    </Typography>
-                </Grid>                                                                     
+    return <CivDetailPanel icon={vpImg} title='score' bignum={score}>
+        <Grid container direction="column" spacing={0}>
+            <Grid item>
+                <Typography>
+                    {myGamePlayer?.sfku || 0} killing units (1/kill)
+                </Typography>
             </Grid>
-        </div>
-    );
+            <Grid item>
+                <Typography>
+                    {myGamePlayer?.sfccac || 0} camp/city captures (5/capture)
+                </Typography>
+            </Grid>
+            <Grid item>
+                <Typography>
+                    {myGamePlayer?.sfrt || 0} research (2/tech)
+                </Typography>
+            </Grid>
+            <Grid item>
+                <Typography>
+                    {myGamePlayer?.sfbv || 0} buildings and wonders
+                </Typography>
+            </Grid>
+            <Grid item>
+                <Typography>
+                    {myGamePlayer?.sfa || 0} abilities
+                </Typography>
+            </Grid>
+            <Grid item>
+                <Typography>
+                    {myGamePlayer?.sfs || 0} survival  (25/decline)
+                </Typography>
+            </Grid>
+            <Grid item>
+                <Typography>
+                    {myGamePlayer?.sfrc || 0} revolting cities
+                </Typography>
+            </Grid>                                                                     
+        </Grid>
+    </CivDetailPanel>
 }
 
 const AnnouncementsDisplay = ({ announcements }) => {
@@ -157,7 +170,7 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTe
     const tech = civ.tech_queue?.[0];
     const storedProgress = tech ? civ.science / tech.cost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income / tech.cost * 100 : 0;
-    return <CivDetailPanel title='science' icon={scienceImg} income={`+${Math.floor(civ.projected_science_income)}`}>
+    return <CivDetailPanel title='science' icon={scienceImg} bignum={`+${Math.floor(civ.projected_science_income)}`}>
         <h2 className="tech-name" 
             onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}  

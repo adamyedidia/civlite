@@ -8,15 +8,6 @@
     /* Add other styles as needed */
 }
 
-.score-display {
-    border: 1px solid #ddd;
-    margin: 5px;
-    padding: 5px;
-    border-radius: 5px;
-    background-color: #ddaadd;
-    font-size: 1em; /* Smaller font size */
-}
-
 .announcements-display {
     border: 1px solid #ddd;
     margin: 5px;
@@ -178,10 +169,69 @@ h2.tech-name {
     justify-content: center;
 }
 
-.decline-button-label {
-    font-size: 24px;
+.decline-button {
+    height: 110px;
+    padding-top: 2px;
+    border: 2px solid black;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    border-radius: 5px;
 }
 
-.decline-button-new-vitality {
-    height: 20px;
+.decline-button:hover {
+    background-color: #ffffff; /* Light grey background on hover */
+    transform: scale(1.1); /* Slightly increase size to indicate selection */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
+  }
+
+.decline-button:hover #decline-button-vitality {
+    transform: scale(1.5) translateY(3px);
+}
+
+.decline-button span {
+    text-align: center;
+    font-weight: bold;
+}
+
+.decline-button #decline-phoenix-icon {
+    margin-top: -30px;
+    height: 80%;
+
+}
+
+.decline-button #decline-button-vitality {
+    height: 40px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+}
+
+.decline-button #decline-button-vitality-icon {
+    height: 100%;
+}
+
+.decline-button #decline-button-new-vitality {
+    position: absolute;
+    font-size: 12px;
+    top: 6px;
+}
+
+/*
+==========================================
+=============== SCORE AREA ===============
+==========================================
+*/
+
+.civ-detail-panel.score-area .icon span {
+    /* offset it because the image is asymmetric */
+    padding-top: 15px;
+}
+
+.score-area .panel-content {
+    font-size: 1em; /* Smaller font size */
+    border-color: #b8209e;
+    background-color: #eeaee4;
 }
