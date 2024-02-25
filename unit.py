@@ -241,6 +241,11 @@ class Unit:
 
     def calculate_destination_hex(self, game_state):
         assert self.hex is not None  # Not sure how this could possibly happen.
+        # Stationary units don't move
+        if self.template.movement == 0:
+            self.destination = None
+            return self.destination
+
         # Don't leave besieging cities
         if (self.hex.city and self.hex.city.civ.id != self.civ.id) or self.hex.camp:
             self.destination = None
