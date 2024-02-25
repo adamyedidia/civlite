@@ -77,7 +77,7 @@ const HexDisplay = ({ hoveredHex, unitTemplates }) => {
             <h3>Hex Info</h3>
             {hoveredHex.yields && <YieldImages2 yields={hoveredHex.yields} />}
             {hoveredHex.terrain && <p>Terrain: {hoveredHex.terrain}</p>}
-            {hoveredHex.city && <p>City: {hoveredHex.city.name}</p>}
+            {hoveredHex.city && <p>City: {hoveredHex.city.name} ({hoveredHex.city.population})</p>}
             <div className="hex-units">
                 {hoveredHex.units && hoveredHex.units.map((unit, index) => (
                     <UnitDisplay key={index} unit={unitTemplates[unit]} />

@@ -65,18 +65,6 @@
     padding-left: 8px;
 }
 
-.icon-bg-text {
-    background-size: 100% auto;
-    background-repeat: no-repeat;
-    background-position: center;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 40px;
-    width: 40px;
-    position:relative;
-}
-
 .tooltip {
   position: absolute;
   background-color: black;
@@ -140,33 +128,12 @@
     background-color: #5ca7b1;
 }
 
-.food-progress-bar {
-  width: 100%;
-  background-color: #ccc;
-  height: 20px;
-  border-radius: 5px;
-  display: flex;
-  position: relative;
-}
-
-.food-progress-bar .bar {
-  height: 100%;
-}
-
-.food-progress-bar .bar.stored {
-  border-radius: 5px 0 0 5px;
+.food-area .progress-bar .bar.stored {
   background-color: #65ac37;
 }
 
-.food-progress-bar .bar.produced {
-  border-radius: 0 5px 5px 0;
+.food-area .progress-bar .bar.produced {
   background-color: #a4e079
-}
-
-.food-progress-bar .checkmark {
-  position: absolute;
-  right: 5px;
-  font-size: 24px
 }
 
 .building-choices-container {

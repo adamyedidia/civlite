@@ -1,0 +1,26 @@
+.progress-bar {
+    width: 100%;
+    background-color: #ccc;
+    height: 20px;
+    border-radius: 5px;
+    display: flex;
+    position: relative;
+}
+
+.progress-bar .checkmark {
+    position: absolute;
+    right: 5px;
+    font-size: 24px
+}
+
+.progress-bar .bar {
+    height: 100%;
+}
+
+.progress-bar .bar.stored {
+    border-radius: 5px 0 0 5px;   
+}
+  
+.progress-bar .bar.produced {
+    border-radius: 0 5px 5px 0;
+}

@@ -27,6 +27,7 @@ import BuildingDisplay from './BuildingDisplay';
 import UnitDisplay from './UnitDisplay';
 import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
+import AnnouncementsDisplay from './AnnouncementsDisplay.js';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
@@ -368,7 +369,21 @@ export default function GamePage() {
 
     // console.log(hoveredHex);
 
-    console.log(gameState);
+    useEffect(() => {
+        // When the user presses escape
+        const handleKeyDown = (event) => {
+            if (event.key === 'Escape') {
+                setSelectedCity(null);
+                setFoundingCity(false);
+            }
+        };
+    
+        // Add event listener
+        window.addEventListener('keydown', handleKeyDown);
+    
+        // Remove event listener on cleanup
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []); // Empty dependency array ensures this effect runs only once after the initial render
 
     const handleContextMenu = (e) => {
         if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
@@ -2128,7 +2143,7 @@ export default function GamePage() {
         }
         else {
             if (isFriendlyCity(city)) {
-                playCitySound(medievalCitySound, modernCitySound, myCiv.advancement_level >= 7);
+                playCitySound(medievalCitySound, modernCitySound, myCiv?.advancement_level >= 7);
                 setSelectedCity(city);
             }
         }
@@ -2498,6 +2513,8 @@ export default function GamePage() {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes)
 
+        const canFoundCity = hexagons.some(hex => hex.is_foundable_by_civ?.[myCivId]);
+
         return (
             <>
                 <div className="basic-example">
@@ -2568,6 +2585,7 @@ export default function GamePage() {
                         })}
                     </Layout>         
                     </HexGrid>
+                    {gameState?.announcements.length > -1 && <AnnouncementsDisplay announcements={gameState?.announcements} />}
                     {!hoveredCiv && <Grid container direction="row" spacing={2} style={{position: 'fixed', right: '10px', bottom: '10px'}}>
                             <Grid item>
                                 <Button onClick={() => setRulesDialogOpen(!rulesDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', right: '130px', bottom: '10px'}}>
@@ -2591,17 +2609,21 @@ export default function GamePage() {
                         isHoveredHex={!!hoveredHex}
                     />}
                     {<UpperRightDisplay 
-                        city={selectedCity || hoveredCity} 
                         setHoveredUnit={setHoveredUnit} 
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
+                        toggleFoundingCity={toggleFoundingCity}
+                        canFoundCity={canFoundCity}
+                        isFoundingCity={foundingCity}
                         techTemplates={techTemplates}
+                        civTemplates={civTemplates}
                         myCiv={myCiv} 
                         myGamePlayer={myGamePlayer} 
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
                         unitTemplates={unitTemplates}
-                        announcements={gameState?.announcements}
                         setTechListDialogOpen={setTechListDialogOpen}
+                        setConfirmEnterDecline={setConfirmEnterDecline}
+                        disableUI={animating || gameState?.game_over}
                         turnNum={turnNum}
                         nextForcedRollAt={gameState?.next_forced_roll_at}
                         gameId={gameId}
@@ -2655,21 +2677,7 @@ export default function GamePage() {
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && myCiv?.city_power > 100 && !gameState?.game_over && <Button 
-                            style={{
-                                backgroundColor: "#ccffaa",
-                                color: "black",
-                                padding: '10px 20px', // Increase padding for larger button
-                                fontSize: '1.5em', // Increase font size for larger text
-                                marginBottom: '10px',
-                            }} 
-                            variant="contained"
-                            disabled={animating}
-                            onClick={toggleFoundingCity}
-                        >
-                            {foundingCity ? 'Cancel found city' : 'Found city'}
-                        </Button>}
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && !gameState?.game_over && <Button 
+                        {!gameState?.special_mode_by_player_num?.[playerNum] && <Button 
                             style={{
                                 backgroundColor: "#cccc88",
                                 color: "black",
@@ -2683,21 +2691,6 @@ export default function GamePage() {
                             disabled={animating}
                         >
                             {gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn"}
-                        </Button>}
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && !gameState?.game_over && <Button
-                            style={{
-                                backgroundColor: "#BBAABB",
-                                color: "black",
-                                marginLeft: '20px',
-                                padding: '10px 20px', // Increase padding for larger button
-                                fontSize: '1.5em', // Increase font size for larger text
-                                marginBottom: '10px',
-                            }} 
-                            variant="contained"
-                            onClick={() => setConfirmEnterDecline(true)}
-                            disabled={animating}
-                        >
-                            Enter decline
                         </Button>}
                         {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
                             style={{
