@@ -56,7 +56,7 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
     return <CivDetailPanel icon={foodImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}>
         <div className={`city-power-new-cities`} onMouseOver={showTooltip} onMouseOut={hideTooltip}>
             {[...Array(newCitites)].map((_, index) => (
-                <div key={index} class={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? "" :toggleFoundingCity}>
+                <div key={index} className={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? "" :toggleFoundingCity}>
                     <NewCityIcon civTemplate={civTemplate} disabled={!canFoundCity || (isFoundingCity & index > 0)}>
                         +
                     </NewCityIcon>
@@ -93,7 +93,7 @@ const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disa
     };
 
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
-        <div className="decline-button" onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={setConfirmEnterDecline}>
+        <div className={`decline-button ${disableUI ? "" : "enabled"}`} onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={() => {if (!disableUI) setConfirmEnterDecline(true);}}>
             <span> Decline </span>
             <div id="decline-button-vitality">
                 <img id="decline-button-vitality-icon" src={vitalityImg}/>

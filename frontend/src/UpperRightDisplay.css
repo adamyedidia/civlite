@@ -184,13 +184,13 @@ h2.tech-name {
     border-radius: 5px;
 }
 
-.decline-button:hover {
+.decline-button.enabled:hover {
     background-color: #ffffff; /* Light grey background on hover */
     transform: scale(1.1); /* Slightly increase size to indicate selection */
     box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
   }
 
-.decline-button:hover #decline-button-vitality {
+.decline-button.enabled:hover #decline-button-vitality {
     transform: scale(1.5) translateY(3px);
 }
 
