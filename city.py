@@ -101,6 +101,8 @@ class City:
         vitality = self.civ.vitality
         yields = resourcedict()
 
+        assert self.hex
+
         for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
             yields["food"] += hex.yields.food * vitality
             yields["metal"] += hex.yields.metal * vitality

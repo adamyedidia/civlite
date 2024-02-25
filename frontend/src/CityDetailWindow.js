@@ -280,10 +280,12 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
         <div className="city-detail-window" 
             style={{borderColor: myCivTemplate.secondary_color}}>
             <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate.primary_color}e0`}}>
-                <h1 style={{ margin: '0', display: 'flex' }}>
+                <h1 style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
                     <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
+                </h1>
+                <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {selectedCity.name}
-                    {declinePreviewMode ? " (preview)": ""}
+                    {declinePreviewMode ? " (preview)" : ""}
                 </h1>
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
             </div>

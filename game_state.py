@@ -355,6 +355,7 @@ class GameState:
                 else:
                     unit = UnitTemplate.from_json(UNITS[unit_name])
 
+                city.units_queue.clear()
                 city.infinite_queue_unit = unit
                 city.midturn_update(self)
                 game_player_to_return = game_player
@@ -517,6 +518,9 @@ class GameState:
             camp.update_nearby_hexes_hostile_foundability(self.hexes)
 
     def end_turn(self, sess) -> None:
+        if self.game_over:
+            return
+
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = rget_json(f'staged_moves:{self.game_id}:{player_num}') or []
             self.update_from_player_moves(player_num, staged_moves)
@@ -769,6 +773,9 @@ class GameState:
         raise Exception(f"Civ not found: {civ_name}, {self.civs_by_id}")
     
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
+        if self.game_over:
+            from_civ_perspectives = None
+
         return {
             "game_id": self.game_id,
             "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},

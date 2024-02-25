@@ -1105,8 +1105,8 @@ ANCIENT_CIVS = {
         }],
         "advancement_level": 4,
     },
-    "Qing": {
-        "name": "Qing",
+    "Manchu": {
+        "name": "Manchu",
         "abilities": [{
             "name": "IncreaseFocusYields",
             "numbers": ["science", 4],

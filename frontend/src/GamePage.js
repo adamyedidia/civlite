@@ -30,6 +30,8 @@ import UpperRightDisplay from './UpperRightDisplay';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
+import medievalCitySound from './sounds/medieval_city.mp3';
+import modernCitySound from './sounds/modern_city.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
@@ -207,6 +209,33 @@ function RulesDialog({open, onClose, gameConstants}) {
     )
 }
 
+function GameOverDialog({open, onClose, gameState}) {
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>
+                <Typography variant="h2">Game over</Typography>
+            </DialogTitle>
+            <DialogContent>
+                <Grid container direction="column" spacing={2}>
+                    {Object.values(gameState?.game_player_by_player_num).map((gamePlayer) => {
+                        return (
+                            <Grid item key={gamePlayer.player_num}>
+                                <Typography variant="h5">{gamePlayer.username}</Typography>
+                                <Typography>Score: {gamePlayer.score}</Typography>
+                            </Grid>
+                        )
+                    })}
+                </Grid>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
 const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
 }
@@ -276,6 +305,7 @@ export default function GamePage() {
     const [timerMutedOnTurn, setTimerMutedOnTurn] = useState(null);
 
     const [turnEndedByPlayerNum, setTurnEndedByPlayerNum] = useState({});
+    const [gameOverDialogOpen, setGameOverDialogOpen] = useState(false);
 
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
@@ -327,6 +357,12 @@ export default function GamePage() {
     useEffect(() => {
         turnEndedByPlayerNumRef.current = turnEndedByPlayerNum;
     }, [turnEndedByPlayerNum]);
+
+    useEffect(() => {
+        if (gameState?.game_over) {
+            setGameOverDialogOpen(true);
+        }
+    }, [gameState?.game_over]);
 
     // console.log(selectedCity);
 
@@ -450,6 +486,27 @@ export default function GamePage() {
             console.error('Error playing sound:', error);
         }
     }
+
+    function playCitySound(medievalCitySound, modernCitySound, isModern) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(isModern ? modernCitySound : medievalCitySound);
+            audio.volume = 0.3 * volumeRef.current / 100;
+            audio.play();
+            const fadeOutInterval = setInterval(() => {
+                if (audio.volume >= 0.05 * volumeRef.current / 100) {
+                    audio.volume -= 0.05 * volumeRef.current / 100;
+                } else {
+                    clearInterval(fadeOutInterval);
+                    audio.pause();
+                }
+            }, 1000); // Adjust the interval for desired fade out speed
+        }
+        catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }        
 
     function playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound) {
         if (!userHasInteracted) return;
@@ -2087,6 +2144,7 @@ export default function GamePage() {
         }
         else {
             if (isFriendlyCity(city)) {
+                playCitySound(medievalCitySound, modernCitySound, myCiv.advancement_level >= 7);
                 setSelectedCity(city);
             }
         }
@@ -2458,7 +2516,7 @@ export default function GamePage() {
 
         const canFoundCity = hexagons.some(hex => hex.is_foundable_by_civ?.[myCivId]);
 
-        return !gameState?.game_over ? (
+        return (
             <>
                 <div className="basic-example">
                     <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140">
@@ -2571,7 +2629,7 @@ export default function GamePage() {
                         turnNum={turnNum}
                         nextForcedRollAt={gameState?.next_forced_roll_at}
                         gameId={gameId}
-                        timerMuted={timerMutedOnTurn === turnNum}
+                        timerMuted={timerMutedOnTurn === turnNum || gameState.game_over}
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
@@ -2666,6 +2724,21 @@ export default function GamePage() {
                         >
                             Make {selectedCity.name} my capital
                         </Button>}
+                        {gameState?.game_over && !gameOverDialogOpen && <Button
+                            style={{
+                                backgroundColor: "#ccccff",
+                                color: "black",
+                                marginLeft: '20px',
+                                padding: '10px 20px', // Increase padding for larger button
+                                fontSize: '1.5em', // Increase font size for larger text
+                                marginBottom: '10px',
+                            }} 
+                            variant="contained"
+                            onClick={() => setGameOverDialogOpen(true)}
+                            disabled={animating}
+                        >
+                            See end game info
+                        </Button>}
                     </div>}
                 </div>
                 {confirmEnterDecline && <ConfirmEnterDeclineDialog
@@ -2680,24 +2753,13 @@ export default function GamePage() {
                     techTemplates={techTemplates}
                     myCiv={myCiv}
                 />}
+                {gameOverDialogOpen && <GameOverDialog
+                    open={gameOverDialogOpen}
+                    onClose={() => setGameOverDialogOpen(false)}
+                    gameState={gameState}
+                />}
             </>
-        ) : (
-            <>
-                <Grid container direction="column" spacing={2}>
-                    <Grid item>
-                        <Typography variant="h2">Game over</Typography>
-                    </Grid>
-                    {Object.values(gameState?.game_player_by_player_num).map((gamePlayer) => {
-                        return (
-                            <Grid item key={gamePlayer.player_num}>
-                                <Typography variant="h5">{gamePlayer.username}</Typography>
-                                <Typography>Score: {gamePlayer.score}</Typography>
-                            </Grid>
-                        )
-                    })}
-                </Grid>
-            </>
-        )
+        );
     }
 
     const launchGame = () => {
