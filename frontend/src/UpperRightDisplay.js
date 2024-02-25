@@ -1,6 +1,5 @@
 import React from 'react';
 import './UpperRightDisplay.css';
-import CityDisplay from './CityDisplay';
 import { Grid, Typography } from '@mui/material';
 import Timer from './Timer';
 import foodImg from './images/food.png';
@@ -197,7 +196,6 @@ const UpperRightDisplay = ({ city, isFriendlyCity, canFoundCity, isFoundingCity,
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
             {announcements.length > 0 && <AnnouncementsDisplay announcements={announcements} />}
-            {city && !isFriendlyCity && <CityDisplay city={city} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} isFriendly={isFriendlyCity} unitTemplates={unitTemplates}/>}
         </div>
     );
 };
