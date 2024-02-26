@@ -250,10 +250,15 @@ class Unit:
             return self.destination
 
         neighbors = self.hex.get_neighbors(game_state.hexes)
-        # shuffle(neighbors)  Do not duffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
+        # shuffle(neighbors)  Do not shuffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
         for neighboring_hex in neighbors:
-            # Attack neighboring cities
-            if neighboring_hex.camp or (neighboring_hex.city and neighboring_hex.city.civ.id != self.civ.id):
+            # Attack neighboring camps
+            if neighboring_hex.camp:
+                self.destination = neighboring_hex
+                return self.destination
+            
+            # Attack neighboring empty cities
+            if neighboring_hex.city and neighboring_hex.city.civ.id != self.civ.id and len(neighboring_hex.units) == 0:
                 self.destination = neighboring_hex
                 return self.destination
             
@@ -274,6 +279,9 @@ class Unit:
         return self.destination
 
     def move_one_step(self, game_state: 'GameState', coord_strs: list[str], sensitive: bool = False) -> bool:
+        # Potentially change your mind at the last minute
+        self.calculate_destination_hex(game_state)
+
         if self.destination is None: return False
 
         best_hex = None
