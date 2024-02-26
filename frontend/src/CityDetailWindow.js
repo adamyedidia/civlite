@@ -264,17 +264,24 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     // A bit silly that we calculate the amount available of each resource here
     // And then recalculate each one in the CityDetailPanel.
  
-    if (!selectedCity || !selectedCity.projected_income) {
+    const projectedIncome = selectedCity.projected_income || {
+        food: 0,
+        wood: 0,
+        metal: 0,
+        science: 0
+    };
+
+    if (!selectedCity || !projectedIncome) {
         return null;
     }
 
     const foodProgressStored = selectedCity.food / selectedCity.growth_cost;
-    const foodProgressProduced = selectedCity.projected_income['food'] / selectedCity.growth_cost;
+    const foodProgressProduced = projectedIncome['food'] / selectedCity.growth_cost;
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100)).toString()
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay).toString()
 
-    const metalAvailable = selectedCity.metal + selectedCity.projected_income['metal']
-    const woodAvailable = selectedCity.wood + selectedCity.projected_income['wood']
+    const metalAvailable = selectedCity.metal + projectedIncome['metal']
+    const woodAvailable = selectedCity.wood + projectedIncome['wood']
 
     const unitQueueMaxIndexFinishing = queueBuildDepth(metalAvailable, selectedCityUnitQueue, (item) => unitTemplates[item].metal_cost)
     const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => buildingTemplates[item] ? buildingTemplates[item].cost : unitTemplatesByBuildingName[item].wood_cost)
