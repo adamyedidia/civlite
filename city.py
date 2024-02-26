@@ -422,15 +422,31 @@ class City:
                     best_hex = hex
                     best_hex_distance_from_target = distance_from_target
 
+        best_unit_to_reinforce = None
         if best_hex is None:
-            for hex in self.hex.get_distance_2_hexes(game_state.hexes):
-                if not hex.is_occupied(unit.type, self.civ):
-                    distance_from_target = hex.distance_to(self.get_closest_target() or self.hex)
-                    if distance_from_target < best_hex_distance_from_target:
-                        best_hex = hex
-                        best_hex_distance_from_target = distance_from_target            
+
+            best_unit_penalty = 10000
+
+            # for hex in self.hex.get_distance_2_hexes(game_state.hexes):
+            #     if not hex.is_occupied(unit.type, self.civ):
+            #         distance_from_target = hex.distance_to(self.get_closest_target() or self.hex)
+            #         if distance_from_target < best_hex_distance_from_target:
+            #             best_hex = hex
+            #             best_hex_distance_from_target = distance_from_target            
+
+            for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                if hex.is_occupied(unit.type, self.civ):
+                    unit_to_possibly_reinforce = hex.units[0]
+                    if unit_to_possibly_reinforce.civ.id == self.civ.id and unit_to_possibly_reinforce.template.name == unit.name and unit_to_possibly_reinforce.hex:
+                        unit_penalty = unit_to_possibly_reinforce.health * 10 + unit_to_possibly_reinforce.hex.distance_to(self.get_closest_target() or self.hex)
+                        if unit_penalty < best_unit_penalty:
+                            best_unit_to_reinforce = unit_to_possibly_reinforce
+                            best_unit_penalty = unit_penalty            
 
         if best_hex is None:
+            if best_unit_to_reinforce:
+                self.reinforce_unit(best_unit_to_reinforce)
+                return True
             return False
         self.spawn_unit_on_hex(sess, game_state, unit, best_hex)
         return True
@@ -459,6 +475,9 @@ class City:
                 "start_coords": self.hex.coords,
                 "end_coords": unit.hex.coords,
             }, self.civ)
+
+    def reinforce_unit(self, unit: Unit) -> None:
+        unit.health += 100
 
     def build_buildings(self, sess, game_state: 'GameState') -> None:
         while self.buildings_queue:

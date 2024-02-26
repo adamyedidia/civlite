@@ -1,4 +1,4 @@
-from math import sqrt
+from math import sqrt, ceil
 from random import random, shuffle
 from typing import TYPE_CHECKING, Optional
 from animation_frame import AnimationFrame
@@ -50,6 +50,9 @@ class Unit:
             return target1
         else:
             return target2
+
+    def get_stack_size(self) -> int:
+        return int(ceil(self.health / 100))
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
@@ -164,7 +167,7 @@ class Unit:
         return bonus_strength
 
     def punch(self, game_state: 'GameState', target: 'Unit', damage_reduction_factor: float = 1.0) -> None:
-        self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target)) * damage_reduction_factor * (0.5 + 0.5 * (self.health / 100))
+        self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
         target.effective_strength = target.strength + target.compute_bonus_strength(game_state, self)
 
         target.health = max(0, target.health - self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength))
@@ -311,6 +314,7 @@ class Unit:
             "strength": self.strength,
             "template": self.template.to_json(),
             "has_attacked": self.has_attacked,
+            "stack_size": self.get_stack_size(),
         }
     
     @staticmethod
