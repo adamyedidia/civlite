@@ -124,6 +124,14 @@ class Hex:
         """
         return any(unit.template.type == unit_type or unit.civ.template.name != civ.template.name for unit in self.units)
 
+    def is_threatened_city(self, game_state):
+        """ Is there an enemy unit adjacent? """
+        if not self.city: return False
+        for hex in self.get_neighbors(game_state.hexes):
+            if hex.units and hex.units[0].civ.id != self.city.civ.id:
+                return True
+        return False
+
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         for unit in self.units:
             unit.update_civ_by_id(civs_by_id)

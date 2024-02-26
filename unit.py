@@ -253,7 +253,7 @@ class Unit:
         # shuffle(neighbors)  Do not shuffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
         for neighboring_hex in neighbors:
             # Attack neighboring camps
-            if neighboring_hex.camp:
+            if neighboring_hex.camp and not (len(neighboring_hex.units) > 0 and neighboring_hex.units[0].civ.id == self.civ.id):
                 self.destination = neighboring_hex
                 return self.destination
             
@@ -268,9 +268,13 @@ class Unit:
                 return self.destination
             
             # Don't abandon threatened cities
-            # Debatable: should others next to the city help defend?
             if self.hex.city and neighboring_hex.units and neighboring_hex.units[0].civ.id != self.civ.id:
                 self.destination =  None
+                return self.destination
+
+            # Move into adjacent friendly empty threatened cities
+            if neighboring_hex.is_threatened_city(game_state) and neighboring_hex.city.civ.id == self.civ.id and len(neighboring_hex.units) == 0:
+                self.destination = neighboring_hex
                 return self.destination
 
         # If none of the other things applied, go to nearest flag.
