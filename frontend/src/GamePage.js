@@ -2199,6 +2199,7 @@ export default function GamePage() {
         const primaryColor = civTemplates[city.civ.name]?.primary_color;
         const secondaryColor = civTemplates[city.civ.name]?.secondary_color;
         const population = city.population;
+<<<<<<< Updated upstream
     
         const pointer = isFriendlyCity(city);
     
@@ -2216,6 +2217,15 @@ export default function GamePage() {
 
         const finalPrimaryColor = primaryColor;
         const finalSecondaryColor = secondaryColor;
+=======
+        const cityName = city.name; // Assuming city object has a name property
+    
+        const pointer = isFriendlyCity(city);
+    
+        // Calculate width based on city name length. Each character is approximately 0.2 units wide.
+        const nameWidth = Math.max(3, cityName.length * 0.05);
+        const nameXPosition = -nameWidth / 2;
+>>>>>>> Stashed changes
     
         return (
             <>
