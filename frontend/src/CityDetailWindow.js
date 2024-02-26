@@ -264,7 +264,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     // A bit silly that we calculate the amount available of each resource here
     // And then recalculate each one in the CityDetailPanel.
  
-    if (!selectedCity) {
+    if (!selectedCity || !selectedCity.projected_income) {
         return null;
     }
 
