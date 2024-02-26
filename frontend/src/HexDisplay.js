@@ -45,6 +45,10 @@ export const YieldImages = ({ yields }) => {
 };
 
 export const YieldImages2 = ({ yields }) => {
+    if (!yields) {
+        return null;
+    }
+
     const renderImages = (img, count) => {
         let images = [];
         for (let i = 0; i < count; i++) {
