@@ -14,6 +14,8 @@ export const YieldImages = ({ yields }) => {
         return null;
     }
 
+    console.log('yields:', yields);
+
     let totalCount = yields.food + yields.wood + yields.metal + yields.science;
 
     const renderImages = (img, count) => {
