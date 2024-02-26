@@ -264,6 +264,10 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     // A bit silly that we calculate the amount available of each resource here
     // And then recalculate each one in the CityDetailPanel.
  
+    if (!selectedCity) {
+        return null;
+    }
+
     const foodProgressStored = selectedCity.food / selectedCity.growth_cost;
     const foodProgressProduced = selectedCity.projected_income['food'] / selectedCity.growth_cost;
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100)).toString()
