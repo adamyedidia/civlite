@@ -348,7 +348,7 @@ class Unit:
             "strength": self.strength,
             "template": self.template.to_json(),
             "has_attacked": self.has_attacked,
-            "closest_target": self.destination.coords if self.destination is not None else None,  # TODO make this respect priority of attacks, defends.
+            "closest_target": self.destination.coords if self.destination is not None else None,
         }
     
     @staticmethod
