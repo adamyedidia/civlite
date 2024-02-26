@@ -5,6 +5,7 @@ import './arrow.css';
 import './GamePage.css';
 import { Typography } from '@mui/material';
 import { css } from '@emotion/react';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
@@ -263,6 +264,8 @@ export default function GamePage() {
     const [buildingTemplates, setBuildingTemplates] = useState(null);
     const [volume, setVolume] = useState(100);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
+
+    const [endTurnSpinner, setEndTurnSpinner] = useState(false);
 
     const unitTemplatesByBuildingName = {};
     Object.values(unitTemplates || {}).forEach(unitTemplate => {
@@ -1908,23 +1911,23 @@ export default function GamePage() {
     }, [animating, myCiv?.tech_queue?.length])
 
     const handleClickEndTurn = () => {
-        const data = {
-            player_num: playerNum,
-        }
+        setEndTurnSpinner(true); // Start loading
+
+        const data = { player_num: playerNum };
 
         fetch(`${URL}/api/end_turn/${gameId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-
             body: JSON.stringify(data),
         }).then(response => response.json())
             .then(data => {
-                if (data.game_state) {
-                    // setGameState(data.game_state);
-                }
                 getMovie(false);
+            }).catch(error => {
+                console.error('Error ending turn:', error);
+            }).finally(() => {
+                setEndTurnSpinner(false); // Stop loading regardless of the outcome
             });
     }
 
@@ -2763,12 +2766,15 @@ export default function GamePage() {
                                 padding: '10px 20px', // Increase padding for larger button
                                 fontSize: '1.5em', // Increase font size for larger text
                                 marginBottom: '10px',
+                                width: '200px',
                             }} 
                             variant="contained"
                             onClick={gameState?.turn_ended_by_player_num?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
-                            disabled={animating}
+                            disabled={animating || endTurnSpinner}
                         >
-                            {gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn"}
+                            {endTurnSpinner ? <CircularProgress size={24} /> :
+                                (gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn")
+                            }
                         </Button>}
                         {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
                             style={{
