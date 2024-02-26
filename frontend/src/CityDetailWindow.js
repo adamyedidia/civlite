@@ -271,8 +271,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
         science: 0
     };
 
-    console.log('projectedIncome', projectedIncome)
-
     if (!selectedCity || !projectedIncome) {
         return null;
     }
