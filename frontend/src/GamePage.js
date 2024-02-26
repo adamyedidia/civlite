@@ -5,6 +5,7 @@ import './arrow.css';
 import './GamePage.css';
 import { Typography } from '@mui/material';
 import { css } from '@emotion/react';
+import CircularProgress from '@mui/material/CircularProgress';
 import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
@@ -264,6 +265,8 @@ export default function GamePage() {
     const [volume, setVolume] = useState(100);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
+    const [endTurnSpinner, setEndTurnSpinner] = useState(false);
+
     const unitTemplatesByBuildingName = {};
     Object.values(unitTemplates || {}).forEach(unitTemplate => {
         if (unitTemplate.building_name) {
@@ -280,6 +283,10 @@ export default function GamePage() {
     const [hoveredTech, setHoveredTech] = useState(null);
 
     const [hoveredCity, setHoveredCity] = useState(null);
+
+    const [showFlagArrows, setShowFlagArrows] = useState(false);
+    const flagArrowsTimeoutRef = React.useRef(null);
+
     const [selectedCity, setSelectedCity] = useState(null);
 
     const [techChoices, setTechChoices] = useState(null);
@@ -375,6 +382,7 @@ export default function GamePage() {
             if (event.key === 'Escape') {
                 setSelectedCity(null);
                 setFoundingCity(false);
+                setShowFlagArrows(false);
             }
         };
     
@@ -395,15 +403,16 @@ export default function GamePage() {
 
             if (hexesAreEqual(hoveredHexRef.current, target1Ref.current)) {
                 removeTarget(false);
-                return;
-            }
-
-            if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
+            } else if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
                 removeTarget(true);
-                return;
+            } else {
+                setTarget(hoveredHexRef.current, !target1Ref.current ? false : !target2Ref.current ? true : lastSetPrimaryTargetRef.current ? true : false);
             }
-
-            setTarget(hoveredHexRef.current, !target1Ref.current ? false : !target2Ref.current ? true : lastSetPrimaryTargetRef.current ? true : false);
+            
+            // Show flag arrows for 1s. Start after 100ms so there's time for the system to react to the update.
+            clearTimeout(flagArrowsTimeoutRef.current);
+            setTimeout(() => setShowFlagArrows(true), 100);
+            flagArrowsTimeoutRef.current = setTimeout(() => setShowFlagArrows(false), 1000);
         }
     }
 
@@ -1902,23 +1911,23 @@ export default function GamePage() {
     }, [animating, myCiv?.tech_queue?.length])
 
     const handleClickEndTurn = () => {
-        const data = {
-            player_num: playerNum,
-        }
+        setEndTurnSpinner(true); // Start loading
+
+        const data = { player_num: playerNum };
 
         fetch(`${URL}/api/end_turn/${gameId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-
             body: JSON.stringify(data),
         }).then(response => response.json())
             .then(data => {
-                if (data.game_state) {
-                    // setGameState(data.game_state);
-                }
                 getMovie(false);
+            }).catch(error => {
+                console.error('Error ending turn:', error);
+            }).finally(() => {
+                setEndTurnSpinner(false); // Stop loading regardless of the outcome
             });
     }
 
@@ -2113,6 +2122,77 @@ export default function GamePage() {
         setAnimating(false);
     }
 
+    const FlagArrow = ({hex}) => {
+        const unit = hex.units[0]
+        const destCoords = unit.closest_target
+        if (!destCoords) {return;}
+        const fromHexClientRef = hexRefs?.current?.[`${hex.q},${hex.r},${hex.s}`]?.current?.getBoundingClientRect();
+        const toHexClientRef = hexRefs?.current?.[destCoords]?.current?.getBoundingClientRect();
+
+        const dx = toHexClientRef.left - fromHexClientRef.left;
+        const dy = toHexClientRef.top - fromHexClientRef.top;
+        const angleRads = Math.atan2(dy, dx);
+        const jitterAmnt = 20 * (Math.sin(hex.q * 13 + hex.r * 23 + hex.s * 31));
+        const jitteredFrom = {
+            left: fromHexClientRef.left + jitterAmnt * Math.sin(angleRads),
+            top: fromHexClientRef.top - jitterAmnt * Math.cos(angleRads),
+        }
+        const Jittereddx = toHexClientRef.left - jitteredFrom.left;
+        const Jittereddy = toHexClientRef.top - jitteredFrom.top;
+        const JitteredAngleDegs = Math.atan2(Jittereddy, Jittereddx) * (180 / Math.PI);
+
+        const distance = Math.sqrt(Jittereddx * Jittereddx + Jittereddy * Jittereddy);
+        return <div className='flag-arrow' style={{
+            position: 'absolute', // Make sure it's set to absolute
+            left: `${jitteredFrom.left + window.scrollX - 2}px`,
+            top: `${jitteredFrom.top + window.scrollY - 2}px`,
+            width: `${distance}px`, // Set the length of the arrow
+            transform: `rotate(${JitteredAngleDegs}deg)`,
+            transformOrigin: "0 50%",
+        }}>
+        </div>
+    }
+
+    const FlagArrows = ({hexagons, myCiv}) => {
+        if (!showFlagArrows) { return; }
+        return (
+            <div className="flag-arrows-container">
+                {hexagons.map((hex, index) => {
+                    if (!hex.units?.length) {return;}
+                    if (hex.units[0].civ.name != myCiv.name) {return;}
+                    return <FlagArrow key={index} hex={hex} />
+                })}
+            </div>
+        );
+    }
+
+    // Event handler for keydown event for the flag arrows
+    const handleKeyDown = (event) => {
+        if (event.key === 'f' || event.key === 'F') {
+            console.log("Showing flag arrows")
+            setShowFlagArrows(true);
+        }
+    };
+
+    // Event handler for keydown event for the flag arrows
+    const handleKeyUp = (event) => {
+        if (event.key === 'f' || event.key === 'F') {
+            flagArrowsTimeoutRef.current = setTimeout(() => setShowFlagArrows(false), 200);
+        }
+    };
+
+    // Add event listeners for flag arrows when the component mounts
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        // Remove event listeners on cleanup
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, []);
+
     const isFriendlyCityHex = (hex) => {
         return isFriendlyCity(hex?.city);
     }
@@ -2280,8 +2360,8 @@ export default function GamePage() {
 
         return (
             <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (isCityInHex ? 1 : 0)}>
-                <circle cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.5} />
-                <image href={unitImage} x={`${scale}`} y={`${scale}`} height={`${2*scale}`} width={`${2*scale}`} />
+                <circle opacity={unit.has_attacked? 0.5 : 1.0} cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.5} />
+                <image opacity={unit.has_attacked? 0.5 : 1.0} href={unitImage} x={`${scale}`} y={`${scale}`} height={`${2*scale}`} width={`${2*scale}`} />
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" /> {/* Total health bar */}
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" /> {/* Current health bar */}
                 {unit.stack_size > 1 && <circle cx={`${2*scale + 0.8*scale}`} cy={`${3.5*scale - 0.8*scale}`} r={`${scale/2}`} fill="white" stroke="black" strokeWidth={0.1} style={{ zIndex: 99999 }} />}
@@ -2672,6 +2752,7 @@ export default function GamePage() {
                             </Typography>
                         </div>}
                     </div>
+                    {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons}/>}
                     {!animating && <div style={{
                         position: 'fixed', 
                         bottom: '10px', 
@@ -2690,12 +2771,15 @@ export default function GamePage() {
                                 padding: '10px 20px', // Increase padding for larger button
                                 fontSize: '1.5em', // Increase font size for larger text
                                 marginBottom: '10px',
+                                width: '200px',
                             }} 
                             variant="contained"
                             onClick={gameState?.turn_ended_by_player_num?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
-                            disabled={animating}
+                            disabled={animating || endTurnSpinner}
                         >
-                            {gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn"}
+                            {endTurnSpinner ? <CircularProgress size={24} /> :
+                                (gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn")
+                            }
                         </Button>}
                         {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
                             style={{

@@ -25,6 +25,9 @@ class Hex:
         self.visibility_by_civ: dict[str, bool] = {}
         self.is_foundable_by_civ: dict[str, bool] = {}
 
+    def __repr__(self):
+        return f"<Hex {self.coords}>"
+
     def distance_to(self, other: "Hex") -> int:
         return max(abs(self.q - other.q), abs(self.r - other.r), abs(self.s - other.s))
 
@@ -116,7 +119,18 @@ class Hex:
             raise Exception("Invalid range")
 
     def is_occupied(self, unit_type: str, civ: Civ) -> bool:
+        """
+        Is this hex occupied by a unit of this type or by an enemy of this civ?
+        """
         return any(unit.template.type == unit_type or unit.civ.template.name != civ.template.name for unit in self.units)
+
+    def is_threatened_city(self, game_state):
+        """ Is there an enemy unit adjacent? """
+        if not self.city: return False
+        for hex in self.get_neighbors(game_state.hexes):
+            if hex.units and hex.units[0].civ.id != self.city.civ.id:
+                return True
+        return False
 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         for unit in self.units:

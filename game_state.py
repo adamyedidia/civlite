@@ -80,6 +80,15 @@ class GameState:
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
+    def midturn_update(self):
+        print("midturn update triggered")
+        for city in self.cities_by_id.values():
+            city.midturn_update(self)
+        for unit in self.units:
+            unit.midturn_update(self)
+        for civ in self.civs_by_id.values():
+            civ.midturn_update(self)
+
     def turn_should_end(self, turn_ended_by_player_num: dict[int, bool]) -> bool:
         for player_num, game_player in self.game_player_by_player_num.items():
             if not game_player.is_bot and not turn_ended_by_player_num.get(player_num):
@@ -131,8 +140,7 @@ class GameState:
                             city.grow_inner(self)
 
         self.refresh_foundability_by_civ()
-        city.midturn_update(self)
-        city.civ.adjust_projected_yields(self)        
+        self.midturn_update()     
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
         self.announcements.append(f'The civilization of {civ.moniker()} has entered decline!')                
@@ -265,8 +273,7 @@ class GameState:
                             city.civ.vitality = STARTING_CIV_VITALITY
 
                             city.capitalize(self)
-                            city.midturn_update(self)
-                            city.civ.adjust_projected_yields(self)
+                            self.midturn_update()
 
                         else:
                             if city.hex:
@@ -357,7 +364,7 @@ class GameState:
 
                 city.units_queue.clear()
                 city.infinite_queue_unit = unit
-                city.midturn_update(self)
+                self.midturn_update()
                 game_player_to_return = game_player
 
             if move['move_type'] == 'cancel_unit':
@@ -383,6 +390,7 @@ class GameState:
                 civ.target1_coords = target_coords
                 civ.target1 = self.hexes[target_coords]                
                 game_player_to_return = game_player
+                self.midturn_update()
 
             if move['move_type'] == 'set_civ_secondary_target':
                 target_coords = move['target_coords']
@@ -392,6 +400,7 @@ class GameState:
                 civ.target2_coords = target_coords
                 civ.target2 = self.hexes[target_coords]
                 game_player_to_return = game_player
+                self.midturn_update()
 
             if move['move_type'] == 'remove_civ_primary_target':
                 game_player = self.game_player_by_player_num[player_num]
@@ -400,6 +409,7 @@ class GameState:
                 civ.target1_coords = None
                 civ.target1 = None
                 game_player_to_return = game_player
+                self.midturn_update()
 
             if move['move_type'] == 'remove_civ_secondary_target':
                 game_player = self.game_player_by_player_num[player_num]
@@ -408,6 +418,7 @@ class GameState:
                 civ.target2_coords = None
                 civ.target2 = None
                 game_player_to_return = game_player
+                self.midturn_update()
 
             if move['move_type'] == 'choose_focus':
                 game_player = self.game_player_by_player_num[player_num]
@@ -415,16 +426,14 @@ class GameState:
                 city = self.cities_by_id[city_id]
                 city.focus = move['focus']
                 game_player_to_return = game_player
-
-                city.midturn_update(self)
-                city.civ.adjust_projected_yields(self)
+                self.midturn_update()
 
             if move['move_type'] == 'found_city':
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
                 self.found_city_for_civ(self.civs_by_id[game_player.civ_id], self.hexes[move['coords']], move['city_id'])
-              
                 game_player_to_return = game_player
+                self.midturn_update()
 
             if move['move_type'] == 'enter_decline':                
                 game_player = self.game_player_by_player_num[player_num]
@@ -465,7 +474,7 @@ class GameState:
 
                 city.refresh_available_buildings()
                 city.refresh_available_units()
-                city.midturn_update(self)
+                self.midturn_update()
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
             if from_civ_perspectives is None and game_player_to_return.civ_id is not None:
@@ -590,11 +599,7 @@ class GameState:
             unit.has_moved = False
             unit.has_attacked = False
 
-        for city in self.cities_by_id.values():
-            city.midturn_update(self)
-
-        for civ in self.civs_by_id.values():
-            civ.adjust_projected_yields(self)        
+        self.midturn_update()      
 
         self.sync_advancement_level()
 
@@ -824,6 +829,7 @@ class GameState:
         game_state.turn_ended_by_player_num = json["turn_ended_by_player_num"]
         game_state.next_forced_roll_at = json.get("next_forced_roll_at")
         game_state.roll_id = json.get("roll_id")
+        game_state.midturn_update()
         return game_state
 
 

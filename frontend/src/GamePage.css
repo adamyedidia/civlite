@@ -112,3 +112,26 @@ body {
   font-size: 1.2em; /* Smaller font size */
   font-weight: bold; /* Make the text bold */
 }
+
+
+.flag-arrows-container {
+  position: absolute;
+  top:0;
+  left:0;
+}
+
+.flag-arrow {
+  position: 'absolute';
+  height: 3px; /* This is really the width of the arrow, due to how the rotation is defined */
+  background-color: #111c;
+}
+.flag-arrow::after {
+  content: '';
+  position: absolute;
+  top: 50%;  /* center it on the line */
+  left: 40%;  /* distance along the line  */
+  margin-top: -10px;
+  border-width: 10px;
+  border-style: solid;
+  border-color: transparent transparent transparent #111c;
+}

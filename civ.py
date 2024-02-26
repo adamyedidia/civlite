@@ -50,6 +50,9 @@ class Civ:
     def numbers_of_ability(self, ability_name: str) -> list:
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
 
+    def midturn_update(self, game_state):
+        self.adjust_projected_yields(game_state)
+
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         self.projected_science_income = 0.0
         self.projected_city_power_income = BASE_CITY_POWER_INCOME
