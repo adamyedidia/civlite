@@ -2258,7 +2258,10 @@ export default function GamePage() {
         const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
     
         const scale = isCityInHex ? 0.95 : 1.4;
-        const healthPercentage = (unit.health / 100) % 1; // Calculate health as a percentage
+        let healthPercentage = (unit.health / 100) % 1; // Calculate health as a percentage
+        if (healthPercentage === 0) {
+            healthPercentage = 1;
+        }
     
         // Function to darken color
         const darkenColor = (color) => {
@@ -2277,12 +2280,12 @@ export default function GamePage() {
 
         return (
             <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (isCityInHex ? 1 : 0)}>
-                <circle cx={`${2*scale}`} cy={`${3*scale}`} r={`${scale/2}`} fill="white" stroke="black" strokeWidth={0.2} />
-                <text x={`${2.5*scale}`} y={`${3.5*scale}`} fontSize={`${scale/2}`} textAnchor="middle" dominantBaseline="middle">{unit.stack_size}</text>
                 <circle cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.5} />
                 <image href={unitImage} x={`${scale}`} y={`${scale}`} height={`${2*scale}`} width={`${2*scale}`} />
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" /> {/* Total health bar */}
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" /> {/* Current health bar */}
+                {unit.stack_size > 1 && <circle cx={`${2*scale + 0.8*scale}`} cy={`${3.5*scale - 0.8*scale}`} r={`${scale/2}`} fill="white" stroke="black" strokeWidth={0.1} style={{ zIndex: 99999 }} />}
+                {unit.stack_size > 1 && <text x={`${2.8*scale}`} y={`${2.8*scale}`} style={{ fontSize: `${scale}px`, textAnchor: "middle", dominantBaseline: "middle", zIndex: 99999 }}>{unit.stack_size}</text>}
             </svg>
         );
     };

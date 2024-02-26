@@ -92,13 +92,17 @@ class Unit:
         if self.hex is None or self.has_attacked:
             return
 
-        hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
+        for _ in range(self.get_stack_size()):
+            if self.hex is None:
+                return
 
-        best_target = self.get_best_target(hexes_to_check)
+            hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
 
-        if best_target is not None:
-            self.fight(sess, game_state, best_target)
-            self.has_attacked = True
+            best_target = self.get_best_target(hexes_to_check)
+
+            if best_target is not None:
+                self.fight(sess, game_state, best_target)
+                self.has_attacked = True
 
     def get_best_target(self, hexes_to_check: list['Hex']) -> Optional['Unit']:
         if self.hex is None:
@@ -167,14 +171,19 @@ class Unit:
         return bonus_strength
 
     def punch(self, game_state: 'GameState', target: 'Unit', damage_reduction_factor: float = 1.0) -> None:
+        target_original_stack_size = target.get_stack_size()
+
         self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
         target.effective_strength = target.strength + target.compute_bonus_strength(game_state, self)
 
         target.health = max(0, target.health - self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength))
 
+        target_final_stack_size = target.get_stack_size()
+
         if target.health == 0:
             target.die(game_state, self)
 
+        for _ in range(target_original_stack_size - target_final_stack_size):
             if (game_player := self.civ.game_player) is not None:
                 game_player.score += UNIT_KILL_REWARD
                 game_player.score_from_killing_units += UNIT_KILL_REWARD

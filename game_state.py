@@ -556,16 +556,14 @@ class GameState:
         random.shuffle(units_copy)
         for unit in units_copy:
             unit.move(sess, self)
-            for _ in range(unit.get_stack_size()):
-                unit.attack(sess, self)
+            unit.attack(sess, self)
 
         sess.commit()
 
         random.shuffle(units_copy)
         for unit in units_copy:
             unit.move(sess, self, sensitive=True)
-            for _ in range(unit.get_stack_size()):
-                unit.attack(sess, self)
+            unit.attack(sess, self)
 
         sess.commit()
 
