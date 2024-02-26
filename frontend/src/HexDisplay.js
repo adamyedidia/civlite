@@ -10,6 +10,10 @@ import scienceImg from './images/science.png';
 export const YieldImages = ({ yields }) => {
     let imageCounter = 0; // Counter to track the total number of images
 
+    if (!yields) {
+        return null;
+    }
+
     let totalCount = yields.food + yields.wood + yields.metal + yields.science;
 
     const renderImages = (img, count) => {
