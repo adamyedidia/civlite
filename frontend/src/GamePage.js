@@ -2314,7 +2314,6 @@ export default function GamePage() {
             buildingText = city.buildings_queue[0].slice(0, 2);
             buildingIconUnit = null;
         }
-        console.log(buildingIconUnit)
         const buildingImage = buildingIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(buildingIconUnit)}.svg`; 
  
         let unitText;
