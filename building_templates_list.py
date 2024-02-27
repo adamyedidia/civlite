@@ -421,7 +421,7 @@ BUILDINGS: dict[str, dict] = {
         }],
         "is_wonder": True,
         "vp_reward": 5,
-        "prereq": "Chivalry",
+        "prereq": "Gunpowder",
     },
     "Notre Dame": {
         "name": "Notre Dame",
