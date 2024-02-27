@@ -14,7 +14,7 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
         <div className="end-turn-area">
             <div className="turn-roll-buttons">
                 {!gameState?.special_mode_by_player_num?.[playerNum] && <Button 
-                    style={{backgroundColor: "#cccc88", fontSize:"2em", height: "120px", padding: "5px;"}} 
+                    style={{backgroundColor: "#cccc88", fontSize:"2em", height: "120px", padding: "5px"}} 
                     variant="contained"
                     onClick={gameState?.turn_ended_by_player_num?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
                     disabled={animating || endTurnSpinner}
