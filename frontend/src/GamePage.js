@@ -2089,6 +2089,8 @@ export default function GamePage() {
         const cases = ['UnitMovement', 'UnitAttack'];
         const filteredAnimationQueue = animationQueue.filter((animationEvent) => cases.includes(animationEvent?.data?.type));        
 
+        const numFramesToPlay = filteredAnimationQueue.length;
+        const animationDelay = min(ANIMATION_DELAY, 30000 / numFramesToPlay);
 
         for (let event of animationQueue) {
             console.log(event);
@@ -2098,13 +2100,13 @@ export default function GamePage() {
             if (newState) {
                 switch (event?.data?.type) {
                     case 'UnitMovement':
-                        await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
+                        await new Promise((resolve) => setTimeout(resolve, animationDelay));
                         playMoveSound(moveSound, volume);
                         showMovementArrows(event.data.coords);
                         setGameState(newState);         
                         break;           
                     case 'UnitAttack':
-                        await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
+                        await new Promise((resolve) => setTimeout(resolve, animationDelay));
                         if (event.data.attack_type === 'melee') {
                             playMeleeAttackSound(meleeAttackSound, volume);
                         } else if (event.data.attack_type === 'ranged') {
