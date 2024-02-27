@@ -152,64 +152,12 @@ class City:
         return yields
 
     def harvest_yields(self, game_state: 'GameState') -> None:
-        if self.hex is None:
-            return
-        
-        vitality = self.civ.vitality
-
-        for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
-            self.food += hex.yields.food * vitality
-            self.civ.city_power += hex.yields.food * vitality
-            self.metal += hex.yields.metal * vitality
-            self.wood += hex.yields.wood * vitality
-            self.civ.science += hex.yields.science * vitality
-        
-        yields_per_population = {
-            "food": 0,
-            "metal": 0,
-            "wood": 0,
-            "science": 1,
-        }
-
-        for building in self.buildings:
-            for ability in building.template.abilities:
-                if ability.name == 'IncreaseYieldsPerPopulation':
-                    yields_per_population[ability.numbers[0]] += ability.numbers[1]
-
-        for key in yields_per_population:
-            if key in ["food"]:
-                self.food += self.population * yields_per_population[key] * vitality
-                self.civ.city_power += self.population * yields_per_population[key] * vitality
-
-            if key in ["metal", "wood"]:
-                new_value = getattr(self, key) + self.population * yields_per_population[key] * vitality
-                setattr(self, key, new_value)
-            
-            if key in ["science"]:
-                self.civ.science += self.population * yields_per_population[key] * vitality
-
-        self.food += 2 * vitality
-        self.civ.city_power += 2 * vitality
-
-        if self.focus == 'food':
-            self.food += self.population * vitality
-            self.civ.city_power += self.population * vitality
-        elif self.focus == 'metal':
-            self.metal += self.population * vitality
-        elif self.focus == 'wood':
-            self.wood += self.population * vitality
-        elif self.focus == 'science':
-            self.civ.science += self.population * vitality
-
-        if self.civ.has_ability('IncreaseFocusYields') and self.focus == self.civ.numbers_of_ability('IncreaseFocusYields')[0]:
-            if self.focus in ['wood', 'metal']:
-                new_value = getattr(self, self.focus) + self.civ.numbers_of_ability('IncreaseFocusYields')[1]
-                setattr(self, self.focus, new_value)
-            elif self.focus in ['food']:
-                self.food += self.civ.numbers_of_ability('IncreaseFocusYields')[1]
-                self.civ.city_power += self.civ.numbers_of_ability('IncreaseFocusYields')[1]
-            elif self.focus in ['science']:
-                self.civ.science += self.civ.numbers_of_ability('IncreaseFocusYields')[1]
+        self.adjust_projected_yields(game_state)  # TODO(dfarhi) this probably shouldn't be neessary since it should be called whenever teh state changes?
+        self.wood += self.projected_income["wood"]
+        self.metal += self.projected_income["metal"]
+        self.food += self.projected_income["food"]
+        self.civ.science += self.projected_income["science"]
+        self.civ.city_power += self.projected_income["food"]
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
