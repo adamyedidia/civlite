@@ -576,6 +576,10 @@ class GameState:
 
         sess.commit()
 
+        for unit in units_copy:
+            if not unit.has_moved and not unit.has_attacked and unit.friendly_neighboring_unit_count(self) >= 4:
+                unit.merge_into_neighboring_unit(sess, self)
+
         # random.shuffle(units_copy)
         # for unit in units_copy:
         #     unit.attack(sess, self)

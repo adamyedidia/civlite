@@ -95,6 +95,44 @@ class Unit:
                 "coords": coord_strs,
             }, hexes_must_be_visible=[starting_hex, new_hex], no_commit=True)
 
+    def merge_into_neighboring_unit(self, sess, game_state: 'GameState') -> None:
+        if self.hex is None:
+            return
+
+        closest_target = self.get_closest_target()
+        if closest_target is None:
+            closest_target = self.hex
+
+        coord_strs = [self.hex.coords]
+        starting_hex = self.hex
+
+        for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
+            if neighboring_hex.sensitive_distance_to(closest_target) < self.hex.sensitive_distance_to(closest_target):
+                for unit in neighboring_hex.units:
+                    if unit.civ.id == self.civ.id and unit.template.name == self.template.name:
+                        unit.health += self.health
+                        self.remove_from_game(game_state)
+
+                        self.update_nearby_hexes_visibility(game_state)
+                        coord_strs.append(neighboring_hex.coords)
+
+                        game_state.add_animation_frame(sess, {
+                            "type": "UnitMovement",
+                            "coords": coord_strs,
+                        }, hexes_must_be_visible=[starting_hex, neighboring_hex], no_commit=True)
+
+                        return
+
+    def friendly_neighboring_unit_count(self, game_state: 'GameState') -> int:
+        if self.hex is None:
+            return 0
+        
+        units_in_neighboring_hexes: list['Unit'] = []
+        for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
+            units_in_neighboring_hexes.extend(neighboring_hex.units)
+
+        return len([unit for unit in units_in_neighboring_hexes if unit.civ.id == self.civ.id])
+
     def attack(self, sess, game_state: 'GameState') -> None:
         if self.hex is None or self.has_attacked:
             return
@@ -233,15 +271,20 @@ class Unit:
             "end_coords": target_hex_coords,
         }, hexes_must_be_visible=[self_hex, target_hex], no_commit=True)
 
+    def remove_from_game(self, game_state: 'GameState') -> None:
+        if self.hex is None:
+            return        
+        self.hex.units = [unit for unit in self.hex.units if unit.id != self.id]
+        game_state.units = [unit for unit in game_state.units if unit.id != self.id]
+        self.hex = None        
+
     def die(self, game_state: 'GameState', killer: 'Unit'):
         if self.hex is None:
             return
 
         my_hex = self.hex
 
-        self.hex.units = [unit for unit in self.hex.units if unit.id != self.id]
-        game_state.units = [unit for unit in game_state.units if unit.id != self.id]
-        self.hex = None
+        self.remove_from_game(game_state)
 
         if killer.has_ability('ConvertKills'):
             new_unit = Unit(killer.template, killer.civ)
