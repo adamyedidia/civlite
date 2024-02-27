@@ -40,8 +40,6 @@ class City:
         self.focus: str = 'food'
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
-        self.autobuild_unit: Optional[UnitTemplate] = None
-        self.units_queue: list[UnitTemplate] = []
         self.infinite_queue_unit: Optional[UnitTemplate] = None
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
         self.buildings: list[Building] = []
@@ -67,22 +65,6 @@ class City:
         Update things that could have changed due to the controlling player fiddling with focus etc.
         """
         self.adjust_projected_yields(game_state)
-        self._apply_infinite_queue()
-
-    def _apply_infinite_queue(self):
-        """ 
-        Fill the queue with the appropraite unit as many as I can build this turn. 
-        Assumes self.projected_income can be trusted.
-        """
-        if self.infinite_queue_unit is None: 
-            return
-
-        available_metal = self.metal + self.projected_income["metal"]
-        for unit_template in self.units_queue:
-            available_metal -= unit_template.metal_cost
-        while available_metal > self.infinite_queue_unit.metal_cost:
-            self.units_queue.append(self.infinite_queue_unit)
-            available_metal -= self.infinite_queue_unit.metal_cost
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -316,19 +298,11 @@ class City:
         return [*buildings, *unit_buildings]
 
     def build_units(self, sess, game_state: 'GameState') -> None:
-        if self.autobuild_unit is not None:
-            while self.metal >= self.autobuild_unit.metal_cost:
-                if self.build_unit(sess, game_state, self.autobuild_unit):
-                    self.metal -= self.autobuild_unit.metal_cost
-                else: 
-                    break
-        else:
-            while self.units_queue and self.metal >= self.units_queue[0].metal_cost:
-                unit = self.units_queue[0]
-                if self.metal >= unit.metal_cost:
-                    self.units_queue.pop(0)
-                    self.build_unit(sess, game_state, unit)
-                    self.metal -= unit.metal_cost
+        if self.infinite_queue_unit:
+            while self.metal >= self.infinite_queue_unit.metal_cost:
+                if self.metal >= self.infinite_queue_unit.metal_cost:
+                    self.build_unit(sess, game_state, self.infinite_queue_unit)
+                    self.metal -= self.infinite_queue_unit.metal_cost
 
     def get_closest_target(self) -> Optional['Hex']:
         if not self.hex:
@@ -459,7 +433,6 @@ class City:
         self.buildings.append(new_building)
 
         if unit_template is not None:
-            self.units_queue.clear()
             self.infinite_queue_unit = unit_template
 
         if new_building.has_ability('IncreaseYieldsForTerrain'):
@@ -581,7 +554,6 @@ class City:
                     game_state.national_wonders_built_by_civ_id[civ.id] = [building.template.name]
 
         self.buildings_queue = []
-        self.units_queue = []
 
         if self.hex:
             game_state.add_animation_frame(sess, {
@@ -595,7 +567,6 @@ class City:
         civ = self.civ
         self.capital = True
     
-        self.units_queue = []
         self.buildings_queue = []
 
         self.civ.fill_out_available_buildings(game_state)
@@ -655,9 +626,8 @@ class City:
                     strongest_unit = unit
 
             if strongest_unit is not None:
-                self.units_queue = [UnitTemplate.from_json(UNITS[strongest_unit]) for _ in range(5)]
+                self.infinite_queue_unit = UnitTemplate.from_json(UNITS[strongest_unit])
 
-            # self.units_queue.append(UnitTemplate.from_json(UNITS[random.choice(available_units)]))
         
 
     def to_json(self) -> dict:
@@ -674,8 +644,6 @@ class City:
             "focus": self.focus,
             "under_siege_by_civ": self.under_siege_by_civ.to_json() if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
-            "autobuild_unit": self.autobuild_unit.name if self.autobuild_unit else None,
-            "units_queue": [unit.name for unit in self.units_queue],
             "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
             "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
             "buildings": [building.to_json() for building in self.buildings],
@@ -710,7 +678,6 @@ class City:
         city.available_buildings = json["available_buildings"][:]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.available_units = json["available_units"][:]
-        city.units_queue = [UnitTemplate.from_json(UNITS[unit]) for unit in json["units_queue"]]
         city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UnitTemplate.from_json(UNITS[json["infinite_queue_unit"]])
         city.focus = json["focus"]
         city.projected_income = json["projected_income"]
