@@ -2302,7 +2302,21 @@ export default function GamePage() {
             'metal': '#bbbbbb',
             'science': '#b0e0e6'}
         const focusColor = friendly ? colors[city.focus] : finalPrimaryColor;
-        const woodProductionLetter = city.buildings_queue.length > 0 ? city.buildings_queue[0].slice(0, 2) : '??' 
+        let buildingText;
+        let buildingIconUnit;
+        if (city.buildings_queue.length == 0) {
+            buildingText = "??";
+            buildingIconUnit = null;
+        } else if (unitTemplatesByBuildingName[city.buildings_queue[0]]) {
+            buildingText = "";
+            buildingIconUnit = unitTemplatesByBuildingName[city.buildings_queue[0]].name;
+        } else {
+            buildingText = city.buildings_queue[0].slice(0, 2);
+            buildingIconUnit = null;
+        }
+        console.log(buildingIconUnit)
+        const buildingImage = buildingIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(buildingIconUnit)}.svg`; 
+ 
         let unitText;
         let unitIconUnit;
         if (city.units_queue.length == 0 && !city.infinite_queue_unit) {
@@ -2311,8 +2325,8 @@ export default function GamePage() {
         } else {
             unitText = "";
             unitIconUnit = city.units_queue[0] || city.infinite_queue_unit;
-        }
-        const unitImage = unitIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(unitIconUnit)}.svg`; // Path to the unit SVG image
+        }        
+        const unitImage = unitIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(unitIconUnit)}.svg`;
 
 
         const cityBoxCanvas = {'width': 8, 'height': 4};
@@ -2351,8 +2365,9 @@ export default function GamePage() {
                         <>
                             {/* Wood */}
                             <circle cx="1.7" cy={cityCirclesY} r={cityCircleRadius} fill={colors.wood} stroke={finalSecondaryColor} strokeWidth="0.1"/>
+                            <image href={buildingImage} x={1.2} y={0.45} height="1" width="1" />
                             <text x="1.7" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
-                                {woodProductionLetter}
+                                {buildingText}
                             </text>    
 
                             {/* Metal */}
