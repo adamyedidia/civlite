@@ -394,6 +394,21 @@ export default function GamePage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []); // Empty dependency array ensures this effect runs only once after the initial render
 
+    useEffect(() => {
+        // When the user presses B
+        const handleKeyDown = (event) => {
+            if (event.key === 'b' || event.key === 'B') {
+                toggleFoundingCity();
+            }
+        };
+    
+        // Add event listener
+        window.addEventListener('keydown', handleKeyDown);
+    
+        // Remove event listener on cleanup
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [foundingCity]); // Dependency ensures foundingCity is in a valid state before running
+
     const handleContextMenu = (e) => {
         if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
             e.preventDefault();
