@@ -2302,16 +2302,15 @@ export default function GamePage() {
             'metal': '#bbbbbb',
             'science': '#b0e0e6'}
         const focusColor = friendly ? colors[city.focus] : finalPrimaryColor;
-        console.log(city.buildings_queue)
         const woodProductionLetter = city.buildings_queue.length > 0 ? city.buildings_queue[0].slice(0, 2) : '??' 
         let unitText;
         let unitIconUnit;
-        if (city.units_queue.length == 0) {
+        if (city.units_queue.length == 0 && !city.infinite_queue_unit) {
             unitText = "??";
             unitIconUnit = null;
         } else {
             unitText = "";
-            unitIconUnit = city.units_queue[0];
+            unitIconUnit = city.units_queue[0] || city.infinite_queue_unit;
         }
         const unitImage = unitIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(unitIconUnit)}.svg`; // Path to the unit SVG image
 
