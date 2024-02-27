@@ -292,6 +292,11 @@ class Unit:
             my_hex.units.append(new_unit)
             game_state.units.append(new_unit)
 
+    def currently_sieging(self):
+        if not self.hex:
+            return False
+        return (self.hex.city and self.hex.city.civ.id != self.civ.id) or self.hex.camp
+
     def calculate_destination_hex(self, game_state):
         assert self.hex is not None  # Not sure how this could possibly happen.
         # Stationary units don't move
@@ -300,7 +305,7 @@ class Unit:
             return self.destination
 
         # Don't leave besieging cities
-        if (self.hex.city and self.hex.city.civ.id != self.civ.id) or self.hex.camp:
+        if self.currently_sieging():
             self.destination = None
             return self.destination
 
