@@ -1,16 +1,4 @@
 UNITS = {
-    "Scout": {
-        "name": "Scout",
-        "building_name": None,
-        "type": "military",
-        "metal_cost": 5,
-        "wood_cost": 0,
-        "strength": 2,
-        "movement": 2,
-        "range": 1,
-        "tags": [],
-        "abilities": [],
-    },
     "Warrior": {
         "name": "Warrior",
         "building_name": None,
