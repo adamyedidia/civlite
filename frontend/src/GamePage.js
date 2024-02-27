@@ -28,6 +28,7 @@ import BuildingDisplay from './BuildingDisplay';
 import UnitDisplay from './UnitDisplay';
 import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
+import LowerRightDisplay from './LowerRightDisplay.js';
 import AnnouncementsDisplay from './AnnouncementsDisplay.js';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
@@ -2759,15 +2760,14 @@ export default function GamePage() {
                         })}
                     </Layout>         
                     </HexGrid>
-                    {gameState?.announcements.length > -1 && <AnnouncementsDisplay announcements={gameState?.announcements} />}
-                    {!hoveredCiv && <Grid container direction="row" spacing={2} style={{position: 'fixed', right: '10px', bottom: '10px'}}>
+                    {<Grid container direction="row" spacing={2} style={{position: 'fixed', right: '10px', bottom: '10px'}}>
                             <Grid item>
-                                <Button onClick={() => setRulesDialogOpen(!rulesDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', right: '130px', bottom: '10px'}}>
+                                <Button onClick={() => setRulesDialogOpen(!rulesDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', left: '130px', bottom: '10px'}}>
                                     Rules
                                 </Button>
                             </Grid>
                             <Grid item>
-                                <Button onClick={() => setSettingsDialogOpen(!settingsDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', right: '10px', bottom: '10px'}}>
+                                <Button onClick={() => setSettingsDialogOpen(!settingsDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', left: '10px', bottom: '10px'}}>
                                     Settings
                                 </Button>
                             </Grid>
@@ -2776,11 +2776,18 @@ export default function GamePage() {
                     {hoveredHex && (
                         <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                     )}
-                    {gameState && <TurnEndedDisplay 
-                        gamePlayerByPlayerNum={gameState?.game_player_by_player_num}
+                    {<LowerRightDisplay 
+                        gameState={gameState}
+                        gameId={gameId}
+                        playerNum={playerNum}
+                        timerMuted={timerMutedOnTurn === turnNum || gameState.game_over}
                         turnEndedByPlayerNum={turnEndedByPlayerNum}
                         animating={animating}
                         isHoveredHex={!!hoveredHex}
+                        handleClickEndTurn={handleClickEndTurn}
+                        handleClickUnendTurn={handleClickUnendTurn}
+                        endTurnSpinner={endTurnSpinner}
+                        getMovie={getMovie}
                     />}
                     {<UpperRightDisplay 
                         setHoveredUnit={setHoveredUnit} 
@@ -2799,9 +2806,6 @@ export default function GamePage() {
                         setConfirmEnterDecline={setConfirmEnterDecline}
                         disableUI={animating || gameState?.game_over}
                         turnNum={turnNum}
-                        nextForcedRollAt={gameState?.next_forced_roll_at}
-                        gameId={gameId}
-                        timerMuted={timerMutedOnTurn === turnNum || gameState.game_over}
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
@@ -2852,39 +2856,6 @@ export default function GamePage() {
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && <Button 
-                            style={{
-                                backgroundColor: "#cccc88",
-                                color: "black",
-                                marginLeft: '20px',
-                                padding: '10px 20px', // Increase padding for larger button
-                                fontSize: '1.5em', // Increase font size for larger text
-                                marginBottom: '10px',
-                                width: '200px',
-                            }} 
-                            variant="contained"
-                            onClick={gameState?.turn_ended_by_player_num?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
-                            disabled={animating || endTurnSpinner}
-                        >
-                            {endTurnSpinner ? <CircularProgress size={24} /> :
-                                (gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn")
-                            }
-                        </Button>}
-                        {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
-                            style={{
-                                backgroundColor: "#ffcccc",
-                                color: "black",
-                                marginLeft: '20px',
-                                padding: '10px 20px', // Increase padding for larger button
-                                fontSize: '1.5em', // Increase font size for larger text
-                                marginBottom: '10px',
-                            }} 
-                            variant="contained"
-                            onClick={() => getMovie(true)}
-                            disabled={animating}
-                        >
-                            Replay animations
-                        </Button>}
                         {gameState?.special_mode_by_player_num?.[playerNum] && selectedCity && <Button
                             style={{
                                 backgroundColor: "#ccffaa",

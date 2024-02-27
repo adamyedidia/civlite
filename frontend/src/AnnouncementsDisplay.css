@@ -1,12 +1,13 @@
 .announcements-display {
-    position: fixed;
-    bottom: 50px;
-    right: 5px;
-    width: 500px;
+    max-width: 450px;
     border: 1px solid #ddd;
-    margin: 5px;
+    margin: 5px 5px 5px 50px;
     padding: 5px;
     border-radius: 5px;
     background-color: #cccccc;
-    font-size: 1em; /* Smaller font size */
+    font-size: 1em;
+    height: 120px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column-reverse;
 }
