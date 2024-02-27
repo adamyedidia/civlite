@@ -2090,7 +2090,7 @@ export default function GamePage() {
         const filteredAnimationQueue = animationQueue.filter((animationEvent) => cases.includes(animationEvent?.data?.type));        
 
         const numFramesToPlay = filteredAnimationQueue.length;
-        const animationDelay = min(ANIMATION_DELAY, 30000 / numFramesToPlay);
+        const animationDelay = Math.min(ANIMATION_DELAY, 30000 / numFramesToPlay);
 
         for (let event of animationQueue) {
             console.log(event);
