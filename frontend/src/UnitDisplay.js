@@ -61,7 +61,7 @@ const UnitDisplay = ({ unit, hover }) => {
             <p>Range: {unit?.range || unit?.template?.range}</p>
             <p>{unit?.tags?.join(', ') || unit?.template?.tags?.join(', ')}</p>
             {unitAbilities?.map((ability) => (
-                <p>{ability.description}</p>
+                <p key={ability.name}>{ability.description}</p>
             ))}
         </div>
     );

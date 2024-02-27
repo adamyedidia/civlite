@@ -2077,7 +2077,7 @@ export default function GamePage() {
         const animationRunId = generateUniqueId();
 
         console.log(`animating! ${animationRunId}`);
-        console.log(animationQueue)
+        // console.log(animationQueue)
 
         if (animating) {
             return;
@@ -2094,7 +2094,7 @@ export default function GamePage() {
         const animationDelay = Math.min(ANIMATION_DELAY, 30000 / numFramesToPlay);
 
         for (let event of animationQueue) {
-            console.log(event);
+            // console.log(event);
 
             const newState = event?.game_state;
 
@@ -2940,6 +2940,7 @@ export default function GamePage() {
     }
 
     const getMovie = (playAnimations) => {
+        console.log("getMovie", playAnimations)
         fetch(`${URL}/api/movie/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
@@ -2975,6 +2976,7 @@ export default function GamePage() {
         socket.on('update', () => {
           console.log('update received')
           if (gameStateExistsRef.current) {
+            console.log("useEffect called getMovie")
             getMovie(true);
           }
           else {

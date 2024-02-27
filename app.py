@@ -667,6 +667,7 @@ def end_turn(sess, game_id):
 
         game_state.end_turn(sess)
 
+        print("sending update signal")
         broadcast(game_id)
     else:
         rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)

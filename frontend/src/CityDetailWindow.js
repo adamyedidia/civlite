@@ -277,8 +277,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
 
     const foodProgressStored = selectedCity.food / selectedCity.growth_cost;
     const foodProgressProduced = projectedIncome['food'] / selectedCity.growth_cost;
-    const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100)).toString()
-    const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay).toString()
+    const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100))
+    const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay)
 
     const metalAvailable = selectedCity.metal + projectedIncome['metal']
     const woodAvailable = selectedCity.wood + projectedIncome['wood']

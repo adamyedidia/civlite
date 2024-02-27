@@ -2,6 +2,9 @@ import React, { useState } from 'react';
 import './ProgressBar.css';
 
 const ProgressBar = ({barText, darkPercent, lightPercent}) => {
+    if (typeof darkPercent !== 'number' || typeof lightPercent !== 'number') {
+        throw new Error('darkPercent and lightPercent must be numbers');
+    }
     const darkPercentClipped = Math.min(darkPercent, 100);
     const lightPercentClipped = Math.min(lightPercent, 100 - darkPercent)
     return <div className="progress-bar">
