@@ -194,7 +194,7 @@ class Unit:
         ratio_of_strengths = effective_strength / target_effective_strength
 
         # This is a very scientific formula
-        return int(round(42 ** sqrt(ratio_of_strengths)))
+        return int(round(40 ** sqrt(ratio_of_strengths)))
 
     def compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit') -> int:
         bonus_strength = 0
