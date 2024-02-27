@@ -38,6 +38,7 @@ import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
 import TurnEndedDisplay from './TurnEndedDisplay';
+import workerIcon from './images/worker.png';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
 const coordsToObject = (coords) => {
@@ -2278,9 +2279,8 @@ export default function GamePage() {
     const City = ({ city, isHovered, isSelected, isUnitInHex }) => {
         const primaryColor = civTemplates[city.civ.name]?.primary_color;
         const secondaryColor = civTemplates[city.civ.name]?.secondary_color;
-        const population = city.population;
     
-        const pointer = isFriendlyCity(city);
+        const friendly = isFriendlyCity(city);
     
         // Function to darken color
         const darkenColor = (color) => {
@@ -2296,7 +2296,33 @@ export default function GamePage() {
 
         const finalPrimaryColor = primaryColor;
         const finalSecondaryColor = secondaryColor;
-    
+        const colors = 
+            {'wood': '#e0b096',
+            'food': '#ccffaa',
+            'metal': '#bbbbbb',
+            'science': '#b0e0e6'}
+        const focusColor = friendly ? colors[city.focus] : finalPrimaryColor;
+        console.log(city.buildings_queue)
+        const woodProductionLetter = city.buildings_queue.length > 0 ? city.buildings_queue[0].slice(0, 2) : '??' 
+        let unitText;
+        let unitIconUnit;
+        if (city.units_queue.length == 0) {
+            unitText = "??";
+            unitIconUnit = null;
+        } else {
+            unitText = "";
+            unitIconUnit = city.units_queue[0];
+        }
+        const unitImage = unitIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(unitIconUnit)}.svg`; // Path to the unit SVG image
+
+
+        const cityBoxCanvas = {'width': 8, 'height': 4};
+        const cityBoxPanel = {'width': 6, 'height': 2};
+        const cityCircleRadius = 0.75;
+
+        const cityBoxPanelBottomY = cityBoxCanvas.height / 2 + cityBoxPanel.height / 2
+        const cityCirclesY = (cityBoxCanvas.height - cityBoxPanel.height) / 2
+        const cityCirclesTextY = cityCirclesY + 0.05;
         return (
             <>
                 {isHovered && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="white" strokeWidth="0.2"/>}
@@ -2305,12 +2331,41 @@ export default function GamePage() {
                         <image href="/images/fire.svg" x="0" y="0" height="6" width="6" />
                     </svg>
                 }
-                <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} style={{...(pointer ? {cursor : 'pointer'} : {})}}>
-                    <rect width="3" height="3" fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.5} />
-                    <text x="50%" y="56%" dominantBaseline="middle" textAnchor="middle" fontSize="0.1" fill="white">
-                        {population}
+                <svg width={cityBoxCanvas.width} height={cityBoxCanvas.height} viewBox={`0 0 ${cityBoxCanvas.width} ${cityBoxCanvas.height}`} x={-cityBoxCanvas.width / 2} y={-3.5} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} style={{...(friendly ? {cursor : 'pointer'} : {})}}>
+                    {/* Background rectangle */}
+                    <rect width={cityBoxPanel.width} height={cityBoxPanel.height} x={(cityBoxCanvas.width - cityBoxPanel.width) / 2} y={(cityBoxCanvas.width - cityBoxPanel.width) / 2} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.2} />
+                    {/* Pointer triangle. make the fill and the stroke separately so the fill can cover the border of the main box without the stroke looking dumb */}
+                    <path d={`M3.3,${cityBoxPanelBottomY-0.12} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY-0.12}`} style={{opacity: 1.0, fill: finalPrimaryColor, stroke: "none", strokeWidth: 0.2}} />
+                    <path d={`M3.3,${cityBoxPanelBottomY} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY}`} style={{strokeOpacity: 1.0, stroke: finalSecondaryColor, strokeWidth: 0.2}} />
+                    <text x="50%" y="2.3" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
+                        {city.name}
                     </text>
-                </svg>
+
+                    {/* Populatoin */}
+                    <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={finalSecondaryColor} strokeWidth="0.1"/>
+                    <image opacity={.7} href={workerIcon} x="3.5" y="0.4" height="1" width="1" />
+                    <text x="50%" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
+                        {city.population * 23}
+                    </text>              
+
+                    {friendly &&
+                        <>
+                            {/* Wood */}
+                            <circle cx="1.7" cy={cityCirclesY} r={cityCircleRadius} fill={colors.wood} stroke={finalSecondaryColor} strokeWidth="0.1"/>
+                            <text x="1.7" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
+                                {woodProductionLetter}
+                            </text>    
+
+                            {/* Metal */}
+                            <circle cx="6.3" cy={cityCirclesY} r={cityCircleRadius} fill={colors.metal} stroke={finalSecondaryColor} strokeWidth="0.1"/>
+                            <image href={unitImage} x={5.8} y={0.45} height="1" width="1" />
+                            <text x="6.3" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
+                                {unitText}
+                            </text>    
+                        </>
+                    }
+                    
+                    </svg>
             </>
         );
     };
@@ -2360,7 +2415,7 @@ export default function GamePage() {
 
         return (
             <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (isCityInHex ? 1 : 0)}>
-                <circle opacity={unit.has_attacked? 0.5 : 1.0} cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.5} />
+                <circle opacity={unit.has_attacked? 0.5 : 1.0} cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.3} />
                 <image opacity={unit.has_attacked? 0.5 : 1.0} href={unitImage} x={`${scale}`} y={`${scale}`} height={`${2*scale}`} width={`${2*scale}`} />
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" /> {/* Total health bar */}
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" /> {/* Current health bar */}
@@ -2596,7 +2651,11 @@ export default function GamePage() {
 
     const displayGameState = (gameState) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
-        const hexagons = Object.values(gameState.hexes)
+        const hexagons = Object.values(gameState.hexes).sort((a, b) => {
+            // This sorts them so ones higher on teh screen come first.
+            // So that city banners can extend outside their hexagon upwards and overlap correctly.
+            return a.r - b.r + 0.1 * (a.q - b.q);
+        });
 
         const canFoundCity = hexagons.some(hex => hex.is_foundable_by_civ?.[myCivId]);
 
@@ -2652,7 +2711,7 @@ export default function GamePage() {
                                             city={hex.city}
                                             isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
                                             isSelected={hex?.city?.id === selectedCity?.id}  
-                                            isUnitInHex={hex?.units?.length > 0}                              
+                                            isUnitInHex={hex?.units?.length > 0}
                                         />}
                                         {hex.camp && <Camp
                                             camp={hex.camp}
