@@ -2345,7 +2345,7 @@ export default function GamePage() {
                     <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={finalSecondaryColor} strokeWidth="0.1"/>
                     <image opacity={.7} href={workerIcon} x="3.5" y="0.4" height="1" width="1" />
                     <text x="50%" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
-                        {city.population * 23}
+                        {city.population}
                     </text>              
 
                     {friendly &&
