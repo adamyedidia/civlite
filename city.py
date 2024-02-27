@@ -510,6 +510,10 @@ class City:
 
         self.buildings.append(new_building)
 
+        if unit_template is not None:
+            self.units_queue.clear()
+            self.infinite_queue_unit = unit_template
+
         if new_building.has_ability('IncreaseYieldsForTerrain'):
             for ability in new_building.template.abilities:
                 assert self.hex
