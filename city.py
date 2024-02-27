@@ -42,7 +42,7 @@ class City:
         self.hex: Optional['Hex'] = None
         self.infinite_queue_unit: Optional[UnitTemplate] = None
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
-        self.buildings: list[Building] = []
+        self.buildings: list[Building] = [Building(UnitTemplate.from_json(UNITS['Warrior']), building_template=None)]
         self.available_buildings: list[str] = []
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, int]]] = {}
         self.capital = False
