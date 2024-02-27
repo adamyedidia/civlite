@@ -7,7 +7,6 @@ const ProgressBar = ({barText, darkPercent, lightPercent}) => {
     }
     const darkPercentClipped = Math.min(darkPercent, 100);
     const lightPercentClipped = Math.min(lightPercent, 100 - darkPercent)
-    console.log(barText, darkPercent, lightPercent, darkPercent + lightPercent, (darkPercent + lightPercent >= 100))
     return <div className="progress-bar">
                 <div className="bar stored" style={{ width: `${darkPercentClipped}%`, }}></div>
                 <div className="bar produced" style={{ width: `${lightPercentClipped}%`}}></div>
