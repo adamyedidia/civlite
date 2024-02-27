@@ -1,8 +1,9 @@
 import { Typography, Button } from '@mui/material';
 import React, { useState, useEffect } from 'react';
 import { URL } from './settings';
+import './Timer.css';
 
-function Timer({ nextForcedRollAt, onTimerElapsed, gameId }) {
+function Timer({ nextForcedRollAt, onTimerElapsed, gameId, disabledText }) {
   const [secondsElapsed, setSecondsElapsed] = useState(0);
 
   const handlePause = () => {
@@ -45,13 +46,15 @@ function Timer({ nextForcedRollAt, onTimerElapsed, gameId }) {
   const isTimeLow = secondsElapsed === 4 || secondsElapsed === 2 || secondsElapsed === 0; // Check if time is 3 or fewer seconds
 
   return (
-      <div className="announcements-display" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
-            <Typography variant="h2" style={{ color: isTimeLow ? 'red' : 'inherit', marginRight: '30px'}}>
-                {formatTime(secondsElapsed)}
-            </Typography>
-            <Button onClick={handlePause} variant="contained">
-                Pause 
-            </Button>
+      <div className="time-display">
+            {disabledText ? disabledText : <>
+              <Typography variant="h2" style={{ color: isTimeLow ? 'red' : 'inherit'}}>
+                  {formatTime(secondsElapsed)}
+              </Typography>
+              <Button onClick={handlePause} variant="contained">
+                  Pause 
+              </Button></>
+            }
         </div>
   );
 }

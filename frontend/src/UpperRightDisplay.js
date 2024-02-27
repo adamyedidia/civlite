@@ -173,10 +173,9 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTe
     </CivDetailPanel>
 }
 
-const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, civTemplates, setConfirmEnterDecline, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, turnNum, nextForcedRollAt, gameId, timerMuted }) => {
+const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, civTemplates, setConfirmEnterDecline, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, turnNum }) => {
     return (
         <div className="upper-right-display">
-            {nextForcedRollAt && !timerMuted && <Timer nextForcedRollAt={nextForcedRollAt} gameId={gameId}/>}
             {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI}/>}

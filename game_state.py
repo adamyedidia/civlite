@@ -89,6 +89,9 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.midturn_update(self)
 
+    def add_announcement(self, content):
+        self.announcements.append(f'[T {self.turn_num}] {content}')
+
     def turn_should_end(self, turn_ended_by_player_num: dict[int, bool]) -> bool:
         for player_num, game_player in self.game_player_by_player_num.items():
             if not game_player.is_bot and not turn_ended_by_player_num.get(player_num):
@@ -143,7 +146,7 @@ class GameState:
         self.midturn_update()     
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
-        self.announcements.append(f'The civilization of {civ.moniker()} has entered decline!')                
+        self.add_announcement(f'The {civ.moniker()} have entered decline!')                
         civ.game_player = None
         civ.in_decline = True
         game_player.civ_id = None
@@ -200,7 +203,7 @@ class GameState:
             unit.hex = city.hex
             city.hex.units.append(unit)
 
-        self.announcements.append(f'The civilization of {civ.moniker()} has been founded in {city.name}!')        
+        self.add_announcement(f'The {civ.moniker()} have been founded in {city.name}!')        
 
     def process_decline_option(self, decline_option: tuple[str, str, str], game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> tuple[GamePlayer, City]:
         coords, civ_name, city_id = decline_option
@@ -725,7 +728,7 @@ class GameState:
                     'wonder': building_template.name,
                 }, civ_to_announce)
             
-            self.announcements.append(f'{civ.moniker()} has built the {building_template.name}!')
+            self.add_announcement(f'{civ.moniker()} built the {building_template.name}!')
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:
         if civ is not None and (game_player := civ.game_player) is not None:
