@@ -29,11 +29,8 @@ export const BriefUnitDisplay = ({ unitName, unitTemplates, onClick, setHoveredU
 };
 
 export const IconUnitDisplay = ({ unitName, unitTemplates, style, onClick, setHoveredUnit }) => {
-    console.log("Start IconUnit: ", unitName)
     const unit = unitTemplates[unitName];
-    (!unit && console.log("No unit for: ", unitName, unit));
     const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
-    console.log(unitImage)
     return (
         <div 
             className="unit-icon" 
