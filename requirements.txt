@@ -5,3 +5,4 @@ flask-cors
 flask-socketio
 redis
 python-redis-lock
+pytest

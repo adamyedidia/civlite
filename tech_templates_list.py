@@ -70,6 +70,7 @@ TECHS = {
         'name': 'Mathematics',
         'cost': 30,
         'unlocks_units': ['Catapult'],
+        'unlocks_buildings': ['Workshop'],
         'advancement_level': 2,
     },
     'Horseback Riding': {
@@ -187,7 +188,7 @@ TECHS = {
         'advancement_level': 5,
     },
     'Steel': {
-        'name': 'Military Science',
+        'name': 'Steel',
         'cost': 120,
         'unlocks_units': ['Hussar'],
         'advancement_level': 5,
@@ -216,14 +217,14 @@ TECHS = {
         'name': 'Dynamite',
         'cost': 170,
         'unlocks_units': ['Artillery'],
-        'unlocks_buildings': ['Statue of Liberty'],
+        'unlocks_buildings': [],
         'advancement_level': 7,
     },
     'Radio': {
         'name': 'Radio',
         'cost': 250,
         'unlocks_units': ['Infantry'],
-        'unlocks_buildings': ['Stadium'],
+        'unlocks_buildings': ['Stadium', 'Statue of Liberty'],
         'advancement_level': 7,
     },
     'Combined Arms': {
@@ -248,7 +249,7 @@ TECHS = {
     'Rocketry': {
         'name': 'Rocketry',
         'cost': 500,
-        'unlocks_units': ['Rocket Artillery'],
+        'unlocks_units': ['Rocket Launcher'],
         'unlocks_buildings': ['Apollo Program'],
         'advancement_level': 9,
     },
