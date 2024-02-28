@@ -2875,6 +2875,7 @@ export default function GamePage() {
                     setHoveredTech={setHoveredTech}
                     techTemplates={techTemplates}
                     unitTemplates={unitTemplates}
+                    buildingTemplates={buildingTemplates}
                     myCiv={myCiv}
                 />}
                 {gameOverDialogOpen && <GameOverDialog
