@@ -9,6 +9,7 @@
     border-radius: 5px;
     width: 200px;
     padding: 10px;
+    background-color: inherit;
 }
 
 .tech-level-box.disabled {
@@ -25,36 +26,66 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    background-color: inherit;
 }
 
-.tech-card {
+.tech-tree-card {
     padding: 2px 5px;
     border-radius: 5px;
     margin: 2px 0;
-    background-color: transparent;
+    background-color: inherit;
     border: 1px solid #ccc;
     cursor: default;
+    height: 75px;
 }
 
-.tech-card:hover {
+.tech-tree-card:hover {
     border: 1px solid #999;
-    transform: scale(1.1);
+    transform: scale(1.5);
 }
 
-.tech-card.researched {
+.tech-tree-card.researched {
     background-color: #aaf2bb;
 }
 
-.tech-card.researching {
+.tech-tree-card.researching {
     background-color: #ecec9c;
 }
 
-.tech-card-title {
+.tech-tree-card-title {
     font-weight: bold;
 }
 
-.tech-card-effects {
+.tech-tree-card-effects {
+    display: flex;
+    justify-content: space-between;
+}
+
+.tech-tree-card-units {
+    min-width: 50px;
     display: flex;
     gap: 5px;
+    align-items: center;
+}
+
+.tech-tree-card-buildings {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 50px;
+}
+
+.tech-tree-card-building {
+    border: 1px solid black;
+    height: 20px;
+    width: 80px;
+    font-size: 12px;
+    padding: 0 3px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 

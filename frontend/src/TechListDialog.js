@@ -32,29 +32,33 @@ const TechLevelBox = ({level, techs, myCiv, techTemplates, unitTemplates, setHov
 
 const TechCard = ({tech, techTemplates, unitTemplates, myCiv, setHoveredTech}) => {
     return <div
-        className={`tech-card ${myCiv.techs[tech.name] ? 'researched' : myCiv.tech_queue?.[0].name === tech.name ? 'researching' : ''} `}
+        className={`tech-tree-card ${myCiv.techs[tech.name] ? 'researched' : myCiv.tech_queue?.[0].name === tech.name ? 'researching' : ''} `}
         onMouseEnter={() => setHoveredTech(techTemplates[tech.name])}
         onMouseLeave={() => setHoveredTech(null)}
         >
-        <div className="tech-card-title">{tech.name}</div>
-        <div className="tech-card-effects">
-            {tech.unlocks_units.map((unitName, index) => {
-                return <IconUnitDisplay
-                    key={index}
-                    unitName={unitName}
-                    unitTemplates={unitTemplates}
-                ></IconUnitDisplay>
-            })}
-            {tech.unlocks_buildings.map((buildingName, index) => {
-                return <div 
-                    key={index}
-                    className="tech-card-building"
-                    >
-                    {buildingName}
-                    </div>
-            })}
+        <div className="tech-tree-card-title">{tech.name}</div>
+        <div className="tech-tree-card-effects">
+            <div className="tech-tree-card-units">
+                {tech.unlocks_units.map((unitName, index) => {
+                    return <IconUnitDisplay
+                        key={index}
+                        unitName={unitName}
+                        unitTemplates={unitTemplates}
+                    ></IconUnitDisplay>
+                })}
+            </div>
+            <div className="tech-card-buildings">
+                {tech.unlocks_buildings.map((buildingName, index) => {
+                    return <div 
+                        key={index}
+                        className="tech-tree-card-building"
+                        >
+                        {buildingName}
+                        </div>
+                })}
+            </div>
         </div>
-        </div>
+    </div>
 }
 
 const TechListDialog = ({open, onClose, setHoveredTech, myCiv, techTemplates, unitTemplates}) => {
