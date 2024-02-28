@@ -386,6 +386,61 @@ export default function GamePage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [foundingCity]); // Dependency ensures foundingCity is in a valid state before running
 
+    useEffect(() => {
+        // Define a variable outside of your event listener to keep track of the interval ID
+        let scrollIntervalId = null;
+        const interval = 60;
+
+        const handleKeyDown = (event) => {
+            // Prevent multiple intervals from being set if a key is already being held down
+            if (scrollIntervalId !== null) return;
+
+            const scroll = (offsetX, offsetY) => window.scrollBy({ top: offsetY, left: offsetX, behavior: 'smooth' });
+
+            switch (event.key) {
+                case 'w':
+                case 'W':
+                    scroll(0, -50);
+                    scrollIntervalId = setInterval(() => scroll(0, -50), interval);
+                    break;
+                case 's':
+                case 'S':
+                    scroll(0, 50);
+                    scrollIntervalId = setInterval(() => scroll(0, 50), interval);
+                    break;
+                case 'a':
+                case 'A':
+                    scroll(-50, 0);
+                    scrollIntervalId = setInterval(() => scroll(-50, 0), interval);
+                    break;
+                case 'd':
+                case 'D':
+                    scroll(50, 0);
+                    scrollIntervalId = setInterval(() => scroll(50, 0), interval);
+                    break;
+            }
+        };
+
+        const handleKeyUp = (event) => {
+            // Clear the interval when the key is released
+            if (['w', 'W', 's', 'S', 'a', 'S', 'd', 'D'].includes(event.key)) {
+                clearInterval(scrollIntervalId);
+                scrollIntervalId = null;
+            }
+        };
+
+        // Add event listeners for key down and key up
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+
+        // Remember to remove the event listeners on cleanup
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+        };
+    }, []); // Empty dependency array ensures this effect runs only once after the initial render
+
+    
     const handleContextMenu = (e) => {
         if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
             e.preventDefault();
