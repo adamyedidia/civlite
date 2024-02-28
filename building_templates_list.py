@@ -133,7 +133,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseYieldsInCity",
             "numbers": ["wood", 4],
         }],
-        "prereq": "Paper",
+        "prereq": "Printing Press",
     },
     "Zoo": {
         "name": "Zoo",
@@ -445,7 +445,7 @@ BUILDINGS: dict[str, dict] = {
         }],
         "is_wonder": True,
         "vp_reward": 5,
-        "prereq": "Medicine",
+        "prereq": "Economics",
     },
     "Brandenburg Gate": {
         "name": "Brandenburg Gate",
@@ -481,7 +481,7 @@ BUILDINGS: dict[str, dict] = {
         }],
         "is_wonder": True,
         "vp_reward": 5,
-        "prereq": "Communism",
+        "prereq": "Combined Arms",
     },
     "Fast Food Chains": {
         "name": "Fast Food Chains",
