@@ -2877,6 +2877,7 @@ export default function GamePage() {
                     unitTemplates={unitTemplates}
                     buildingTemplates={buildingTemplates}
                     myCiv={myCiv}
+                    gameState={gameState}
                 />}
                 {gameOverDialogOpen && <GameOverDialog
                     open={gameOverDialogOpen}

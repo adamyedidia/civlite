@@ -4,13 +4,16 @@ import './TechListDialog.css';
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton } from "@mui/material";
 import { IconUnitDisplay } from "./UnitDisplay";
 import { BriefBuildingDisplay } from "./BuildingDisplay";
+import scienceImg from './images/science.png';
 
 const TechColumn = ({children}) => {
     return <div className="tech-column">{children}</div>
 }
 
-const TechLevelBox = ({level, techs, myCiv, techTemplates, unitTemplates, buildingTemplates, setHoveredTech}) => {
-    const levelRomanNumeral = level === 1 ? 'I' : level === 2 ? 'II' : level === 3 ? 'III' : level === 4 ? 'IV' : level === 5 ? 'V' : level === 6 ? 'VI' : level === 7 ? 'VII' : level === 8 ? 'VIII' : level === 9 ? 'IX' : level === 10 ? 'X' : level === 11 ? 'XI' : level === 12 ? 'XII' : level === 13 ? 'XIII' : '???';
+export const romanNumeral = (level) => { return level === 1 ? 'I' : level === 2 ? 'II' : level === 3 ? 'III' : level === 4 ? 'IV' : level === 5 ? 'V' : level === 6 ? 'VI' : level === 7 ? 'VII' : level === 8 ? 'VIII' : level === 9 ? 'IX' : level === 10 ? 'X' : level === 11 ? 'XI' : level === 12 ? 'XII' : level === 13 ? 'XIII' : '???';}
+
+const TechLevelBox = ({level, techs, myCiv, gameState, techTemplates, unitTemplates, buildingTemplates, setHoveredTech}) => {
+    const levelRomanNumeral = romanNumeral(level);
 
     // Need to keep this in sync with python code. Might be better to pass it down.
     const myTechs = Object.keys(myCiv.techs).length;
@@ -21,17 +24,17 @@ const TechLevelBox = ({level, techs, myCiv, techTemplates, unitTemplates, buildi
             <div className='tech-level-box-header'>
                 <Typography variant="h5" style={{fontFamily: '"Times New Roman", serif'}}>{levelRomanNumeral}</Typography>
                 {unlockedLevel == level - 1  && 
-                    <Typography variant="h5"> ({myTechs}/{techsToUnlockNextLevel} to unlock) </Typography>
+                    <Typography variant="h7"> ({myTechs}/{techsToUnlockNextLevel} to unlock) </Typography>
                 }
             </div>
             {techs.map((tech) => (
-                <TechCard key={tech.name} tech={tech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} techTemplates={techTemplates} myCiv={myCiv} setHoveredTech={setHoveredTech}/>
+                <TechCard key={tech.name} tech={tech} gameState={gameState} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} techTemplates={techTemplates} myCiv={myCiv} setHoveredTech={setHoveredTech}/>
             ))}
         </div>
     )
 }
 
-const TechCard = ({tech, techTemplates, unitTemplates, buildingTemplates, myCiv, setHoveredTech}) => {
+const TechCard = ({tech, gameState, techTemplates, unitTemplates, buildingTemplates, myCiv, setHoveredTech}) => {
     return <div
         className={`tech-tree-card ${myCiv.techs[tech.name] ? 'researched' : myCiv.tech_queue?.[0].name === tech.name ? 'researching' : ''} `}
         onMouseEnter={() => setHoveredTech(techTemplates[tech.name])}
@@ -56,6 +59,7 @@ const TechCard = ({tech, techTemplates, unitTemplates, buildingTemplates, myCiv,
                         hideCost={true} 
                         buildingTemplates={buildingTemplates} 
                         setHoveredBuilding={()=>null}
+                        disabledMsg={gameState.wonders_built_to_civ_id.hasOwnProperty(buildingName) ? `==  Built by ${gameState.civs_by_id[gameState.wonders_built_to_civ_id[buildingName]].name}  ==` : ""} 
                         style={{
                             fontSize: '0.8em',
                             borderColor: '#e46c2b',
@@ -74,7 +78,7 @@ const TechCard = ({tech, techTemplates, unitTemplates, buildingTemplates, myCiv,
     </div>
 }
 
-const TechListDialog = ({open, onClose, setHoveredTech, myCiv, techTemplates, unitTemplates, buildingTemplates}) => {
+const TechListDialog = ({open, onClose, setHoveredTech, myCiv, gameState, techTemplates, unitTemplates, buildingTemplates}) => {
     if (!myCiv || !techTemplates) return null;
     
     const advancementLevels = Object.values(techTemplates).reduce((acc, tech) => {
@@ -87,13 +91,15 @@ const TechListDialog = ({open, onClose, setHoveredTech, myCiv, techTemplates, un
     }, {});
 
     const techLevelBox = (level) => {
-        return <TechLevelBox level={level} techs={advancementLevels[level]} myCiv={myCiv} techTemplates={techTemplates} buildingTemplates={buildingTemplates} unitTemplates={unitTemplates} setHoveredTech={setHoveredTech}/>
+        return <TechLevelBox level={level} techs={advancementLevels[level]} myCiv={myCiv} gameState={gameState} techTemplates={techTemplates} buildingTemplates={buildingTemplates} unitTemplates={unitTemplates} setHoveredTech={setHoveredTech}/>
     }
 
     return (
         <Dialog open={open} onClose={onClose} maxWidth="lg">
             <DialogTitle>
-                All Technologies
+                <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
+                    All Technologies
+                </Typography>
                 <IconButton
                     aria-label="close"
                     onClick={onClose}
@@ -107,6 +113,13 @@ const TechListDialog = ({open, onClose, setHoveredTech, myCiv, techTemplates, un
                 >
                     Close
                 </IconButton>
+                <img src={scienceImg} style={{
+                        height: 'auto', 
+                        width: '100px', 
+                        position: "absolute",
+                        left: "10px",
+                        top: "10px",
+                        }}/>
             </DialogTitle>
             <DialogContent className="tech-dialog-content">
                 <TechColumn>
@@ -132,4 +145,4 @@ const TechListDialog = ({open, onClose, setHoveredTech, myCiv, techTemplates, un
     )
 }
 
-export default TechListDialog
+export default TechListDialog;

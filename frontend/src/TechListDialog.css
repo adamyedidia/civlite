@@ -3,13 +3,13 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    width: 900px;
+    width: 1000px;
 }
 
 .tech-level-box {
     margin: 3px;
     border-radius: 5px;
-    width: 170px;
+    width: 200px;
     padding: 10px;
     background-color: #fff;
 }
@@ -22,6 +22,7 @@
     display: flex;
     justify-content: space-between;
     margin-bottom: 5px;
+    align-items: center;
 }
 
 .tech-column {
