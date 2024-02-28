@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Optional, Union
 from building import Building
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
+from tech_templates_list import TECHS
 from civ import Civ
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
@@ -543,6 +544,22 @@ class City:
         for building in self.buildings:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
                 game_state.wonders_built_to_civ_id[building.template.name] = civ.id
+
+        #  Destroy obsolete military bldgs
+        def unit_level(unit_building):
+            prereq = unit_building.template.prereq
+            if prereq is None: return 0
+            return TECHS[prereq]['advancement_level']
+
+        military_bldgs = [building for building in self.buildings if isinstance(building.template, UnitTemplate)]
+        military_bldgs.sort(key=lambda unit: (-unit_level(unit), random.random()))
+        best_3 = military_bldgs[:3]
+        top_level = [building for building in military_bldgs if unit_level(building) == unit_level(military_bldgs[0])]
+        print(f"Obsoleting bldgs in city {self.name} with {military_bldgs=}; {best_3=}; {top_level=}")
+        for building in military_bldgs:
+            if building not in best_3 and building not in top_level:
+                self.buildings.remove(building)
+        print(f"now has {[building for building in self.buildings if isinstance(building.template, UnitTemplate)]}")
 
         if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
             civ.game_player.score += CITY_CAPTURE_REWARD

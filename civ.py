@@ -39,6 +39,7 @@ class Civ:
         self.projected_science_income = 0.0
         self.projected_city_power_income = 0.0
         self.in_decline = False
+        self.initial_advancement_level = 0
 
     def moniker(self) -> str:
         game_player_parenthetical = f' ({self.game_player.username})' if self.game_player else ''
@@ -86,6 +87,7 @@ class Civ:
             "projected_city_power_income": self.projected_city_power_income,
             "in_decline": self.in_decline,
             "advancement_level": self.get_advancement_level(),
+            "initial_advancement_level": self.initial_advancement_level,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -94,7 +96,13 @@ class Civ:
             and (not building.get('is_wonder') or not game_state.wonders_built_to_civ_id.get(building['name']))
             and (not building.get('is_national_wonder') or not building['name'] in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
-        self.available_unit_buildings = [unit.get("building_name") for unit in UNITS.values() if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and unit.get("building_name"))]  # type: ignore
+        print(f"{self.moniker()}.initial_advancement_level={self.initial_advancement_level}")
+        self.available_unit_buildings = [
+            unit.get("building_name") for unit in UNITS.values() 
+            if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and 
+                unit.get("building_name") and
+                (TECHS[unit['prereq']]['advancement_level'] if unit.get('prereq') else 0) >= self.initial_advancement_level - 1)
+            ]  # type: ignore
 
     def bot_move(self, game_state: 'GameState') -> None:
         if self.game_player and not self.in_decline and (self.vitality < (0.3 + random.random() * 0.2) or len([city for city in game_state.cities_by_id.values() if city.civ.id == self.id]) == 0):
@@ -198,6 +206,7 @@ class Civ:
         civ.projected_science_income = json["projected_science_income"]
         civ.projected_city_power_income = json["projected_city_power_income"]
         civ.in_decline = json["in_decline"]
+        civ.initial_advancement_level = json.get("initial_advancement_level", 0)
 
         return civ
 

@@ -172,6 +172,7 @@ class GameState:
         for tech in median_civ_by_tech_advancement.techs:
             if not civ.techs.get(tech):
                 civ.techs[tech] = True
+        civ.initial_advancement_level = civ.get_advancement_level()
 
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ()
