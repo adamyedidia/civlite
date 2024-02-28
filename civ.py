@@ -96,7 +96,6 @@ class Civ:
             and (not building.get('is_wonder') or not game_state.wonders_built_to_civ_id.get(building['name']))
             and (not building.get('is_national_wonder') or not building['name'] in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
-        print(f"{self.moniker()}.initial_advancement_level={self.initial_advancement_level}")
         self.available_unit_buildings = [
             unit.get("building_name") for unit in UNITS.values() 
             if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and 

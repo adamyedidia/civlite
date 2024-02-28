@@ -555,11 +555,9 @@ class City:
         military_bldgs.sort(key=lambda unit: (-unit_level(unit), random.random()))
         best_3 = military_bldgs[:3]
         top_level = [building for building in military_bldgs if unit_level(building) == unit_level(military_bldgs[0])]
-        print(f"Obsoleting bldgs in city {self.name} with {military_bldgs=}; {best_3=}; {top_level=}")
         for building in military_bldgs:
             if building not in best_3 and building not in top_level:
                 self.buildings.remove(building)
-        print(f"now has {[building for building in self.buildings if isinstance(building.template, UnitTemplate)]}")
 
         if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
             civ.game_player.score += CITY_CAPTURE_REWARD
