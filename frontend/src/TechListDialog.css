@@ -1,0 +1,60 @@
+.tech-dialog-content {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tech-level-box {
+    margin: 3px;
+    border-radius: 5px;
+    width: 200px;
+    padding: 10px;
+}
+
+.tech-level-box.disabled {
+    background-color: #ddd;
+}
+
+.tech-level-box-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.tech-column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.tech-card {
+    padding: 2px 5px;
+    border-radius: 5px;
+    margin: 2px 0;
+    background-color: transparent;
+    border: 1px solid #ccc;
+    cursor: default;
+}
+
+.tech-card:hover {
+    border: 1px solid #999;
+    transform: scale(1.1);
+}
+
+.tech-card.researched {
+    background-color: #aaf2bb;
+}
+
+.tech-card.researching {
+    background-color: #ecec9c;
+}
+
+.tech-card-title {
+    font-weight: bold;
+}
+
+.tech-card-effects {
+    display: flex;
+    gap: 5px;
+}
+

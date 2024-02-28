@@ -4,8 +4,6 @@ import { HexGrid, Layout, Hexagon, Text, Pattern, Path, Hex, GridGenerator } fro
 import './arrow.css';
 import './GamePage.css';
 import { Typography } from '@mui/material';
-import { css } from '@emotion/react';
-import CircularProgress from '@mui/material/CircularProgress';
 import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
@@ -29,7 +27,7 @@ import UnitDisplay from './UnitDisplay';
 import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
 import LowerRightDisplay from './LowerRightDisplay.js';
-import AnnouncementsDisplay from './AnnouncementsDisplay.js';
+import TechListDialog from './TechListDialog';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
@@ -38,7 +36,6 @@ import modernCitySound from './sounds/modern_city.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
-import TurnEndedDisplay from './TurnEndedDisplay';
 import workerIcon from './images/worker.png';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
@@ -83,27 +80,6 @@ function ConfirmEnterDeclineDialog({open, onClose, onConfirm}) {
             </DialogActions>
         </Dialog>
     )
-}
-
-function TechListDialog({open, onClose, setHoveredTech, myCiv, techTemplates}) {
-    if (!myCiv || !techTemplates) return null;
-    
-    return (
-        <Dialog open={open} onClose={onClose}>
-            <DialogTitle>Researched Technologies</DialogTitle>
-            <DialogContent>
-                {Object.keys(myCiv.techs)?.map((tech, index) => (
-                    <Typography onMouseEnter={() => setHoveredTech(techTemplates[tech])} onMouseLeave={() => setHoveredTech(null)} key={index}>{tech}</Typography>
-                ))}
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose} color="primary">
-                    Close
-                </Button>
-            </DialogActions>
-        </Dialog>
-    )
-
 }
 
 function RulesDialog({open, onClose, gameConstants}) {
@@ -2898,6 +2874,7 @@ export default function GamePage() {
                     onClose={() => setTechListDialogOpen(false)}
                     setHoveredTech={setHoveredTech}
                     techTemplates={techTemplates}
+                    unitTemplates={unitTemplates}
                     myCiv={myCiv}
                 />}
                 {gameOverDialogOpen && <GameOverDialog

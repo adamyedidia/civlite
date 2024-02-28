@@ -163,7 +163,7 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTe
         > {tech?.name} </h2>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={tech ? `${Math.floor(civ.science)} / ${tech.cost}` : `${Math.floor(civ.science)} / ???`}/>
         <Button variant="contained" color="primary" onClick={() => setTechListDialogOpen(true)}>
-            Researched
+            Tech Tree
         </Button>
         <Button variant="contained" color="primary" disabled={disableUI} onClick={() => {
             alert(`Haha nice try, this isn't implemented yet. You're stuck with ${tech.name}.`);
