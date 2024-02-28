@@ -25,6 +25,11 @@
     font-size: 1.2em; /* Smaller font size */
 }
 
+.brief-building-card.disabled {
+    opacity: 0.7;
+    text-decoration: line-through;
+}
+
 .brief-building-card:hover {
     border: 2px solid black; /* Thicker black border on hover */
 }

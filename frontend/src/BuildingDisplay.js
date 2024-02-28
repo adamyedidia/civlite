@@ -12,8 +12,8 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions }) => {
-    const building = unitTemplatesByBuildingName[buildingName] || buildingTemplates[buildingName];
+export const BriefBuildingDisplay = ({ buildingName, hideCost, style, buildingTemplates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
+    const building = unitTemplatesByBuildingName?.[buildingName] || buildingTemplates[buildingName];
 
     const description = descriptions?.[buildingName];
 
@@ -25,13 +25,14 @@ export const BriefBuildingDisplay = ({ buildingName, buildingTemplates, unitTemp
 
     return (
         <div 
-            className={`brief-building-card ${building?.is_wonder ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : unitTemplatesByBuildingName[buildingName] ? 'military' : 'economic'}`} 
+            className={`brief-building-card ${building?.is_wonder ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : unitTemplatesByBuildingName?.[buildingName] ? 'military' : 'economic'} ${disabledMsg && 'disabled'}`} 
             onClick={onClick}
             onMouseEnter={() => setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => setHoveredBuilding(null)} // clear on mouse leave
+            style={style}
         >
             <span className="building-name">{`${building?.building_name || building?.name}${descriptionStr !== null ? descriptionStr : ''}`}</span>
-            <span className="building-cost">{building?.wood_cost || building?.cost} wood</span>
+            {!hideCost && <span className="building-cost">{building?.wood_cost || building?.cost} wood</span>}
         </div>
     );
 };

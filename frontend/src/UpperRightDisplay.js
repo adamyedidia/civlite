@@ -1,7 +1,7 @@
 import React from 'react';
 import './UpperRightDisplay.css';
 import { Grid, Typography } from '@mui/material';
-import Timer from './Timer';
+import { romanNumeral } from './TechListDialog.js';
 import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
 import vitalityImg from './images/heart.png';
@@ -160,10 +160,10 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTe
         <h2 className="tech-name" 
             onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}  
-        > {tech?.name} </h2>
+        > {romanNumeral(tech?.advancement_level)}. {tech?.name} </h2>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={tech ? `${Math.floor(civ.science)} / ${tech.cost}` : `${Math.floor(civ.science)} / ???`}/>
         <Button variant="contained" color="primary" onClick={() => setTechListDialogOpen(true)}>
-            Researched
+            Tech Tree
         </Button>
         <Button variant="contained" color="primary" disabled={disableUI} onClick={() => {
             alert(`Haha nice try, this isn't implemented yet. You're stuck with ${tech.name}.`);
