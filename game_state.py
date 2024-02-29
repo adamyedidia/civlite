@@ -340,18 +340,6 @@ class GameState:
 
                 city.refresh_available_buildings()
 
-            if move['move_type'] == 'choose_unit':
-                unit_name = move['unit_name']
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
-                city_id = move['city_id']
-                city = self.cities_by_id[city_id]
-
-                unit = UnitTemplate.from_json(UNITS[unit_name])
-                city.units_queue.append(unit)
-                game_player_to_return = game_player
-
             if move['move_type'] == 'select_infinite_queue':
                 unit_name = move['unit_name']
                 game_player = self.game_player_by_player_num[player_num]
@@ -365,25 +353,10 @@ class GameState:
                 else:
                     unit = UnitTemplate.from_json(UNITS[unit_name])
 
-                city.units_queue.clear()
                 city.infinite_queue_unit = unit
                 self.midturn_update()
                 game_player_to_return = game_player
 
-            if move['move_type'] == 'cancel_unit':
-                unit_index_in_queue = move['unit_index_in_queue']
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
-                city_id = move['city_id']
-                city = self.cities_by_id[city_id]
-
-                try:
-                    city.units_queue.pop(unit_index_in_queue)
-                except IndexError:
-                    pass
-
-                game_player_to_return = game_player
 
             if move['move_type'] == 'set_civ_primary_target':
                 target_coords = move['target_coords']

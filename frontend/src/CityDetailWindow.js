@@ -13,7 +13,7 @@ import { CityDetailPanel } from './CityDetailPanel.js';
 import { TextOnIcon } from './TextOnIcon.js';
 import ProgressBar from './ProgressBar.js';
 
-const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUnit, handleSetInfiniteQueue, handleClickUnitChoice}) => {
+const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUnit, handleSetInfiniteQueue}) => {
     const tooltipRef = React.useRef(null);
 
     const showTooltip = () => {
@@ -32,16 +32,11 @@ const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUn
 
     return (<div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''}`}
         onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={(event) => {
-            if (event.shiftKey) {
-                // Shift-click to add a single unit.
-                handleClickUnitChoice(unitName);
+            // click to toggle infinite queue
+            if (isCurrentIQUnit) {
+                handleSetInfiniteQueue("")
             } else {
-                // click to toggle infinite queue
-                if (isCurrentIQUnit) {
-                    handleSetInfiniteQueue("")
-                } else {
-                    handleSetInfiniteQueue(unitName);
-                }
+                handleSetInfiniteQueue(unitName);
             }
         }}>
         <IconUnitDisplay 
@@ -55,8 +50,7 @@ const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUn
             <img src={metalImg} height="10px"/>
         </div>
         <div ref={tooltipRef} className="tooltip">
-            <p>&#x1F5B1;Toggle infinite queue.</p>
-            <p>&#x21E7;&#x1F5B1;Insert one {unitName}. </p>
+            <p>&#x1F5B1; Toggle infinite queue.</p>
         </div>
     </div>
     );
@@ -77,7 +71,7 @@ const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
 
 const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
     selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
-    selectedCityUnitChoices, selectedCityUnitQueue, selectedCity,
+    selectedCityUnitChoices, selectedCity,
     unitTemplatesByBuildingName, buildingTemplates, unitTemplates, descriptions,
     setHoveredUnit, setHoveredBuilding, setSelectedCity
      }) => {
@@ -149,34 +143,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             });
     }
 
-    const handleClickUnitChoice = (unitName) => {
-        if (declinePreviewMode) return;
-        const playerInput = {
-            'unit_name': (unitName),
-            'move_type': 'choose_unit',
-            'city_id': selectedCity.id,
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
-    }
-
     const handleSetInfiniteQueue = (unitName) => {
         if (declinePreviewMode) return;
         const playerInput = {
@@ -205,35 +171,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             });
     }
 
-
-    const handleCancelUnit = (unitIndex) => {
-        if (declinePreviewMode) return;
-        const playerInput = {
-            'unit_index_in_queue': unitIndex,
-            'move_type': 'cancel_unit',
-            'city_id': selectedCity.id,
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
-    }
-    
     const handleClickFocus = (focus) => {
         if (declinePreviewMode) return;
         const playerInput = {
@@ -277,14 +214,14 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
 
     const foodProgressStored = selectedCity.food / selectedCity.growth_cost;
     const foodProgressProduced = projectedIncome['food'] / selectedCity.growth_cost;
-    const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100))
-    const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay)
+    const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100));
+    const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay);
 
-    const metalAvailable = selectedCity.metal + projectedIncome['metal']
-    const woodAvailable = selectedCity.wood + projectedIncome['wood']
+    const metalAvailable = selectedCity.metal + projectedIncome['metal'];
+    const woodAvailable = selectedCity.wood + projectedIncome['wood'];
 
-    const unitQueueMaxIndexFinishing = queueBuildDepth(metalAvailable, selectedCityUnitQueue, (item) => unitTemplates[item].metal_cost)
-    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => buildingTemplates[item] ? buildingTemplates[item].cost : unitTemplatesByBuildingName[item].wood_cost)
+    const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / unitTemplates[selectedCity.infinite_queue_unit].metal_cost) : 0;
+    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => buildingTemplates[item] ? buildingTemplates[item].cost : unitTemplatesByBuildingName[item].wood_cost);
 
 
     return (
@@ -351,22 +288,20 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                     {selectedCityUnitChoices && (
                         <div className="unit-choices-container">
                             {selectedCityUnitChoices.map((unitName, index) => (
-                                <UnitQueueOption key={index} unitName={unitName} isCurrentIQUnit={selectedCity.infinite_queue_unit === unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue} handleClickUnitChoice={handleClickUnitChoice}/>
+                                <UnitQueueOption key={index} unitName={unitName} isCurrentIQUnit={selectedCity.infinite_queue_unit === unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue}/>
                             ))}
                         </div>
                     )}
-                    {selectedCityUnitQueue && 
-                        <div>
-                            <h2> Unit Queue </h2>
-                            <div className="unit-queue-container">
-                                {selectedCityUnitQueue.map((unitName, index) => (
-                                    <div key={index} className={index > unitQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                        <IconUnitDisplay unitName={unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} onClick={() => handleCancelUnit(index)}/>
-                                    </div>
-                                ))}
-                            </div>
+                    <div>
+                        <h2> Producing This Turn </h2>
+                        <div className="unit-queue-container">
+                            {Array.from({ length: unitQueueNumber }).map((_, index) => (
+                                <div key={index} >
+                                    <IconUnitDisplay unitName={selectedCity.infinite_queue_unit} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit}/>
+                                </div>
+                            ))}
                         </div>
-                    }
+                    </div>
                 </CityDetailPanel>
             </div>
             </div>

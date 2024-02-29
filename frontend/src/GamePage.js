@@ -98,7 +98,7 @@ function RulesDialog({open, onClose, gameConstants}) {
                 <DialogContentText>
                     The game has four resources: food, wood, metal, and science. Food is used to grow your cities. Your city automatically grows after it collects food; growing 
                     a population costs {gameConstants?.base_food_cost_of_pop} food + {gameConstants?.additional_per_pop_food_cost} per current population. Metal is used to build units.
-                    Every unit in the game (except Warriors and Scouts) require a building a production building before you can build them in the city. Wood is used to build buildings.
+                    Every unit in the game (except Warriors) require a building a production building before you can build them in the city. Wood is used to build buildings.
                     There are a few kinds of buildings: unit production buildings do nothing, except for unlock the ability to build their corresponding unit in a single city. Wonders 
                     can be built only once in the game. National wonders can be built once per civilization. Science is used to research technologies, which unlock more units and buildings.
                     Science is shared across your civilization, but food, metal, and wood are stored in each city. In general, everything is infinitely stockpilable; if you fail to put anything
@@ -1908,7 +1908,6 @@ export default function GamePage() {
     const selectedCityBuildings = selectedCity?.buildings?.map(building => building.name);
 
     const selectedCityUnitChoices = selectedCity?.available_units;
-    const selectedCityUnitQueue = selectedCity?.units_queue;
 
     const refreshSelectedCity = (newGameState) => {
         if (selectedCity?.id) {
@@ -2365,15 +2364,8 @@ export default function GamePage() {
         }
         const buildingImage = buildingIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(buildingIconUnit)}.svg`; 
  
-        let unitText;
-        let unitIconUnit;
-        if (city.units_queue.length == 0 && !city.infinite_queue_unit) {
-            unitText = "??";
-            unitIconUnit = null;
-        } else {
-            unitText = "";
-            unitIconUnit = city.units_queue[0] || city.infinite_queue_unit;
-        }        
+        const unitText = !city.infinite_queue_unit && "??";
+        const unitIconUnit = city.infinite_queue_unit;    
         const unitImage = unitIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(unitIconUnit)}.svg`;
 
 
@@ -2850,7 +2842,6 @@ export default function GamePage() {
                         selectedCityBuildingQueue={selectedCityBuildingQueue}
                         selectedCityBuildings={selectedCityBuildings}
                         selectedCityUnitChoices={selectedCityUnitChoices}
-                        selectedCityUnitQueue={selectedCityUnitQueue}
                         selectedCity={selectedCity} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName}
                         buildingTemplates={buildingTemplates}
