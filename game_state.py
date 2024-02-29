@@ -162,17 +162,14 @@ class GameState:
         civs_with_game_players = [civ for civ in self.civs_by_id.values() if civ.game_player]
 
         if len(civs_with_game_players) == 0:
-            median_civ_by_tech_advancement = sorted([civ for civ in self.civs_by_id.values()], key=lambda x: len(x.techs), reverse=True)[0]
+            median_civ_by_tech_advancement = sorted([civ for civ in self.civs_by_id.values()], key=lambda x: len(x.researched_techs), reverse=True)[0]
         else:
-            median_civ_by_tech_advancement = sorted(civs_with_game_players, key=lambda x: len(x.techs))[len(civs_with_game_players) // 2]
+            median_civ_by_tech_advancement = sorted(civs_with_game_players, key=lambda x: len(x.researched_techs))[len(civs_with_game_players) // 2]
 
         civ.game_player = game_player
         game_player.civ_id = civ.id
 
-        for tech in median_civ_by_tech_advancement.techs:
-            if not civ.techs.get(tech):
-                civ.techs[tech] = True
-        civ.initial_advancement_level = civ.get_advancement_level()
+        civ.initialize_techs(median_civ_by_tech_advancement.researched_techs)
 
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ()
@@ -184,7 +181,7 @@ class GameState:
         best_unit_available: Optional[str] = None
         best_strength_so_far = 0
 
-        for tech in civ.techs:
+        for tech in civ.researched_techs:
             if (tech_template := TECHS[tech]) and (unlocked_units := tech_template.get('unlocks_units')):
                 for unit_name in unlocked_units:
                     if unit_name in UNITS:
@@ -302,8 +299,8 @@ class GameState:
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
                 civ = self.civs_by_id[game_player.civ_id]
-                tech = TechTemplate.from_json(TECHS[tech_name])
-                civ.tech_queue.append(tech)
+                civ.select_tech(tech_name)
+                print(f"{civ.researching_tech_name=}")
                 game_player_to_return = game_player
 
             if move['move_type'] == 'choose_building':
@@ -465,9 +462,8 @@ class GameState:
         tech_levels = [0]
 
         for civ in self.civs_by_id.values():
-            for tech in civ.techs:
-                if civ.techs[tech]:
-                    tech_levels.append(TECHS[tech]['advancement_level'])
+            for tech in civ.researched_techs:
+                tech_levels.append(TECHS[tech]['advancement_level'])
         
         max_advancement_level = 0
 

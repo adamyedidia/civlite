@@ -361,6 +361,7 @@ export default function GamePage() {
                 setSelectedCity(null);
                 setFoundingCity(false);
                 setShowFlagArrows(false);
+                setTechChoices(null);
             }
         };
     
@@ -1941,21 +1942,10 @@ export default function GamePage() {
     }
 
     useEffect(() => {
-        if (!animating && myCiv?.tech_queue?.length === 0 && !gameState?.special_mode_by_player_num?.[playerNum]) {
-
-            fetch(`${URL}/api/tech_choices/${gameId}?player_num=${playerNum}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.tech_choices) {
-                        setTechChoices(data.tech_choices);
-                    }
-                });
+        if (!animating && myCiv && !myCiv?.researching_tech_name && !gameState?.special_mode_by_player_num?.[playerNum]) {
+            setTechChoices(myCiv.current_tech_choices);
         }
-    }, [animating, myCiv?.tech_queue?.length])
+    }, [animating, myCiv?.researching_tech_name])
 
     const handleClickEndTurn = () => {
         setEndTurnSpinner(true); // Start loading
@@ -2292,10 +2282,9 @@ export default function GamePage() {
                 body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
-                    setTechChoices(data.tech_choices);
                     if (data.game_state) {
                         setGameState(data.game_state);
-                        refreshSelectedCity(data.game_state);
+                        refreshSelectedCity(data.game_state);            
                     }
                 });
         } else if (gameState.special_mode_by_player_num[playerNum] == 'choose_decline_option') {
@@ -2816,6 +2805,7 @@ export default function GamePage() {
                         setHoveredUnit={setHoveredUnit} 
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
+                        setTechChoices={setTechChoices}
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
                         isFoundingCity={foundingCity}
@@ -2919,6 +2909,7 @@ export default function GamePage() {
                     open={techListDialogOpen}
                     onClose={() => setTechListDialogOpen(false)}
                     setHoveredTech={setHoveredTech}
+                    handleClickTech={handleClickTech}
                     techTemplates={techTemplates}
                     unitTemplates={unitTemplates}
                     buildingTemplates={buildingTemplates}

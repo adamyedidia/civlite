@@ -1,19 +1,19 @@
 TECHS = {
     'Archery': {
         'name': 'Archery',
-        'cost': 10,
+        'cost': 20,
         'unlocks_units': ['Archer'],
         'advancement_level': 1,
     },
     'Bronze Working': {
         'name': 'Bronze Working',
-        'cost': 10,
+        'cost': 20,
         'unlocks_units': ['Spearman'],
         'advancement_level': 1,
     },
     'Pottery': {
         'name': 'Pottery',
-        'cost': 10,
+        'cost': 15,
         'unlocks_buildings': ['Granary'],
         'advancement_level': 1,
     },
@@ -25,19 +25,19 @@ TECHS = {
     },
     'Calendar': {
         'name': 'Calendar',
-        'cost': 15,
+        'cost': 25,
         'unlocks_buildings': ['Temple of Artemis'],
         'advancement_level': 1,
     },
     'The Wheel': {
         'name': 'The Wheel',
-        'cost': 20,
+        'cost': 25,
         'unlocks_units': ['Chariot'],
         'advancement_level': 1,
     },
     'Mining': {
         'name': 'Mining',
-        'cost': 20,
+        'cost': 30,
         'unlocks_buildings': ['Mine'],
         'advancement_level': 1,
     },

@@ -152,8 +152,8 @@ const ScoreDisplay = ({ myGamePlayer }) => {
     </CivDetailPanel>
 }
 
-const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTech, disableUI}) => {
-    const tech = civ.tech_queue?.[0];
+const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setTechChoices, setHoveredTech, disableUI}) => {
+    const tech = techTemplates[civ.researching_tech_name];
     const storedProgress = tech ? civ.science / tech.cost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income / tech.cost * 100 : 0;
     return <CivDetailPanel title='science' icon={scienceImg} bignum={`+${Math.floor(civ.projected_science_income)}`}>
@@ -166,17 +166,17 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setHoveredTe
             Tech Tree
         </Button>
         <Button variant="contained" color="primary" disabled={disableUI} onClick={() => {
-            alert(`Haha nice try, this isn't implemented yet. You're stuck with ${tech.name}.`);
+            setTechChoices(civ.current_tech_choices);
         }}>
             Change
         </Button>
     </CivDetailPanel>
 }
 
-const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, civTemplates, setConfirmEnterDecline, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, turnNum }) => {
+const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, civTemplates, setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, turnNum }) => {
     return (
         <div className="upper-right-display">
-            {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
+            {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setTechChoices={setTechChoices} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}

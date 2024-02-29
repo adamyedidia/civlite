@@ -11,6 +11,12 @@ class TechTemplate:
         self.unlocks_units = unlocks_units
         self.unlocks_buildings = unlocks_buildings
 
+    def __repr__(self):
+        return f"<TechTemplate {self.name}>"
+
+    def __eq__(self, __value: object) -> bool:
+        return self.name == __value.name
+
     def to_json(self) -> dict:
         return {
             "name": self.name,

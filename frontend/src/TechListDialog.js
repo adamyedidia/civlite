@@ -12,13 +12,13 @@ const TechColumn = ({children}) => {
 
 export const romanNumeral = (level) => { return level === 1 ? 'I' : level === 2 ? 'II' : level === 3 ? 'III' : level === 4 ? 'IV' : level === 5 ? 'V' : level === 6 ? 'VI' : level === 7 ? 'VII' : level === 8 ? 'VIII' : level === 9 ? 'IX' : level === 10 ? 'X' : level === 11 ? 'XI' : level === 12 ? 'XII' : level === 13 ? 'XIII' : '???';}
 
-const TechLevelBox = ({level, techs, myCiv, gameState, techTemplates, unitTemplates, buildingTemplates, setHoveredTech}) => {
+const TechLevelBox = ({level, techs, myCiv, gameState, techTemplates, unitTemplates, buildingTemplates, setHoveredTech, handleClickTech}) => {
     const levelRomanNumeral = romanNumeral(level);
 
     // Need to keep this in sync with python code. Might be better to pass it down.
-    const myTechs = Object.keys(myCiv.techs).length;
-    const unlockedLevel = Math.max(1, Math.floor(myTechs / 3));
-    const techsToUnlockNextLevel = unlockedLevel > 1 ? 3 * (unlockedLevel + 1) : 6;
+    const myTechs = myCiv.num_researched_techs;
+    const unlockedLevel = 1 + Math.floor(myTechs / 3);
+    const techsToUnlockNextLevel = 3 * unlockedLevel;
     return (
         <div className={`tech-level-box ${unlockedLevel < level ? 'disabled' : ''}`}>
             <div className='tech-level-box-header'>
@@ -28,18 +28,20 @@ const TechLevelBox = ({level, techs, myCiv, gameState, techTemplates, unitTempla
                 }
             </div>
             {techs.map((tech) => (
-                <TechCard key={tech.name} tech={tech} gameState={gameState} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} techTemplates={techTemplates} myCiv={myCiv} setHoveredTech={setHoveredTech}/>
+                <TechCard key={tech.name} tech={tech} gameState={gameState} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} techTemplates={techTemplates} myCiv={myCiv} setHoveredTech={setHoveredTech} handleClickTech={handleClickTech}/>
             ))}
         </div>
     )
 }
 
-const TechCard = ({tech, gameState, techTemplates, unitTemplates, buildingTemplates, myCiv, setHoveredTech}) => {
+const TechCard = ({tech, gameState, techTemplates, unitTemplates, buildingTemplates, myCiv, setHoveredTech, handleClickTech}) => {
     return <div
-        className={`tech-tree-card ${myCiv.techs[tech.name] ? 'researched' : myCiv.tech_queue?.[0].name === tech.name ? 'researching' : ''} `}
+        className={`tech-tree-card ${myCiv.techs_status[tech.name]} `}
         onMouseEnter={() => setHoveredTech(techTemplates[tech.name])}
         onMouseLeave={() => setHoveredTech(null)}
-        >
+    onClick={() => myCiv.techs_status[tech.name] === 'available' && handleClickTech(tech)}
+
+    >
         <div className="tech-tree-card-title">{tech.name}</div>
         <div className="tech-tree-card-effects">
             <div className="tech-tree-card-units">
@@ -78,7 +80,7 @@ const TechCard = ({tech, gameState, techTemplates, unitTemplates, buildingTempla
     </div>
 }
 
-const TechListDialog = ({open, onClose, setHoveredTech, myCiv, gameState, techTemplates, unitTemplates, buildingTemplates}) => {
+const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, gameState, techTemplates, unitTemplates, buildingTemplates}) => {
     if (!myCiv || !techTemplates) return null;
     
     const advancementLevels = Object.values(techTemplates).reduce((acc, tech) => {
@@ -91,7 +93,7 @@ const TechListDialog = ({open, onClose, setHoveredTech, myCiv, gameState, techTe
     }, {});
 
     const techLevelBox = (level) => {
-        return <TechLevelBox level={level} techs={advancementLevels[level]} myCiv={myCiv} gameState={gameState} techTemplates={techTemplates} buildingTemplates={buildingTemplates} unitTemplates={unitTemplates} setHoveredTech={setHoveredTech}/>
+        return <TechLevelBox level={level} techs={advancementLevels[level]} myCiv={myCiv} gameState={gameState} techTemplates={techTemplates} buildingTemplates={buildingTemplates} unitTemplates={unitTemplates} setHoveredTech={setHoveredTech} handleClickTech={handleClickTech}/>
     }
 
     return (
