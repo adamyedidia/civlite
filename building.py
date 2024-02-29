@@ -20,6 +20,9 @@ class Building:
             self.building_template = building_template
         self.template: Union[UnitTemplate, BuildingTemplate] = unit_template or building_template  # type: ignore
 
+    def __repr__(self):
+        return f"<Building {self.template.name}>"
+
     @property
     def type(self) -> str:
         return "military" if self.unit_name else self.building_template.type  # type: ignore

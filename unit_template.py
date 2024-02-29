@@ -4,7 +4,7 @@ from ability import Ability
 from abilities_list import ABILITIES, UNIT_ABILITIES
 
 class UnitTemplate:
-    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[list[Union[str, list]]], type: str) -> None:
+    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[list[Union[str, list]]], type: str, prereq: str) -> None:
         self.name = name
         self.building_name = building_name
         self.metal_cost = metal_cost
@@ -15,6 +15,7 @@ class UnitTemplate:
         self.range = range
         self.abilities: list[Ability] = [UNIT_ABILITIES[ability[0]](*ability[1]) for ability in abilities]  # type: ignore
         self.type = type
+        self.prereq = prereq
 
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"
@@ -34,6 +35,7 @@ class UnitTemplate:
             "range": self.range,
             "abilities": [ability.to_json() for ability in self.abilities],
             "type": self.type,
+            "prereq": self.prereq,
         }
     
     @staticmethod
@@ -49,4 +51,6 @@ class UnitTemplate:
             range=json["range"],
             abilities=[[ability["name"], ability["numbers"]] for ability in json["abilities"]],
             type=json["type"],
+            prereq=json.get("prereq"),
         )
+
