@@ -512,6 +512,7 @@ class City:
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         self.civ = civ
 
+        print(f"****Captured {self.name}****")
         for building in self.buildings:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
                 game_state.wonders_built_to_civ_id[building.template.name] = civ.id
@@ -615,7 +616,7 @@ class City:
     def bot_pick_economic_building(self, choices):
         national_wonders = [building for building in choices if building.is_national_wonder]
         wonders = [building for building in choices if building.is_wonder]
-        nonwonders = [building for building in choices if not building.is_wonder]
+        nonwonders = [building for building in choices if not building.is_wonder and not building.is_national_wonder]
 
         existing_national_wonders = [building for building in self.buildings if isinstance(building.template, BuildingTemplate) and building.template.is_national_wonder]
         if len(national_wonders) > 0 and len(existing_national_wonders) == 0 and self.population >= 8:
@@ -670,12 +671,17 @@ class City:
         economic_buildings = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
         military_buildings = [building for building in available_buildings if isinstance(building, UnitTemplate) and building.movement > 0]
         if len(military_buildings) > 0:
-            best_military_building = max(military_buildings, key=lambda building: (building.advancement_level(), random.random()))
+            # Choose buildings first by effective advancement level, then randomly, but prefering slingers over warriors if we have the bldg
+            best_military_building = max(military_buildings, key=lambda building: (
+                building.advancement_level(), 
+                1 if building.name == "Slinger" else 0,
+                random.random()
+                ))
         else:
             best_military_building = None
         if best_military_building is not None and effective_advancement_level(best_military_building) > effective_advancement_level(self.infinite_queue_unit):
             self.buildings_queue = [best_military_building]
-            print(f"  overwrote building queue because of new military unit (lvl {best_military_building.advancement_level()}): {self.buildings_queue}")
+            print(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building)}): {self.buildings_queue}")
         elif highest_level == 0 and 'Slinger' not in self.available_units and self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2:
             # switch from warrior to slinger
             self.buildings_queue = [UnitTemplate.from_json(UNITS['Slinger'])]
