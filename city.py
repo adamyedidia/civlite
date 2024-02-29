@@ -66,6 +66,7 @@ class City:
         Update things that could have changed due to the controlling player fiddling with focus etc.
         """
         self.adjust_projected_yields(game_state)
+        self.refresh_available_buildings()
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -254,17 +255,14 @@ class City:
                             "value": total_yields,
                         }
                     else:
-                        if not self.terrains_dict:
-                            self.available_buildings_to_descriptions[building_template.name] = {
-                                "type": "yield",
-                                "value": 0,
-                            }                            
-                        else:
-                            self.available_buildings = [building for building in self.available_buildings if building != building_template.name]
+                        self.available_buildings_to_descriptions[building_template.name] = {
+                            "type": "yield",
+                            "value": 0,
+                        }                            
 
                 elif not building_template.is_wonder:
                     self.available_buildings_to_descriptions[building_template.name] = {
-                        "type": "yield",
+                        "type": "???",
                         "value": 0,
                     }
 
@@ -518,16 +516,10 @@ class City:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
                 game_state.wonders_built_to_civ_id[building.template.name] = civ.id
 
-        #  Destroy obsolete military bldgs
-        def unit_level(unit_building):
-            prereq = unit_building.template.prereq
-            if prereq is None: return 0
-            return TECHS[prereq]['advancement_level']
-
         military_bldgs = [building for building in self.buildings if isinstance(building.template, UnitTemplate)]
-        military_bldgs.sort(key=lambda unit: (-unit_level(unit), random.random()))
+        military_bldgs.sort(key=lambda unit: (-unit.template.advancement_level(), random.random()))
         best_3 = military_bldgs[:3]
-        top_level = [building for building in military_bldgs if unit_level(building) == unit_level(military_bldgs[0])]
+        top_level = [building for building in military_bldgs if building.template.advancement_level() == military_bldgs[0].template.advancement_level()]
         for building in military_bldgs:
             if building not in best_3 and building not in top_level:
                 self.buildings.remove(building)
@@ -620,29 +612,105 @@ class City:
         self.civ = civs_by_id[self.civ.id]
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
 
+    def bot_pick_economic_building(self, choices):
+        national_wonders = [building for building in choices if building.is_national_wonder]
+        wonders = [building for building in choices if building.is_wonder]
+        nonwonders = [building for building in choices if not building.is_wonder]
+
+        existing_national_wonders = [building for building in self.buildings if isinstance(building.template, BuildingTemplate) and building.template.is_national_wonder]
+        if len(national_wonders) > 0 and len(existing_national_wonders) == 0 and self.population >= 8:
+            return random.choice(national_wonders)
+
+        if len(wonders) > 0:
+            random.shuffle(wonders)
+            for wonder in wonders:
+                if self.wood + self.projected_income['wood'] > wonder.cost:
+                    return wonder
+
+        if len(nonwonders) > 0:
+            # print(f"    Choosing nonwonder; {self.available_buildings_to_descriptions=}")
+            ACCEPTABLE_PAYOFF_TURNS = 8
+            inverse_payoff_turns = {
+                building: self.available_buildings_to_descriptions[building.name].get('value', 0) / building.cost
+                for building in nonwonders
+                if building.name in self.available_buildings_to_descriptions and self.available_buildings_to_descriptions[building.name]['type'] == 'yield'
+            }
+            print(f"    {inverse_payoff_turns=}")
+            if len(nonwonders) > len(inverse_payoff_turns):
+                print(f"**** didn't consider these non-yield buildings: {set(nonwonders) - set(inverse_payoff_turns.keys() )}")
+            # calulcate the argmin of the payoff turns
+            best_building = max(inverse_payoff_turns, key=inverse_payoff_turns.get)
+            if inverse_payoff_turns[best_building] > 1.0 / ACCEPTABLE_PAYOFF_TURNS:
+                return best_building
+
+
+        return None
+
     def bot_move(self, game_state: 'GameState') -> None:
-        self.focus = random.choice(['food', 'metal', 'wood', 'science'])
+        def effective_advancement_level(unit: UnitTemplate) -> int:
+            # treat my civ's unique unit as +1 adv level.
+            if self.civ.has_ability('IncreasedStrengthForUnit'):
+                special_unit_name = self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0]
+                if unit.name == special_unit_name:
+                    return unit.advancement_level() + 1
+            return unit.advancement_level()
+
+        print(f"Planning Ai move for city {self.name}")
+        self.midturn_update(game_state)
+
+        available_units = {unit_name : UnitTemplate.from_json(UNITS[unit_name]) for unit_name in self.available_units}
+        # Don't build stationary units
+        available_units = {unit_name: unit for unit_name, unit in available_units.items() if unit.movement > 0}
+        highest_level = max([effective_advancement_level(unit) for unit in available_units.values()])
+        highest_tier_units = [unit for unit in available_units.values() if effective_advancement_level(unit) == highest_level]
+        self.infinite_queue_unit = random.choice(highest_tier_units)
+        print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units.values()]})")
+
         available_buildings = self.get_available_buildings()
-        if len(available_buildings) > 0:
-            self.buildings_queue.append(random.choice(available_buildings))
-        available_units = self.available_units
-        if len(available_units) > 0:
-            # Make the unit queue 5 copies of the strongest unit available
-            strongest_unit = None
-            for unit in available_units:
-                unit_json = UNITS[unit]
-                effective_unit_strength = unit_json['strength'] if unit_json['movement'] > 0 else 0.5 * unit_json['strength']
-                if strongest_unit is not None:
-                    strongest_unit_json = UNITS[strongest_unit]
-                    effective_strongest_unit_strength = strongest_unit_json['strength'] if strongest_unit_json['movement'] > 0 else 0.5 * strongest_unit_json['strength']
-                else:
-                    effective_strongest_unit_strength = 0
-                if strongest_unit is None or effective_unit_strength > effective_strongest_unit_strength:
-                    strongest_unit = unit
+        economic_buildings = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
+        military_buildings = [building for building in available_buildings if isinstance(building, UnitTemplate) and building.movement > 0]
+        if len(military_buildings) > 0:
+            best_military_building = max(military_buildings, key=lambda building: (building.advancement_level(), random.random()))
+        else:
+            best_military_building = None
+        if best_military_building is not None and effective_advancement_level(best_military_building) > effective_advancement_level(self.infinite_queue_unit):
+            self.buildings_queue = [best_military_building]
+            print(f"  overwrote building queue because of new military unit (lvl {best_military_building.advancement_level()}): {self.buildings_queue}")
+        elif highest_level == 0 and 'Slinger' not in self.available_units and self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2:
+            # switch from warrior to slinger
+            self.buildings_queue = [UnitTemplate.from_json(UNITS['Slinger'])]
+            print(f"  building slingers because of all the wood.")
+        elif len(self.buildings_queue) > 0:
+            print(f"  continuing previous build queue: {self.buildings_queue}")
+        elif len(economic_buildings) > 0:
+            choice = self.bot_pick_economic_building(economic_buildings)
+            if choice:
+                self.buildings_queue = [choice]
+                print(f"  set building queue to economic building: {self.buildings_queue}")
+            else:
+                print(f"  no economic buildings available that I liked (had {economic_buildings})")
+        else:
+            print(f"  no buildings available")
 
-            if strongest_unit is not None:
-                self.infinite_queue_unit = UnitTemplate.from_json(UNITS[strongest_unit])
+        
+        max_yields = max(self.projected_income_focus.values())
+        focuses_with_best_yields = [focus for focus in {"food", "wood", "metal", "science"} if max_yields - self.projected_income_focus[focus] < 2]
+        if len(focuses_with_best_yields) == 1:
+            self.focus = focuses_with_best_yields[0]
+        elif len(self.buildings_queue) > 0 and isinstance(self.buildings_queue[0], BuildingTemplate) and self.buildings_queue[0].is_national_wonder:
+            self.focus = 'wood'
+        elif self.population < 3 and 'food' in focuses_with_best_yields:
+            self.focus = 'food'
+        elif self.infinite_queue_unit is not None and 'metal' in focuses_with_best_yields:
+            self.focus = 'metal'
+        elif len(self.buildings_queue) > 0 and 'wood' in focuses_with_best_yields:
+            self.focus = 'wood'
+        elif 'science' in focuses_with_best_yields:
+            self.focus = 'science'
+        else:
+            self.focus = random.choice(list(focuses_with_best_yields))
 
+        print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
         
 
     def to_json(self) -> dict:

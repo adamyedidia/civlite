@@ -14,6 +14,9 @@ class BuildingTemplate:
         self.vp_reward = vp_reward
 
 
+    def __repr__(self):
+        return f"<BuildingTemplate {self.name})>"
+
     def to_json(self) -> dict:
         return {
             "name": self.name,

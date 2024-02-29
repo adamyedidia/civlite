@@ -2,6 +2,7 @@ from typing import Union
 
 from ability import Ability
 from abilities_list import ABILITIES, UNIT_ABILITIES
+from tech_templates_list import TECHS
 
 class UnitTemplate:
     def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[list[Union[str, list]]], type: str, prereq: str) -> None:
@@ -19,6 +20,11 @@ class UnitTemplate:
 
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"
+
+    def advancement_level(self):
+        if self.prereq is None:
+            return 0
+        return TECHS[self.prereq]['advancement_level']
 
     def has_tag(self, tag: str) -> bool:
         return tag in self.tags
