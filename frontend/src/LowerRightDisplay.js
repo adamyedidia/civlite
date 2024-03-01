@@ -8,7 +8,7 @@ import TurnEndedDisplay from './TurnEndedDisplay';
 
 import { Button, CircularProgress } from '@mui/material';
 
-const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, animating, hoveredHex, handleClickEndTurn, handleClickUnendTurn, endTurnSpinner, getMovie }) => {
+const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, animating, hoveredHex, handleClickEndTurn, handleClickUnendTurn, endTurnSpinner, getMovie, engineState }) => {
     return <div className="lower-right-display">
         <AnnouncementsDisplay announcements={gameState?.announcements} />
         <div className="end-turn-area">
@@ -19,9 +19,10 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
                     onClick={gameState?.turn_ended_by_player_num?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
                     disabled={animating || endTurnSpinner}
                 >
-                    {endTurnSpinner ? <CircularProgress size={24} /> :
+                    <p>{endTurnSpinner ? <CircularProgress size={24} /> :
                         (gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : gameState?.special_mode_by_player_num?.[playerNum] === "choose_decline_option" ? "End turn (mulligan)" : "End turn")
-                    }
+                    }</p>
+                    <p style={{fontSize: "0.5em"}}>{engineState}</p>
                 </Button>}
                 {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
                     style={{backgroundColor: "#ffcccc",}} 

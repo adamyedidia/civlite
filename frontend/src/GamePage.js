@@ -234,6 +234,16 @@ export default function GamePage() {
     const { playerNum } = queryParams.get('playerNum') ? { playerNum: parseInt(queryParams.get('playerNum')) } : { playerNum: null };
 
     const [gameState, setGameState] = useState(null);
+
+    const EngineStates = {
+        ANIMATING: 'animating',  // Playing the movie
+        ROLLING: 'rolling',  // Waiting for the server to send update signal
+        PLAYING: 'playing',  // Taking player actions
+    };
+    const [engineState, setEngineState] = useState(EngineStates.PLAYING);
+    // Ref to keep track of the current engineState
+    const engineStateRef = React.useRef(engineState);
+    
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
     const [frameNum, setFrameNum] = useState(0);
@@ -351,6 +361,19 @@ export default function GamePage() {
             setGameOverDialogOpen(true);
         }
     }, [gameState?.game_over]);
+
+    useEffect(() => {
+        engineStateRef.current = engineState;
+    }, [engineState]);
+
+    const transitionEngineState = (newState, oldState) => {
+        if (oldState && engineStateRef.current !== oldState) {
+            console.error(`Tried to transition from ${oldState} to ${newState} but engine state is ${engineStateRef.current}`);
+            return;
+        }
+        setEngineState(newState);
+    }
+
 
     // console.log(selectedCity);
 
@@ -1972,7 +1995,7 @@ export default function GamePage() {
             body: JSON.stringify(data),
         }).then(response => response.json())
             .then(data => {
-                getMovie(false);
+                getMovie(false);  // TODO why do we call getMovie here?
             }).catch(error => {
                 console.error('Error ending turn:', error);
             }).finally(() => {
@@ -2161,6 +2184,7 @@ export default function GamePage() {
                 }
 
                 if ((animationRunId !== animationRunIdRef.current) && (filteredAnimationQueue.length > 1)) {
+                    console.log("Removing duplicate animation")
                     return;
                 }                            
             }
@@ -2169,7 +2193,8 @@ export default function GamePage() {
         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
         setGameState(finalGameState);
         setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
-
+        console.log("done animating")
+        transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
         setAnimating(false);
     }
 
@@ -2813,6 +2838,7 @@ export default function GamePage() {
                         handleClickUnendTurn={handleClickUnendTurn}
                         endTurnSpinner={endTurnSpinner}
                         getMovie={getMovie}
+                        engineState={engineState}
                     />}
                     {<UpperRightDisplay 
                         setHoveredUnit={setHoveredUnit} 
@@ -2977,6 +3003,8 @@ export default function GamePage() {
                     setFrameNum(data.animation_frames.length - 1);
 
                     if (playAnimations) {
+                        console.log("At start of animations, current state is", engineStateRef.current)
+                        transitionEngineState(EngineStates.ANIMATING)
                         triggerAnimations(newGameState, data.animation_frames, true);
                     }
                     else {
@@ -3004,9 +3032,11 @@ export default function GamePage() {
           console.log('update received')
           if (gameStateExistsRef.current) {
             console.log("useEffect called getMovie")
+            console.log("Current state is", engineStateRef.current)
             getMovie(true);
           }
           else {
+            console.log("useEffect called fetchGameState because gameStateExistsRef.current is null. engineState may be wrong.")
             fetchGameState();
           }
         })
@@ -3016,7 +3046,17 @@ export default function GamePage() {
         socket.on('turn_end_change', (data) => {
             setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});
         })
-    }, [])
+        socket.on('start_turn_roll', (data) => {
+            console.log("start turn roll")
+            setEngineState(EngineStates.ROLLING);
+        })
+        return () => {
+            socket.off('update');
+            socket.off('mute_timer');
+            socket.off('turn_end_change');
+            socket.off('start_turn_roll');
+        }
+    }, [socket])
 
     // if (!username) {
     //     return (

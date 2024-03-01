@@ -674,6 +674,8 @@ def end_turn(sess, game_id):
     socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)
 
     if game_state.turn_should_end(turn_ended_by_player_num):
+        print("starting turn roll")
+        socketio.emit('start_turn_roll', {}, room=game_id)
         if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
             seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
             next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
