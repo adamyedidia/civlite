@@ -19,7 +19,7 @@ export const BriefBuildingDisplay = ({ buildingName, hideCost, style, buildingTe
 
     let descriptionStr = null;
 
-    if (description?.type === 'yield' && description.value > 0) {
+    if (description?.type === 'yield') {
         descriptionStr = ` (+${description.value})`;
     }
 
