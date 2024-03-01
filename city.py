@@ -524,6 +524,7 @@ class City:
         military_bldgs.sort(key=lambda unit: (-unit.template.advancement_level(), random.random()))
         best_3 = military_bldgs[:3]
         top_level = [building for building in military_bldgs if building.template.advancement_level() == military_bldgs[0].template.advancement_level()]
+        print(f"Capturing city {self.name} to {civ.template.name}; keeping buildings {best_3}, {top_level} of {self.buildings}")
         for building in military_bldgs:
             if building not in best_3 and building not in top_level:
                 self.buildings.remove(building)
