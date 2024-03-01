@@ -2184,7 +2184,6 @@ export default function GamePage() {
         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
         setGameState(finalGameState);
         setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
-        console.log("done animating")
         transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
     }
 
@@ -2988,7 +2987,6 @@ export default function GamePage() {
     }
 
     const getMovie = (playAnimations) => {
-        console.log("getMovie", playAnimations)
         fetch(`${URL}/api/movie/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
@@ -2998,7 +2996,6 @@ export default function GamePage() {
                     setFrameNum(data.animation_frames.length - 1);
 
                     if (playAnimations) {
-                        console.log("At start of animations, current state is", engineStateRef.current)
                         transitionEngineState(EngineStates.ANIMATING)
                         triggerAnimations(newGameState, data.animation_frames, true);
                     }
@@ -3026,12 +3023,9 @@ export default function GamePage() {
         socket.on('update', () => {
           console.log('update received')
           if (gameStateExistsRef.current) {
-            console.log("useEffect called getMovie")
-            console.log("Current state is", engineStateRef.current)
             getMovie(true);
           }
           else {
-            console.log("useEffect called fetchGameState because gameStateExistsRef.current is null. engineState may be wrong.")
             fetchGameState();
           }
         })
