@@ -38,6 +38,7 @@ import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
 import workerIcon from './images/worker.png';
+import vpImage from './images/crown.png';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
 const coordsToObject = (coords) => {
@@ -2331,7 +2332,7 @@ export default function GamePage() {
     }
 
 
-    const City = ({ city, isHovered, isSelected, isUnitInHex }) => {
+    const City = ({ city, isHovered, isSelected, isUnitInHex, everControlled }) => {
         const primaryColor = civTemplates[city.civ.name]?.primary_color;
         const secondaryColor = civTemplates[city.civ.name]?.secondary_color;
     
@@ -2424,6 +2425,9 @@ export default function GamePage() {
                                 {unitText}
                             </text>    
                         </>
+                    }
+                    {!everControlled && 
+                        <image href={vpImage} x={5.75} y={1.1} height="1" />
                     }
                     
                     </svg>
@@ -2778,6 +2782,7 @@ export default function GamePage() {
                                             isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
                                             isSelected={hex?.city?.id === selectedCity?.id}  
                                             isUnitInHex={hex?.units?.length > 0}
+                                            everControlled={hex?.city?.ever_controlled_by_civ_ids[myCivId]}
                                         />}
                                         {hex.camp && <Camp
                                             camp={hex.camp}
