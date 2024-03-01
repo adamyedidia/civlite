@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import { HexGrid, Layout, Hexagon, Text, Pattern, Path, Hex, GridGenerator } from 'react-hexgrid';
 import './arrow.css';
 import './GamePage.css';
-import { Typography } from '@mui/material';
+import { Typography, IconButton } from '@mui/material';
 import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
@@ -3079,9 +3079,29 @@ export default function GamePage() {
             )}
             {techChoices && (
                 <div className="tech-choices-container">
-                    {techChoices.map((tech, index) => (
-                        <TechDisplay key={index} tech={tech} civ={myCiv} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(tech)} />
-                    ))}
+                    <DialogTitle>
+                        <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
+                            Choose Technology
+                        </Typography>
+                        <IconButton
+                            aria-label="close"
+                            onClick={() => setTechChoices(null)}
+                            style={{
+                                position: 'absolute',
+                                right: 8,
+                                top: 8,
+                                color: (theme) => theme.palette.grey[500],
+                            }}
+                            color="primary"
+                        >
+                            Close
+                        </IconButton>
+                    </DialogTitle>
+                    <div className="tech-choices-content">
+                        {techChoices.map((tech, index) => (
+                            <TechDisplay key={index} tech={tech} civ={myCiv} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(tech)} />
+                        ))}
+                    </div>
                 </div>
             )}
             {settingsDialogOpen && (
