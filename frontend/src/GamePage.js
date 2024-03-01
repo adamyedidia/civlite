@@ -2926,7 +2926,6 @@ export default function GamePage() {
                             }} 
                             variant="contained"
                             onClick={() => setGameOverDialogOpen(true)}
-                            disabled={engineState === EngineStates.GAME_OVER}
                         >
                             See end game info
                         </Button>}
