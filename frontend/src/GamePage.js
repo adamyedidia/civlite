@@ -1966,7 +1966,7 @@ export default function GamePage() {
         if (engineState === EngineStates.PLAYING && myCiv && !myCiv?.researching_tech_name && !gameState?.special_mode_by_player_num?.[playerNum]) {
             setTechChoices(myCiv.current_tech_choices);
         }
-    }, [animating, myCiv?.researching_tech_name])
+    }, [engineState, myCiv?.researching_tech_name])
 
     const handleClickEndTurn = () => {
         const data = { player_num: playerNum };
