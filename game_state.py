@@ -13,7 +13,7 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations
 from redis_utils import rget_json, rlock, rset_json, rdel
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -522,6 +522,11 @@ class GameState:
         for civ in civs:
             if (not civ.game_player or civ.game_player.is_bot) and not civ.template.name == 'Barbarians':
                 civ.bot_move(self)
+
+        for player_num, game_player in self.game_player_by_player_num.items():
+            if game_player.civ_id is None:
+                game_player.score -= MULLIGAN_PENALTY
+                game_player.score_from_survival -= MULLIGAN_PENALTY
 
         print('ending turn')
 
