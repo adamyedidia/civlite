@@ -302,8 +302,8 @@ class City:
         if self.infinite_queue_unit:
             while self.metal >= self.infinite_queue_unit.metal_cost:
                 if self.metal >= self.infinite_queue_unit.metal_cost:
-                    self.build_unit(sess, game_state, self.infinite_queue_unit)
-                    self.metal -= self.infinite_queue_unit.metal_cost
+                    if self.build_unit(sess, game_state, self.infinite_queue_unit):
+                        self.metal -= self.infinite_queue_unit.metal_cost
 
     def get_closest_target(self) -> Optional['Hex']:
         if not self.hex:
