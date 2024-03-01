@@ -145,7 +145,9 @@ function RulesDialog({open, onClose, gameConstants}) {
                     a bot takes over your current civilization, and you start a new civilization somewhere else. The way this works is that your presented with three options for new civilizations to found, in 
                     three different cities where you can found them. The city you take over might be an already-existing city on the map that belongs to a different player. If you choose such a city as your starting city, 
                     that city will "revolt": you'll take over that city, and all units adjacent to that city, and the player who previously owned the city and units will be compensated with victory points. 
-                    Whatever city you choose will be your new capital. Your new civilization will start with a high vitality (200% + 10% per turn since the start of the game). You'll also start with some technologies, corresponding
+                    Whatever city you choose will be your new capital. Your new civilization will start with a high vitality (200% + 10% per turn since the start of the game). 
+                    If you don't like your three civ choices, you can end your turn and "mulligan" your three choices; each time you do that, you'll lose {gameConstants.mulligan_penalty} VP.
+                    You'll also start with some technologies, corresponding
                     to the median player-controlled civilization's techs. When you enter decline and start a new civilization, you are starting over from scratch, and leaving literally everything behind 
                     with just one exception: your victory points.
                 </DialogContentText>
