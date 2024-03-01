@@ -304,6 +304,8 @@ class City:
                 if self.metal >= self.infinite_queue_unit.metal_cost:
                     if self.build_unit(sess, game_state, self.infinite_queue_unit):
                         self.metal -= self.infinite_queue_unit.metal_cost
+                    else:
+                        break
 
     def get_closest_target(self) -> Optional['Hex']:
         if not self.hex:
@@ -374,9 +376,14 @@ class City:
             else:
                 if give_up_if_still_impossible:
                     return False
+                num_merges = 0
                 for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
                     if hex.units and hex.units[0].civ.id == self.civ.id:
-                        hex.units[0].merge_into_neighboring_unit(sess, game_state)
+                        if hex.units[0].merge_into_neighboring_unit(sess, game_state, always_merge_if_possible=True):
+                            num_merges += 1
+                    if num_merges >= 2:
+                        break
+
                 return self.build_unit(sess, game_state, unit, give_up_if_still_impossible=True)
 
         self.spawn_unit_on_hex(sess, game_state, unit, best_hex)
