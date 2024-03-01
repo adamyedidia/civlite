@@ -642,10 +642,11 @@ class City:
             print(f"    {inverse_payoff_turns=}")
             if len(nonwonders) > len(inverse_payoff_turns):
                 print(f"**** didn't consider these non-yield buildings: {set(nonwonders) - set(inverse_payoff_turns.keys() )}")
-            # calulcate the argmin of the payoff turns
-            best_building = max(inverse_payoff_turns, key=inverse_payoff_turns.get)
-            if inverse_payoff_turns[best_building] > 1.0 / ACCEPTABLE_PAYOFF_TURNS:
-                return best_building
+            if len(inverse_payoff_turns) > 0:
+                # calulcate the argmin of the payoff turns
+                best_building = max(inverse_payoff_turns, key=inverse_payoff_turns.get)
+                if inverse_payoff_turns[best_building] > 1.0 / ACCEPTABLE_PAYOFF_TURNS:
+                    return best_building
 
 
         return None

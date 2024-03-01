@@ -83,10 +83,11 @@ class Civ:
         return [tech for tech, status in self.techs_status.items() if status == TechStatus.RESEARCHED]
 
     def select_tech(self, tech_name):
-        assert self.techs_status[tech_name] == TechStatus.AVAILABLE
+        assert tech_name is None or self.techs_status[tech_name] in (TechStatus.AVAILABLE, TechStatus.RESEARCHING), f"Civ {self} tried to research {tech_name} which is in status {self.techs_status[tech_name]}; all statuses were: {self.techs_status}"
         if self.researching_tech_name:
             self.techs_status[self.researching_tech_name] = TechStatus.AVAILABLE
-        self.techs_status[tech_name] = TechStatus.RESEARCHING 
+        if tech_name is not None:
+            self.techs_status[tech_name] = TechStatus.RESEARCHING 
 
     def initialize_techs(self, start_techs):
         for tech in start_techs:
@@ -95,6 +96,7 @@ class Civ:
         self.get_new_tech_choices()
 
     def get_new_tech_choices(self):
+        print(f"getting new techs for {self.moniker()}. Ren is in status {self.techs_status['Renaissance']}")
         tech_level = len(self.researched_techs)
         max_advancement_level = 1 + tech_level // 3
 
@@ -118,7 +120,7 @@ class Civ:
                                 if (tech['advancement_level'] <= max_advancement_level 
                                     and self.techs_status[tech['name']] == TechStatus.UNAVAILABLE)]
 
-        if len(techs_to_sample_from) <= num_techs_to_offer:
+        if len(techs_to_sample_from) < num_techs_to_offer:
             techs_to_offer = techs_to_sample_from
 
         else:
@@ -126,6 +128,9 @@ class Civ:
 
         for choice in techs_to_offer:
             self.techs_status[choice.name] = TechStatus.AVAILABLE
+        if len(techs_to_offer) < num_techs_to_offer and self.game_player is not None:
+            # We've teched to too many things, time for a Renaissance
+            self.techs_status['Renaissance'] = TechStatus.AVAILABLE
 
     def get_advancement_level(self) -> int:
         my_techs = [tech['advancement_level'] for tech_name, tech in TECHS.items() if self.has_tech(tech_name)]
@@ -154,6 +159,7 @@ class Civ:
             "in_decline": self.in_decline,
             "advancement_level": self.get_advancement_level(),
             "initial_advancement_level": self.initial_advancement_level,
+            "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -208,7 +214,11 @@ class Civ:
             if special_tech_name and self.techs_status[special_tech_name] == TechStatus.AVAILABLE:
                 tech_name = special_tech_name
             else:
-                tech_name = random.choice(available_techs)
+                if len(available_techs) > 0:
+                    tech_name = random.choice(available_techs)
+                else:
+                    print(f"{self.moniker()} has no available techs")
+                    tech_name = None
             self.select_tech(tech_name)
             print(f"  {self.moniker()} chose tech {tech_name} from {available_techs}")
 
@@ -224,12 +234,33 @@ class Civ:
             if city.civ.id == self.id:
                 city.bot_move(game_state)
 
+    def renaissance_cost(self):
+        base_cost = 50 * (self.get_advancement_level() - 1)
+        if self.game_player is None:
+            # Something very odd hsa happened, because renaiissance isn't offered to declined civs.
+            # But I guess this could happen if you decline while it's queued.
+            return base_cost
+        return base_cost * (1 + self.game_player.renaissances)
+
     def complete_research(self, tech: TechTemplate, game_state: 'GameState'):
-        self.science -= tech.cost
-        self.techs_status[tech.name] = TechStatus.RESEARCHED
-        for tech_name, status in self.techs_status.items():
-            if status == TechStatus.AVAILABLE:
-                self.techs_status[tech_name] = TechStatus.DISCARDED
+        if tech.name == "Renaissance":
+            print(f"Renaissance for civ {self.moniker()}")
+            cost = self.renaissance_cost()
+            self.science -= cost
+            for tech_name, status in self.techs_status.items():
+                if status == TechStatus.DISCARDED:
+                    self.techs_status[tech_name] = TechStatus.UNAVAILABLE
+            self.vitality *= 1.2
+            if self.game_player is not None:
+                self.game_player.renaissances += 1
+        else:
+            self.science -= tech.cost
+            self.techs_status[tech.name] = TechStatus.RESEARCHED
+            for tech_name, status in self.techs_status.items():
+                if status == TechStatus.AVAILABLE and tech_name != "Renaissance":
+                    self.techs_status[tech_name] = TechStatus.DISCARDED
+        # Never discard renaissance
+        self.techs_status['Renaissance'] = TechStatus.UNAVAILABLE
 
         self.get_new_tech_choices()
 
@@ -244,15 +275,13 @@ class Civ:
                             self.game_player.score += ability["numbers"][0]    
                             self.game_player.score_from_abilities += ability["numbers"][0]
 
-        if tech.name == 'Renaissance: when researched, multiply your civ\'s vitality by 1.2.':
-            self.vitality *= 1.2
-
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
 
         if self.researching_tech_name:
             researching_tech = TechTemplate.from_json(TECHS[self.researching_tech_name])
-            if researching_tech and researching_tech.cost <= self.science:
+            cost = self.renaissance_cost() if researching_tech.name == "Renaissance" else researching_tech.cost
+            if researching_tech and cost <= self.science:
                 self.complete_research(researching_tech, game_state)
 
                 game_state.add_animation_frame_for_civ(sess, {

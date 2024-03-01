@@ -4,7 +4,11 @@ import './TechDisplay.css'; // Assuming you have a separate CSS file for styling
 import BuildingDisplay from './BuildingDisplay';
 import { romanNumeral } from './TechListDialog';
 
-const TechDisplay = ({ tech, unitTemplates, buildingTemplates, unitTemplatesByBuildingName, gameState, onClick }) => {
+const TechDisplay = ({ tech, civ, unitTemplates, buildingTemplates, unitTemplatesByBuildingName, gameState, onClick }) => {
+    if (tech.name == "Renaissance") {
+        tech.cost = civ.renaissance_cost
+    }
+
     return (
         <div 
             className="tech-card" 
@@ -29,6 +33,11 @@ const TechDisplay = ({ tech, unitTemplates, buildingTemplates, unitTemplatesByBu
                     />
                 ))}
             </div>
+            {tech.name == "Renaissance" && <>
+                <p>Re-enable all discarded technologies</p>
+                <p>Multiply your civ's vitality by 1.2</p>
+                </>
+            }
         </div>
     );
 };

@@ -154,14 +154,15 @@ const ScoreDisplay = ({ myGamePlayer }) => {
 
 const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setTechChoices, setHoveredTech, disableUI}) => {
     const tech = techTemplates[civ.researching_tech_name];
-    const storedProgress = tech ? civ.science / tech.cost * 100 : 0;
-    const incomeProgress = tech ? civ.projected_science_income / tech.cost * 100 : 0;
+    const techCost = tech?.name  == "Renaissance" ? civ.renaissance_cost : tech?.cost;
+    const storedProgress = tech ? civ.science / techCost * 100 : 0;
+    const incomeProgress = tech ? civ.projected_science_income / techCost * 100 : 0;
     return <CivDetailPanel title='science' icon={scienceImg} bignum={`+${Math.floor(civ.projected_science_income)}`}>
         <h2 className="tech-name" 
             onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}  
         > {romanNumeral(tech?.advancement_level)}. {tech?.name} </h2>
-        <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={tech ? `${Math.floor(civ.science)} / ${tech.cost}` : `${Math.floor(civ.science)} / ???`}/>
+        <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={tech ? `${Math.floor(civ.science)} / ${techCost}` : `${Math.floor(civ.science)} / ???`}/>
         <Button variant="contained" color="primary" onClick={() => setTechListDialogOpen(true)}>
             Tech Tree
         </Button>

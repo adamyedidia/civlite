@@ -1,3 +1,4 @@
+import math
 from typing import Any, Optional
 from animation_frame import AnimationFrame
 from building import Building
@@ -158,18 +159,66 @@ class GameState:
                     other_civ.game_player.score += SURVIVAL_BONUS
                     other_civ.game_player.score_from_survival += SURVIVAL_BONUS
 
-    def make_new_civ_from_the_ashes(self, civ: Civ, game_player: GamePlayer, city: City) -> None:
-        civs_with_game_players = [civ for civ in self.civs_by_id.values() if civ.game_player]
+    def choose_techs_for_new_civ(self, city: City):
+        print("Calculating starting techs!")
+        chosen_techs_names = set()
+        chosen_techs_by_advancement = defaultdict(int)
 
-        if len(civs_with_game_players) == 0:
-            median_civ_by_tech_advancement = sorted([civ for civ in self.civs_by_id.values()], key=lambda x: len(x.researched_techs), reverse=True)[0]
-        else:
-            median_civ_by_tech_advancement = sorted(civs_with_game_players, key=lambda x: len(x.researched_techs))[len(civs_with_game_players) // 2]
+        # Start with prereqs for teh buildings we have
+        for building in city.buildings:
+            prereq = building.template.prereq
+            if prereq is not None:
+                chosen_techs_names.add(prereq)
+                chosen_techs_by_advancement[TECHS[prereq]['advancement_level']] += 1
+
+        print(f"Starting with prereqs for buildings: {chosen_techs_names}")
+
+        # Calculate mean tech amount at each level
+        civs_to_compare_to = [civ for civ in self.civs_by_id.values() if civ.game_player]
+        if len(civs_to_compare_to) == 0:
+            civs_to_compare_to = [civ for civ in self.civs_by_id.values()]
+
+        print(f"  Comparing to civs: {civs_to_compare_to}")
+        # Make a dict of {tech: num civs that know it} for each level
+        tech_counts_by_adv_level = defaultdict(dict)
+        for tech_name, tech in TECHS.items():
+            num = len([civ for civ in civs_to_compare_to if civ.has_tech(tech_name)])
+            lvl = tech['advancement_level']
+            tech_counts_by_adv_level[lvl][tech_name] = num
+
+        print(tech_counts_by_adv_level)
+
+        excess_techs = 0
+        for level in sorted(list(tech_counts_by_adv_level.keys()), reverse=True):
+            tech_counts = tech_counts_by_adv_level[level]
+            total = sum(tech_counts.values())
+            target_num = total / len(civs_to_compare_to) - excess_techs
+            print(f"Level {level}; excess {excess_techs}; target: {target_num}")
+            if chosen_techs_by_advancement[level] > target_num:
+                excess_techs = chosen_techs_by_advancement[level] - target_num
+                continue
+            else:
+                num_needed = target_num - chosen_techs_by_advancement[level]
+                available = [tech for tech in tech_counts_by_adv_level[level] if tech not in chosen_techs_names]
+                available.sort(key=lambda tech: (tech_counts_by_adv_level[level][tech], random.random()), reverse=True)
+                choose = available[:math.ceil(num_needed)]
+                print(f"  chose: {choose}")
+                for tech in choose:
+                    chosen_techs_names.add(tech)
+                excess_techs = len(choose) - num_needed
+
+        return chosen_techs_names
+        
+
+    def make_new_civ_from_the_ashes(self, civ: Civ, game_player: GamePlayer, city: City) -> None:
+        # For reasons I don't understand, this function has to be deterministic -- it gets called twice during the turn and bad things happen if they are different. -dfarhi
 
         civ.game_player = game_player
         game_player.civ_id = civ.id
 
-        civ.initialize_techs(median_civ_by_tech_advancement.researched_techs)
+        chosen_techs = self.choose_techs_for_new_civ(city)
+
+        civ.initialize_techs(chosen_techs)
 
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ()
@@ -260,6 +309,11 @@ class GameState:
         from_civ_perspectives: Optional[list[Civ]] = None
         game_state_to_return_json: Optional[dict] = None
         game_state_to_store_json: Optional[dict] = None
+        
+        # This has to be deterministic to allow speculative and non-speculative calls to agree
+        seed_value = hash(f"{self.game_id} {player_num} {self.turn_num}")
+        random.seed(seed_value)
+
         for move_index, move in enumerate(moves):
             if move['move_type'] == 'choose_starting_city':
                 city_id = move['city_id']
