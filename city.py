@@ -327,7 +327,7 @@ class City:
             return target2
 
 
-    def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate) -> bool:
+    def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False) -> bool:
         if not self.hex:
             return False
 
@@ -370,7 +370,15 @@ class City:
             if best_unit_to_reinforce:
                 self.reinforce_unit(best_unit_to_reinforce)
                 return True
-            return False
+            
+            else:
+                if give_up_if_still_impossible:
+                    return False
+                for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                    if hex.units and hex.units[0].civ.id == self.civ.id:
+                        hex.units[0].merge_into_neighboring_unit(sess, game_state)
+                return self.build_unit(sess, game_state, unit, give_up_if_still_impossible=True)
+
         self.spawn_unit_on_hex(sess, game_state, unit, best_hex)
         return True
 
