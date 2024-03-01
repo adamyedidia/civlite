@@ -5,6 +5,7 @@
     border-radius: 5px;
     background-color: #b0e0e6;
     cursor: pointer;
+    width: 300px;
 }
 
 .tech-card h2 {

@@ -22,13 +22,13 @@ from game_state import GameState, update_staged_moves, get_most_recent_game_stat
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
+
 from settings import (
     LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, 
     BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, 
     NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, 
     SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY
 )
-from tech import get_tech_choices_for_civ
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit_template import UnitTemplate
@@ -582,37 +582,7 @@ def choose_initial_civ(sess, game_id):
 
     civ = city.civ
 
-    techs = get_tech_choices_for_civ(civ)
-
-    return jsonify({'tech_choices': techs, 'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
-
-
-@app.route('/api/tech_choices/<game_id>', methods=['GET'])
-@api_endpoint
-def get_tech_choices_for_civ_endpoint(sess, game_id):
-    raw_player_num = request.args.get('player_num')
-    player_num = int(raw_player_num) if raw_player_num is not None else None
-
-    if player_num is None:
-        return jsonify({"error": "player_num is required"}), 400
-    
-    game = sess.query(Game).filter(Game.id == game_id).first()
-
-    if not game:
-        return jsonify({"error": "Game not found"}), 404
-    
-    game_state = get_most_recent_game_state(sess, game_id)
-
-    game_player = game_state.game_player_by_player_num.get(player_num)
-
-    civ = game_state.civs_by_id.get((game_player.civ_id or '') if game_player is not None else '')  
-
-    if civ is None:
-        return []
-
-    techs = get_tech_choices_for_civ(civ)
-
-    return jsonify({'tech_choices': techs})
+    return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
 
 
 @app.route('/api/player_input/<game_id>', methods=['POST'])

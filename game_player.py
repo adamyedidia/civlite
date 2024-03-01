@@ -14,6 +14,7 @@ class GamePlayer:
         self.score_from_abilities = 0
         self.score_from_survival = 0
         self.score_from_revolting_cities = 0
+        self.renaissances = 0
 
         self.civ_id: Optional[str] = None
 
@@ -36,6 +37,7 @@ class GamePlayer:
             "sfa": self.score_from_abilities,
             "sfs": self.score_from_survival,
             "sfrc": self.score_from_revolting_cities,
+            "renaissances": self.renaissances,
         }
     
     @staticmethod
@@ -55,5 +57,7 @@ class GamePlayer:
         game_player.score_from_abilities = json["sfa"]
         game_player.score_from_survival = json["sfs"]
         game_player.score_from_revolting_cities = json["sfrc"]
+        game_player.renaissances = json["renaissances"]
 
         return game_player
+

@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import { HexGrid, Layout, Hexagon, Text, Pattern, Path, Hex, GridGenerator } from 'react-hexgrid';
 import './arrow.css';
 import './GamePage.css';
-import { Typography } from '@mui/material';
+import { Typography, IconButton } from '@mui/material';
 import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
@@ -378,6 +378,7 @@ export default function GamePage() {
                 setSelectedCity(null);
                 setFoundingCity(false);
                 setShowFlagArrows(false);
+                setTechChoices(null);
             }
         };
     
@@ -1962,21 +1963,10 @@ export default function GamePage() {
     }
 
     useEffect(() => {
-        if (engineState === EngineStates.PLAYING && myCiv?.tech_queue?.length === 0 && !gameState?.special_mode_by_player_num?.[playerNum]) {
-
-            fetch(`${URL}/api/tech_choices/${gameId}?player_num=${playerNum}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.tech_choices) {
-                        setTechChoices(data.tech_choices);
-                    }
-                });
+        if (engineState === EngineStates.PLAYING && myCiv && !myCiv?.researching_tech_name && !gameState?.special_mode_by_player_num?.[playerNum]) {
+            setTechChoices(myCiv.current_tech_choices);
         }
-    }, [engineState, myCiv?.tech_queue?.length])
+    }, [engineState, myCiv?.researching_tech_name])
 
     const handleClickEndTurn = () => {
         const data = { player_num: playerNum };
@@ -2310,10 +2300,9 @@ export default function GamePage() {
                 body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
-                    setTechChoices(data.tech_choices);
                     if (data.game_state) {
                         setGameState(data.game_state);
-                        refreshSelectedCity(data.game_state);
+                        refreshSelectedCity(data.game_state);            
                     }
                 });
         } else if (gameState.special_mode_by_player_num[playerNum] == 'choose_decline_option') {
@@ -2838,6 +2827,7 @@ export default function GamePage() {
                         setHoveredUnit={setHoveredUnit} 
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
+                        setTechChoices={setTechChoices}
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
                         isFoundingCity={foundingCity}
@@ -2881,7 +2871,7 @@ export default function GamePage() {
                             <UnitDisplay unit={hoveredUnit} />
                         )}
                         {hoveredTech && (
-                            <TechDisplay tech={hoveredTech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
+                            <TechDisplay tech={hoveredTech} civ={myCiv} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
                         )}
                         {!hoveredBuilding && !hoveredUnit && !hoveredTech && <div className='turn-num-card'>
                             <Typography variant="h4">
@@ -2940,6 +2930,7 @@ export default function GamePage() {
                     open={techListDialogOpen}
                     onClose={() => setTechListDialogOpen(false)}
                     setHoveredTech={setHoveredTech}
+                    handleClickTech={handleClickTech}
                     techTemplates={techTemplates}
                     unitTemplates={unitTemplates}
                     buildingTemplates={buildingTemplates}
@@ -3118,9 +3109,29 @@ export default function GamePage() {
             )}
             {techChoices && (
                 <div className="tech-choices-container">
-                    {techChoices.map((tech, index) => (
-                        <TechDisplay key={index} tech={tech} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(tech)} />
-                    ))}
+                    <DialogTitle>
+                        <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
+                            Choose Technology
+                        </Typography>
+                        <IconButton
+                            aria-label="close"
+                            onClick={() => setTechChoices(null)}
+                            style={{
+                                position: 'absolute',
+                                right: 8,
+                                top: 8,
+                                color: (theme) => theme.palette.grey[500],
+                            }}
+                            color="primary"
+                        >
+                            Close
+                        </IconButton>
+                    </DialogTitle>
+                    <div className="tech-choices-content">
+                        {techChoices.map((tech, index) => (
+                            <TechDisplay key={index} tech={tech} civ={myCiv} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(tech)} />
+                        ))}
+                    </div>
                 </div>
             )}
             {settingsDialogOpen && (

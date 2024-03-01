@@ -2,37 +2,19 @@ import React from 'react';
 import UnitDisplay from './UnitDisplay'; // Adjust the path as needed
 import './TechDisplay.css'; // Assuming you have a separate CSS file for styling
 import BuildingDisplay from './BuildingDisplay';
-import { Button } from '@mui/material';
+import { romanNumeral } from './TechListDialog';
 
-export const BriefTechDisplay = ({ tech, myCiv, setHoveredTech, techTemplates, setTechListDialogOpen }) => {
-    return (
-        <div className="brief-tech-card"
-            onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
-            onMouseLeave={() => setHoveredTech(null)}        
-        >
-            {tech && <p>Researching {tech.name}</p>}
-            {myCiv && <p>You currently have: {myCiv?.science?.toFixed(1)} (+{myCiv?.projected_science_income?.toFixed(1)}) science</p>}
-            {tech && <p>Cost: {tech.cost} science</p>}
-            <Button 
-                variant="contained" 
-                color="primary"
-                onClick={() => setTechListDialogOpen(true)}
-            >
-                View researched techs
-            </Button>
-        </div>
-    );
-};
+const TechDisplay = ({ tech, civ, unitTemplates, buildingTemplates, unitTemplatesByBuildingName, gameState, onClick }) => {
+    if (tech.name == "Renaissance") {
+        tech.cost = civ.renaissance_cost
+    }
 
-// const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, onClick }) => {
-
-const TechDisplay = ({ tech, unitTemplates, buildingTemplates, unitTemplatesByBuildingName, gameState, onClick }) => {
     return (
         <div 
             className="tech-card" 
             onClick={onClick}
         >
-            <h2>{tech.name}</h2>
+            <h2>{romanNumeral(tech.advancement_level)}. {tech.name}</h2>
             <p>Cost: {tech.cost} science</p>
             <div className="unlocked-units">
                 {tech.unlocks_units && tech.unlocks_units.map((unitName, index) => (
@@ -51,6 +33,11 @@ const TechDisplay = ({ tech, unitTemplates, buildingTemplates, unitTemplatesByBu
                     />
                 ))}
             </div>
+            {tech.name == "Renaissance" && <>
+                <p>Re-enable all discarded technologies</p>
+                <p>Gain 15 VPs</p>
+            </>
+            }
         </div>
     );
 };

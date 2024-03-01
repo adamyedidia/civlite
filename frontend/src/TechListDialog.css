@@ -61,7 +61,18 @@
 }
 
 .tech-tree-card.researching {
+    background-color: #e0a677;
+}
+
+.tech-tree-card.discarded {
+    background-color: #ccc;
+}
+
+.tech-tree-card.available {
     background-color: #ecec9c;
+}
+.tech-tree-card.available * {
+    cursor: pointer;
 }
 
 .tech-tree-card-title {

@@ -1,12 +1,12 @@
 import random
-from typing import TYPE_CHECKING, Optional
+from enum import Enum
+from typing import TYPE_CHECKING, Optional, List, Dict
 from building_templates_list import BUILDINGS
 
 from civ_template import CivTemplate
 from civ_templates_list import ANCIENT_CIVS, CIVS
 from game_player import GamePlayer
 from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD
-from tech import Tech, get_tech_choices_for_civ
 from tech_template import TechTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
@@ -20,14 +20,20 @@ if TYPE_CHECKING:
     from hex import Hex
 
 
+class TechStatus(Enum):
+    RESEARCHED = 'researched'
+    UNAVAILABLE = 'unavailable'
+    DISCARDED = 'discarded'
+    AVAILABLE = 'available'
+    RESEARCHING = 'researching'
+
 class Civ:
     def __init__(self, civ_template: CivTemplate, game_player: Optional[GamePlayer]):
         self.id = generate_unique_id()
         self.game_player = game_player
         self.template = civ_template
         self.science = 0.0
-        self.tech_queue: list[TechTemplate] = []
-        self.techs: dict[str, bool] = {}
+        self.techs_status: Dict[str, TechStatus] = {tech: TechStatus.UNAVAILABLE for tech in TECHS}
         self.vitality = 1.0
         self.city_power = 0.0
         self.available_buildings: list[str] = []
@@ -63,11 +69,74 @@ class Civ:
                 self.projected_science_income += city.projected_income['science']
                 self.projected_city_power_income += city.projected_income['city_power']
 
+    def has_tech(self, tech_name):
+        return self.techs_status[tech_name] == TechStatus.RESEARCHED
+
+    @property
+    def researching_tech_name(self):
+        all_researching_techs = [tech for tech, status in self.techs_status.items() if status == TechStatus.RESEARCHING]
+        assert len(all_researching_techs) <= 1
+        return all_researching_techs[0] if all_researching_techs else None
+
+    @property
+    def researched_techs(self):
+        return [tech for tech, status in self.techs_status.items() if status == TechStatus.RESEARCHED]
+
+    def select_tech(self, tech_name):
+        assert tech_name is None or self.techs_status[tech_name] in (TechStatus.AVAILABLE, TechStatus.RESEARCHING), f"Civ {self} tried to research {tech_name} which is in status {self.techs_status[tech_name]}; all statuses were: {self.techs_status}"
+        if self.researching_tech_name:
+            self.techs_status[self.researching_tech_name] = TechStatus.AVAILABLE
+        if tech_name is not None:
+            self.techs_status[tech_name] = TechStatus.RESEARCHING 
+
+    def initialize_techs(self, start_techs):
+        for tech in start_techs:
+            self.techs_status[tech] = TechStatus.RESEARCHED
+        self.initial_advancement_level = self.get_advancement_level()
+        self.get_new_tech_choices()
+
+    def get_new_tech_choices(self):
+        print(f"getting new techs for {self.moniker()}. Ren is in status {self.techs_status['Renaissance']}")
+        tech_level = len(self.researched_techs)
+        max_advancement_level = 1 + tech_level // 3
+
+        characteristic_tech_offered = False
+
+        if self.has_ability('IncreasedStrengthForUnit'):
+            special_unit_name = self.numbers_of_ability('IncreasedStrengthForUnit')[0]
+
+            if (prereq := UNITS[special_unit_name].get('prereq')):
+                characteristic_tech = TECHS[prereq]
+
+                if characteristic_tech['advancement_level'] <= max_advancement_level and self.techs_status[characteristic_tech['name']] == TechStatus.UNAVAILABLE:
+                    characteristic_tech_offered = True
+                    self.techs_status[characteristic_tech['name']] = TechStatus.AVAILABLE
+
+
+
+        num_techs_to_offer = 2 if characteristic_tech_offered else 3
+
+        techs_to_sample_from = [TechTemplate.from_json(tech) for tech in TECHS.values() 
+                                if (tech['advancement_level'] <= max_advancement_level 
+                                    and self.techs_status[tech['name']] == TechStatus.UNAVAILABLE)]
+
+        if len(techs_to_sample_from) < num_techs_to_offer:
+            techs_to_offer = techs_to_sample_from
+
+        else:
+            techs_to_offer = random.sample(techs_to_sample_from, num_techs_to_offer)
+
+        for choice in techs_to_offer:
+            self.techs_status[choice.name] = TechStatus.AVAILABLE
+        if len(techs_to_offer) < num_techs_to_offer and self.game_player is not None:
+            # We've teched to too many things, time for a Renaissance
+            self.techs_status['Renaissance'] = TechStatus.AVAILABLE
+
     def get_advancement_level(self) -> int:
-        my_techs = [TECHS[tech]['advancement_level'] for tech in self.techs]
+        my_techs = [tech['advancement_level'] for tech_name, tech in TECHS.items() if self.has_tech(tech_name)]
         if len(my_techs) == 0:
             return 0
-        return max([TECHS[tech]['advancement_level'] for tech in self.techs])
+        return max(my_techs)
 
     def to_json(self) -> dict:
         return {
@@ -75,8 +144,10 @@ class Civ:
             "game_player": self.game_player.to_json() if self.game_player else None,
             "name": self.template.name,
             "science": self.science,
-            "tech_queue": [tech_template.to_json() for tech_template in self.tech_queue],
-            "techs": self.techs,
+            "techs_status": {tech: status.value for tech, status in self.techs_status.items()},
+            "num_researched_techs": len(self.researched_techs),
+            "researching_tech_name": self.researching_tech_name,
+            "current_tech_choices": [TECHS[tech_name] for tech_name, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)],
             "vitality": self.vitality,
             "city_power": self.city_power,
             "available_buildings": self.available_buildings,
@@ -88,17 +159,18 @@ class Civ:
             "in_decline": self.in_decline,
             "advancement_level": self.get_advancement_level(),
             "initial_advancement_level": self.initial_advancement_level,
+            "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
         self.available_buildings = [building["name"] for building in BUILDINGS.values() if (
-            (not building.get('prereq')) or self.techs.get(building.get("prereq"))  # type: ignore
+            (not building.get('prereq')) or self.has_tech(building.get("prereq"))  # type: ignore
             and (not building.get('is_wonder') or not game_state.wonders_built_to_civ_id.get(building['name']))
             and (not building.get('is_national_wonder') or not building['name'] in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
         self.available_unit_buildings = [
             unit.get("building_name") for unit in UNITS.values() 
-            if (((not unit.get('prereq')) or self.techs.get(unit.get("prereq"))) and 
+            if (((not unit.get('prereq')) or self.has_tech(unit.get("prereq"))) and 
                 unit.get("building_name") and
                 (TECHS[unit['prereq']]['advancement_level'] if unit.get('prereq') else 0) >= self.initial_advancement_level - 1)
             ]  # type: ignore
@@ -131,22 +203,24 @@ class Civ:
                 self.target2 = possible_target_hexes[1]
                 self.target2_coords = self.target2.coords
 
-        techs = get_tech_choices_for_civ(self)
-
-        if len(techs) > 0:
+        if self.researching_tech_name is None:
             if self.has_ability('IncreasedStrengthForUnit'):
                 special_unit_name = self.numbers_of_ability('IncreasedStrengthForUnit')[0]
                 special_tech_name = UNITS[special_unit_name].get('prereq', None)
             else:
                 special_tech_name = None
 
-            if special_tech_name and special_tech_name in [tech['name'] for tech in techs]:
-                tech = [tech for tech in techs if tech['name'] == special_tech_name][0]
+            available_techs = [tech_name for tech_name, status in self.techs_status.items() if status == TechStatus.AVAILABLE]
+            if special_tech_name and self.techs_status[special_tech_name] == TechStatus.AVAILABLE:
+                tech_name = special_tech_name
             else:
-                tech = random.choice(techs)
-            tech_template = TechTemplate.from_json(tech)
-            self.tech_queue.append(tech_template)
-            print(f"  {self.moniker()} chose tech {tech_template.name} from {[t['name'] for t in techs]}")
+                if len(available_techs) > 0:
+                    tech_name = random.choice(available_techs)
+                else:
+                    print(f"{self.moniker()} has no available techs")
+                    tech_name = None
+            self.select_tech(tech_name)
+            print(f"  {self.moniker()} chose tech {tech_name} from {available_techs}")
 
         game_state.refresh_foundability_by_civ()
 
@@ -160,32 +234,61 @@ class Civ:
             if city.civ.id == self.id:
                 city.bot_move(game_state)
 
+    def renaissance_cost(self):
+        base_cost = 100 * self.get_advancement_level()
+        if self.game_player is None:
+            # Something very odd hsa happened, because renaiissance isn't offered to declined civs.
+            # But I guess this could happen if you decline while it's queued.
+            return base_cost
+        return base_cost * (1 + self.game_player.renaissances)
+
+    def complete_research(self, tech: TechTemplate, game_state: 'GameState'):
+        if tech.name == "Renaissance":
+            print(f"Renaissance for civ {self.moniker()}")
+            cost = self.renaissance_cost()
+            self.science -= cost
+            for tech_name, status in self.techs_status.items():
+                if status == TechStatus.DISCARDED:
+                    self.techs_status[tech_name] = TechStatus.UNAVAILABLE
+            self.game_player.score_from_renaissances += 15
+            self.game_player.score += 15
+            if self.game_player is not None:
+                self.game_player.renaissances += 1
+        else:
+            self.science -= tech.cost
+            self.techs_status[tech.name] = TechStatus.RESEARCHED
+            for tech_name, status in self.techs_status.items():
+                if status == TechStatus.AVAILABLE and tech_name != "Renaissance":
+                    self.techs_status[tech_name] = TechStatus.DISCARDED
+        # Never discard renaissance
+        self.techs_status['Renaissance'] = TechStatus.UNAVAILABLE
+
+        self.get_new_tech_choices()
+
+        if self.game_player:
+            self.game_player.score += TECH_VP_REWARD
+            self.game_player.score_from_researching_techs += TECH_VP_REWARD
+
+            for wonder in game_state.wonders_built_to_civ_id:
+                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                    for ability in abilities:
+                        if ability["name"] == "ExtraVpsForTechs":
+                            self.game_player.score += ability["numbers"][0]    
+                            self.game_player.score_from_abilities += ability["numbers"][0]
+
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
-        
-        while self.tech_queue and self.tech_queue[0].cost <= self.science:
-            self.science -= self.tech_queue[0].cost
-            self.techs[self.tech_queue[0].name] = True
-            tech = self.tech_queue.pop(0)
 
-            if self.game_player:
-                self.game_player.score += TECH_VP_REWARD
-                self.game_player.score_from_researching_techs += TECH_VP_REWARD
+        if self.researching_tech_name:
+            researching_tech = TechTemplate.from_json(TECHS[self.researching_tech_name])
+            cost = self.renaissance_cost() if researching_tech.name == "Renaissance" else researching_tech.cost
+            if researching_tech and cost <= self.science:
+                self.complete_research(researching_tech, game_state)
 
-                for wonder in game_state.wonders_built_to_civ_id:
-                    if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
-                        for ability in abilities:
-                            if ability["name"] == "ExtraVpsForTechs":
-                                self.game_player.score += ability["numbers"][0]    
-                                self.game_player.score_from_abilities += ability["numbers"][0]
-
-            if tech.name == 'Renaissance: when researched, multiply your civ\'s vitality by 1.2.':
-                self.vitality *= 1.2
-
-            game_state.add_animation_frame_for_civ(sess, {
-                "type": "TechResearched",
-                "tech": tech.name,
-            }, self)
+                game_state.add_animation_frame_for_civ(sess, {
+                    "type": "TechResearched",
+                    "tech": researching_tech.name,
+                }, self)
 
         if self.vitality > 1:
             self.vitality = max(self.vitality * FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE)
@@ -206,8 +309,7 @@ class Civ:
         )
         civ.id = json["id"]
         civ.science = json["science"]
-        civ.tech_queue = [TechTemplate.from_json(tech_template) for tech_template in json["tech_queue"]]
-        civ.techs = json["techs"].copy()
+        civ.techs_status = {tech: TechStatus(status) for tech, status in json["techs_status"].items()}
         civ.vitality = json["vitality"]
         civ.city_power = json["city_power"]
         civ.available_buildings = json["available_buildings"][:]
@@ -224,7 +326,6 @@ class Civ:
     def __repr__(self) -> str:
         return f"<Civ {self.id}: {self.template.name}>"
 
-
 def create_starting_civ_options_for_players(game_players: list[GamePlayer], starting_locations: list['Hex']) -> dict[int, list[tuple[Civ, 'Hex']]]:
     assert len(game_players) <= 8
 
@@ -238,7 +339,7 @@ def create_starting_civ_options_for_players(game_players: list[GamePlayer], star
         starting_civ_options[game_player.player_num] = []
         for _ in range(NUM_STARTING_LOCATION_OPTIONS):
             civ = Civ(CivTemplate.from_json(starting_civ_option_jsons[counter]), game_player)
-
+            civ.get_new_tech_choices()
             if civ.has_ability('ExtraCityPower'):
                 civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
 
