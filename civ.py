@@ -235,7 +235,7 @@ class Civ:
                 city.bot_move(game_state)
 
     def renaissance_cost(self):
-        base_cost = 50 * (self.get_advancement_level() - 1)
+        base_cost = 100 * self.get_advancement_level()
         if self.game_player is None:
             # Something very odd hsa happened, because renaiissance isn't offered to declined civs.
             # But I guess this could happen if you decline while it's queued.
@@ -250,7 +250,8 @@ class Civ:
             for tech_name, status in self.techs_status.items():
                 if status == TechStatus.DISCARDED:
                     self.techs_status[tech_name] = TechStatus.UNAVAILABLE
-            self.vitality *= 1.2
+            self.game_player.score_from_renaissances += 15
+            self.game_player.score += 15
             if self.game_player is not None:
                 self.game_player.renaissances += 1
         else:
