@@ -6,7 +6,7 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
 from collections import defaultdict
-from city import City
+from city import City, generate_random_city_name
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import BARBARIAN_CIV, CIVS, ANCIENT_CIVS
@@ -14,7 +14,7 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations
 from redis_utils import rget_json, rlock, rset_json, rdel
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -113,7 +113,8 @@ class GameState:
 
     def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str) -> None:
         civ.city_power -= 100
-        city = City(civ, id=city_id)
+        city_name = generate_random_city_name(game_state=self)
+        city = City(civ, name=city_name, id=city_id)
         city.hex = hex
         city.hex.city = city
         self.cities_by_id[city_id] = city
@@ -276,7 +277,8 @@ class GameState:
             new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]
 
         if hex.city is None:
-            city = City(new_civ, id=city_id)
+            city_name = generate_random_city_name(game_state=self)
+            city = City(new_civ, name=city_name, id=city_id)
             city.hex = hex
             hex.city = city
             self.cities_by_id[city_id] = city
@@ -479,6 +481,10 @@ class GameState:
                         self.refresh_foundability_by_civ()
                         self.refresh_visibility_by_civ(short_sighted=True)
                         game_state_to_return_json = self.to_json(from_civ_perspectives=from_civ_perspectives)
+                        game_state_to_dream_json = self.to_json()
+
+                        rset_json(f'dream_game_state:{self.game_id}:{player_num}', game_state_to_dream_json)
+                        rset_json(f'dream_game_state_from_civ_perspectives:{self.game_id}:{player_num}', [civ.id for civ in from_civ_perspectives])
 
             if move['move_type'] == 'choose_decline_option':
                 game_player = self.game_player_by_player_num[player_num]
@@ -503,6 +509,8 @@ class GameState:
                 city.refresh_available_buildings()
                 city.refresh_available_units()
                 self.midturn_update()
+
+                rdel(f'dream_game_state:{self.game_id}:{player_num}')
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
             if from_civ_perspectives is None and game_player_to_return.civ_id is not None:
@@ -567,6 +575,11 @@ class GameState:
             if (not civ.game_player or civ.game_player.is_bot) and not civ.template.name == 'Barbarians':
                 civ.bot_move(self)
 
+        for player_num, game_player in self.game_player_by_player_num.items():
+            if game_player.civ_id is None:
+                game_player.score -= MULLIGAN_PENALTY
+                game_player.score_from_survival -= MULLIGAN_PENALTY
+
         print('ending turn')
 
         self.roll_turn(sess)
@@ -575,7 +588,25 @@ class GameState:
             rdel(f'staged_moves:{self.game_id}:{player_num}')
             rdel(f'staged_game_state:{self.game_id}:{player_num}')
 
+            # Dream game state is the fake game state that gets sent to people who are in decline
+            rdel(f'dream_game_state:{self.game_id}:{player_num}')
+            rdel(f'dream_game_state_from_civ_perspectives:{self.game_id}:{player_num}')
+
         rdel(f'turn_ended_by_player_num:{self.game_id}')
+
+        for player_num, game_player in self.game_player_by_player_num.items():
+            if game_player.civ_id is None:
+                
+                from_civ_perspectives = []
+
+                for decline_option in game_player.decline_options:
+                    self.process_decline_option(decline_option, game_player, from_civ_perspectives)
+                    self.refresh_foundability_by_civ()
+                    self.refresh_visibility_by_civ(short_sighted=True)
+                    game_state_to_dream_json = self.to_json()
+
+                    rset_json(f'dream_game_state:{self.game_id}:{player_num}', game_state_to_dream_json)       
+                    rset_json(f'dream_game_state_from_civ_perspectives:{self.game_id}:{player_num}', [civ.id for civ in from_civ_perspectives])
 
     def roll_turn(self, sess) -> None:
         self.turn_num += 1

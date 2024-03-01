@@ -28,11 +28,11 @@ def resourcedict() -> Dict[str, float]:
     }
 
 class City:
-    def __init__(self, civ: Civ, id: Optional[str] = None):
+    def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
         self.id = id or generate_unique_id()
         self.civ: Civ = civ
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True}
-        self.name = generate_random_city_name()
+        self.name = name
         self.population = 1
         self.buildings: list[Building] = []
         self.food = 0.0
@@ -303,8 +303,10 @@ class City:
         if self.infinite_queue_unit:
             while self.metal >= self.infinite_queue_unit.metal_cost:
                 if self.metal >= self.infinite_queue_unit.metal_cost:
-                    self.build_unit(sess, game_state, self.infinite_queue_unit)
-                    self.metal -= self.infinite_queue_unit.metal_cost
+                    if self.build_unit(sess, game_state, self.infinite_queue_unit):
+                        self.metal -= self.infinite_queue_unit.metal_cost
+                    else:
+                        break
 
     def get_closest_target(self) -> Optional['Hex']:
         if not self.hex:
@@ -328,7 +330,7 @@ class City:
             return target2
 
 
-    def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate) -> bool:
+    def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False) -> bool:
         if not self.hex:
             return False
 
@@ -339,13 +341,12 @@ class City:
         best_hex = None
         best_hex_distance_from_target = 10000
 
-        if "defensive" not in unit.tags:
-            for hex in self.hex.get_neighbors(game_state.hexes):
-                if not hex.is_occupied(unit.type, self.civ):
-                    distance_from_target = hex.distance_to(self.get_closest_target() or self.hex)
-                    if distance_from_target < best_hex_distance_from_target:
-                        best_hex = hex
-                        best_hex_distance_from_target = distance_from_target
+        for hex in self.hex.get_neighbors(game_state.hexes):
+            if not hex.is_occupied(unit.type, self.civ):
+                distance_from_target = hex.distance_to(self.get_closest_target() or self.hex)
+                if distance_from_target < best_hex_distance_from_target:
+                    best_hex = hex
+                    best_hex_distance_from_target = distance_from_target
 
         best_unit_to_reinforce = None
         if best_hex is None:
@@ -360,7 +361,7 @@ class City:
             #             best_hex_distance_from_target = distance_from_target            
 
             for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
-                if hex.is_occupied(unit.type, self.civ) and ("defensive" not in unit.tags or hex.coords == self.hex.coords):
+                if hex.is_occupied(unit.type, self.civ):
                     unit_to_possibly_reinforce = hex.units[0]
                     if unit_to_possibly_reinforce.civ.id == self.civ.id and unit_to_possibly_reinforce.template.name == unit.name and unit_to_possibly_reinforce.hex:
                         unit_penalty = unit_to_possibly_reinforce.health * 10 + unit_to_possibly_reinforce.hex.distance_to(self.get_closest_target() or self.hex)
@@ -372,7 +373,20 @@ class City:
             if best_unit_to_reinforce:
                 self.reinforce_unit(best_unit_to_reinforce)
                 return True
-            return False
+            
+            else:
+                if give_up_if_still_impossible:
+                    return False
+                num_merges = 0
+                for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                    if hex.units and hex.units[0].civ.id == self.civ.id:
+                        if hex.units[0].merge_into_neighboring_unit(sess, game_state, always_merge_if_possible=True):
+                            num_merges += 1
+                    if num_merges >= 2:
+                        break
+
+                return self.build_unit(sess, game_state, unit, give_up_if_still_impossible=True)
+
         self.spawn_unit_on_hex(sess, game_state, unit, best_hex)
         return True
 
@@ -524,7 +538,6 @@ class City:
         military_bldgs.sort(key=lambda unit: (-unit.template.advancement_level(), random.random()))
         best_3 = military_bldgs[:3]
         top_level = [building for building in military_bldgs if building.template.advancement_level() == military_bldgs[0].template.advancement_level()]
-        print(f"Capturing city {self.name} to {civ.template.name}; keeping buildings {best_3}, {top_level} of {self.buildings}")
         for building in military_bldgs:
             if building not in best_3 and building not in top_level:
                 self.buildings.remove(building)
@@ -766,10 +779,10 @@ class City:
     def from_json(json: dict) -> "City":
         city = City(
             civ=Civ.from_json(json["civ"]),
+            name=json["name"],
         )
         city.id = json["id"]
         city.ever_controlled_by_civ_ids = json["ever_controlled_by_civ_ids"].copy()
-        city.name = json["name"]
         city.population = json["population"]
         city.buildings = [Building.from_json(building) for building in json["buildings"]]
         city.food = json["food"]
@@ -793,7 +806,7 @@ class City:
         return city
 
 
-CITY_NAMES = [
+CITY_NAMES = {
     "Miami",
     "Lothlorien",
     "Leningrad",
@@ -901,8 +914,11 @@ CITY_NAMES = [
     "Sydney",
     "Shanghai",
     "Beijing",
-]
+}
 
 
-def generate_random_city_name() -> str:
-    return random.choice(CITY_NAMES)
+def generate_random_city_name(game_state: Optional['GameState'] = None) -> str:
+    names = CITY_NAMES
+    if game_state is not None:
+        names = CITY_NAMES - set(city.name for city in game_state.cities_by_id.values())
+    return random.choice(list(names))

@@ -11,7 +11,7 @@ from flask_socketio import SocketIO, join_room, leave_room
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from animation_frame import AnimationFrame
-from city import City
+from city import City, generate_random_city_name
 from civ import Civ, create_starting_civ_options_for_players
 from civ_template import CivTemplate
 from civ_templates_list import CIVS
@@ -22,7 +22,13 @@ from game_state import GameState, update_staged_moves, get_most_recent_game_stat
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
-from settings import LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER
+
+from settings import (
+    LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, 
+    BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, 
+    NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, 
+    SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY
+)
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit_template import UnitTemplate
@@ -302,7 +308,8 @@ def _launch_game_inner(sess, game: Game) -> None:
         if game_player.is_bot:
             civ_option_tup = civ_options_tups[0]
             civ, starting_location = civ_option_tup
-            starting_city = City(civ)
+            starting_city_name = generate_random_city_name(game_state)
+            starting_city = City(civ, name=starting_city_name)
             starting_location.city = starting_city
             starting_city.hex = starting_location
             starting_city.populate_terrains_dict(game_state)
@@ -318,7 +325,8 @@ def _launch_game_inner(sess, game: Game) -> None:
             for civ_options_tup in civ_options_tups:
                 civ, starting_location = civ_options_tup
                 starting_civs_for_players[player_num].append(civ)
-                starting_city = City(civ)
+                starting_city_name = generate_random_city_name(game_state)
+                starting_city = City(civ, name=starting_city_name)
                 starting_location.city = starting_city
                 starting_city.hex = starting_location
                 starting_city.populate_terrains_dict(game_state)
@@ -472,8 +480,13 @@ def get_latest_turn_movie(sess, game_id):
         .all()
     )
     
+    dream_game_state_json = rget_json(f'dream_game_state:{game_id}:{player_num}')
+    dream_game_state_json_from_civ_perspectives = rget_json(f'dream_game_state_from_civ_perspectives:{game_id}:{player_num}') or []
+
+    # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
+
     staged_game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}')
-    game_state = GameState.from_json(staged_game_state_json) if staged_game_state_json else None
+    game_state = GameState.from_json(dream_game_state_json) if dream_game_state_json else GameState.from_json(staged_game_state_json) if staged_game_state_json else None
 
     game_state_json = None
     if game_state:
@@ -483,14 +496,20 @@ def get_latest_turn_movie(sess, game_id):
             if player_civ:
                 game_state_json = game_state.to_json(from_civ_perspectives=[player_civ])
             else:
-                from_civ_perspectives = []
 
-                for decline_option in game_player.decline_options:
-                    for civ in game_state.civs_by_id.values():
-                        if civ.template.name == decline_option[1]:
-                            from_civ_perspectives.append(civ)
+                if dream_game_state_json:
+                    from_civ_perspectives = [game_state.civs_by_id[civ_id] for civ_id in dream_game_state_json_from_civ_perspectives]
+                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
-                game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
+                else:
+                    from_civ_perspectives = []
+
+                    for decline_option in game_player.decline_options:
+                        for civ in game_state.civs_by_id.values():
+                            if civ.template.name == decline_option[1]:
+                                from_civ_perspectives.append(civ)
+
+                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
     return jsonify({
         'animation_frames': [*[{'game_state': {**animation_frame.game_state, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {}}, 'data': animation_frame.data} for animation_frame in animation_frames], 
@@ -625,6 +644,8 @@ def end_turn(sess, game_id):
     socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)
 
     if game_state.turn_should_end(turn_ended_by_player_num):
+        print("starting turn roll")
+        socketio.emit('start_turn_roll', {}, room=game_id)
         if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
             seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
             next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
@@ -744,6 +765,7 @@ def get_game_constants(sess):
         'extra_game_end_score_per_player': EXTRA_GAME_END_SCORE_PER_PLAYER,
         'base_city_power_income': BASE_CITY_POWER_INCOME,
         'survival_bonus': SURVIVAL_BONUS,
+        'mulligan_penalty': MULLIGAN_PENALTY,
     })
 
 

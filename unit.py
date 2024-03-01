@@ -95,9 +95,9 @@ class Unit:
                 "coords": coord_strs,
             }, hexes_must_be_visible=[starting_hex, new_hex], no_commit=True)
 
-    def merge_into_neighboring_unit(self, sess, game_state: 'GameState') -> None:
+    def merge_into_neighboring_unit(self, sess, game_state: 'GameState', always_merge_if_possible: bool = False) -> bool:
         if self.hex is None:
-            return
+            return False
 
         closest_target = self.get_closest_target()
         if closest_target is None:
@@ -107,7 +107,7 @@ class Unit:
         starting_hex = self.hex
 
         for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
-            if neighboring_hex.sensitive_distance_to(closest_target) < self.hex.sensitive_distance_to(closest_target):
+            if neighboring_hex.sensitive_distance_to(closest_target) < self.hex.sensitive_distance_to(closest_target) or always_merge_if_possible:
                 for unit in neighboring_hex.units:
                     if unit.civ.id == self.civ.id and unit.template.name == self.template.name:
                         unit.health += self.health
@@ -121,7 +121,9 @@ class Unit:
                             "coords": coord_strs,
                         }, hexes_must_be_visible=[starting_hex, neighboring_hex], no_commit=True)
 
-                        return
+                        return True
+                    
+        return False
 
     def friendly_neighboring_unit_count(self, game_state: 'GameState') -> int:
         if self.hex is None:
@@ -360,10 +362,10 @@ class Unit:
             if sensitive:
                 neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(self.destination)
 
-                is_better_distance = neighboring_hex_sensitive_distance_to_target < best_distance
+                is_better_distance = neighboring_hex_sensitive_distance_to_target <= best_distance
             else:
                 neighboring_hex_distance_to_target = neighboring_hex.distance_to(self.destination)
-                is_better_distance = neighboring_hex_distance_to_target < best_distance
+                is_better_distance = neighboring_hex_distance_to_target <= best_distance
 
             if is_better_distance and not neighboring_hex.is_occupied(self.template.type, self.civ):
                 best_hex = neighboring_hex
