@@ -473,8 +473,13 @@ def get_latest_turn_movie(sess, game_id):
         .all()
     )
     
+    dream_game_state_json = rget_json(f'dream_game_state:{game_id}:{player_num}')
+    dream_game_state_json_from_civ_perspectives = rget_json(f'dream_game_state_from_civ_perspectives:{game_id}:{player_num}') or []
+
+    # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
+
     staged_game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}')
-    game_state = GameState.from_json(staged_game_state_json) if staged_game_state_json else None
+    game_state = GameState.from_json(dream_game_state_json) if dream_game_state_json else GameState.from_json(staged_game_state_json) if staged_game_state_json else None
 
     game_state_json = None
     if game_state:
@@ -484,14 +489,20 @@ def get_latest_turn_movie(sess, game_id):
             if player_civ:
                 game_state_json = game_state.to_json(from_civ_perspectives=[player_civ])
             else:
-                from_civ_perspectives = []
 
-                for decline_option in game_player.decline_options:
-                    for civ in game_state.civs_by_id.values():
-                        if civ.template.name == decline_option[1]:
-                            from_civ_perspectives.append(civ)
+                if dream_game_state_json:
+                    from_civ_perspectives = [game_state.civs_by_id[civ_id] for civ_id in dream_game_state_json_from_civ_perspectives]
+                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
-                game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
+                else:
+                    from_civ_perspectives = []
+
+                    for decline_option in game_player.decline_options:
+                        for civ in game_state.civs_by_id.values():
+                            if civ.template.name == decline_option[1]:
+                                from_civ_perspectives.append(civ)
+
+                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
     return jsonify({
         'animation_frames': [*[{'game_state': {**animation_frame.game_state, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {}}, 'data': animation_frame.data} for animation_frame in animation_frames], 

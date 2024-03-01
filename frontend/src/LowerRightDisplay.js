@@ -13,14 +13,14 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
         <AnnouncementsDisplay announcements={gameState?.announcements} />
         <div className="end-turn-area">
             <div className="turn-roll-buttons">
-                {!gameState?.special_mode_by_player_num?.[playerNum] && <Button 
+                {!gameState?.special_mode_by_player_num?.[playerNum] !== 'choose_starting_city' && <Button
                     style={{backgroundColor: "#cccc88", fontSize:"2em", height: "120px", padding: "5px"}} 
                     variant="contained"
                     onClick={gameState?.turn_ended_by_player_num?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
                     disabled={animating || endTurnSpinner}
                 >
                     {endTurnSpinner ? <CircularProgress size={24} /> :
-                        (gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : "End turn")
+                        (gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : gameState?.special_mode_by_player_num?.[playerNum] === "choose_decline_option" ? "End turn (mulligan)" : "End turn")
                     }
                 </Button>}
                 {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
