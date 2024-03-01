@@ -28,11 +28,11 @@ def resourcedict() -> Dict[str, float]:
     }
 
 class City:
-    def __init__(self, civ: Civ, id: Optional[str] = None):
+    def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
         self.id = id or generate_unique_id()
         self.civ: Civ = civ
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True}
-        self.name = generate_random_city_name()
+        self.name = name
         self.population = 1
         self.buildings: list[Building] = []
         self.food = 0.0
@@ -778,10 +778,10 @@ class City:
     def from_json(json: dict) -> "City":
         city = City(
             civ=Civ.from_json(json["civ"]),
+            name=json["name"],
         )
         city.id = json["id"]
         city.ever_controlled_by_civ_ids = json["ever_controlled_by_civ_ids"].copy()
-        city.name = json["name"]
         city.population = json["population"]
         city.buildings = [Building.from_json(building) for building in json["buildings"]]
         city.food = json["food"]
@@ -805,7 +805,7 @@ class City:
         return city
 
 
-CITY_NAMES = [
+CITY_NAMES = {
     "Miami",
     "Lothlorien",
     "Leningrad",
@@ -913,8 +913,11 @@ CITY_NAMES = [
     "Sydney",
     "Shanghai",
     "Beijing",
-]
+}
 
 
-def generate_random_city_name() -> str:
-    return random.choice(CITY_NAMES)
+def generate_random_city_name(game_state: Optional['GameState'] = None) -> str:
+    names = CITY_NAMES
+    if game_state is not None:
+        names = CITY_NAMES - set(city.name for city in game_state.cities_by_id.values())
+    return random.choice(list(names))

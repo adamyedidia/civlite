@@ -5,7 +5,7 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
 from collections import defaultdict
-from city import City
+from city import City, generate_random_city_name
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import BARBARIAN_CIV, CIVS, ANCIENT_CIVS
@@ -112,7 +112,8 @@ class GameState:
 
     def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str) -> None:
         civ.city_power -= 100
-        city = City(civ, id=city_id)
+        city_name = generate_random_city_name(game_state=self)
+        city = City(civ, name=city_name, id=city_id)
         city.hex = hex
         city.hex.city = city
         self.cities_by_id[city_id] = city
@@ -230,7 +231,8 @@ class GameState:
             new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]
 
         if hex.city is None:
-            city = City(new_civ, id=city_id)
+            city_name = generate_random_city_name(game_state=self)
+            city = City(new_civ, name=city_name, id=city_id)
             city.hex = hex
             hex.city = city
             self.cities_by_id[city_id] = city

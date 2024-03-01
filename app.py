@@ -11,7 +11,7 @@ from flask_socketio import SocketIO, join_room, leave_room
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from animation_frame import AnimationFrame
-from city import City
+from city import City, generate_random_city_name
 from civ import Civ, create_starting_civ_options_for_players
 from civ_template import CivTemplate
 from civ_templates_list import CIVS
@@ -308,7 +308,8 @@ def _launch_game_inner(sess, game: Game) -> None:
         if game_player.is_bot:
             civ_option_tup = civ_options_tups[0]
             civ, starting_location = civ_option_tup
-            starting_city = City(civ)
+            starting_city_name = generate_random_city_name(game_state)
+            starting_city = City(civ, name=starting_city_name)
             starting_location.city = starting_city
             starting_city.hex = starting_location
             starting_city.populate_terrains_dict(game_state)
@@ -324,7 +325,8 @@ def _launch_game_inner(sess, game: Game) -> None:
             for civ_options_tup in civ_options_tups:
                 civ, starting_location = civ_options_tup
                 starting_civs_for_players[player_num].append(civ)
-                starting_city = City(civ)
+                starting_city_name = generate_random_city_name(game_state)
+                starting_city = City(civ, name=starting_city_name)
                 starting_location.city = starting_city
                 starting_city.hex = starting_location
                 starting_city.populate_terrains_dict(game_state)
