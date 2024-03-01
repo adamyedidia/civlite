@@ -143,7 +143,7 @@ class Civ:
             if special_tech_name and special_tech_name in [tech['name'] for tech in techs]:
                 tech = [tech for tech in techs if tech['name'] == special_tech_name][0]
             else:
-                tech = min(techs, key=lambda tech: tech['cost'])
+                tech = random.choice(techs)
             tech_template = TechTemplate.from_json(tech)
             self.tech_queue.append(tech_template)
             print(f"  {self.moniker()} chose tech {tech_template.name} from {[t['name'] for t in techs]}")

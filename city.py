@@ -30,7 +30,7 @@ def resourcedict() -> Dict[str, float]:
 class City:
     def __init__(self, civ: Civ, id: Optional[str] = None):
         self.id = id or generate_unique_id()
-        self.civ = civ
+        self.civ: Civ = civ
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True}
         self.name = generate_random_city_name()
         self.population = 1
@@ -233,6 +233,7 @@ class City:
 
             if building_template is not None:
                 total_yields = 0
+                total_pseudoyields = 0
                 is_economic_building = False
                 for ability in building_template.abilities:
                     if ability.name == 'IncreaseYieldsForTerrain':
@@ -248,17 +249,19 @@ class City:
                         is_economic_building = True
                         total_yields += ability.numbers[1] * self.population
 
+                    if ability.name == "CityGrowthCostReduction":
+                        is_economic_building = True
+                        ratio = ability.numbers[0]
+                        effective_income_multiplier = 1 / ratio
+                        effective_income_bonus = self.projected_income_base['food'] * (effective_income_multiplier - 1)
+                        total_pseudoyields += int(effective_income_bonus / self.civ.vitality)
+
                 if is_economic_building:
-                    if total_yields > 0:
-                        self.available_buildings_to_descriptions[building_template.name] = {
-                            "type": "yield",
-                            "value": total_yields,
-                        }
-                    else:
-                        self.available_buildings_to_descriptions[building_template.name] = {
-                            "type": "yield",
-                            "value": 0,
-                        }                            
+                    self.available_buildings_to_descriptions[building_template.name] = {
+                        "type": "yield",
+                        "value": total_yields,
+                        "value_for_ai": total_yields + total_pseudoyields,
+                    }                            
 
                 elif not building_template.is_wonder:
                     self.available_buildings_to_descriptions[building_template.name] = {
@@ -632,7 +635,7 @@ class City:
             # print(f"    Choosing nonwonder; {self.available_buildings_to_descriptions=}")
             ACCEPTABLE_PAYOFF_TURNS = 8
             inverse_payoff_turns = {
-                building: self.available_buildings_to_descriptions[building.name].get('value', 0) / building.cost
+                building: self.available_buildings_to_descriptions[building.name].get('value_for_ai', 0) / building.cost
                 for building in nonwonders
                 if building.name in self.available_buildings_to_descriptions and self.available_buildings_to_descriptions[building.name]['type'] == 'yield'
             }
@@ -699,8 +702,17 @@ class City:
             print(f"  no buildings available")
 
         
-        max_yields = max(self.projected_income_focus.values())
-        focuses_with_best_yields = [focus for focus in {"food", "wood", "metal", "science"} if max_yields - self.projected_income_focus[focus] < 2]
+        plausible_focuses = {"food", "wood", "metal", "science"}
+        if self.growth_cost() >= 30:
+            # At some point it's time to use our pop
+            plausible_focuses.remove('food')
+        if len(self.civ.tech_queue) == 0:  # TODO(dfarhi) this is going to cause merge conflicts with my other PR
+            plausible_focuses.remove('science')
+        if self.wood >= 150:
+            plausible_focuses.remove('wood')
+            
+        max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
+        focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
         if len(focuses_with_best_yields) == 1:
             self.focus = focuses_with_best_yields[0]
         elif len(self.buildings_queue) > 0 and isinstance(self.buildings_queue[0], BuildingTemplate) and self.buildings_queue[0].is_national_wonder:
