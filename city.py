@@ -707,7 +707,7 @@ class City:
         if self.growth_cost() >= 30:
             # At some point it's time to use our pop
             plausible_focuses.remove('food')
-        if len(self.civ.tech_queue) == 0:  # TODO(dfarhi) this is going to cause merge conflicts with my other PR
+        if self.civ.researching_tech_name is None:
             plausible_focuses.remove('science')
         if self.wood >= 150:
             plausible_focuses.remove('wood')
