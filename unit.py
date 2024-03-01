@@ -362,10 +362,10 @@ class Unit:
             if sensitive:
                 neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(self.destination)
 
-                is_better_distance = neighboring_hex_sensitive_distance_to_target < best_distance
+                is_better_distance = neighboring_hex_sensitive_distance_to_target <= best_distance
             else:
                 neighboring_hex_distance_to_target = neighboring_hex.distance_to(self.destination)
-                is_better_distance = neighboring_hex_distance_to_target < best_distance
+                is_better_distance = neighboring_hex_distance_to_target <= best_distance
 
             if is_better_distance and not neighboring_hex.is_occupied(self.template.type, self.civ):
                 best_hex = neighboring_hex
