@@ -27,6 +27,10 @@
     padding: 10px 20px;
     width: 100%;
     height: 50px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
 }
 
 .turn-roll-buttons Button:disabled {

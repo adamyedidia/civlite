@@ -19,6 +19,7 @@ import {
     Select,
     MenuItem,
 } from '@mui/material';
+import EngineStates from './EngineStates';
 import CivDisplay from './CivDisplay';
 import TechDisplay from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
@@ -235,11 +236,6 @@ export default function GamePage() {
 
     const [gameState, setGameState] = useState(null);
 
-    const EngineStates = {
-        ANIMATING: 'animating',  // Playing the movie
-        ROLLING: 'rolling',  // Waiting for the server to send update signal
-        PLAYING: 'playing',  // Taking player actions
-    };
     const [engineState, setEngineState] = useState(EngineStates.PLAYING);
     // Ref to keep track of the current engineState
     const engineStateRef = React.useRef(engineState);
@@ -254,8 +250,6 @@ export default function GamePage() {
     const [buildingTemplates, setBuildingTemplates] = useState(null);
     const [volume, setVolume] = useState(100);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
-
-    const [endTurnSpinner, setEndTurnSpinner] = useState(false);
 
     const unitTemplatesByBuildingName = {};
     Object.values(unitTemplates || {}).forEach(unitTemplate => {
@@ -282,8 +276,6 @@ export default function GamePage() {
     const [techChoices, setTechChoices] = useState(null);
 
     const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
-
-    const [animating, setAnimating] = useState(false);
 
     const [animationRunIdUseState, setAnimationRunIdUseState] = useState(null);
 
@@ -400,7 +392,9 @@ export default function GamePage() {
         // When the user presses B
         const handleKeyDown = (event) => {
             if (event.key === 'b' || event.key === 'B') {
-                toggleFoundingCity();
+                if (engineState === EngineStates.PLAYING) {
+                    toggleFoundingCity();
+                }
             }
         };
     
@@ -409,7 +403,7 @@ export default function GamePage() {
     
         // Remove event listener on cleanup
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [foundingCity]); // Dependency ensures foundingCity is in a valid state before running
+    }, [foundingCity, engineState]); // Dependency ensures foundingCity is in a valid state before running
 
     useEffect(() => {
         // Define a variable outside of your event listener to keep track of the interval ID
@@ -474,6 +468,8 @@ export default function GamePage() {
         if (hoveredHexRef.current) {
             setHoveredCity(null);
 
+            if (engineState !== EngineStates.PLAYING) {return;}
+
             if (hexesAreEqual(hoveredHexRef.current, target1Ref.current)) {
                 removeTarget(false);
             } else if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
@@ -496,7 +492,7 @@ export default function GamePage() {
         return () => {
             document.removeEventListener('contextmenu', handleContextMenu);
         };
-    }, []);
+    }, [engineState]);
 
     useEffect(() => {
         animationRunIdRef.current = animationRunIdUseState;
@@ -1966,7 +1962,7 @@ export default function GamePage() {
     }
 
     useEffect(() => {
-        if (!animating && myCiv?.tech_queue?.length === 0 && !gameState?.special_mode_by_player_num?.[playerNum]) {
+        if (engineState === EngineStates.PLAYING && myCiv?.tech_queue?.length === 0 && !gameState?.special_mode_by_player_num?.[playerNum]) {
 
             fetch(`${URL}/api/tech_choices/${gameId}?player_num=${playerNum}`, {
                 method: 'GET',
@@ -1980,11 +1976,9 @@ export default function GamePage() {
                     }
                 });
         }
-    }, [animating, myCiv?.tech_queue?.length])
+    }, [engineState, myCiv?.tech_queue?.length])
 
     const handleClickEndTurn = () => {
-        setEndTurnSpinner(true); // Start loading
-
         const data = { player_num: playerNum };
 
         fetch(`${URL}/api/end_turn/${gameId}`, {
@@ -1998,8 +1992,6 @@ export default function GamePage() {
                 getMovie(false);  // TODO why do we call getMovie here?
             }).catch(error => {
                 console.error('Error ending turn:', error);
-            }).finally(() => {
-                setEndTurnSpinner(false); // Stop loading regardless of the outcome
             });
     }
 
@@ -2026,6 +2018,7 @@ export default function GamePage() {
 
     
     const handleClickTech = (tech) => {
+        if (engineState !== EngineStates.PLAYING) {return;}
 
         const playerInput = {
             'tech_name': tech.name,
@@ -2134,13 +2127,11 @@ export default function GamePage() {
         console.log(`animating! ${animationRunId}`);
         // console.log(animationQueue)
 
-        if (animating) {
+        if (engineState === EngineStates.ANIMATING) {
             return;
         }
 
         setAnimationRunIdUseState(animationRunId);
-
-        setAnimating(true);
 
         const cases = ['UnitMovement', 'UnitAttack'];
         const filteredAnimationQueue = animationQueue.filter((animationEvent) => cases.includes(animationEvent?.data?.type));        
@@ -2195,7 +2186,6 @@ export default function GamePage() {
         setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
         console.log("done animating")
         transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
-        setAnimating(false);
     }
 
     const FlagArrow = ({hex}) => {
@@ -2245,6 +2235,7 @@ export default function GamePage() {
     // Event handler for keydown event for the flag arrows
     const handleKeyDown = (event) => {
         if (event.key === 'f' || event.key === 'F') {
+            if (engineState !== EngineStates.PLAYING) {return;}
             console.log("Showing flag arrows")
             setShowFlagArrows(true);
         }
@@ -2267,7 +2258,7 @@ export default function GamePage() {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
         };
-    }, []);
+    }, [engineState]);
 
     const isFriendlyCityHex = (hex) => {
         return isFriendlyCity(hex?.city);
@@ -2294,6 +2285,7 @@ export default function GamePage() {
     };
 
     const handleClickCity = (city) => {
+        if (engineState !== EngineStates.PLAYING) {return;}
         if (city.id === selectedCity?.id) {
             setSelectedCity(null);
         }
@@ -2700,6 +2692,11 @@ export default function GamePage() {
             });
     }
 
+    const setConfirmEnterDeclineIfAllowed = (value) => {
+        if (engineState !== EngineStates.PLAYING) {return;}
+        setConfirmEnterDecline(value);
+    }
+
     const handleEnterDecline = () => {
         if (!myCivId) return;
 
@@ -2832,11 +2829,9 @@ export default function GamePage() {
                         playerNum={playerNum}
                         timerMuted={timerMutedOnTurn === turnNum || gameState.game_over}
                         turnEndedByPlayerNum={turnEndedByPlayerNum}
-                        animating={animating}
                         isHoveredHex={!!hoveredHex}
                         handleClickEndTurn={handleClickEndTurn}
                         handleClickUnendTurn={handleClickUnendTurn}
-                        endTurnSpinner={endTurnSpinner}
                         getMovie={getMovie}
                         engineState={engineState}
                     />}
@@ -2854,8 +2849,8 @@ export default function GamePage() {
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
                         unitTemplates={unitTemplates}
                         setTechListDialogOpen={setTechListDialogOpen}
-                        setConfirmEnterDecline={setConfirmEnterDecline}
-                        disableUI={animating || gameState?.game_over}
+                        setConfirmEnterDecline={setConfirmEnterDeclineIfAllowed}
+                        disableUI={engineState !== EngineStates.PLAYING}
                         turnNum={turnNum}
                     />}
                     {selectedCity && <CityDetailWindow 
@@ -2896,7 +2891,7 @@ export default function GamePage() {
                         </div>}
                     </div>
                     {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons}/>}
-                    {!animating && <div style={{
+                    {engineState === EngineStates.PLAYING && <div style={{
                         position: 'fixed', 
                         bottom: '10px', 
                         left: '50%', 
@@ -2917,7 +2912,7 @@ export default function GamePage() {
                             }} 
                             variant="contained"
                             onClick={() => handleFoundCapital()}
-                            disabled={animating}
+                            disabled={engineState !== EngineStates.PLAYING}
                         >
                             Make {selectedCity.name} my capital
                         </Button>}
@@ -2932,7 +2927,7 @@ export default function GamePage() {
                             }} 
                             variant="contained"
                             onClick={() => setGameOverDialogOpen(true)}
-                            disabled={animating}
+                            disabled={engineState === EngineStates.GAME_OVER}
                         >
                             See end game info
                         </Button>}
