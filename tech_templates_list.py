@@ -1,25 +1,25 @@
 TECHS = {
     'Archery': {
         'name': 'Archery',
-        'cost': 20,
+        'cost': 25,
         'unlocks_units': ['Archer'],
         'advancement_level': 1,
     },
     'Bronze Working': {
         'name': 'Bronze Working',
-        'cost': 20,
+        'cost': 25,
         'unlocks_units': ['Spearman'],
         'advancement_level': 1,
     },
     'Pottery': {
         'name': 'Pottery',
-        'cost': 15,
+        'cost': 20,
         'unlocks_buildings': ['Granary'],
         'advancement_level': 1,
     },
     'Code of Laws': {
         'name': 'Code of Laws',
-        'cost': 15,
+        'cost': 20,
         'unlocks_buildings': ['Hanging Gardens'],
         'advancement_level': 1,
     },
@@ -31,7 +31,7 @@ TECHS = {
     },
     'The Wheel': {
         'name': 'The Wheel',
-        'cost': 25,
+        'cost': 35,
         'unlocks_units': ['Chariot'],
         'advancement_level': 1,
     },
@@ -43,7 +43,7 @@ TECHS = {
     },
     'Forestry': {
         'name': 'Forestry',
-        'cost': 20,
+        'cost': 25,
         'advancement_level': 1,
         'unlocks_buildings': ['Lumber Mill'],
     },
@@ -55,7 +55,7 @@ TECHS = {
     },
     'Writing': {
         'name': 'Writing',
-        'cost': 25,
+        'cost': 30,
         'unlocks_buildings': ['Library', 'Great Library'],
         'advancement_level': 1,
     },
@@ -68,20 +68,20 @@ TECHS = {
     },
     'Mathematics': {
         'name': 'Mathematics',
-        'cost': 30,
+        'cost': 50,
         'unlocks_units': ['Catapult'],
         'unlocks_buildings': ['Workshop'],
         'advancement_level': 2,
     },
     'Horseback Riding': {
         'name': 'Horseback Riding',
-        'cost': 35,
+        'cost': 50,
         'unlocks_units': ['Horseman', 'Horse Archer'],
         'advancement_level': 2,
     },
     'Iron Working': {
         'name': 'Iron Working',
-        'cost': 35,
+        'cost': 45,
         'unlocks_units': ['Swordsman'],
         'unlocks_buildings': ['Colossus'],
         'advancement_level': 2,
