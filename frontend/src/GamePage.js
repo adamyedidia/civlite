@@ -286,15 +286,11 @@ export default function GamePage() {
 
     const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
 
-    const [animationRunIdUseState, setAnimationRunIdUseState] = useState(null);
-
     const [foundingCity, setFoundingCity] = useState(false);
 
     const [confirmEnterDecline, setConfirmEnterDecline] = useState(false);
 
     const [techListDialogOpen, setTechListDialogOpen] = useState(false);
-
-    const animationRunIdRef = React.useRef(null);
 
     const [gameConstants, setGameConstants] = useState(null);
 
@@ -578,10 +574,6 @@ export default function GamePage() {
             document.removeEventListener('contextmenu', handleContextMenu);
         };
     }, [engineState]);
-
-    useEffect(() => {
-        animationRunIdRef.current = animationRunIdUseState;
-    }, [animationRunIdUseState]);
 
     const handleChangeTurnTimer = (value) => {
         const data = {
@@ -2253,27 +2245,15 @@ export default function GamePage() {
     }, [animationFrame])
 
     const triggerAnimations = (finalGameState, numFrames) => {
-        const animationRunId = generateUniqueId();
-
-        console.log(`animating! ${animationRunId}`);
-        // console.log(animationQueue)
-
         if (engineState === EngineStates.ANIMATING) {
+            console.error("Already animating, but tried to start another animation!")
             return;
         }
 
-        setAnimationRunIdUseState(animationRunId);
         setAnimationFrame(0);
         setAnimationTotalFrames(numFrames);
         setAnimationActiveDelay(Math.min(ANIMATION_DELAY, 20000 / numFrames));
         setAnimationFinalState(finalGameState);
-        // TODO everything past here
-        // for (let i = 0; i < numFrames; i++) {
-        //     if ((animationRunId !== animationRunIdRef.current) && (numFrames > 1)) {
-        //         console.log("Removing duplicate animation")
-        //         return;
-        //     }            
-        // }
     }
 
     const cancelAnimations = () => {
