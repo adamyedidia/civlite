@@ -245,6 +245,9 @@ export default function GamePage() {
     const engineStateRef = React.useRef(engineState);
 
     const [animationFrame, setAnimationFrame] = useState(null);
+    const [animationTotalFrames, setAnimationTotalFrames] = useState(null);
+    const [animationFinalState, setAnimationFinalState] = useState(null);
+    const [animationActiveDelay, setAnimationActiveDelay] = useState(null);
 
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
@@ -2192,12 +2195,10 @@ export default function GamePage() {
         }
     }
 
-    const playAnimationFrame = async (frameNum, animationDelay) => {
+    const playAnimationFrame = async (frameNum) => {
         try {
-            const timer = new Promise((resolve) => setTimeout(resolve, animationDelay));
             const response = await fetch(`${URL}/api/movie/frame/${gameId}/${frameNum}?player_num=${playerNum}`);
             const json = await response.json();
-            await timer;
             if (!json.data) {
                 console.error("No data in frame", frameNum);
                 return;
@@ -2228,17 +2229,30 @@ export default function GamePage() {
         }
     }
 
+    const finalAnimationFrame = () => {
+        setAnimationFrame(null);
+        const finalGameState = animationFinalState;
+        setGameState(finalGameState);
+        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
+    }
+
     useEffect(() => {
-        if (!animationFrame) {return;}
+        if (animationFrame === null) {return;}
         if (engineState !== EngineStates.ANIMATING) {
             console.log("Canceling animation");
-            setAnimationFrame(null);
+            finalAnimationFrame();
             return;
         }
-        next_frame_timer = setTimeout(() => setAnimationFrame(animationFrame + 1), ANIMATION_DELAY);
-    }, [animationFrame, engineState])
+        if (animationFrame >= animationTotalFrames) {
+            finalAnimationFrame();
+            transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
+            return;
+        }
+        setTimeout(() => setAnimationFrame(animationFrame + 1), animationActiveDelay);
+        playAnimationFrame(animationFrame);
+    }, [animationFrame])
 
-    const triggerAnimations = async (finalGameState, numFrames) => {
+    const triggerAnimations = (finalGameState, numFrames) => {
         const animationRunId = generateUniqueId();
 
         console.log(`animating! ${animationRunId}`);
@@ -2249,24 +2263,22 @@ export default function GamePage() {
         }
 
         setAnimationRunIdUseState(animationRunId);
+        setAnimationFrame(0);
+        setAnimationTotalFrames(numFrames);
+        setAnimationActiveDelay(Math.min(ANIMATION_DELAY, 20000 / numFrames));
+        setAnimationFinalState(finalGameState);
+        // TODO everything past here
+        // for (let i = 0; i < numFrames; i++) {
+        //     if ((animationRunId !== animationRunIdRef.current) && (numFrames > 1)) {
+        //         console.log("Removing duplicate animation")
+        //         return;
+        //     }            
+        // }
+    }
 
-        const animationDelay = Math.min(ANIMATION_DELAY, 20000 / numFrames);
-
-        for (let i = 0; i < numFrames; i++) {
-            await playAnimationFrame(i, animationDelay);
-
-            if ((animationRunId !== animationRunIdRef.current) && (numFrames > 1)) {
-                console.log("Removing duplicate animation")
-                return;
-            }            
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
-        setGameState(finalGameState);
-        refreshSelectedCity(finalGameState);
-        setSelectedCity(null);
-        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
-        transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
+    const cancelAnimations = () => {
+        console.log("Manually cancelling animations")
+        setEngineState(EngineStates.PLAYING, EngineStates.ANIMATING);
     }
 
     const FlagArrow = ({hex}) => {
@@ -2918,6 +2930,9 @@ export default function GamePage() {
                         handleClickUnendTurn={handleClickUnendTurn}
                         getMovie={getMovie}
                         engineState={engineState}
+                        animationFrame={animationFrame}
+                        animationTotalFrames={animationTotalFrames}
+                        cancelAnimations={cancelAnimations}
                     />}
                     {<UpperRightDisplay 
                         setHoveredUnit={setHoveredUnit} 
