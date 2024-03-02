@@ -49,7 +49,7 @@ const coordsToObject = (coords) => {
     return {q: q, r: r, s: s};
 }
 
-const ANIMATION_DELAY = 400;
+const ANIMATION_DELAY = 300;
 
 let userHasInteracted = false;
 
@@ -2138,7 +2138,7 @@ export default function GamePage() {
         }
     }
 
-    const triggerAnimations = async (finalGameState, animationQueue, doNotNotifyBackendOnCompletion) => {
+    const triggerAnimations = async (finalGameState, numFrames) => {
         const animationRunId = generateUniqueId();
 
         console.log(`animating! ${animationRunId}`);
@@ -2154,48 +2154,43 @@ export default function GamePage() {
         const filteredAnimationQueue = animationQueue.filter((animationEvent) => cases.includes(animationEvent?.data?.type));        
 
         const numFramesToPlay = filteredAnimationQueue.length;
-        const animationDelay = Math.min(ANIMATION_DELAY, 30000 / numFramesToPlay);
+        const animationDelay = Math.min(ANIMATION_DELAY, 20000 / numFramesToPlay);
 
-        for (let event of animationQueue) {
-            // console.log(event);
-
-            const newState = event?.game_state;
-
-            if (newState) {
-                switch (event?.data?.type) {
+        for (let i = 0; i < numFrames; i++) {
+            try {
+                const response = await fetch(`${URL}/api/movie/frame/${gameId}/${i}?player_num=${playerNum}`);
+                const json = await response.json();
+                switch (json.data.type) {
                     case 'UnitMovement':
                         await new Promise((resolve) => setTimeout(resolve, animationDelay));
                         playMoveSound(moveSound, volume);
-                        showMovementArrows(event.data.coords);
-                        setGameState(newState);         
-                        break;           
+                        showMovementArrows(json.data.coords);
+                        setGameState(json.game_state);
+                        break;
+    
                     case 'UnitAttack':
                         await new Promise((resolve) => setTimeout(resolve, animationDelay));
-                        if (event.data.attack_type === 'melee') {
+                        if (json.data.attack_type === 'melee') {
                             playMeleeAttackSound(meleeAttackSound, volume);
-                        } else if (event.data.attack_type === 'ranged') {
+                        } else if (json.data.attack_type === 'ranged') {
                             playRangedAttackSound(rangedAttackSound, volume);
-                        } else if (event.data.attack_type === 'gunpowder_melee') {
+                        } else if (json.data.attack_type === 'gunpowder_melee') {
                             playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
-                        } else if (event.data.attack_type === 'gunpowder_ranged') {
+                        } else if (json.data.attack_type === 'gunpowder_ranged') {
                             playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
                         }
-                        showSingleMovementArrow(event.data.start_coords, event.data.end_coords, 'attack');
-                        setGameState(newState);
+                        showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
+                        setGameState(json.game_state);
                         break;
-                    // case 'UnitSpawn':
-                    //     await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
-                    //     playSpawnSound(spawnSound, volume);
-                    //     setGameState(newState);
-                    //     break;
-                    
                 }
-
-                if ((animationRunId !== animationRunIdRef.current) && (filteredAnimationQueue.length > 1)) {
-                    console.log("Removing duplicate animation")
-                    return;
-                }                            
+            } catch (error) {
+                console.error('Error fetching movie frame:', error);
             }
+
+            if ((animationRunId !== animationRunIdRef.current) && (filteredAnimationQueue.length > 1)) {
+                console.log("Removing duplicate animation")
+                return;
+            }            
         }
 
         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
@@ -3008,34 +3003,67 @@ export default function GamePage() {
     }
 
     const getMovie = (playAnimations) => {
-        fetch(`${URL}/api/movie/${gameId}?player_num=${playerNum}`)
+        if (!playAnimations) {
+            fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
+
             .then(response => response.json())
             .then(data => {
-                if (data.animation_frames) {
-                    let newGameState = data.animation_frames[data.animation_frames.length - 1].game_state;
-                    
-                    setFrameNum(data.animation_frames.length - 1);
-
-                    if (playAnimations) {
-                        transitionEngineState(EngineStates.ANIMATING)
-                        triggerAnimations(newGameState, data.animation_frames, true);
-                    }
-                    else {
-                        if (turnNum !== 1 && data.turn_num !== turnNum) {
-                        } else {
-                            setGameState(newGameState);
-                        }
-                    }
-
-                    setSelectedCity(null);
+                if (data.animation_frame && !(turnNum !== 1 && data.turn_num !== turnNum)) {
+                    setFrameNum(data.animation_frame.frame_num);
+                    setGameState(data.animation_frame.game_state);
                 }
                 if (data.turn_num) {
                     setTurnNum(data.turn_num);
                 }
-                if (data.players) {
-                    setPlayersInGame(data.players);
-                }                
+                
+            })
+            .catch(error => {
+                console.error('Error fetching movie frame:', error);
             });
+        }
+        else {
+            fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
+
+                .then(response => response.json())
+                .then(data => {
+                    const numFrames = data.num_frames;
+
+                    transitionEngineState(EngineStates.ANIMATING)
+                    triggerAnimations(data.animation_frame, numFrames);
+                })
+                .catch(error => {
+                    console.error('Error fetching movie frame:', error);
+                });
+        }
+
+        // fetch(`${URL}/api/movie/${gameId}?player_num=${playerNum}`)
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         if (data.animation_frames) {
+        //             let newGameState = data.animation_frames[data.animation_frames.length - 1].game_state;
+                    
+        //             setFrameNum(data.animation_frames.length - 1);
+
+        //             if (playAnimations) {
+        //                 transitionEngineState(EngineStates.ANIMATING)
+        //                 triggerAnimations(newGameState, data.animation_frames, true);
+        //             }
+        //             else {
+        //                 if (turnNum !== 1 && data.turn_num !== turnNum) {
+        //                 } else {
+        //                     setGameState(newGameState);
+        //                 }
+        //             }
+
+        //             setSelectedCity(null);
+        //         }
+        //         if (data.turn_num) {
+        //             setTurnNum(data.turn_num);
+        //         }
+        //         if (data.players) {
+        //             setPlayersInGame(data.players);
+        //         }                
+        //     });
     }
 
     useEffect(() => {
