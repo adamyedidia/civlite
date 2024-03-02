@@ -516,6 +516,30 @@ export default function GamePage() {
         };
     }, []);
     
+
+    // Center the map on initial load
+    const hasRunCenterRef = React.useRef(false);
+    useEffect(() => {
+        // Don't run if we've already run.
+        if (!gameState || hasRunCenterRef.current) return;
+
+        // Scroll to the middle of the map at start
+        const centerCoords = "0,0,0";
+        const hexRef = hexRefs.current[centerCoords].current;
+
+        const hexGridRect = hexRef.getBoundingClientRect();
+        const hexGridCenterX = hexGridRect.left + (hexGridRect.width / 2);
+        const hexGridCenterY = hexGridRect.top + (hexGridRect.height / 2);
+
+        // Calculate the window's center position
+        const windowCenterX = window.innerWidth / 2;
+        const windowCenterY = window.innerHeight / 2;
+
+        // Scroll to the HexGrid's center
+        window.scrollTo(hexGridCenterX - windowCenterX, hexGridCenterY - windowCenterY);
+        hasRunCenterRef.current = true;
+    }, [gameState]);
+
     const handleContextMenu = (e) => {
         if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
             e.preventDefault();
