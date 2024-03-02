@@ -485,11 +485,34 @@ export default function GamePage() {
         }
     };
 
+    const disableBigWheel = (event) => {
+        // Function to check if the target or any parent has overflow-y: auto
+        const hasOverflowingAutoY = (target) => {
+            while (target && target !== document) {
+                const overflowY = window.getComputedStyle(target).overflowY;
+                const isOverflowing = target.scrollHeight > target.clientHeight;
+                if (overflowY === 'auto' && isOverflowing) {
+                    return true;
+                }
+                target = target.parentNode;
+            }
+            return false;
+        };
+
+        // Only prevent default if the target is not within an element that has overflow-y: auto
+        if (!hasOverflowingAutoY(event.target)) {
+            event.preventDefault();
+        }
+    }
+
     useEffect(() => {
         window.addEventListener('wheel', handleWheel, { passive: false });
 
+        window.addEventListener('wheel', disableBigWheel, { passive: false });
+
         return () => {
             window.removeEventListener('wheel', handleWheel);
+            window.removeEventListener('wheel', disableBigWheel);
         };
     }, []);
     

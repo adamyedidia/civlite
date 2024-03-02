@@ -240,14 +240,15 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             <div className="city-detail-columns">
             <div className="city-detail-column">
                 <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus}>
-                    {selectedCityBuildingChoices && (
+                    {selectedCityBuildingChoices && (<>
                         <div className="building-choices-container">
                             <BriefBuildingDisplayTitle title="Building Choices" />
                             {selectedCityBuildingChoices.map((buildingName, index) => (
                                 <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
                             ))}
                         </div>
-                    )}
+                        <div className="building-choices-placeholder"/>
+                    </>)}
                     {selectedCityBuildingQueue && (
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
