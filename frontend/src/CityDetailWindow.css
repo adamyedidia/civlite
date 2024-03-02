@@ -88,6 +88,7 @@
     padding: 5px;
     border-bottom-left-radius: 20px;
     border-bottom-right-radius: 20px;
+    position: relative;
 }
 
 .wood-area .panel-content {
@@ -142,11 +143,31 @@
   align-items: center;
   /* gap: 5px; */
   /* transform: translate(-50%, -50%); */
-  max-height: 27%; /* Adjust as needed */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
   margin-bottom: 50px;
   max-height: 300px;
+}
+
+.building-choices-container:hover {
+    background-color: #fffff0;
+    max-height: 800px;
+    transition: background-color 0.3s;
+    max-height: none;
+    z-index: 1;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+}
+.building-choices-placeholder {
+    height: 0;
+    visibility: hidden;
+}
+.building-choices-container:hover + .building-choices-placeholder {
+    height: 350px; /* Adjust based on the actual height of .building-choices-container */
+    visibility: visible;
 }
 
 .building-queue-container {
