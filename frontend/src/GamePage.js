@@ -466,16 +466,16 @@ export default function GamePage() {
         const hexGridElement = document.getElementsByClassName('grid')[0];
 
         if (hexGridElement && hexGridElement.contains(event.target)) {
-
             event.preventDefault();
             const zoomFactor = 0.01;
+            const minScale = 0.5; // Minimum scale limit
             if (!hexGridElement) return;
-
+    
             let newScale = parseFloat(hexGridElement.style.transform.replace('scale(', '').replace(')', '')) || 1;
             if (event.deltaY < 0) {
                 newScale += zoomFactor;
             } else {
-                newScale -= zoomFactor;
+                newScale = Math.max(minScale, newScale - zoomFactor); // Ensure newScale does not go below minScale
             }
             hexGridElement.style.transform = `scale(${newScale})`;
         }
