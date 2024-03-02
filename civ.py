@@ -96,7 +96,7 @@ class Civ:
         self.get_new_tech_choices()
 
     def get_new_tech_choices(self):
-        print(f"getting new techs for {self.moniker()}. Ren is in status {self.techs_status['Renaissance']}")
+        print(f"getting new techs for {self.moniker()}.")
         tech_level = len(self.researched_techs)
         max_advancement_level = 1 + tech_level // 3
 
@@ -250,9 +250,9 @@ class Civ:
             for tech_name, status in self.techs_status.items():
                 if status == TechStatus.DISCARDED:
                     self.techs_status[tech_name] = TechStatus.UNAVAILABLE
-            self.game_player.score_from_renaissances += 15
-            self.game_player.score += 15
             if self.game_player is not None:
+                self.game_player.score_from_researching_techs += 15
+                self.game_player.score += 15
                 self.game_player.renaissances += 1
         else:
             self.science -= tech.cost
