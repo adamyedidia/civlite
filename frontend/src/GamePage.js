@@ -49,7 +49,7 @@ const coordsToObject = (coords) => {
     return {q: q, r: r, s: s};
 }
 
-const ANIMATION_DELAY = 400;
+const ANIMATION_DELAY = 300;
 
 let userHasInteracted = false;
 
@@ -418,26 +418,27 @@ export default function GamePage() {
 
             const scroll = (offsetX, offsetY) => window.scrollBy({ top: offsetY, left: offsetX, behavior: 'smooth' });
 
+            const scrollAmount = 100
             switch (event.key) {
                 case 'w':
                 case 'W':
-                    scroll(0, -50);
-                    scrollIntervalId = setInterval(() => scroll(0, -50), interval);
+                    scroll(0, -scrollAmount);
+                    scrollIntervalId = setInterval(() => scroll(0, -scrollAmount), interval);
                     break;
                 case 's':
                 case 'S':
-                    scroll(0, 50);
-                    scrollIntervalId = setInterval(() => scroll(0, 50), interval);
+                    scroll(0, scrollAmount);
+                    scrollIntervalId = setInterval(() => scroll(0, scrollAmount), interval);
                     break;
                 case 'a':
                 case 'A':
-                    scroll(-50, 0);
-                    scrollIntervalId = setInterval(() => scroll(-50, 0), interval);
+                    scroll(-scrollAmount, 0);
+                    scrollIntervalId = setInterval(() => scroll(-scrollAmount, 0), interval);
                     break;
                 case 'd':
                 case 'D':
-                    scroll(50, 0);
-                    scrollIntervalId = setInterval(() => scroll(50, 0), interval);
+                    scroll(scrollAmount, 0);
+                    scrollIntervalId = setInterval(() => scroll(scrollAmount, 0), interval);
                     break;
             }
         };
@@ -467,7 +468,7 @@ export default function GamePage() {
         if (hexGridElement && hexGridElement.contains(event.target)) {
 
             event.preventDefault();
-            const zoomFactor = 0.1;
+            const zoomFactor = 0.01;
             if (!hexGridElement) return;
 
             let newScale = parseFloat(hexGridElement.style.transform.replace('scale(', '').replace(')', '')) || 1;
@@ -2138,7 +2139,7 @@ export default function GamePage() {
         }
     }
 
-    const triggerAnimations = async (finalGameState, animationQueue, doNotNotifyBackendOnCompletion) => {
+    const triggerAnimations = async (finalGameState, numFrames) => {
         const animationRunId = generateUniqueId();
 
         console.log(`animating! ${animationRunId}`);
@@ -2150,52 +2151,43 @@ export default function GamePage() {
 
         setAnimationRunIdUseState(animationRunId);
 
-        const cases = ['UnitMovement', 'UnitAttack'];
-        const filteredAnimationQueue = animationQueue.filter((animationEvent) => cases.includes(animationEvent?.data?.type));        
+        const animationDelay = Math.min(ANIMATION_DELAY, 20000 / numFrames);
 
-        const numFramesToPlay = filteredAnimationQueue.length;
-        const animationDelay = Math.min(ANIMATION_DELAY, 30000 / numFramesToPlay);
-
-        for (let event of animationQueue) {
-            // console.log(event);
-
-            const newState = event?.game_state;
-
-            if (newState) {
-                switch (event?.data?.type) {
+        for (let i = 0; i < numFrames; i++) {
+            try {
+                const response = await fetch(`${URL}/api/movie/frame/${gameId}/${i}?player_num=${playerNum}`);
+                const json = await response.json();
+                switch (json.data.type) {
                     case 'UnitMovement':
                         await new Promise((resolve) => setTimeout(resolve, animationDelay));
                         playMoveSound(moveSound, volume);
-                        showMovementArrows(event.data.coords);
-                        setGameState(newState);         
-                        break;           
+                        showMovementArrows(json.data.coords);
+                        setGameState(json.game_state);
+                        break;
+    
                     case 'UnitAttack':
                         await new Promise((resolve) => setTimeout(resolve, animationDelay));
-                        if (event.data.attack_type === 'melee') {
+                        if (json.data.attack_type === 'melee') {
                             playMeleeAttackSound(meleeAttackSound, volume);
-                        } else if (event.data.attack_type === 'ranged') {
+                        } else if (json.data.attack_type === 'ranged') {
                             playRangedAttackSound(rangedAttackSound, volume);
-                        } else if (event.data.attack_type === 'gunpowder_melee') {
+                        } else if (json.data.attack_type === 'gunpowder_melee') {
                             playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
-                        } else if (event.data.attack_type === 'gunpowder_ranged') {
+                        } else if (json.data.attack_type === 'gunpowder_ranged') {
                             playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
                         }
-                        showSingleMovementArrow(event.data.start_coords, event.data.end_coords, 'attack');
-                        setGameState(newState);
+                        showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
+                        setGameState(json.game_state);
                         break;
-                    // case 'UnitSpawn':
-                    //     await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
-                    //     playSpawnSound(spawnSound, volume);
-                    //     setGameState(newState);
-                    //     break;
-                    
                 }
-
-                if ((animationRunId !== animationRunIdRef.current) && (filteredAnimationQueue.length > 1)) {
-                    console.log("Removing duplicate animation")
-                    return;
-                }                            
+            } catch (error) {
+                console.error('Error fetching movie frame:', error);
             }
+
+            if ((animationRunId !== animationRunIdRef.current) && (numFrames > 1)) {
+                console.log("Removing duplicate animation")
+                return;
+            }            
         }
 
         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
@@ -3008,34 +3000,39 @@ export default function GamePage() {
     }
 
     const getMovie = (playAnimations) => {
-        fetch(`${URL}/api/movie/${gameId}?player_num=${playerNum}`)
+        console.log(playAnimations);
+
+        if (!playAnimations) {
+            fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
+
             .then(response => response.json())
             .then(data => {
-                if (data.animation_frames) {
-                    let newGameState = data.animation_frames[data.animation_frames.length - 1].game_state;
-                    
-                    setFrameNum(data.animation_frames.length - 1);
-
-                    if (playAnimations) {
-                        transitionEngineState(EngineStates.ANIMATING)
-                        triggerAnimations(newGameState, data.animation_frames, true);
-                    }
-                    else {
-                        if (turnNum !== 1 && data.turn_num !== turnNum) {
-                        } else {
-                            setGameState(newGameState);
-                        }
-                    }
-
-                    setSelectedCity(null);
+                if (data.game_state && !(turnNum !== 1 && data.turn_num !== turnNum)) {
+                    setGameState(data.game_state);
                 }
                 if (data.turn_num) {
                     setTurnNum(data.turn_num);
                 }
-                if (data.players) {
-                    setPlayersInGame(data.players);
-                }                
+                
+            })
+            .catch(error => {
+                console.error('Error fetching movie frame:', error);
             });
+        }
+        else {
+            fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
+
+                .then(response => response.json())
+                .then(data => {
+                    const numFrames = data.num_frames;
+
+                    transitionEngineState(EngineStates.ANIMATING)
+                    triggerAnimations(data.game_state, numFrames);
+                })
+                .catch(error => {
+                    console.error('Error fetching movie frame:', error);
+                });
+        }
     }
 
     useEffect(() => {

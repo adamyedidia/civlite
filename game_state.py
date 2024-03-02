@@ -786,6 +786,10 @@ class GameState:
             self.add_announcement(f'{civ.moniker()} built the {building_template.name}!')
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:
+        if data['type'] not in ['UnitAttack', 'UnitMovement', 'StartOfNewTurn']:
+            # Get rid of this when we handle other animations
+            return
+
         if civ is not None and (game_player := civ.game_player) is not None:
             highest_existing_frame_num = self.highest_existing_frame_num_by_civ_id[civ.id]
 
