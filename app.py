@@ -357,6 +357,9 @@ def _launch_game_inner(sess, game: Game) -> None:
             game_state=game_state.to_json(from_civ_perspectives=starting_civs_for_players[player.player_num]),
         )
 
+        rset_json(f'dream_game_state:{game_id}:{player.player_num}', game_state.to_json())
+        rset_json(f'dream_game_state_from_civ_perspectives:{game_id}:{player.player_num}', [civ.id for civ in starting_civs_for_players[player.player_num]])
+
         sess.add(animation_frame)
 
     game.launched = True  # type: ignore
@@ -557,7 +560,7 @@ def get_most_recent_state(sess, game_id):
                     game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
     return jsonify({
-        'animation_frame': [{'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},}, 'data': {}}] if game_state_json else [], 
+        'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},} if game_state_json else {},
         'turn_num': turn_num,
         'num_frames': num_animation_frames_for_player,
     })
