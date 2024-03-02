@@ -461,6 +461,28 @@ export default function GamePage() {
         };
     }, []); // Empty dependency array ensures this effect runs only once after the initial render
 
+    const handleWheel = (event) => {
+        event.preventDefault();
+        const zoomFactor = 0.1;
+        const hexGridElement = document.getElementsByClassName('grid')[0];
+        if (!hexGridElement) return;
+
+        let newScale = parseFloat(hexGridElement.style.transform.replace('scale(', '').replace(')', '')) || 1;
+        if (event.deltaY < 0) {
+            newScale += zoomFactor;
+        } else {
+            newScale -= zoomFactor;
+        }
+        hexGridElement.style.transform = `scale(${newScale})`;
+    };
+
+    useEffect(() => {
+        window.addEventListener('wheel', handleWheel, { passive: false });
+
+        return () => {
+            window.removeEventListener('wheel', handleWheel);
+        };
+    }, []);
     
     const handleContextMenu = (e) => {
         if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
