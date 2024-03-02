@@ -243,7 +243,9 @@ export default function GamePage() {
     const [engineState, setEngineState] = useState(EngineStates.PLAYING);
     // Ref to keep track of the current engineState
     const engineStateRef = React.useRef(engineState);
-    
+
+    const [animationFrame, setAnimationFrame] = useState(null);
+
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
     const [frameNum, setFrameNum] = useState(0);
@@ -2190,6 +2192,52 @@ export default function GamePage() {
         }
     }
 
+    const playAnimationFrame = async (frameNum, animationDelay) => {
+        try {
+            const timer = new Promise((resolve) => setTimeout(resolve, animationDelay));
+            const response = await fetch(`${URL}/api/movie/frame/${gameId}/${frameNum}?player_num=${playerNum}`);
+            const json = await response.json();
+            await timer;
+            if (!json.data) {
+                console.error("No data in frame", frameNum);
+                return;
+            }
+            switch (json.data.type) {
+                case 'UnitMovement':
+                    playMoveSound(moveSound, volume);
+                    showMovementArrows(json.data.coords);
+                    setGameState(json.game_state);
+                    break;
+
+                case 'UnitAttack':
+                    if (json.data.attack_type === 'melee') {
+                        playMeleeAttackSound(meleeAttackSound, volume);
+                    } else if (json.data.attack_type === 'ranged') {
+                        playRangedAttackSound(rangedAttackSound, volume);
+                    } else if (json.data.attack_type === 'gunpowder_melee') {
+                        playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
+                    } else if (json.data.attack_type === 'gunpowder_ranged') {
+                        playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
+                    }
+                    showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
+                    setGameState(json.game_state);
+                    break;
+            }
+        } catch (error) {
+            console.error('Error fetching movie frame:', error);
+        }
+    }
+
+    useEffect(() => {
+        if (!animationFrame) {return;}
+        if (engineState !== EngineStates.ANIMATING) {
+            console.log("Canceling animation");
+            setAnimationFrame(null);
+            return;
+        }
+        next_frame_timer = setTimeout(() => setAnimationFrame(animationFrame + 1), ANIMATION_DELAY);
+    }, [animationFrame, engineState])
+
     const triggerAnimations = async (finalGameState, numFrames) => {
         const animationRunId = generateUniqueId();
 
@@ -2205,35 +2253,7 @@ export default function GamePage() {
         const animationDelay = Math.min(ANIMATION_DELAY, 20000 / numFrames);
 
         for (let i = 0; i < numFrames; i++) {
-            try {
-                const response = await fetch(`${URL}/api/movie/frame/${gameId}/${i}?player_num=${playerNum}`);
-                const json = await response.json();
-                switch (json.data.type) {
-                    case 'UnitMovement':
-                        await new Promise((resolve) => setTimeout(resolve, animationDelay));
-                        playMoveSound(moveSound, volume);
-                        showMovementArrows(json.data.coords);
-                        setGameState(json.game_state);
-                        break;
-    
-                    case 'UnitAttack':
-                        await new Promise((resolve) => setTimeout(resolve, animationDelay));
-                        if (json.data.attack_type === 'melee') {
-                            playMeleeAttackSound(meleeAttackSound, volume);
-                        } else if (json.data.attack_type === 'ranged') {
-                            playRangedAttackSound(rangedAttackSound, volume);
-                        } else if (json.data.attack_type === 'gunpowder_melee') {
-                            playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
-                        } else if (json.data.attack_type === 'gunpowder_ranged') {
-                            playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
-                        }
-                        showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
-                        setGameState(json.game_state);
-                        break;
-                }
-            } catch (error) {
-                console.error('Error fetching movie frame:', error);
-            }
+            await playAnimationFrame(i, animationDelay);
 
             if ((animationRunId !== animationRunIdRef.current) && (numFrames > 1)) {
                 console.log("Removing duplicate animation")
@@ -3053,8 +3073,6 @@ export default function GamePage() {
     }
 
     const getMovie = (playAnimations) => {
-        console.log(playAnimations);
-
         if (!playAnimations) {
             fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
 
