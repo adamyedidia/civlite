@@ -23,6 +23,7 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
                     {engineState === EngineStates.PLAYING && 
                         (gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : gameState?.special_mode_by_player_num?.[playerNum] === "choose_decline_option" ? "End turn (mulligan)" : "End turn")
                     }
+                    {engineState === EngineStates.GAME_OVER && "Game Over" }
                     {engineState === EngineStates.ROLLING && <>
                         <CircularProgress size={24} />
                         <p style={{fontSize: "0.5em"}}>Waiting for server</p>
