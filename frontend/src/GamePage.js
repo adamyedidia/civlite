@@ -197,7 +197,10 @@ function GameOverDialog({open, onClose, gameState}) {
     return (
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>
-                <Typography variant="h2">Game over</Typography>
+                <Typography variant="h2" component="div">  
+                    {/* component="div" removes an html error complaining of nested h2s */}
+                    Game over
+                </Typography>
             </DialogTitle>
             <DialogContent>
                 <Grid container direction="column" spacing={2}>
@@ -351,6 +354,7 @@ export default function GamePage() {
 
     useEffect(() => {
         if (gameState?.game_over) {
+            transitionEngineState(EngineStates.GAME_OVER);
             setGameOverDialogOpen(true);
         }
     }, [gameState?.game_over]);
@@ -2838,7 +2842,7 @@ export default function GamePage() {
                         gameState={gameState}
                         gameId={gameId}
                         playerNum={playerNum}
-                        timerMuted={timerMutedOnTurn === turnNum || gameState.game_over}
+                        timerMuted={timerMutedOnTurn === turnNum || engineState === EngineStates.GAME_OVER}
                         turnEndedByPlayerNum={turnEndedByPlayerNum}
                         isHoveredHex={!!hoveredHex}
                         handleClickEndTurn={handleClickEndTurn}
@@ -2903,7 +2907,7 @@ export default function GamePage() {
                         </div>}
                     </div>
                     {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons}/>}
-                    {engineState === EngineStates.PLAYING && <div style={{
+                    {<div style={{
                         position: 'fixed', 
                         bottom: '10px', 
                         left: '50%', 
@@ -2913,7 +2917,7 @@ export default function GamePage() {
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
-                        {gameState?.special_mode_by_player_num?.[playerNum] && selectedCity && <Button
+                        {engineState === EngineStates.PLAYING && gameState?.special_mode_by_player_num?.[playerNum] && selectedCity && <Button
                             style={{
                                 backgroundColor: "#ccffaa",
                                 color: "black",
@@ -2928,7 +2932,7 @@ export default function GamePage() {
                         >
                             Make {selectedCity.name} my capital
                         </Button>}
-                        {gameState?.game_over && !gameOverDialogOpen && <Button
+                        {engineState === EngineStates.GAME_OVER && !gameOverDialogOpen && <Button
                             style={{
                                 backgroundColor: "#ccccff",
                                 color: "black",
