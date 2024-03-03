@@ -72,7 +72,7 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
     </CivDetailPanel>
 };
 
-const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disableUI }) => {
+const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disableUI, toggleDeclineView, declineViewGameState}) => {
     const newCivPercentage = Math.round((2.0 + turnNum * 0.1) * 100);
 
 
@@ -92,7 +92,18 @@ const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disa
         }
     };
 
+    const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.civ_to_revolt_into !== null);
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
+        <Button className="toggle-decline-view" onClick={toggleDeclineView}>
+            Toggle Decline View
+        </Button>
+        {citiesReadyForRevolt.length > 0 && <div className="cities-ready-for-revolt">
+            {citiesReadyForRevolt.map((city, index) => (
+                <div key={index} className="city-name">
+                    {city.name}
+                </div>
+            ))}
+        </div>}
         <div className={`decline-button ${disableUI ? "" : "enabled"}`} onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={() => {if (!disableUI) setConfirmEnterDecline(true);}}>
             <span> Decline </span>
             <div id="decline-button-vitality">
@@ -174,12 +185,12 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setTechChoic
     </CivDetailPanel>
 }
 
-const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, civTemplates, setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, turnNum }) => {
+const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, civTemplates, setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, turnNum, toggleDeclineView, declineViewGameState }) => {
     return (
         <div className="upper-right-display">
             {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setTechChoices={setTechChoices} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
-            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI}/>}
+            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI} toggleDeclineView={toggleDeclineView} declineViewGameState={declineViewGameState}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
         </div>
     );

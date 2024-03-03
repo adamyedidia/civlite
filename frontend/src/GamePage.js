@@ -283,7 +283,12 @@ export default function GamePage() {
 
     const [animationRunIdUseState, setAnimationRunIdUseState] = useState(null);
 
+    // TODO(dfarhi) combine thes flags into one state flag rather than several bools.
     const [foundingCity, setFoundingCity] = useState(false);
+    const [declineOptionsView, setDeclineOptionsView] = useState(false);
+
+    const [declineViewGameState, setDeclineViewGameState] = useState(null);
+    const [nonDeclineViewGameState, setNonDeclineViewGameState] = useState(null);  // My real game state, for if I cancel decline view
 
     const [confirmEnterDecline, setConfirmEnterDecline] = useState(false);
 
@@ -2055,6 +2060,33 @@ export default function GamePage() {
         setFoundingCity(!foundingCity);
     }
 
+    const fetchDeclineViewGameState = async () => {
+        setDeclineViewGameState(null);
+        console.log("Fetching decline state.");
+        const response = await fetch(`${URL}/api/decline_view/${gameId}`);
+        const data = await response.json();
+        setDeclineViewGameState(data.game_state);
+        console.log("Fetched: ", declineViewGameState);
+    }
+
+    useEffect(() => {
+        if (!declineViewGameState) {
+            console.error("Decline view game state not fetched yet.");
+            return;
+        }
+        if (declineOptionsView) {
+            setNonDeclineViewGameState(gameState);
+            setGameState(declineViewGameState);
+        } else {
+            // If we are toggling back from the decline view
+            setGameState(nonDeclineViewGameState);
+        }
+    }, [declineOptionsView])
+
+    const toggleDeclineView = () => {
+        setDeclineOptionsView(prevDeclineOptionsView => !prevDeclineOptionsView);
+    };
+
     useEffect(() => {
         if (engineState === EngineStates.PLAYING && myCiv && !myCiv?.researching_tech_name && !gameState?.special_mode_by_player_num?.[playerNum]) {
             setTechChoices(myCiv.current_tech_choices);
@@ -2929,6 +2961,8 @@ export default function GamePage() {
                         setConfirmEnterDecline={setConfirmEnterDeclineIfAllowed}
                         disableUI={engineState !== EngineStates.PLAYING}
                         turnNum={turnNum}
+                        toggleDeclineView={toggleDeclineView}
+                        declineViewGameState={declineViewGameState}
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
@@ -3103,9 +3137,11 @@ export default function GamePage() {
     useEffect(() => {
         socket.emit('join', { room: gameId, username: username });
         fetchGameState();
+        fetchDeclineViewGameState();
         socket.on('update', () => {
           console.log('update received')
           if (gameStateExistsRef.current) {
+            fetchDeclineViewGameState();
             getMovie(true);
           }
           else {

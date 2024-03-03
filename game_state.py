@@ -905,6 +905,7 @@ class GameState:
             "game_id": self.game_id,
             "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
             "civs_by_id": {civ_id: civ.to_json() for civ_id, civ in self.civs_by_id.items()},
+            "cities_by_id": {city_id: city.to_json() for city_id, city in self.cities_by_id.items()},
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
             "turn_num": self.turn_num,
             "wonders_built_to_civ_id": self.wonders_built_to_civ_id.copy(),
@@ -932,6 +933,7 @@ class GameState:
         game_state = GameState(game_id=json["game_id"], hexes=hexes)
         game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}        
         game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs_by_id"].items()}
+        # game_state.cities_by_id set from the other entries, to ensure references are all good.
         game_state.barbarians = [civ for civ in game_state.civs_by_id.values() if civ.template.name == 'Barbarians'][0]
         game_state.advancement_level = json["advancement_level"]
         for civ in game_state.civs_by_id.values():
