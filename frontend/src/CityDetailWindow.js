@@ -81,7 +81,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     setHoveredUnit, setHoveredBuilding, setSelectedCity
      }) => {
 
-    const [isBuildingListExpanded, setIsBuildingListExpanded] = useState(false);
+    const [isBuildingListExpanded, setIsBuildingListExpanded] = useState(declinePreviewMode);
 
 
     const handleClickClose = () => {
@@ -250,8 +250,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             </div>
             <div className="city-detail-columns">
             <div className="city-detail-column">
-                <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus}>
-                    {selectedCityBuildingChoices && (<>
+                <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
+                    {selectedCityBuildingChoices && !declinePreviewMode && (<>
                         <div className="building-choices-container">
                             <BriefBuildingDisplayTitle title="Building Choices" />
                             {selectedCityBuildingChoices.map((buildingName, index) => (
@@ -260,7 +260,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         </div>
                         <div className="building-choices-placeholder"/>
                     </>)}
-                    {selectedCityBuildingQueue && (
+                    {selectedCityBuildingQueue && !declinePreviewMode &&  (
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCityBuildingQueue.map((buildingName, index) => (
@@ -290,7 +290,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                 </CityDetailPanel>
             </div>
             <div className="city-detail-column">
-                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced this turn.z" handleClickFocus={handleClickFocus}>
+                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced this turn.z" handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     <div className='growth-area'>
                         <TextOnIcon image={workerImg}>
                             +
@@ -298,7 +298,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         <ProgressBar darkPercent={foodProgressStoredDisplay} lightPercent={foodProgressProducedDisplay} barText={`${Math.floor(selectedCity.food)} + ${Math.floor(projectedIncome['food'])} / ${selectedCity.growth_cost}`}/>
                     </div>
                     <div className="food-divider-line"/>
-                    <div className="unhappiness-area">
+                    {!declinePreviewMode && <div className="unhappiness-area">
                         <div className="unhappiness-current">
                             <img src={happinessIcon} height="30px"/>
                             <span className="unhappiness-value">{selectedCity.unhappiness}</span>
@@ -308,7 +308,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                                 +{Math.floor(Math.abs(projectedIncome['food'] - foodDemanded))}
                                 <img src={projectedIncome['food'] >= foodDemanded ? cityImg : sadImg} height="30px"/>
                             </div>
-                            <table className="unhappiness-bars">
+                            <table className="unhappiness-bars"><tbody>
                                 <tr>
                                     <td>
                                         {Math.floor(projectedIncome['food'])} Income
@@ -333,21 +333,21 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                                         </div>
                                     </td>
                                 </tr>
-                            </table>
+                            </tbody></table>
                         </div>
-                    </div>
+                    </div>}
                 </CityDetailPanel>
-                <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus}>
+                <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                 </CityDetailPanel>
-                <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus}>
+                <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCityUnitChoices && (
                         <div className="unit-choices-container">
                             {selectedCityUnitChoices.map((unitName, index) => (
-                                <UnitQueueOption key={index} unitName={unitName} isCurrentIQUnit={selectedCity.infinite_queue_unit === unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue}/>
+                                <UnitQueueOption key={index} unitName={unitName} isCurrentIQUnit={!declinePreviewMode && selectedCity.infinite_queue_unit === unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue}/>
                             ))}
                         </div>
                     )}
-                    <div>
+                    {!declinePreviewMode && <div>
                         <h2> Producing This Turn </h2>
                         <div className="unit-queue-container">
                             {Array.from({ length: unitQueueNumber }).map((_, index) => (
@@ -356,7 +356,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </div>}
                 </CityDetailPanel>
             </div>
             </div>

@@ -2373,6 +2373,9 @@ export default function GamePage() {
         // if (gameState?.special_mode_by_player_num[playerNum]) {
         //     return true;
         // }
+        if (declineOptionsView) {
+            return city?.capital;
+        }
         if (playerNum !== null && playerNum !== undefined) {
             return city?.civ?.game_player?.player_num === playerNum
         }

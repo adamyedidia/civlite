@@ -29,7 +29,7 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
     const projected_income_total = selectedCity[`projected_income`][title];
     const projected_income_base = selectedCity['projected_income_base'][title];
     const projected_income_focus = selectedCity['projected_income_focus'][title];
-    const projected_total = (hideStored ? 0 : storedAmount) + projected_income_total;
+    const projected_total = (hideStored ? 0 : storedAmount) + (noFocus ? projected_income_base : projected_income_total);
     const projected_total_rounded = Math.floor(projected_total);
     const projected_total_display = `${hideStored ? "+" : ""}${projected_total_rounded}`;
 

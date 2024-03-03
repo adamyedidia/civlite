@@ -285,6 +285,7 @@ class GameState:
             hex.city = city
             self.cities_by_id[city_id] = city
             city.populate_terrains_dict(self)
+            city.midturn_update(self)
         else:
             hex.city.civ = new_civ
         hex.city.capitalize(self)
