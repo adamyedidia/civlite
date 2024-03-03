@@ -7,6 +7,11 @@ import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
 import scienceImg from './images/science.png';
+import happyImg from './images/happyface.png';
+import neutralImg from './images/neutralface.png';
+import sadImg from './images/sadface.png';
+import cityImg from './images/city.png';
+
 
 import workerImg from './images/worker.png';
 import { CityDetailPanel } from './CityDetailPanel.js';
@@ -217,6 +222,12 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100));
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay);
 
+    const foodDemanded = 2 * selectedCity.population;  // TODO(keep this in sync with backend)
+    const incomeExceedsDemand = projectedIncome['food'] >= foodDemanded;
+    const happinessIcon = (incomeExceedsDemand && selectedCity.unhappiness == 0) ? happyImg : (!incomeExceedsDemand && selectedCity.unhappiness == 0) ? neutralImg : sadImg;
+    const unhappinessBarsMaxWidth = 180;
+    const unhappinessBarsWidthPerUnit = Math.min(10, unhappinessBarsMaxWidth/foodDemanded, unhappinessBarsMaxWidth/projectedIncome['food']);
+    
     const metalAvailable = selectedCity.metal + projectedIncome['metal'];
     const woodAvailable = selectedCity.wood + projectedIncome['wood'];
 
@@ -279,11 +290,54 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                 </CityDetailPanel>
             </div>
             <div className="city-detail-column">
-                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} total_tooltip="after this turn." handleClickFocus={handleClickFocus}>
-                    <ProgressBar darkPercent={foodProgressStoredDisplay} lightPercent={foodProgressProducedDisplay} barText={`${selectedCity.growth_cost} to grow`}/>
+                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced this turn.z" handleClickFocus={handleClickFocus}>
+                    <div className='growth-area'>
+                        <TextOnIcon image={workerImg}>
+                            +
+                        </TextOnIcon>
+                        <ProgressBar darkPercent={foodProgressStoredDisplay} lightPercent={foodProgressProducedDisplay} barText={`${Math.floor(selectedCity.food)} + ${Math.floor(projectedIncome['food'])} / ${selectedCity.growth_cost}`}/>
+                    </div>
+                    <div className="food-divider-line"/>
+                    <div className="unhappiness-area">
+                        <div className="unhappiness-current">
+                            <img src={happinessIcon} height="30px"/>
+                            <span className="unhappiness-value">{selectedCity.unhappiness}</span>
+                        </div>
+                        <div className="unhappiness-income-area">
+                            <div className="unhappiness-income-value">
+                                +{Math.floor(Math.abs(projectedIncome['food'] - foodDemanded))}
+                                <img src={projectedIncome['food'] >= foodDemanded ? cityImg : sadImg} height="30px"/>
+                            </div>
+                            <table className="unhappiness-bars">
+                                <tr>
+                                    <td>
+                                        {Math.floor(projectedIncome['food'])} Income
+                                    </td>
+                                    <td>
+                                        <div className="bar income" style={{width: `${Math.floor(projectedIncome['food'] * unhappinessBarsWidthPerUnit)}px`}}>
+                                            {Array.from({ length: Math.floor(projectedIncome['food'])}).map((_, idx) => (
+                                                <div key={idx} className='bar-tick' style={{marginLeft: `${unhappinessBarsWidthPerUnit - 0.5}px`, marginRight: "-0.5px"}}></div>  // The -0.5 is the width of the tick
+                                            ))}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                <td>
+                                        {foodDemanded} Demand
+                                    </td>
+                                    <td>
+                                        <div className="bar demand" style={{width: `${Math.floor(foodDemanded * unhappinessBarsWidthPerUnit)}px`}}>
+                                            {Array.from({ length: Math.floor(foodDemanded) }).map((_, idx) => (
+                                                <div key={idx} className='bar-tick' style={{marginLeft: `${unhappinessBarsWidthPerUnit - 0.5}px`}}></div>  // The -0.5 is the width of the tick
+                                            ))}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
                 </CityDetailPanel>
-                <CityDetailPanel title='science' icon={scienceImg} hideStored='true' selectedCity={selectedCity} override_stored_amount={0} total_prefix="+" total_tooltip="produced by this city." handleClickFocus={handleClickFocus}>
-
+                <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus}>
                 </CityDetailPanel>
                 <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus}>
                     {selectedCityUnitChoices && (
