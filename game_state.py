@@ -683,11 +683,11 @@ class GameState:
                 self.game_over = True
                 break
 
-        self.add_animation_frame(sess, {
-            "type": "StartOfNewTurn",
-        })
+        # self.add_animation_frame(sess, {
+        #     "type": "StartOfNewTurn",
+        # })
 
-        sess.commit()
+        # sess.commit()
 
 
     def handle_unhappiness(self, sess) -> None:
@@ -727,16 +727,16 @@ class GameState:
 
 
         
-        # sess.add(AnimationFrame(
-        #     game_id=self.game_id,
-        #     turn_num=self.turn_num,
-        #     frame_num=0,
-        #     player_num=20,
-        #     is_decline=True,
-        #     game_state=self.to_json(),
-        # ))
+        sess.add(AnimationFrame(
+            game_id=self.game_id,
+            turn_num=self.turn_num,
+            frame_num=0,
+            player_num=20,
+            is_decline=True,
+            game_state=self.to_json(),
+        ))
 
-        # sess.commit()
+        sess.commit()
 
 
     def prepare_decline_choices(self) -> None:
