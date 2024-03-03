@@ -1,11 +1,11 @@
-from typing import Union
+from typing import Union, Optional
 
 from ability import Ability
 from abilities_list import ABILITIES, UNIT_ABILITIES
 from tech_templates_list import TECHS
 
 class UnitTemplate:
-    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[list[Union[str, list]]], type: str, prereq: str) -> None:
+    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[list[Union[str, list]]], type: str, prereq: Optional[str]) -> None:
         self.name = name
         self.building_name = building_name
         self.metal_cost = metal_cost
