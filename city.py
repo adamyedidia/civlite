@@ -598,6 +598,8 @@ class City:
         self.refresh_available_buildings()
         self.refresh_available_units()
 
+        self.under_siege_by_civ = None
+
         if civ.has_ability('IncreaseCapitalYields'):
             if self.hex:
                 self.hex.yields.increase(civ.numbers_of_ability('IncreaseCapitalYields')[0],
