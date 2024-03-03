@@ -12,7 +12,7 @@ from civ_template import CivTemplate
 from civ_templates_list import BARBARIAN_CIV, CIVS, ANCIENT_CIVS
 from game_player import GamePlayer
 from hex import Hex
-from map import generate_decline_locations
+from map import generate_decline_locations, is_valid_decline_location
 from redis_utils import rget_json, rlock, rset_json, rdel
 from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY
 from tech_template import TechTemplate
@@ -78,6 +78,8 @@ class GameState:
         self.turn_ended_by_player_num: dict[int, bool] = {}
         self.next_forced_roll_at: Optional[float] = None
         self.roll_id: Optional[str] = None
+
+        self.fresh_decline_location_coords: list[str] = []
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -665,7 +667,7 @@ class GameState:
 
         self.sync_advancement_level()
 
-        self.prepare_decline_choices()
+        self.handle_unhappiness(sess)
 
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
@@ -686,6 +688,55 @@ class GameState:
         })
 
         sess.commit()
+
+
+    def handle_unhappiness(self, sess) -> None:
+
+        fresh_decline_locations = [self.hexes[coord] for coord in self.fresh_decline_location_coords]
+
+        num_existing_fresh_decline_location_coords = len([hex for hex in fresh_decline_locations if is_valid_decline_location(hex, self.hexes, fresh_decline_locations)])
+
+        if num_existing_fresh_decline_location_coords < 3:
+            new_fresh_decline_locations = generate_decline_locations(self.hexes, max(3 - num_existing_fresh_decline_location_coords, 0))        
+
+            fresh_decline_locations = [*fresh_decline_locations, *new_fresh_decline_locations]
+        
+        num_fresh_decline_locations = len(fresh_decline_locations)
+
+        decline_choice_big_civ_pool = []
+
+        num_civs_to_sample = 3
+
+        advancement_level_to_use = max(self.advancement_level, 1)
+
+        civs_already_in_game = [civ.template.name for civ in self.civs_by_id.values()]
+
+        for min_advancement_level in range(advancement_level_to_use, -1, -1):
+            decline_choice_big_civ_pool = [civ['name'] for civ in ANCIENT_CIVS.values() 
+                                           if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level
+                                           and civ['name'] not in civs_already_in_game]
+
+            if len(decline_choice_big_civ_pool) >= num_civs_to_sample:
+                break
+
+
+        decline_choice_civ_pool = random.sample(decline_choice_big_civ_pool, num_civs_to_sample)
+
+
+        self.process_decline_option((fresh_decline_locations[0].coords, decline_choice_big_civ_pool[0], generate_unique_id()), self.game_player_by_player_num[0], [self.civs_by_id[list(self.civs_by_id.keys())[0]]])
+
+
+        
+        # sess.add(AnimationFrame(
+        #     game_id=self.game_id,
+        #     turn_num=self.turn_num,
+        #     frame_num=0,
+        #     player_num=20,
+        #     is_decline=True,
+        #     game_state=self.to_json(),
+        # ))
+
+        # sess.commit()
 
 
     def prepare_decline_choices(self) -> None:

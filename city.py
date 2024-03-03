@@ -180,8 +180,12 @@ class City:
         self.grow(game_state)
         self.build_units(sess, game_state)
         self.build_buildings(sess, game_state)
+        self.handle_unhappiness(game_state)
         self.handle_siege(sess, game_state)
         self.handle_cleanup()
+
+    def handle_unhappiness(self, game_state: 'GameState') -> None:
+        self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num + 0.035 * self.unhappiness
 
     def grow_inner(self, game_state: 'GameState') -> None:
         self.population += 1

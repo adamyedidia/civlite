@@ -1,4 +1,5 @@
 import random
+from typing import Optional
 from hex import Hex
 from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY
 from utils import coords_str, get_all_coords_up_to_n
@@ -90,24 +91,28 @@ def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
     return starting_locations
 
 
-def generate_decline_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
-    decline_locations = []
+def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], other_decline_locations: list[Hex]) -> bool:
+    too_close = False
+    if len([hex for hex in decline_location.get_neighbors(hexes) if not hex.city]) < 6:
+        too_close = True
+
+    for other_decline_location in other_decline_locations:
+        if other_decline_location.distance_to(decline_location) < 2:
+            too_close = True
+            break
+
+    return not too_close
+
+
+def generate_decline_locations(hexes: dict[str, Hex], n: int, existing_decline_locations: Optional[list[Hex]] = None) -> list[Hex]:
+    decline_locations = existing_decline_locations or []
 
     num_attempts = 0
 
     while len(decline_locations) < n and num_attempts < 1000:
         decline_location = random.choice(list(hexes.values()))
 
-        too_close = False
-        if len([hex for hex in decline_location.get_neighbors(hexes) if not hex.city]) < 6:
-            too_close = True
-
-        for other_decline_location in decline_locations:
-            if other_decline_location.distance_to(decline_location) < 2:
-                too_close = True
-                break
-
-        if not too_close:
+        if is_valid_decline_location(decline_location, hexes, decline_locations):
             decline_locations.append(decline_location)
         
         num_attempts += 1

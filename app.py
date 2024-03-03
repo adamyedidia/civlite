@@ -67,7 +67,7 @@ def recurse_to_json(obj):
 def broadcast(game_id):
     socketio.emit(
         'update', 
-        room=game_id,
+        room=game_id,  # type: ignore
     )
 
 
@@ -269,7 +269,7 @@ def add_bot_to_game(sess, game_id: str):
     sess.add(bot_player)
     sess.commit()
 
-    socketio.emit('update', room=game.id)
+    socketio.emit('update', room=game.id)  # type: ignore
 
     return jsonify({'game': game.to_json(), 'player_num': num_players_in_game})
 
@@ -566,6 +566,29 @@ def get_most_recent_state(sess, game_id):
     })
 
 
+@app.route('/api/decline_view/<game_id>', methods=['GET'])
+@api_endpoint
+def get_decline_view(sess, game_id):
+    turn_num = (
+        sess.query(func.max(AnimationFrame.turn_num))
+        .filter(AnimationFrame.game_id == game_id)
+        .scalar()
+    )
+
+    animation_frame = (
+        sess.query(AnimationFrame)
+        .filter(AnimationFrame.game_id == game_id)
+        .filter(AnimationFrame.turn_num == turn_num)
+        .filter(AnimationFrame.is_decline == True)
+        .one_or_none()
+    )
+
+    return jsonify({
+        'game_state': {**animation_frame.game_state, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},} if animation_frame.game_state else {},
+        'turn_num': turn_num,
+    })
+
+
 @app.route('/api/movie/<game_id>', methods=['GET'])
 @api_endpoint
 def get_latest_turn_movie(sess, game_id):
@@ -750,11 +773,11 @@ def end_turn(sess, game_id):
 
     turn_ended_by_player_num[player_num] = True
 
-    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)
+    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)  # type: ignore
 
     if game_state.turn_should_end(turn_ended_by_player_num):
         print("starting turn roll")
-        socketio.emit('start_turn_roll', {}, room=game_id)
+        socketio.emit('start_turn_roll', {}, room=game_id)  # type: ignore
         if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
             seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
             next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
@@ -825,7 +848,7 @@ def unend_turn(sess, game_id):
 
     set_turn_ended_by_player_num(game_id, player_num, False)
 
-    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)
+    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)  # type: ignore
 
     return jsonify({})
 
