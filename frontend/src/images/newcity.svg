@@ -9,6 +9,9 @@
    id="svg6676"
    inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
    sodipodi:docname="newcity.svg"
+   inkscape:export-filename="city.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -24,9 +27,9 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      showgrid="false"
-     inkscape:zoom="0.18641099"
-     inkscape:cx="80.467361"
-     inkscape:cy="64.373889"
+     inkscape:zoom="2.1089995"
+     inkscape:cx="80.60694"
+     inkscape:cy="64.485552"
      inkscape:window-width="1920"
      inkscape:window-height="1017"
      inkscape:window-x="-8"
@@ -42,7 +45,7 @@
     <path
        id="rect6851"
        style="fill:#55d400;stroke:#000000;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round"
-       d="M 15.311727,1.7079061 C 11.955783,1.7078962 9.2352144,4.2595718 9.235095,7.4072998 V 9.6846802 H 4.1692546 V 18.54047 H 1.6412435 V 32.645036 H 33.044495 V 18.54047 H 30.028141 V 5.6926758 H 25.016044 V 18.54047 H 21.388359 V 7.4072998 C 21.38824,4.2595718 18.667671,1.7078962 15.311727,1.7079061 Z"
+       d="M 15.311727,1.7079061 C 11.955783,1.7078962 9.2352144,4.2595718 9.235095,7.4072998 V 9.6846802 H 4.1692546 V 18.54047 H 1.6412435 V 32.645036 H 33.044495 V 18.54047 H 30.028141 V 5.6926758 H 25.016044 V 13.248803 H 21.388359 V 7.4072998 C 21.38824,4.2595718 18.667671,1.7078962 15.311727,1.7079061 Z"
        sodipodi:nodetypes="cccccccccccccccc" />
   </g>
 </svg>

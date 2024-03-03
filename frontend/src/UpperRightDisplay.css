@@ -8,8 +8,6 @@
     /* Add other styles as needed */
 }
 
-
-
 .civ-detail-panel {
     display: flex;
     align-items: flex-start;
@@ -77,6 +75,11 @@ h2.tech-name {
 ============= CITY POWER AREA ============
 ==========================================
 */
+
+.civ-detail-panel.food-area .icon span {
+    /* offset it because the image is asymmetric */
+    padding-top: 15px;
+}
 
 .city-power-new-cities {
     display: flex;

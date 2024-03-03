@@ -7,6 +7,7 @@ import scienceImg from './images/science.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';
 import declineImg from './images/phoenix.png';
+import cityImg from './images/city.png';
 import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
 
@@ -52,7 +53,7 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
         }
     };
 
-    return <CivDetailPanel icon={foodImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}>
+    return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}>
         <div className={`city-power-new-cities`} onMouseOver={showTooltip} onMouseOut={hideTooltip}>
             {[...Array(newCities)].map((_, index) => (
                 <div key={index} className={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? null :toggleFoundingCity}>
