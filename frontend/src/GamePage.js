@@ -39,7 +39,9 @@ import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
 import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
+import vitalityImg from './images/heart.png';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
+import { TextOnIcon } from './TextOnIcon.js';
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -2374,7 +2376,7 @@ export default function GamePage() {
         //     return true;
         // }
         if (declineOptionsView) {
-            return city?.capital;
+            return city?.capital && city?.civ?.game_player === null;
         }
         if (playerNum !== null && playerNum !== undefined) {
             return city?.civ?.game_player?.player_num === playerNum
@@ -2548,7 +2550,14 @@ export default function GamePage() {
                         <image href={vpImage} x={5.75} y={1.1} height="1" />
                     }
                     
-                    </svg>
+                </svg>
+                {declineOptionsView && city.capital && city.civ.game_player === null && <>
+                    <image href={vitalityImg} x="-1.8" y="-1" height="3.6" width="3.6" />
+                    <text x="0" y="0.4" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
+                        {Math.floor(city.revolting_starting_vitality * 100)}%
+                    </text>
+                    </>
+                }
             </>
         );
     };

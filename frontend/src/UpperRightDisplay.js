@@ -2,7 +2,6 @@ import React from 'react';
 import './UpperRightDisplay.css';
 import { Grid, Typography } from '@mui/material';
 import { romanNumeral } from './TechListDialog.js';
-import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';
