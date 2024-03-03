@@ -26,6 +26,7 @@ def resourcedict() -> Dict[str, float]:
         "metal": 0.0,
         "science": 0.0,
         "city_power": 0.0,
+        "unhappiness": 0.0,
     }
 
 class City:
@@ -87,6 +88,8 @@ class City:
         self.projected_income[self.focus] += self.projected_income_focus[self.focus]
         if self.focus == 'food':
             self.projected_income['city_power'] += self.projected_income_focus['food']
+
+        self.projected_income['unhappiness'] += self.projected_income_focus['food'] - 2 * self.population
 
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
@@ -780,6 +783,7 @@ class City:
             "projected_income_focus": self.projected_income_focus,
             "growth_cost": self.growth_cost(),
             "terrains_dict": self.terrains_dict,
+
             "revolting_starting_vitality": self.revolting_starting_vitality,
             "is_on_leaderboard": self.is_on_leaderboard,
             "unhappiness": self.unhappiness,
