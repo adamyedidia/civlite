@@ -371,6 +371,20 @@ export default function GamePage() {
         setEngineState(newState);
     }
 
+    // For testing that my backend stuff actually works
+
+    // useEffect(() => {
+    //     fetch(`${URL}/api/decline_view/${gameId}`, {
+    //         method: 'GET',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         },
+    //     }).then(response => response.json())
+    //         .then(data => {
+    //             console.log(data);
+    //             setGameState(data.game_state);
+    //         });
+    // }, [rulesDialogOpen])
 
     // console.log(selectedCity);
 

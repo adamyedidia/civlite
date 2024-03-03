@@ -667,8 +667,6 @@ class GameState:
 
         self.sync_advancement_level()
 
-        self.handle_unhappiness(sess)
-
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
 
@@ -683,11 +681,13 @@ class GameState:
                 self.game_over = True
                 break
 
-        # self.add_animation_frame(sess, {
-        #     "type": "StartOfNewTurn",
-        # })
+        self.add_animation_frame(sess, {
+            "type": "StartOfNewTurn",
+        })
 
-        # sess.commit()
+        sess.commit()
+
+        self.handle_unhappiness(sess)        
 
 
     def handle_unhappiness(self, sess) -> None:
@@ -722,18 +722,21 @@ class GameState:
 
         decline_choice_civ_pool = random.sample(decline_choice_big_civ_pool, num_civs_to_sample)
 
+        from_civ_perspectives = []
 
-        self.process_decline_option((fresh_decline_locations[0].coords, decline_choice_big_civ_pool[0], generate_unique_id()), self.game_player_by_player_num[0], [self.civs_by_id[list(self.civs_by_id.keys())[0]]])
-
-
+        for i, decline_location in enumerate(fresh_decline_locations):
+            self.process_decline_option((decline_location.coords, decline_choice_civ_pool[i], generate_unique_id()), None, from_civ_perspectives)
         
+        self.refresh_foundability_by_civ()
+        self.refresh_visibility_by_civ(short_sighted=True)
+
         sess.add(AnimationFrame(
             game_id=self.game_id,
             turn_num=self.turn_num,
             frame_num=0,
-            player_num=20,
+            player_num=100,
             is_decline=True,
-            game_state=self.to_json(),
+            game_state=self.to_json(from_civ_perspectives=from_civ_perspectives),
         ))
 
         sess.commit()
