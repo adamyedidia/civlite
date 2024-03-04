@@ -79,28 +79,69 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
     </CivDetailPanel>
 };
 
+
+const DeclineOptionRow = ({ city, toggleDeclineView, civTemplates, unitTemplates, buildingTemplates, setHoveredCiv, setHoveredUnit, setHoveredBuilding, setSelectedCity}) => {
+    return <div className="decline-option-row"
+        style={{
+            backgroundColor: civTemplates[city.civ.name].primary_color, 
+            borderColor: civTemplates[city.civ.name].secondary_color}}
+        onClick = {() => {
+            toggleDeclineView();
+            setSelectedCity(city);
+            // TODO centerMap(city.hex);
+        }}
+        onMouseEnter={() => setHoveredCiv(civTemplates[city.civ.name])}
+        onMouseLeave={() => setHoveredCiv(null)}
+        >
+        <div className="revolt-cities-row">
+            <TextOnIcon image={vitalityImg} offset="-10px" style={{
+                width: "60px",
+                height: "60px",
+                position: "absolute",
+                left: "-10px",
+            }}>
+                {Math.floor(city.revolting_starting_vitality * 100)}%
+            </TextOnIcon>
+            <TextOnIcon image={workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
+                <b>{city.population}</b>
+            </TextOnIcon>
+            {city.name}
+        </div>
+        <div className="revolt-cities-detail">
+            {Math.floor(city.projected_income['food'])}
+            <img src={foodImg}/>
+            {Math.floor(city.projected_income['science'])}
+            <img src={scienceImg}/>
+            {Math.floor(city.projected_income['wood'])}
+            <img src={woodImg}/>
+            {Math.floor(city.projected_income['metal'])}
+            <img src={metalImg}/>
+        </div>
+        <div className="revolt-cities-detail">
+        {city.available_units.map((unitName, index) => (
+            <div key={index} className="city-unit">
+                <IconUnitDisplay 
+                    unitName={unitName} 
+                    unitTemplates={unitTemplates} 
+                    setHoveredUnit={setHoveredUnit} 
+                    style={{borderRadius: '25%', height: "30px", width: "30px"}} 
+                />
+            </div>
+        ))}
+        </div>
+        <div className="revolt-cities-detail">
+        {city.buildings.filter(bldg => bldg.is_wonder).map((wonder, index) => (
+            <div key={index} className="city-wonder">
+                <BriefBuildingDisplay key={index} buildingName={wonder.name} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding}/>
+            </div>
+        ))}
+        </div>
+    </div>
+}
+
 const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disableUI, toggleDeclineView, declineViewGameState, 
     unitTemplates, civTemplates, buildingTemplates,
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding}) => {
-    const newCivPercentage = Math.round((2.0 + turnNum * 0.1) * 100);
-
-
-    const tooltipRef = React.useRef(null);
-
-    const showTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'visible';
-            tooltipRef.current.style.opacity = '1';
-        }
-    };
-
-    const hideTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'hidden';
-            tooltipRef.current.style.opacity = '0';
-        }
-    };
-
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.capital && city.civ.game_player === null);
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
         <Button className="toggle-decline-view" 
@@ -113,59 +154,7 @@ const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disa
         <div className="revolt-cities">
             {citiesReadyForRevolt.length > 0 && <>
                 {citiesReadyForRevolt.map((city, index) => {
-                    // TODO this should be its own named element thingy.
-                    return <div key={index} className="revolt-cities-city"
-                        style={{backgroundColor: civTemplates[city.civ.name].primary_color, borderColor: civTemplates[city.civ.name].secondary_color}}
-                        onClick = {() => {
-                            toggleDeclineView();
-                            setSelectedCity(city);
-                            // TODO centerMap(city.hex);
-                        }}
-                        onMouseEnter={() => setHoveredCiv(civTemplates[city.civ.name])}
-                        onMouseLeave={() => setHoveredCiv(null)}
-                        >
-                        <div className="revolt-cities-row">
-                            <TextOnIcon image={vitalityImg} offset="-10px" style={{
-                                width: "60px",
-                                height: "60px",
-                                position: "absolute",
-                                left: "-10px",
-                            }}>
-                                {Math.floor(city.revolting_starting_vitality * 100)}%
-                            </TextOnIcon>
-                            <TextOnIcon image={workerImg} style={{width: "20px", marginLeft: "40px"}}>{city.population}</TextOnIcon>
-                            {city.name}
-                        </div>
-                        <div className="revolt-cities-detail">
-                            {Math.floor(city.projected_income['food'])}
-                            <img src={foodImg}/>
-                            {Math.floor(city.projected_income['science'])}
-                            <img src={scienceImg}/>
-                            {Math.floor(city.projected_income['wood'])}
-                            <img src={woodImg}/>
-                            {Math.floor(city.projected_income['metal'])}
-                            <img src={metalImg}/>
-                        </div>
-                        <div className="revolt-cities-detail">
-                        {city.available_units.map((unitName, index) => (
-                            <div key={index} className="city-unit">
-                                <IconUnitDisplay 
-                                    unitName={unitName} 
-                                    unitTemplates={unitTemplates} 
-                                    setHoveredUnit={setHoveredUnit} 
-                                    style={{borderRadius: '25%', height: "30px", width: "30px"}} 
-                                />
-                            </div>
-                        ))}
-                        </div>
-                        <div className="revolt-cities-detail">
-                        {city.buildings.filter(bldg => bldg.is_wonder).map((wonder, index) => (
-                            <div key={index} className="city-wonder">
-                                <BriefBuildingDisplay key={index} buildingName={wonder.name} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding}/>
-                            </div>
-                        ))}
-                        </div>
-                    </div>
+                    return <DeclineOptionRow key={city.id} city={city} toggleDeclineView={toggleDeclineView} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} setSelectedCity={setSelectedCity} />
                     })}
             </>}
         </div>

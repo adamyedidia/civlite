@@ -178,7 +178,7 @@ h2.tech-name {
     gap: 5px;
 }
 
-.revolt-cities-city {
+.decline-option-row {
     display: flex;
     flex-direction: column;
     border: 5px solid transparent;
@@ -189,12 +189,12 @@ h2.tech-name {
 
 .revolt-cities-row {
     display: flex;
-    padding: 0 5px;
+    padding: 2px 5px;
     align-items: center;
     gap: 5px;
 }
 
-.revolt-cities-city:hover {
+.decline-option-row:hover {
     transform: scale(1.1);
 }
 
@@ -202,7 +202,7 @@ h2.tech-name {
     display: none;
 }
 
-.revolt-cities-city:hover .revolt-cities-detail {
+.decline-option-row:hover .revolt-cities-detail {
     display: flex;
     align-items: center;
 }

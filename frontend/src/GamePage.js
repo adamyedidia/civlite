@@ -2426,7 +2426,7 @@ export default function GamePage() {
                         refreshSelectedCity(data.game_state);            
                     }
                 });
-        } else if (gameState.special_mode_by_player_num[playerNum] == 'choose_decline_option') {
+        } else if (declineOptionsView) {
             const data = {
                 player_num: playerNum,
                 player_input: {
@@ -3027,7 +3027,7 @@ export default function GamePage() {
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
-                        {engineState === EngineStates.PLAYING && gameState?.special_mode_by_player_num?.[playerNum] && selectedCity && <Button
+                        {engineState === EngineStates.PLAYING && selectedCity && declineOptionsView && <Button
                             style={{
                                 backgroundColor: "#ccffaa",
                                 color: "black",
