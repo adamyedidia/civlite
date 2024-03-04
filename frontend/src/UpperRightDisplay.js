@@ -231,7 +231,7 @@ const UpperRightDisplay = ({ gameState, canFoundCity, isFoundingCity, disableUI,
     setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, 
     toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, 
     turnNum, toggleDeclineView, declineViewGameState, setSelectedCity, setHoveredCiv}) => {
-    const myCities = Object.values(gameState.cities_by_id).filter(city => city.civ.game_player.player_num === myGamePlayer.player_num);
+    const myCities = Object.values(gameState.cities_by_id).filter(city => city.civ.game_player && city.civ.game_player.player_num === myGamePlayer.player_num);
     return (
         <div className="upper-right-display">
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoices={setTechChoices} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
