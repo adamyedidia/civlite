@@ -10,11 +10,15 @@ export const TextOnIcon = ({ image, style, children, tooltip, offset }) => {
         ...style
     };
 
-    return (
-        <WithTooltip tooltip={tooltip}>
-        <div className="icon-bg-text" style={containerStyle}>
-            <span style={{ textAlign: 'center', marginTop: offset }}>{children}</span>
-        </div>
-        </WithTooltip>
-    );
+    let content = <div className="icon-bg-text" style={containerStyle}>
+        <span style={{ textAlign: 'center', marginTop: offset }}>{children}</span>
+    </div>;
+
+    if (tooltip) {
+        content = <WithTooltip tooltip={tooltip}>
+            {content}
+        </WithTooltip>;
+    }
+
+    return content;
 };
