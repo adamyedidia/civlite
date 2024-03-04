@@ -537,6 +537,27 @@ export default function GamePage() {
         };
     }, []);
     
+    const centerMap = (coords) => {
+        // coords should be like "0,0,0"
+        console.log("Centering on ", coords);
+        const hexRef = hexRefs.current[coords].current;
+
+        const hexGridRect = hexRef.getBoundingClientRect();
+        // Current x, y coords
+        const hexGridCenterX = hexGridRect.left + (hexGridRect.width / 2);
+        const hexGridCenterY = hexGridRect.top + (hexGridRect.height / 2);
+
+        // Absolute x, y coords
+        const hexGridAbsCenterX = hexGridCenterX + window.scrollX;
+        const hexGridAbsCenterY = hexGridCenterY + window.scrollY;
+
+        // Calculate the window's center position
+        const windowCenterX = window.innerWidth / 2;
+        const windowCenterY = window.innerHeight / 2;
+
+        // Scroll to the HexGrid's center
+        window.scrollTo(hexGridAbsCenterX - windowCenterX, hexGridAbsCenterY - windowCenterY);
+    }
 
     // Center the map on initial load
     const hasRunCenterRef = React.useRef(false);
@@ -546,18 +567,7 @@ export default function GamePage() {
 
         // Scroll to the middle of the map at start
         const centerCoords = "0,0,0";
-        const hexRef = hexRefs.current[centerCoords].current;
-
-        const hexGridRect = hexRef.getBoundingClientRect();
-        const hexGridCenterX = hexGridRect.left + (hexGridRect.width / 2);
-        const hexGridCenterY = hexGridRect.top + (hexGridRect.height / 2);
-
-        // Calculate the window's center position
-        const windowCenterX = window.innerWidth / 2;
-        const windowCenterY = window.innerHeight / 2;
-
-        // Scroll to the HexGrid's center
-        window.scrollTo(hexGridCenterX - windowCenterX, hexGridCenterY - windowCenterY);
+        centerMap(centerCoords);
         hasRunCenterRef.current = true;
     }, [gameState]);
 
@@ -2970,6 +2980,7 @@ export default function GamePage() {
                         buildingTemplates={buildingTemplates}
                         myCiv={myCiv} 
                         myGamePlayer={myGamePlayer} 
+                        centerMap={centerMap}
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
                         setTechListDialogOpen={setTechListDialogOpen}
                         setConfirmEnterDecline={setConfirmEnterDeclineIfAllowed}
