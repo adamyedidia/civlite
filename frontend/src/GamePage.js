@@ -405,6 +405,7 @@ export default function GamePage() {
                 setFoundingCity(false);
                 setShowFlagArrows(false);
                 setTechChoices(null);
+                setDeclineOptionsView(false);
             }
         };
     
