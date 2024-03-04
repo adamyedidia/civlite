@@ -3038,7 +3038,9 @@ export default function GamePage() {
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
-                        {engineState === EngineStates.PLAYING && selectedCity && declineOptionsView && <Button
+                        {engineState === EngineStates.PLAYING && selectedCity && 
+                            (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] == 'starting_location') && 
+                            <Button
                             style={{
                                 backgroundColor: "#ccffaa",
                                 color: "black",
