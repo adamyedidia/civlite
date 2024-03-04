@@ -11,6 +11,8 @@ import happyImg from './images/happyface.png';
 import neutralImg from './images/neutralface.png';
 import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
+import declineImg from './images/phoenix.png';
+
 
 
 import workerImg from './images/worker.png';
@@ -234,7 +236,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / unitTemplates[selectedCity.infinite_queue_unit].metal_cost) : 0;
     const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => buildingTemplates[item] ? buildingTemplates[item].cost : unitTemplatesByBuildingName[item].wood_cost);
 
-
     return (
         <div className="city-detail-window" 
             style={{borderColor: myCivTemplate.secondary_color}}>
@@ -302,6 +303,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         <div className="unhappiness-current">
                             <img src={happinessIcon} height="30px"/>
                             <span className="unhappiness-value">{selectedCity.unhappiness}</span>
+                            <img src={declineImg} height="30px" style={{visibility: selectedCity.civ_to_revolt_into ? "visible" : "hidden"}}/>
                         </div>
                         <div className="unhappiness-income-area">
                             <div className="unhappiness-income-value">
