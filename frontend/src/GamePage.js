@@ -2243,6 +2243,8 @@ export default function GamePage() {
 
         await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
         setGameState(finalGameState);
+        refreshSelectedCity(finalGameState);
+        setSelectedCity(null);
         setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
         transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
     }

@@ -10,10 +10,6 @@ import EngineStates from './EngineStates';
 import { Button, CircularProgress } from '@mui/material';
 
 const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, handleClickEndTurn, handleClickUnendTurn, getMovie, engineState }) => {
-    console.log(turnEndedByPlayerNum)
-    console.log(turnEndedByPlayerNum?.[playerNum])
-    console.log(playerNum === 1)
-
     return <div className="lower-right-display">
         <AnnouncementsDisplay announcements={gameState?.announcements} />
         <div className="end-turn-area">
