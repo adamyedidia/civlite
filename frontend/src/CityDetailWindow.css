@@ -359,6 +359,10 @@
 .unhappiness-bars td {
   vertical-align: middle;
 }
+.unhappiness-bars td.label {
+  overflow-x: hidden;
+  white-space: nowrap;
+}
 .unhappiness-bars .bar {
   width: 100%;
   height: 15px;

@@ -286,17 +286,24 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         <div className="unhappiness-current">
                             <img src={happinessIcon} height="30px"/>
                             <span className="unhappiness-value">{selectedCity.unhappiness}</span>
-                            <img src={declineImg} height="30px" style={{visibility: selectedCity.civ_to_revolt_into ? "visible" : "hidden"}}/>
+                            <div style={{visibility: selectedCity.civ_to_revolt_into ? "visible" : "hidden"}}>
+                            <WithTooltip tooltip="This city is a revolt option for other players!">
+                                <img src={declineImg} height="30px"/>
+                            </WithTooltip>
+                            </div>
                         </div>
                         <div className="unhappiness-income-area">
-                            <div className="unhappiness-income-value">
-                                +{Math.floor(Math.abs(projectedIncome['food'] - foodDemanded))}
-                                <img src={projectedIncome['food'] >= foodDemanded ? cityImg : sadImg} height="30px"/>
-                            </div>
+                            <WithTooltip tooltip={projectedIncome['food'] >= foodDemanded ? "income exceeds demand; city produces city power" : "demand exceds income; city is gaining unhappiness"}>
+                                <div className="unhappiness-income-value">
+                                    +{Math.floor(Math.abs(projectedIncome['food'] - foodDemanded))}
+                                    <img src={projectedIncome['food'] >= foodDemanded ? cityImg : sadImg} height="30px"/>
+                                </div>
+                            </WithTooltip>
+                            <WithTooltip tooltip={`Citizens expect 2 food income per population. ${selectedCity.name}'s income is ${Math.floor(projectedIncome['food'])}.`}>
                             <table className="unhappiness-bars"><tbody>
                                 <tr>
-                                    <td>
-                                        {Math.floor(projectedIncome['food'])} Income
+                                    <td className="label">
+                                        {Math.floor(projectedIncome['food'])}
                                     </td>
                                     <td>
                                         <div className="bar income" style={{width: `${Math.floor(projectedIncome['food'] * unhappinessBarsWidthPerUnit)}px`}}>
@@ -307,8 +314,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                                     </td>
                                 </tr>
                                 <tr>
-                                <td>
-                                        {foodDemanded} Demand
+                                    <td className="label">
+                                        {foodDemanded}
                                     </td>
                                     <td>
                                         <div className="bar demand" style={{width: `${Math.floor(foodDemanded * unhappinessBarsWidthPerUnit)}px`}}>
@@ -319,6 +326,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                                     </td>
                                 </tr>
                             </tbody></table>
+                            </WithTooltip>
                         </div>
                     </div>}
                 </CityDetailPanel>
