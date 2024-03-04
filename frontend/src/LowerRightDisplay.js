@@ -10,6 +10,10 @@ import EngineStates from './EngineStates';
 import { Button, CircularProgress } from '@mui/material';
 
 const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, handleClickEndTurn, handleClickUnendTurn, getMovie, engineState }) => {
+    console.log(turnEndedByPlayerNum)
+    console.log(turnEndedByPlayerNum?.[playerNum])
+    console.log(playerNum === 1)
+
     return <div className="lower-right-display">
         <AnnouncementsDisplay announcements={gameState?.announcements} />
         <div className="end-turn-area">
@@ -17,11 +21,11 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
                 {gameState?.special_mode_by_player_num?.[playerNum] !== 'starting_location' && <Button
                     style={{backgroundColor: "#cccc88", fontSize:"2em", height: "120px", padding: "5px"}} 
                     variant="contained"
-                    onClick={gameState?.turn_ended_by_player_num?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
+                    onClick={turnEndedByPlayerNum?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
                     disabled={engineState !== EngineStates.PLAYING}
                 >
                     {engineState === EngineStates.PLAYING && 
-                        (gameState?.turn_ended_by_player_num?.[playerNum] ? "Unend turn" : gameState?.special_mode_by_player_num?.[playerNum] === "choose_decline_option" ? "End turn (mulligan)" : "End turn")
+                        (turnEndedByPlayerNum?.[playerNum] ? "Unend turn" : gameState?.special_mode_by_player_num?.[playerNum] === "choose_decline_option" ? "End turn (mulligan)" : "End turn")
                     }
                     {engineState === EngineStates.GAME_OVER && "Game Over" }
                     {engineState === EngineStates.ROLLING && <>

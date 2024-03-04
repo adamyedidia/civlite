@@ -348,7 +348,9 @@ class GameState:
                 self.refresh_visibility_by_civ()
 
                 for civ in self.civs_by_id.values():
-                    civ.fill_out_available_buildings(self)                
+                    civ.fill_out_available_buildings(self)      
+
+                rdel(f'dream_game_state:{self.game_id}:{player_num}')
 
             if move['move_type'] == 'choose_tech':
                 tech_name = move['tech_name']

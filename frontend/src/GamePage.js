@@ -2058,7 +2058,7 @@ export default function GamePage() {
             body: JSON.stringify(data),
         }).then(response => response.json())
             .then(data => {
-                getMovie(false);  // TODO why do we call getMovie here?
+                // getMovie(false);  // TODO why do we call getMovie here? Great point! Let's not!
             }).catch(error => {
                 console.error('Error ending turn:', error);
             });
