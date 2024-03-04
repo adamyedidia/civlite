@@ -16,15 +16,18 @@ import { Button } from '@mui/material';
 import { TextOnIcon } from './TextOnIcon.js';
 import { IconUnitDisplay } from './UnitDisplay.js';
 import { BriefBuildingDisplay } from './BuildingDisplay.js';
+import { WithTooltip } from './WithTooltip.js';
 
-const CivDetailPanel = ({title, icon, bignum, children}) => {
+const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
     const bignumCharLen = bignum.length;
     return (
         <div className={`civ-detail-panel ${title}-area`}>
-            <div className="icon">
-                <img src={icon}></img>
-                <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>
-            </div>
+            <WithTooltip tooltip={iconTooltip}>
+                <div className="icon">
+                    <img src={icon}></img>
+                    <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>
+                </div>
+            </WithTooltip>
             <div className="panel-content">
                 {children}
             </div>
@@ -36,31 +39,27 @@ const NewCityIcon = ({  civTemplate, size, disabled, children}) => {
     return <div className="new-city-icon" style={{height: size, width:size, backgroundColor: disabled? "#aaa" : civTemplate.primary_color, borderColor: disabled? "#888" : civTemplate.secondary_color}}> {children} </div>
 }
 
-const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity, isFoundingCity, disableUI}) => {
+const CityPowerDisplay = ({ civ, myCities, civTemplates, toggleFoundingCity, canFoundCity, isFoundingCity, disableUI}) => {
     const cityPowerCost = 100; // TODO is this const already defined somewhere?
     const storedProgress = (civ.city_power % cityPowerCost) / cityPowerCost * 100;
     const incomeProgress = civ.projected_city_power_income / cityPowerCost * 100;
     const newCities = Math.floor(civ.city_power / cityPowerCost);
     const civTemplate = civTemplates[civ.name];
-
-    const tooltipRef = React.useRef(null);
-
-    const showTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'visible';
-            tooltipRef.current.style.opacity = '1';
-        }
-    };
-
-    const hideTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'hidden';
-            tooltipRef.current.style.opacity = '0';
-        }
-    };
-
-    return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}>
-        <div className={`city-power-new-cities`} onMouseOver={showTooltip} onMouseOut={hideTooltip}>
+    const iconTooltip = <table><tbody>
+        <tr><td> +10 </td><td> base </td></tr>
+        {myCities.map((city, index) => (
+            <tr key={index}><td> +{Math.floor(city.projected_income.city_power)} </td><td> from {city.name} </td></tr>
+        ))}
+    </tbody></table>
+    
+    return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}
+        iconTooltip={iconTooltip}
+    >
+        <WithTooltip tooltip={newCities == 0  ?  "Gather City Power to build new cities" :
+                newCities > 0 && !canFoundCity ? "No Valid City Sites" :
+                newCities > 0 && canFoundCity && !isFoundingCity ? "Click to found city" :
+                newCities > 0 && canFoundCity && isFoundingCity ? "Click to cancel found city" : null}>
+        <div className={`city-power-new-cities`}>
             {[...Array(newCities)].map((_, index) => (
                 <div key={index} className={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? null :toggleFoundingCity}>
                     <NewCityIcon civTemplate={civTemplate} disabled={!canFoundCity || (isFoundingCity & index > 0)}>
@@ -68,13 +67,8 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
                     </NewCityIcon>
                 </div>
             ))}
-            <div ref={tooltipRef} className="tooltip">
-                {newCities == 0  &&  "Gather City Power to build new cities"}
-                {newCities > 0 && !canFoundCity && "No Valid City Sites"}
-                {newCities > 0 && canFoundCity && !isFoundingCity && "Click to found city"}
-                {newCities > 0 && canFoundCity && isFoundingCity && "Click to cancel found city"}
-            </div>
         </div>
+        </WithTooltip>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={`${Math.floor(civ.city_power % cityPowerCost)} / ${cityPowerCost}`}/>
     </CivDetailPanel>
 };
@@ -139,7 +133,7 @@ const DeclineOptionRow = ({ city, toggleDeclineView, civTemplates, centerMap, un
     </div>
 }
 
-const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disableUI, centerMap, toggleDeclineView, declineViewGameState, 
+const CivVitalityDisplay = ({ civVitality, myCities, turnNum, setConfirmEnterDecline, disableUI, centerMap, toggleDeclineView, declineViewGameState, 
     unitTemplates, civTemplates, buildingTemplates,
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding}) => {
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.capital && city.civ.game_player === null);
@@ -205,12 +199,17 @@ const ScoreDisplay = ({ myGamePlayer }) => {
     </CivDetailPanel>
 }
 
-const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setTechChoices, setHoveredTech, disableUI}) => {
+const ScienceDisplay = ({civ, myCities, techTemplates, setTechListDialogOpen, setTechChoices, setHoveredTech, disableUI}) => {
     const tech = techTemplates[civ.researching_tech_name];
     const techCost = tech?.name  == "Renaissance" ? civ.renaissance_cost : tech?.cost;
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income / techCost * 100 : 0;
-    return <CivDetailPanel title='science' icon={scienceImg} bignum={`+${Math.floor(civ.projected_science_income)}`}>
+    const iconTooltip = <table><tbody>
+        {myCities.map((city, index) => (
+            <tr key={index}><td> +{Math.floor(city.projected_income.science)} </td><td> from {city.name} </td></tr>
+        ))}
+    </tbody></table>
+    return <CivDetailPanel title='science' icon={scienceImg} iconTooltip={iconTooltip} bignum={`+${Math.floor(civ.projected_science_income)}`}>
         <h2 className="tech-name" 
             onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}  
@@ -227,15 +226,16 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setTechChoic
     </CivDetailPanel>
 }
 
-const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, centerMap,
+const UpperRightDisplay = ({ gameState, canFoundCity, isFoundingCity, disableUI, centerMap,
     civTemplates, unitTemplates, buildingTemplates,
     setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, 
     toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, 
     turnNum, toggleDeclineView, declineViewGameState, setSelectedCity, setHoveredCiv}) => {
+    const myCities = Object.values(gameState.cities_by_id).filter(city => city.civ.game_player.player_num === myGamePlayer.player_num);
     return (
         <div className="upper-right-display">
-            {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setTechChoices={setTechChoices} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
-            {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
+            {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoices={setTechChoices} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
+            {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} 
                 disableUI={disableUI} centerMap={centerMap} toggleDeclineView={toggleDeclineView} declineViewGameState={declineViewGameState} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}

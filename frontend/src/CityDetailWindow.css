@@ -65,24 +65,6 @@
     padding-left: 8px;
 }
 
-.tooltip {
-  position: absolute;
-  background-color: black;
-  color: white;
-  text-align: left;
-  width: 200px;
-  font-size: 16px;
-  border-radius: 6px;
-  padding: 5px 10px;
-  z-index: 10000;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
 .panel-content{
     border: 8px solid;
     padding: 5px;

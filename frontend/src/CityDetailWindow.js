@@ -19,26 +19,12 @@ import workerImg from './images/worker.png';
 import { CityDetailPanel } from './CityDetailPanel.js';
 import { TextOnIcon } from './TextOnIcon.js';
 import ProgressBar from './ProgressBar.js';
+import { WithTooltip } from './WithTooltip.js';
 
 const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUnit, handleSetInfiniteQueue}) => {
-    const tooltipRef = React.useRef(null);
-
-    const showTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'visible';
-            tooltipRef.current.style.opacity = '1';
-        }
-    };
-
-    const hideTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'hidden';
-            tooltipRef.current.style.opacity = '0';
-        }
-    };
-
-    return (<div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''}`}
-        onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={(event) => {
+    return <WithTooltip tooltip="&#x1F5B1; Toggle infinite queue.">
+    <div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''}`}
+        onClick={(event) => {
             // click to toggle infinite queue
             if (isCurrentIQUnit) {
                 handleSetInfiniteQueue("")
@@ -56,11 +42,8 @@ const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUn
             {unitTemplates[unitName].metal_cost}
             <img src={metalImg} height="10px"/>
         </div>
-        <div ref={tooltipRef} className="tooltip">
-            <p>&#x1F5B1; Toggle infinite queue.</p>
-        </div>
     </div>
-    );
+    </WithTooltip>;
 }
 
 const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {

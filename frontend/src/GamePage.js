@@ -2980,6 +2980,7 @@ export default function GamePage() {
                         buildingTemplates={buildingTemplates}
                         myCiv={myCiv} 
                         myGamePlayer={myGamePlayer} 
+                        gameState={gameState}
                         centerMap={centerMap}
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
                         setTechListDialogOpen={setTechListDialogOpen}
