@@ -165,56 +165,53 @@ h2.tech-name {
     border-color: #d32c2c;
     background-color: #ecb0b0;
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    
 }
 
-.decline-button {
-    height: 110px;
-    padding-top: 2px;
-    border: 2px solid black;
+.revolt-cities {
+    width: 100%;
     display: flex;
     flex-direction: column;
-    position: relative;
-    cursor: pointer;
-    border-radius: 5px;
+    gap: 5px;
 }
 
-.decline-button.enabled:hover {
-    background-color: #ffffff; /* Light grey background on hover */
-    transform: scale(1.1); /* Slightly increase size to indicate selection */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
-  }
-
-.decline-button.enabled:hover #decline-button-vitality {
-    transform: scale(1.5) translateY(3px);
-}
-
-.decline-button span {
-    text-align: center;
-    font-weight: bold;
-}
-
-.decline-button #decline-phoenix-icon {
-    margin-top: -25px;
-    height: 80%;
-
-}
-
-.decline-button #decline-button-vitality {
-    height: 40px;
-    position: relative;
+.revolt-cities-city {
     display: flex;
-    justify-content: center;
+    flex-direction: column;
+    border: 5px solid transparent;
+    border-radius: 5px;
+    cursor: pointer;
+    gap: 5px;
 }
 
-.decline-button #decline-button-vitality-icon {
-    height: 100%;
+.revolt-cities-row {
+    display: flex;
+    padding: 0 5px;
+    align-items: center;
+    gap: 5px;
 }
 
-.decline-button #decline-button-new-vitality {
-    position: absolute;
-    font-size: 12px;
-    top: 6px;
+.revolt-cities-city:hover {
+    transform: scale(1.1);
+}
+
+.revolt-cities-detail {
+    display: none;
+}
+
+.revolt-cities-city:hover .revolt-cities-detail {
+    display: flex;
+    align-items: center;
+}
+
+.revolt-cities-detail img {
+    height: 20px;
+    width: auto;
+    margin-left: 2px;
+    margin-right: 5px;
 }
 
 /*

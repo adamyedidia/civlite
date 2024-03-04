@@ -2,13 +2,20 @@ import React from 'react';
 import './UpperRightDisplay.css';
 import { Grid, Typography } from '@mui/material';
 import { romanNumeral } from './TechListDialog.js';
+import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
+import woodImg from './images/wood.png';
+import metalImg from './images/metal.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';
 import declineImg from './images/phoenix.png';
 import cityImg from './images/city.png';
+import workerImg from './images/worker.png';
 import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
+import { TextOnIcon } from './TextOnIcon.js';
+import { IconUnitDisplay } from './UnitDisplay.js';
+import { BriefBuildingDisplay } from './BuildingDisplay.js';
 
 const CivDetailPanel = ({title, icon, bignum, children}) => {
     const bignumCharLen = bignum.length;
@@ -72,7 +79,9 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
     </CivDetailPanel>
 };
 
-const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disableUI, toggleDeclineView, declineViewGameState}) => {
+const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disableUI, toggleDeclineView, declineViewGameState, 
+    unitTemplates, civTemplates, buildingTemplates,
+    setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding}) => {
     const newCivPercentage = Math.round((2.0 + turnNum * 0.1) * 100);
 
 
@@ -92,30 +101,73 @@ const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disa
         }
     };
 
-    const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.civ_to_revolt_into !== null);
+    const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.capital && city.civ.game_player === null);
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
-        <Button className="toggle-decline-view" onClick={toggleDeclineView}>
+        <Button className="toggle-decline-view" 
+            onClick={toggleDeclineView}
+            variant="contained" 
+            color="primary"
+        >
             Toggle Decline View
         </Button>
-        {citiesReadyForRevolt.length > 0 && <div className="cities-ready-for-revolt">
-            {citiesReadyForRevolt.map((city, index) => (
-                <div key={index} className="city-name">
-                    {city.name}
-                </div>
-            ))}
-        </div>}
-        <div className={`decline-button ${disableUI ? "" : "enabled"}`} onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={() => {if (!disableUI) setConfirmEnterDecline(true);}}>
-            <span> Decline </span>
-            <div id="decline-button-vitality">
-                <img id="decline-button-vitality-icon" src={vitalityImg}/>
-                <div id="decline-button-new-vitality">
-                    {newCivPercentage}%
-                </div>
-            </div>
-            <img id="decline-phoenix-icon" src={declineImg} />
-            <div ref={tooltipRef} className="tooltip">
-                Enter Decline and begin as a new civ.
-            </div>
+        <div className="revolt-cities">
+            {citiesReadyForRevolt.length > 0 && <>
+                {citiesReadyForRevolt.map((city, index) => {
+                    // TODO this should be its own named element thingy.
+                    return <div key={index} className="revolt-cities-city"
+                        style={{backgroundColor: civTemplates[city.civ.name].primary_color, borderColor: civTemplates[city.civ.name].secondary_color}}
+                        onClick = {() => {
+                            toggleDeclineView();
+                            setSelectedCity(city);
+                            // TODO centerMap(city.hex);
+                        }}
+                        onMouseEnter={() => setHoveredCiv(civTemplates[city.civ.name])}
+                        onMouseLeave={() => setHoveredCiv(null)}
+                        >
+                        <div className="revolt-cities-row">
+                            <TextOnIcon image={vitalityImg} offset="-10px" style={{
+                                width: "60px",
+                                height: "60px",
+                                position: "absolute",
+                                left: "-10px",
+                            }}>
+                                {Math.floor(city.revolting_starting_vitality * 100)}%
+                            </TextOnIcon>
+                            <TextOnIcon image={workerImg} style={{width: "20px", marginLeft: "40px"}}>{city.population}</TextOnIcon>
+                            {city.name}
+                        </div>
+                        <div className="revolt-cities-detail">
+                            {Math.floor(city.projected_income['food'])}
+                            <img src={foodImg}/>
+                            {Math.floor(city.projected_income['science'])}
+                            <img src={scienceImg}/>
+                            {Math.floor(city.projected_income['wood'])}
+                            <img src={woodImg}/>
+                            {Math.floor(city.projected_income['metal'])}
+                            <img src={metalImg}/>
+                        </div>
+                        <div className="revolt-cities-detail">
+                        {city.available_units.map((unitName, index) => (
+                            <div key={index} className="city-unit">
+                                <IconUnitDisplay 
+                                    unitName={unitName} 
+                                    unitTemplates={unitTemplates} 
+                                    setHoveredUnit={setHoveredUnit} 
+                                    style={{borderRadius: '25%', height: "30px", width: "30px"}} 
+                                />
+                            </div>
+                        ))}
+                        </div>
+                        <div className="revolt-cities-detail">
+                        {city.buildings.filter(bldg => bldg.is_wonder).map((wonder, index) => (
+                            <div key={index} className="city-wonder">
+                                <BriefBuildingDisplay key={index} buildingName={wonder.name} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding}/>
+                            </div>
+                        ))}
+                        </div>
+                    </div>
+                    })}
+            </>}
         </div>
     </CivDetailPanel>
 }
@@ -185,12 +237,16 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setTechChoic
     </CivDetailPanel>
 }
 
-const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, civTemplates, setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, turnNum, toggleDeclineView, declineViewGameState }) => {
+const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, 
+    civTemplates, unitTemplates, buildingTemplates,
+    setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, 
+    toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, 
+    turnNum, toggleDeclineView, declineViewGameState, setSelectedCity, setHoveredCiv}) => {
     return (
         <div className="upper-right-display">
             {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setTechChoices={setTechChoices} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
-            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI} toggleDeclineView={toggleDeclineView} declineViewGameState={declineViewGameState}/>}
+            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI} toggleDeclineView={toggleDeclineView} declineViewGameState={declineViewGameState} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
         </div>
     );

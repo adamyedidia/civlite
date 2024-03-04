@@ -2,7 +2,7 @@ import React from 'react';
 import './TextOnIcon.css';
 
 
-export const TextOnIcon = ({ image, style, children, tooltip }) => {
+export const TextOnIcon = ({ image, style, children, tooltip, offset }) => {
     const tooltipRef = React.useRef(null);
 
     const showTooltip = () => {
@@ -28,10 +28,9 @@ export const TextOnIcon = ({ image, style, children, tooltip }) => {
     return (
         <div className="icon-bg-text" style={containerStyle}
             onMouseOver={showTooltip} onMouseOut={hideTooltip}>
-            <span style={{ textAlign: 'center' }}>{children}</span>
+            <span style={{ textAlign: 'center', marginTop: offset }}>{children}</span>
             {tooltip && (
-                <div ref={tooltipRef} className="tooltip"
-                >
+                <div ref={tooltipRef} className="tooltip">
                     {tooltip}
                 </div>
             )}

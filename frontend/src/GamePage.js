@@ -2959,18 +2959,21 @@ export default function GamePage() {
                         setHoveredUnit={setHoveredUnit} 
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
+                        setHoveredCiv={setHoveredCiv}
                         setTechChoices={setTechChoices}
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
                         isFoundingCity={foundingCity}
                         techTemplates={techTemplates}
                         civTemplates={civTemplates}
+                        unitTemplates={unitTemplates}
+                        buildingTemplates={buildingTemplates}
                         myCiv={myCiv} 
                         myGamePlayer={myGamePlayer} 
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
-                        unitTemplates={unitTemplates}
                         setTechListDialogOpen={setTechListDialogOpen}
                         setConfirmEnterDecline={setConfirmEnterDeclineIfAllowed}
+                        setSelectedCity={setSelectedCity}
                         disableUI={engineState !== EngineStates.PLAYING}
                         turnNum={turnNum}
                         toggleDeclineView={toggleDeclineView}
