@@ -590,6 +590,7 @@ class City:
 
     def capitalize(self, game_state: 'GameState') -> None:
         civ = self.civ
+        self.ever_controlled_by_civ_ids[self.civ.id] = True
         self.capital = True
     
         self.buildings_queue = []
