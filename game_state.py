@@ -696,7 +696,9 @@ class GameState:
         decline_choice_big_civ_pool = []
 
         advancement_level_to_use = max(self.advancement_level, 1)
-        civs_already_in_game = [civ.template.name for civ in self.civs_by_id.values()] + [city.civ.template.name for city in self.fresh_cities_for_decline.values()]
+        civs_already_in_game = [civ.template.name for civ in self.civs_by_id.values()] + \
+            [city.civ.template.name for city in self.fresh_cities_for_decline.values()] + \
+            [city.civ_to_revolt_into.name for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]
         for min_advancement_level in range(advancement_level_to_use, -1, -1):
             decline_choice_big_civ_pool = [civ['name'] for civ in ANCIENT_CIVS.values() 
                                            if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level

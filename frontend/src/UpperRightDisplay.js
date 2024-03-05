@@ -147,7 +147,7 @@ const CivVitalityDisplay = ({ civVitality, myCities, turnNum, disableUI, centerM
         </Button>
         <div className="revolt-cities">
             {citiesReadyForRevolt.length > 0 && <>
-                {citiesReadyForRevolt.map((city, index) => {
+                {citiesReadyForRevolt.sort((a, b) => b.revolting_starting_vitality - a.revolting_starting_vitality).map((city, index) => {
                     return <DeclineOptionRow key={city.id} city={city} toggleDeclineView={toggleDeclineView} centerMap={centerMap}
                         civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} setSelectedCity={setSelectedCity} />
                     })}
