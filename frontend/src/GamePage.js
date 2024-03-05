@@ -2928,8 +2928,9 @@ export default function GamePage() {
                         setSelectedCity={setSelectedCity}
                         disableUI={engineState !== EngineStates.PLAYING}
                         turnNum={turnNum}
-                        toggleDeclineView={toggleDeclineView}
+                        setDeclineOptionsView={setDeclineOptionsView}
                         declineViewGameState={declineViewGameState}
+                        declineOptionsView={declineOptionsView}
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}

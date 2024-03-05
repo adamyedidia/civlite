@@ -74,13 +74,13 @@ const CityPowerDisplay = ({ civ, myCities, civTemplates, toggleFoundingCity, can
 };
 
 
-const DeclineOptionRow = ({ city, toggleDeclineView, civTemplates, centerMap, unitTemplates, buildingTemplates, setHoveredCiv, setHoveredUnit, setHoveredBuilding, setSelectedCity}) => {
+const DeclineOptionRow = ({ city, setDeclineOptionsView, civTemplates, centerMap, unitTemplates, buildingTemplates, setHoveredCiv, setHoveredUnit, setHoveredBuilding, setSelectedCity}) => {
     return <div className="decline-option-row"
         style={{
             backgroundColor: civTemplates[city.civ.name].primary_color, 
             borderColor: civTemplates[city.civ.name].secondary_color}}
         onClick = {() => {
-            toggleDeclineView();
+            setDeclineOptionsView(true);
             setSelectedCity(city);
             centerMap(city.hex);
         }}
@@ -133,22 +133,22 @@ const DeclineOptionRow = ({ city, toggleDeclineView, civTemplates, centerMap, un
     </div>
 }
 
-const CivVitalityDisplay = ({ civVitality, myCities, turnNum, disableUI, centerMap, toggleDeclineView, declineViewGameState, 
+const CivVitalityDisplay = ({ civVitality, myCities, turnNum, declineOptionsView, centerMap, setDeclineOptionsView, declineViewGameState, 
     unitTemplates, civTemplates, buildingTemplates,
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding}) => {
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.capital && city.civ.game_player === null);
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
         <Button className="toggle-decline-view" 
-            onClick={toggleDeclineView}
+            onClick={() => setDeclineOptionsView(!declineOptionsView)}
             variant="contained" 
             color="primary"
         >
-            Toggle Decline View
+            {declineOptionsView ? "Close Decline View" : "View Decline Options"}
         </Button>
         <div className="revolt-cities">
             {citiesReadyForRevolt.length > 0 && <>
                 {citiesReadyForRevolt.sort((a, b) => b.revolting_starting_vitality - a.revolting_starting_vitality).map((city, index) => {
-                    return <DeclineOptionRow key={city.id} city={city} toggleDeclineView={toggleDeclineView} centerMap={centerMap}
+                    return <DeclineOptionRow key={city.id} city={city} setDeclineOptionsView={setDeclineOptionsView} centerMap={centerMap}
                         civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} setSelectedCity={setSelectedCity} />
                     })}
             </>}
@@ -226,18 +226,18 @@ const ScienceDisplay = ({civ, myCities, techTemplates, setTechListDialogOpen, se
     </CivDetailPanel>
 }
 
-const UpperRightDisplay = ({ gameState, canFoundCity, isFoundingCity, disableUI, centerMap,
+const UpperRightDisplay = ({ gameState, canFoundCity, isFoundingCity, disableUI, centerMap, declineOptionsView,
     civTemplates, unitTemplates, buildingTemplates,
     setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, 
     toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, 
-    turnNum, toggleDeclineView, declineViewGameState, setSelectedCity, setHoveredCiv}) => {
+    turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv}) => {
     const myCities = Object.values(gameState.cities_by_id).filter(city => city.civ.game_player && city.civ.game_player.player_num === myGamePlayer.player_num);
     return (
         <div className="upper-right-display">
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoices={setTechChoices} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} 
-                disableUI={disableUI} centerMap={centerMap} toggleDeclineView={toggleDeclineView} declineViewGameState={declineViewGameState} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}/>}
+                disableUI={disableUI} centerMap={centerMap} declineOptionsView={declineOptionsView} setDeclineOptionsView={setDeclineOptionsView} declineViewGameState={declineViewGameState} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
         </div>
     );
