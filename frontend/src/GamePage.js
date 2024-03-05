@@ -2225,6 +2225,7 @@ export default function GamePage() {
         setAnimationFrame(null);
         const finalGameState = animationFinalState;
         setGameState(finalGameState);
+        refreshSelectedCity(finalGameState);
         setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
     }
 
@@ -2249,7 +2250,6 @@ export default function GamePage() {
             console.error("Already animating, but tried to start another animation!")
             return;
         }
-
         setAnimationFrame(0);
         setAnimationTotalFrames(numFrames);
         setAnimationActiveDelay(Math.min(ANIMATION_DELAY, 20000 / numFrames));
