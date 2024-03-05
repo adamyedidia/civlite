@@ -3,7 +3,7 @@ import './TurnEndedDisplay.css';
 
 import declineImg from './images/phoenix.png'
 
-export default function TurnEndedDisplay({ gamePlayerByPlayerNum, turnEndedByPlayerNum, animating, isHoveredHex }) {
+export default function TurnEndedDisplay({ gamePlayerByPlayerNum, turnEndedByPlayerNum }) {
     return (
         <div className="turn-ended-display">
             {gamePlayerByPlayerNum && Object.keys(gamePlayerByPlayerNum).map((playerNum) => {

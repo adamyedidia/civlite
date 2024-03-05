@@ -70,8 +70,6 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
             <TurnEndedDisplay 
                 gamePlayerByPlayerNum={gameState?.game_player_by_player_num}
                 turnEndedByPlayerNum={turnEndedByPlayerNum}
-                animating={engineState === EngineStates.ANIMATING}
-                isHoveredHex={!!hoveredHex}
             />
             {gameState?.next_forced_roll_at && <Timer nextForcedRollAt={gameState?.next_forced_roll_at} gameId={gameId} disabledText={timerMuted && "Paused"}/>}
             
