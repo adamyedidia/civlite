@@ -288,6 +288,7 @@ class GameState:
         print(f"{hex.city=}, {hex.city.civ=}")
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.turn_num // 7)
+        hex.city.wood = hex.city.metal = 0
 
         new_civ = hex.city.civ
         self.civs_by_id[new_civ.id] = new_civ
