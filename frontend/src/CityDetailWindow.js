@@ -285,7 +285,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                     {!declinePreviewMode && <div className="unhappiness-area">
                         <div className="unhappiness-current">
                             <img src={happinessIcon} height="30px"/>
-                            <span className="unhappiness-value">{selectedCity.unhappiness}</span>
+                            <WithTooltip tooltip={`${selectedCity.unhappiness.toFixed(2)} unhappiness`}><>
+                            <span className="unhappiness-value">{Math.ceil(selectedCity.unhappiness)}</span>
+                            </></WithTooltip>
                             <div style={{visibility: selectedCity.civ_to_revolt_into ? "visible" : "hidden"}}>
                             <WithTooltip tooltip="This city is a revolt option for other players!">
                                 <img src={declineImg} height="30px"/>
@@ -293,13 +295,16 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                             </div>
                         </div>
                         <div className="unhappiness-income-area">
-                            <WithTooltip tooltip={projectedIncome['food'] >= foodDemanded ? "income exceeds demand; city produces city power" : "demand exceds income; city is gaining unhappiness"}>
+                            <WithTooltip tooltip={projectedIncome['food'] >= foodDemanded ? 
+                                `income exceeds demand; city produces city power ${projectedIncome['city-power'].toFixed(2)}` : 
+                                `demand exceds income; city is gaining unhappiness ${projectedIncome['unhappiness'].toFixed(2)}`}
+                            >
                                 <div className="unhappiness-income-value">
                                     +{Math.floor(Math.abs(projectedIncome['food'] - foodDemanded))}
                                     <img src={projectedIncome['food'] >= foodDemanded ? cityImg : sadImg} height="30px"/>
                                 </div>
                             </WithTooltip>
-                            <WithTooltip tooltip={`Citizens expect 2 food income per population. ${selectedCity.name}'s income is ${Math.floor(projectedIncome['food'])}.`}>
+                            <WithTooltip tooltip={`Citizens expect 2 food income per population. ${selectedCity.name}'s income is ${projectedIncome['food'].toFixed(2)}.`}>
                             <table className="unhappiness-bars"><tbody>
                                 <tr>
                                     <td className="label">

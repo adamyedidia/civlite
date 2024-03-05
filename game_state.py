@@ -280,7 +280,7 @@ class GameState:
                 old_civ.game_player.score += points_from_yields
                 old_civ.game_player.score_from_revolting_cities += points_from_yields
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
-            hex.city.civ = hex.city.civ_to_revolt_into
+            hex.city.civ = Civ(hex.city.civ_to_revolt_into, game_player=None)
         else:
             # This is a fake city, now it is becoming a real city.
             print(f"Declining to fresh city at {coords}")
@@ -661,7 +661,7 @@ class GameState:
                 self.game_over = True
                 break
 
-        self.populate_fresh_cities_for_decline()
+        self.handle_decline_options()
         for city in self.fresh_cities_for_decline.values():
             city.roll_turn(sess, self, fake=True)
 
@@ -673,26 +673,49 @@ class GameState:
 
         self.create_decline_view(sess)        
 
-    def populate_fresh_cities_for_decline(self) -> None:
-        self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()
-                                             if is_valid_decline_location(self.hexes[coords], self.hexes, [self.hexes[coord] for coord in self.fresh_cities_for_decline])}
-        new_locations_needed = max(3 - len(self.fresh_cities_for_decline), 0)
+    def handle_decline_options(self):
+        self.populate_fresh_cities_for_decline()
+        cities_to_revolt = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.unhappiness > 0])
+        for _, _, city in cities_to_revolt:
+            if city.unhappiness >= 100:
+                pass  # TODO(dfarhi) - revolt to bot
+        revolt_choices = cities_to_revolt[:3]
+        print("revolt choices: ", [city.name for _, _, city in revolt_choices])
+        revolt_ids = set(id for _, id, _ in revolt_choices)
+        for _, _, city in revolt_choices:
+            if city.civ_to_revolt_into is None:
+                civ_name = self.sample_new_civs(1).pop(0)
+                civ_template = CivTemplate.from_json(CIVS[civ_name])
+                city.civ_to_revolt_into = civ_template
+                print(f"{city.name} => {city.civ_to_revolt_into=}")
+        for id, city in self.cities_by_id.items():
+            if id not in revolt_ids:
+                city.civ_to_revolt_into = None
 
-        new_hexes = generate_decline_locations(self.hexes, new_locations_needed)
-
+    def sample_new_civs(self, n):
         decline_choice_big_civ_pool = []
 
         advancement_level_to_use = max(self.advancement_level, 1)
-        civs_already_in_game = [civ.template.name for civ in self.civs_by_id.values()]
+        civs_already_in_game = [civ.template.name for civ in self.civs_by_id.values()] + [city.civ.template.name for city in self.fresh_cities_for_decline.values()]
         for min_advancement_level in range(advancement_level_to_use, -1, -1):
             decline_choice_big_civ_pool = [civ['name'] for civ in ANCIENT_CIVS.values() 
                                            if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level
                                            and civ['name'] not in civs_already_in_game]
 
-            if len(decline_choice_big_civ_pool) >= new_locations_needed:
+            if len(decline_choice_big_civ_pool) >= n:
                 break
+        result = random.sample(decline_choice_big_civ_pool, n)       
+        print(f"Sampling new civs ({n}). {advancement_level_to_use=}; {min_advancement_level=}\n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
+        return result
 
-        decline_choice_civ_pool = random.sample(decline_choice_big_civ_pool, new_locations_needed)
+    def populate_fresh_cities_for_decline(self) -> None:
+        self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()
+                                             if is_valid_decline_location(self.hexes[coords], self.hexes, [self.hexes[coord] for coord in self.fresh_cities_for_decline])}
+        new_locations_needed = max(2 - len(self.fresh_cities_for_decline), 0)
+        print(f"Generating {new_locations_needed} fresh cities for decline.")
+        new_hexes = generate_decline_locations(self.hexes, new_locations_needed)
+
+        decline_choice_civ_pool = self.sample_new_civs(new_locations_needed)
         for hex, civ_name in zip(new_hexes, decline_choice_civ_pool):
             new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player=None)
             new_civ.vitality = 2.0 + self.turn_num * 0.1
@@ -709,6 +732,10 @@ class GameState:
         # TODO get the non-fresh ones too.
         for coords in self.fresh_cities_for_decline:
             self.process_decline_option(coords, None, from_civ_perspectives)
+        for city in self.cities_by_id.values():
+            if city.civ_to_revolt_into is not None:
+                print(f"decline view for city {city.name}")
+                self.process_decline_option(city.hex.coords, None, from_civ_perspectives)
         
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ(short_sighted=True)

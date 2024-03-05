@@ -86,10 +86,9 @@ class City:
 
         self.projected_income = self.projected_income_base.copy()
         self.projected_income[self.focus] += self.projected_income_focus[self.focus]
-        if self.focus == 'food':
-            self.projected_income['city_power'] += self.projected_income_focus['food']
-
-        self.projected_income['unhappiness'] += self.projected_income_focus['food'] - 2 * self.population
+ 
+        self.projected_income['unhappiness'] = max(0, self.food_demand - self.projected_income['food'])
+        self.projected_income['city_power'] = max(0, self.projected_income['food'] - self.food_demand)
 
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
@@ -102,7 +101,6 @@ class City:
             yields["metal"] += hex.yields.metal * vitality
             yields["wood"] += hex.yields.wood * vitality
             yields["science"] += hex.yields.science * vitality
-            yields["city_power"] += hex.yields.food * vitality
         
         yields_per_population = {
             "food": 0,
@@ -119,11 +117,8 @@ class City:
         for key in yields_per_population:
             yields[key] += self.population * yields_per_population[key] * vitality
 
-            if key == 'food':
-                yields["city_power"] += self.population * yields_per_population[key] * vitality
 
         yields["food"] += 2 * vitality
-        yields["city_power"] += 2 * vitality
         return yields
 
     def _get_projected_yields_from_focus(self, game_state) -> dict[str, float]:
@@ -190,7 +185,12 @@ class City:
         self.handle_cleanup()
         self.midturn_update(game_state)
 
+    @property
+    def food_demand(self):
+        return 2 * self.population
+
     def handle_unhappiness(self, game_state: 'GameState') -> None:
+        self.unhappiness += self.projected_income['unhappiness']
         self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num + 0.035 * self.unhappiness
 
     def grow_inner(self, game_state: 'GameState') -> None:
