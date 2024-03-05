@@ -396,6 +396,22 @@ export default function GamePage() {
     }, []); // Empty dependency array ensures this effect runs only once after the initial render
 
     useEffect(() => {
+        // Prevent the default action of the spacebar (it scrolls to the bottom in default browser mode)
+        const handleKeyDown = (event) => {
+            if (event.key === ' ') {
+                event.preventDefault();
+            }
+        };
+
+        // Add event listener
+        window.addEventListener('keydown', handleKeyDown);
+
+        // Remove event listener on cleanup
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []); // Empty dependency array ensures this effect runs only once after the initial render
+
+    
+    useEffect(() => {
         // When the user presses B
         const handleKeyDown = (event) => {
             if (event.key === 'b' || event.key === 'B') {
