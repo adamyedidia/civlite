@@ -731,7 +731,6 @@ class GameState:
     def create_decline_view(self, sess) -> None:
         from_civ_perspectives = []
 
-        # TODO get the non-fresh ones too.
         for coords in self.fresh_cities_for_decline:
             self.process_decline_option(coords, None, from_civ_perspectives)
         for city in self.cities_by_id.values():
