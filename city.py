@@ -88,7 +88,7 @@ class City:
         self.projected_income[self.focus] += self.projected_income_focus[self.focus]
  
         self.projected_income['unhappiness'] = max(0, self.food_demand - self.projected_income['food'])
-        self.projected_income['city_power'] = max(0, self.projected_income['food'] - self.food_demand)
+        self.projected_income['city-power'] = max(0, self.projected_income['food'] - self.food_demand)
 
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality

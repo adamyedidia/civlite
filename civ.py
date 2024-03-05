@@ -67,7 +67,7 @@ class Civ:
         for city in game_state.cities_by_id.values():
             if city.civ.id == self.id:
                 self.projected_science_income += city.projected_income['science']
-                self.projected_city_power_income += city.projected_income['city_power']
+                self.projected_city_power_income += city.projected_income['city-power']
 
     def has_tech(self, tech_name):
         return self.techs_status[tech_name] == TechStatus.RESEARCHED
