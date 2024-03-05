@@ -3110,6 +3110,7 @@ export default function GamePage() {
 
                     transitionEngineState(EngineStates.ANIMATING)
                     triggerAnimations(data.game_state, numFrames);
+                    setTurnNum(data.game_state.turn_num);
                 })
                 .catch(error => {
                     console.error('Error fetching movie frame:', error);
@@ -3130,6 +3131,7 @@ export default function GamePage() {
           }
         })
         socket.on('mute_timer', (data) => {
+            console.log("mute timer turn ", data.turn_num);
             setTimerMutedOnTurn(data.turn_num);
         })
         socket.on('turn_end_change', (data) => {
