@@ -175,14 +175,20 @@ class City:
             for key in hex.is_foundable_by_civ:
                 hex.is_foundable_by_civ[key] = False            
 
-    def roll_turn(self, sess, game_state: 'GameState') -> None:
-        self.harvest_yields(game_state)
-        self.grow(game_state)
-        self.build_units(sess, game_state)
-        self.build_buildings(sess, game_state)
+    def roll_turn(self, sess, game_state: 'GameState', fake: bool = False) -> None:
+        """
+        Fake: is this just a fake city for decline view?
+        """
+        if not fake:
+            self.harvest_yields(game_state)
+            self.grow(game_state)
+            self.build_units(sess, game_state)
+            self.build_buildings(sess, game_state)
+            self.handle_siege(sess, game_state)
+        
         self.handle_unhappiness(game_state)
-        self.handle_siege(sess, game_state)
         self.handle_cleanup()
+        self.midturn_update(game_state)
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:
         self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num + 0.035 * self.unhappiness

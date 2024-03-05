@@ -78,8 +78,7 @@ class GameState:
         self.turn_ended_by_player_num: dict[int, bool] = {}
         self.next_forced_roll_at: Optional[float] = None
         self.roll_id: Optional[str] = None
-
-        self.fresh_decline_location_coords: list[str] = []
+        self.fresh_cities_for_decline: dict[str, City] = {}
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -109,18 +108,27 @@ class GameState:
                 hex.city.hex = hex
             if hex.camp:
                 hex.camp.hex = hex
+        for coords, city in self.fresh_cities_for_decline.items():
+            city.hex = self.hexes[coords]
 
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
 
-    def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str) -> None:
-        civ.city_power -= 100
+    def register_city(self, city):
+        city.hex.city = city
+        self.cities_by_id[city.id] = city
+
+    def new_city(self, civ: Civ, hex: Hex, city_id: Optional[str] = None) -> City:
         city_name = generate_random_city_name(game_state=self)
         city = City(civ, name=city_name, id=city_id)
         city.hex = hex
-        city.hex.city = city
-        self.cities_by_id[city_id] = city
         city.populate_terrains_dict(self)
+        return city
+
+    def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str) -> None:
+        civ.city_power -= 100
+        city = self.new_city(civ, hex, city_id)
+        self.register_city(city)
 
         if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
             if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
@@ -154,7 +162,6 @@ class GameState:
         civ.game_player = None
         civ.in_decline = True
         game_player.civ_id = None
-        self.special_mode_by_player_num[game_player.player_num] = 'choose_decline_option'
 
         for other_civ in self.civs_by_id.values():
             if other_civ.id != civ.id:
@@ -215,10 +222,10 @@ class GameState:
 
     def make_new_civ_from_the_ashes(self, civ: Civ, game_player: GamePlayer, city: City) -> None:
         # For reasons I don't understand, this function has to be deterministic -- it gets called twice during the turn and bad things happen if they are different. -dfarhi
-
+        
         civ.game_player = game_player
         game_player.civ_id = civ.id
-
+        print(f"{game_player.civ_id=}")
         chosen_techs = self.choose_techs_for_new_civ(city)
 
         civ.initialize_techs(chosen_techs)
@@ -255,10 +262,11 @@ class GameState:
 
         self.add_announcement(f'The {civ.moniker()} have been founded in {city.name}!')        
 
-    def process_decline_option(self, decline_option: tuple[str, str, str], game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> tuple[GamePlayer, City]:
-        coords, civ_name, city_id = decline_option
+    def process_decline_option(self, coords: str, game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> City:
         hex = self.hexes[coords]
         if hex.city:
+            # This is not a fresh city , it's a pre-existing one.
+            print(f"Declining to existing city at {coords}")
             old_civ = hex.city.civ
 
             if old_civ.game_player:
@@ -271,27 +279,17 @@ class GameState:
 
                 old_civ.game_player.score += points_from_yields
                 old_civ.game_player.score_from_revolting_cities += points_from_yields
-
-        new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player)
-        new_civ.vitality = 2.0 + self.turn_num * 0.1
-
-        if new_civ.has_ability('ExtraCityPower'):
-            new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]
-
-        if hex.city is None:
-            city_name = generate_random_city_name(game_state=self)
-            city = City(new_civ, name=city_name, id=city_id)
-            city.hex = hex
-            hex.city = city
-            self.cities_by_id[city_id] = city
-            city.populate_terrains_dict(self)
-            city.midturn_update(self)
-            city.handle_unhappiness(self)
+            assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
+            hex.city.civ = hex.city.civ_to_revolt_into
         else:
-            hex.city.civ = new_civ
+            # This is a fake city, now it is becoming a real city.
+            print(f"Declining to fresh city at {coords}")
+            self.register_city(self.fresh_cities_for_decline[coords])
+        print(f"{hex.city=}, {hex.city.civ=}")
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.turn_num // 7)
-        game_player_to_return = game_player
+
+        new_civ = hex.city.civ
         self.civs_by_id[new_civ.id] = new_civ
         from_civ_perspectives.append(new_civ)
 
@@ -306,7 +304,7 @@ class GameState:
 
             neighbor_hex.camp = None
 
-        return game_player_to_return, hex.city
+        return hex.city
 
 
     # Returns (from_civ_perspectives, game state to pass to frontend, game state to store)
@@ -469,38 +467,17 @@ class GameState:
                 game_player_to_return = game_player
                 self.midturn_update()
 
-            if move['move_type'] == 'enter_decline':                
+            if move['move_type'] == 'choose_decline_option':
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
                 civ = self.civs_by_id[game_player.civ_id]
                 self.enter_decline_for_civ(civ, game_player)
 
                 game_player_to_return = game_player
-                game_state_to_store_json = self.to_json()                            
-
-                if move_index == len(moves) - 1 and speculative:
-                    from_civ_perspectives = []
-                    for decline_option in self.game_player_by_player_num[player_num].decline_options:
-                        self.process_decline_option(decline_option, game_player, from_civ_perspectives)
-                        self.refresh_foundability_by_civ()
-                        self.refresh_visibility_by_civ(short_sighted=True)
-                        game_state_to_return_json = self.to_json(from_civ_perspectives=from_civ_perspectives)
-                        game_state_to_dream_json = self.to_json()
-
-                        rset_json(f'dream_game_state:{self.game_id}:{player_num}', game_state_to_dream_json)
-                        rset_json(f'dream_game_state_from_civ_perspectives:{self.game_id}:{player_num}', [civ.id for civ in from_civ_perspectives])
-
-            if move['move_type'] == 'choose_decline_option':
-                game_player = self.game_player_by_player_num[player_num]
-                city_id = move['city_id']
-                self.special_mode_by_player_num[player_num] = None
-                game_player_to_return = game_player
 
                 from_civ_perspectives = []
-                city: Optional[City] = None
-                for decline_option in self.game_player_by_player_num[player_num].decline_options:
-                    if decline_option[2] == city_id:
-                        game_player_to_return, city = self.process_decline_option(decline_option, game_player, from_civ_perspectives)
+                coords = move['coords']
+                city = self.process_decline_option(coords, game_player, from_civ_perspectives)
 
                 if len(from_civ_perspectives) > 1:
                     from_civ_perspectives = from_civ_perspectives[:1]
@@ -513,13 +490,14 @@ class GameState:
                 city.refresh_available_buildings()
                 city.refresh_available_units()
                 self.midturn_update()
+                print(f"{city.civ.game_player.player_num=}")
+                print(f"{game_player_to_return.civ_id=}")
 
-                rdel(f'dream_game_state:{self.game_id}:{player_num}')
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
             if from_civ_perspectives is None and game_player_to_return.civ_id is not None:
                 from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
-            
+            print(self.to_json(from_civ_perspectives=from_civ_perspectives)['cities_by_id'])            
             return (from_civ_perspectives, game_state_to_return_json or self.to_json(from_civ_perspectives=from_civ_perspectives), game_state_to_store_json or self.to_json())
 
         return (None, self.to_json(), self.to_json())
@@ -683,51 +661,54 @@ class GameState:
                 self.game_over = True
                 break
 
+        self.populate_fresh_cities_for_decline()
+        for city in self.fresh_cities_for_decline.values():
+            city.roll_turn(sess, self, fake=True)
+
         self.add_animation_frame(sess, {
             "type": "StartOfNewTurn",
         })
 
         sess.commit()
 
-        self.handle_unhappiness(sess)        
+        self.create_decline_view(sess)        
 
+    def populate_fresh_cities_for_decline(self) -> None:
+        self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()
+                                             if is_valid_decline_location(self.hexes[coords], self.hexes, [self.hexes[coord] for coord in self.fresh_cities_for_decline])}
+        new_locations_needed = max(3 - len(self.fresh_cities_for_decline), 0)
 
-    def handle_unhappiness(self, sess) -> None:
-
-        fresh_decline_locations = [self.hexes[coord] for coord in self.fresh_decline_location_coords]
-
-        num_existing_fresh_decline_location_coords = len([hex for hex in fresh_decline_locations if is_valid_decline_location(hex, self.hexes, fresh_decline_locations)])
-
-        if num_existing_fresh_decline_location_coords < 3:
-            new_fresh_decline_locations = generate_decline_locations(self.hexes, max(3 - num_existing_fresh_decline_location_coords, 0))        
-
-            fresh_decline_locations = [*fresh_decline_locations, *new_fresh_decline_locations]
-        
-        num_fresh_decline_locations = len(fresh_decline_locations)
+        new_hexes = generate_decline_locations(self.hexes, new_locations_needed)
 
         decline_choice_big_civ_pool = []
 
-        num_civs_to_sample = 3
-
         advancement_level_to_use = max(self.advancement_level, 1)
-
         civs_already_in_game = [civ.template.name for civ in self.civs_by_id.values()]
-
         for min_advancement_level in range(advancement_level_to_use, -1, -1):
             decline_choice_big_civ_pool = [civ['name'] for civ in ANCIENT_CIVS.values() 
                                            if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level
                                            and civ['name'] not in civs_already_in_game]
 
-            if len(decline_choice_big_civ_pool) >= num_civs_to_sample:
+            if len(decline_choice_big_civ_pool) >= new_locations_needed:
                 break
 
+        decline_choice_civ_pool = random.sample(decline_choice_big_civ_pool, new_locations_needed)
+        for hex, civ_name in zip(new_hexes, decline_choice_civ_pool):
+            new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player=None)
+            new_civ.vitality = 2.0 + self.turn_num * 0.1
 
-        decline_choice_civ_pool = random.sample(decline_choice_big_civ_pool, num_civs_to_sample)
+            if new_civ.has_ability('ExtraCityPower'):
+                new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]
+            city = self.new_city(new_civ, hex)
+            # Note that city is NOT registered; i.e. hex.city is not this city, since this is a fake city.
+            self.fresh_cities_for_decline[hex.coords] = city
 
+    def create_decline_view(self, sess) -> None:
         from_civ_perspectives = []
 
-        for i, decline_location in enumerate(fresh_decline_locations):
-            self.process_decline_option((decline_location.coords, decline_choice_civ_pool[i], generate_unique_id()), None, from_civ_perspectives)
+        # TODO get the non-fresh ones too.
+        for coords in self.fresh_cities_for_decline:
+            self.process_decline_option(coords, None, from_civ_perspectives)
         
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ(short_sighted=True)
@@ -920,6 +901,7 @@ class GameState:
             "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{self.game_id}') or {},
             "next_forced_roll_at": self.next_forced_roll_at,
             "roll_id": self.roll_id,
+            "fresh_cities_for_decline": {coords: city.to_json() for coords, city in self.fresh_cities_for_decline.items()}
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
@@ -946,6 +928,7 @@ class GameState:
         game_state.wonders_built_to_civ_id = json["wonders_built_to_civ_id"].copy()
         game_state.national_wonders_built_by_civ_id = {k: v[:] for k, v in json["national_wonders_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
+        game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}
         game_state.set_unit_and_city_hexes()
         game_state.set_civ_targets(hexes)
         game_state.game_over = json["game_over"]
