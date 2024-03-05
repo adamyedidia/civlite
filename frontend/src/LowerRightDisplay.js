@@ -9,7 +9,26 @@ import EngineStates from './EngineStates';
 
 import { Button, CircularProgress } from '@mui/material';
 
-const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, handleClickEndTurn, handleClickUnendTurn, getMovie, engineState }) => {
+const AnimationControlBar = ({animationFrame, animationTotalFrames}) => {
+    return <div className="animation-control-bar">
+        <div className="animation-progress-bar">
+            <div className="animation-bar-dot" style={{left: `${animationFrame / animationTotalFrames * 100}%`}}>
+            </div>
+        </div>
+        <div className="animation-control-bar-stop" >
+        </div>
+    </div>
+}
+
+const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, handleClickEndTurn, handleClickUnendTurn, getMovie, engineState, animationFrame, animationTotalFrames, cancelAnimations }) => {
+    const toggleAnimations = () => {
+        if (engineState === EngineStates.ANIMATING) {
+            cancelAnimations();
+        } else if (engineState === EngineStates.PLAYING) {
+            getMovie(true);
+        }
+    }
+    
     return <div className="lower-right-display">
         <AnnouncementsDisplay announcements={gameState?.announcements} />
         <div className="end-turn-area">
@@ -30,15 +49,22 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
                     </>}
                     {engineState === EngineStates.ANIMATING && <>
                         <CircularProgress size={24} />
+                        <p style={{fontSize: "0.5em"}}>Animating...</p>
                     </>}
                 </Button>}
                 {!gameState?.special_mode_by_player_num?.[playerNum] && <Button
                     style={{backgroundColor: "#ffcccc",}} 
                     variant="contained"
-                    onClick={() => getMovie(true)}
-                    disabled={engineState !== EngineStates.PLAYING}
+                    onClick={toggleAnimations}
+                    disabled={engineState !== EngineStates.PLAYING && engineState !== EngineStates.ANIMATING}
                 >
-                    {engineState === EngineStates.ANIMATING ? "Animating..." : "Replay animations" }
+                    {engineState === EngineStates.ANIMATING ? 
+                        <AnimationControlBar 
+                            animationFrame={animationFrame}
+                            animationTotalFrames={animationTotalFrames}
+                        />
+
+                    : "Replay animations" }
                 </Button>}
             </div>
             <TurnEndedDisplay 

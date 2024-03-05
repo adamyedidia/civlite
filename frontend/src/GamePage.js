@@ -243,7 +243,12 @@ export default function GamePage() {
     const [engineState, setEngineState] = useState(EngineStates.PLAYING);
     // Ref to keep track of the current engineState
     const engineStateRef = React.useRef(engineState);
-    
+
+    const [animationFrame, setAnimationFrame] = useState(null);
+    const [animationTotalFrames, setAnimationTotalFrames] = useState(null);
+    const [animationFinalState, setAnimationFinalState] = useState(null);
+    const [animationActiveDelay, setAnimationActiveDelay] = useState(null);
+
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
     const [frameNum, setFrameNum] = useState(0);
@@ -281,15 +286,11 @@ export default function GamePage() {
 
     const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
 
-    const [animationRunIdUseState, setAnimationRunIdUseState] = useState(null);
-
     const [foundingCity, setFoundingCity] = useState(false);
 
     const [confirmEnterDecline, setConfirmEnterDecline] = useState(false);
 
     const [techListDialogOpen, setTechListDialogOpen] = useState(false);
-
-    const animationRunIdRef = React.useRef(null);
 
     const [gameConstants, setGameConstants] = useState(null);
 
@@ -573,10 +574,6 @@ export default function GamePage() {
             document.removeEventListener('contextmenu', handleContextMenu);
         };
     }, [engineState]);
-
-    useEffect(() => {
-        animationRunIdRef.current = animationRunIdUseState;
-    }, [animationRunIdUseState]);
 
     const handleChangeTurnTimer = (value) => {
         const data = {
@@ -2190,63 +2187,78 @@ export default function GamePage() {
         }
     }
 
-    const triggerAnimations = async (finalGameState, numFrames) => {
-        const animationRunId = generateUniqueId();
+    const playAnimationFrame = async (frameNum) => {
+        try {
+            const response = await fetch(`${URL}/api/movie/frame/${gameId}/${frameNum}?player_num=${playerNum}`);
+            const json = await response.json();
+            if (!json.data) {
+                console.error("No data in frame", frameNum);
+                return;
+            }
+            switch (json.data.type) {
+                case 'UnitMovement':
+                    playMoveSound(moveSound, volume);
+                    showMovementArrows(json.data.coords);
+                    setGameState(json.game_state);
+                    break;
 
-        console.log(`animating! ${animationRunId}`);
-        // console.log(animationQueue)
+                case 'UnitAttack':
+                    if (json.data.attack_type === 'melee') {
+                        playMeleeAttackSound(meleeAttackSound, volume);
+                    } else if (json.data.attack_type === 'ranged') {
+                        playRangedAttackSound(rangedAttackSound, volume);
+                    } else if (json.data.attack_type === 'gunpowder_melee') {
+                        playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
+                    } else if (json.data.attack_type === 'gunpowder_ranged') {
+                        playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
+                    }
+                    showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
+                    setGameState(json.game_state);
+                    break;
+            }
+        } catch (error) {
+            console.error('Error fetching movie frame:', error);
+        }
+    }
 
+    const finalAnimationFrame = () => {
+        setAnimationFrame(null);
+        const finalGameState = animationFinalState;
+        setGameState(finalGameState);
+        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
+    }
+
+    useEffect(() => {
+        if (animationFrame === null) {return;}
+        if (engineState !== EngineStates.ANIMATING) {
+            console.log("Canceling animation");
+            finalAnimationFrame();
+            return;
+        }
+        if (animationFrame >= animationTotalFrames) {
+            finalAnimationFrame();
+            transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
+            return;
+        }
+        setTimeout(() => setAnimationFrame(animationFrame + 1), animationActiveDelay);
+        playAnimationFrame(animationFrame);
+    }, [animationFrame])
+
+    const triggerAnimations = (finalGameState, numFrames) => {
         if (engineState === EngineStates.ANIMATING) {
+            console.error("Already animating, but tried to start another animation!")
             return;
         }
 
-        setAnimationRunIdUseState(animationRunId);
+        setAnimationFrame(0);
+        setAnimationTotalFrames(numFrames);
+        setAnimationActiveDelay(Math.min(ANIMATION_DELAY, 20000 / numFrames));
+        setAnimationFinalState(finalGameState);
+    }
 
-        const animationDelay = Math.min(ANIMATION_DELAY, 20000 / numFrames);
-
-        for (let i = 0; i < numFrames; i++) {
-            try {
-                const response = await fetch(`${URL}/api/movie/frame/${gameId}/${i}?player_num=${playerNum}`);
-                const json = await response.json();
-                switch (json.data.type) {
-                    case 'UnitMovement':
-                        await new Promise((resolve) => setTimeout(resolve, animationDelay));
-                        playMoveSound(moveSound, volume);
-                        showMovementArrows(json.data.coords);
-                        setGameState(json.game_state);
-                        break;
-    
-                    case 'UnitAttack':
-                        await new Promise((resolve) => setTimeout(resolve, animationDelay));
-                        if (json.data.attack_type === 'melee') {
-                            playMeleeAttackSound(meleeAttackSound, volume);
-                        } else if (json.data.attack_type === 'ranged') {
-                            playRangedAttackSound(rangedAttackSound, volume);
-                        } else if (json.data.attack_type === 'gunpowder_melee') {
-                            playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
-                        } else if (json.data.attack_type === 'gunpowder_ranged') {
-                            playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
-                        }
-                        showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
-                        setGameState(json.game_state);
-                        break;
-                }
-            } catch (error) {
-                console.error('Error fetching movie frame:', error);
-            }
-
-            if ((animationRunId !== animationRunIdRef.current) && (numFrames > 1)) {
-                console.log("Removing duplicate animation")
-                return;
-            }            
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
-        setGameState(finalGameState);
-        refreshSelectedCity(finalGameState);
-        setSelectedCity(null);
-        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
-        transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
+    const cancelAnimations = () => {
+        console.log("Manually cancelling animations")
+        setEngineState(EngineStates.PLAYING, EngineStates.ANIMATING);
     }
 
     const FlagArrow = ({hex}) => {
@@ -2898,6 +2910,9 @@ export default function GamePage() {
                         handleClickUnendTurn={handleClickUnendTurn}
                         getMovie={getMovie}
                         engineState={engineState}
+                        animationFrame={animationFrame}
+                        animationTotalFrames={animationTotalFrames}
+                        cancelAnimations={cancelAnimations}
                     />}
                     {<UpperRightDisplay 
                         setHoveredUnit={setHoveredUnit} 
@@ -3053,8 +3068,6 @@ export default function GamePage() {
     }
 
     const getMovie = (playAnimations) => {
-        console.log(playAnimations);
-
         if (!playAnimations) {
             fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
 
