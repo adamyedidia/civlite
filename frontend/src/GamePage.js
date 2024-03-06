@@ -2256,7 +2256,7 @@ export default function GamePage() {
             return;
         }
         transitionEngineState(EngineStates.ANIMATING)
-        setAnimationFrame(0);
+        setAnimationFrame(1);
         setAnimationFinalState(finalGameState);
     }
 
