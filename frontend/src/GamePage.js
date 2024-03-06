@@ -3057,11 +3057,11 @@ export default function GamePage() {
     }
 
     const fetchGameState = () => {
-        fetch(`${URL}/api/game_state/${gameId}?player_num=${playerNum}&turn_num=${turnNum}&frame_num=${frameNum}`)
+        fetch(`${URL}/api/game_status/${gameId}`)
             .then(response => response.json())
             .then(data => {
                 console.log('fetched!')
-                if (data.game_state) {
+                if (data.game_started) {
                     console.log("Got new game state! Now I will throw it away and get it again. ???");
                     getMovie(false);
                     // launch game: could just do setGameState, I think?

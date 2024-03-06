@@ -396,31 +396,15 @@ def get_players_in_game(sess, game_id: str):
     return jsonify([player.user.username for player in players])
 
 
-@app.route('/api/game_state/<game_id>', methods=['GET'])
+@app.route('/api/game_status/<game_id>', methods=['GET'])
 @api_endpoint
 def get_game_state(sess, game_id):
-
-    player_num = request.args.get('player_num')
-
-    if player_num is None:
-        return jsonify({"error": "Player number is required"}), 400
-
-    turn_num = request.args.get('turn_num')
-
-    if turn_num is None:
-        return jsonify({"error": "Turn number is required"}), 400
-
-    frame_num = request.args.get('frame_num')
-
-    if frame_num is None:
-        return jsonify({"error": "Frame number is required"}), 400
-
     animation_frame = (
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.turn_num == turn_num)
-        .filter(AnimationFrame.player_num == player_num)
-        .filter(AnimationFrame.frame_num == frame_num)
+        .filter(AnimationFrame.turn_num == 1)
+        .filter(AnimationFrame.player_num == 0)
+        .filter(AnimationFrame.frame_num == 0)
         .one_or_none()
     )
 
@@ -446,18 +430,8 @@ def get_game_state(sess, game_id):
                             "turn_timer": game.seconds_per_turn,})
 
         return jsonify({"error": "Animation frame not found"}), 404
-    
-
-    game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}') or get_most_recent_game_state_json(sess, game_id)
-    game_state = GameState.from_json(game_state_json)
-
-    if game_state is None:
-        return jsonify({"error": "Game state not found"}), 404
-    
-    return {'game_state': {
-        **game_state.to_json(),
-        "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},
-    }}
+     
+    return jsonify({'game_started': True})
 
 
 @app.route('/api/movie/frame/<game_id>/<frame_num>', methods=['GET'])
