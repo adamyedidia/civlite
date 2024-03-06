@@ -256,6 +256,9 @@ class GameState:
     def process_decline_option(self, decline_option: tuple[str, str, str], game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> tuple[GamePlayer, City]:
         coords, civ_name, city_id = decline_option
         hex = self.hexes[coords]
+
+        print(hex.city)
+
         if hex.city:
             old_civ = hex.city.civ
 
@@ -285,6 +288,8 @@ class GameState:
             city.populate_terrains_dict(self)
         else:
             hex.city.civ = new_civ
+        
+        print(hex.city)
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.turn_num // 7)
         game_player_to_return = game_player
@@ -302,6 +307,7 @@ class GameState:
 
             neighbor_hex.camp = None
 
+        print(hex.city)
         return game_player_to_return, hex.city
 
 
