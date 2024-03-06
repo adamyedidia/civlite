@@ -182,7 +182,7 @@ class Civ:
             game_state.enter_decline_for_civ(self, self.game_player)
 
             from_civ_perspectives = []
-            _, city = game_state.process_decline_option(decline_option, game_player, from_civ_perspectives)
+            city = game_state.process_decline_option(decline_option, from_civ_perspectives)
             assert len(from_civ_perspectives) == 1
             assert city is not None
 

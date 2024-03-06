@@ -262,7 +262,7 @@ class GameState:
 
         self.add_announcement(f'The {civ.moniker()} have been founded in {city.name}!')        
 
-    def process_decline_option(self, coords: str, game_player: GamePlayer, from_civ_perspectives: list[Civ]) -> City:
+    def process_decline_option(self, coords: str, from_civ_perspectives: list[Civ]) -> City:
         hex = self.hexes[coords]
         if hex.city:
             # This is not a fresh city , it's a pre-existing one.
@@ -285,7 +285,7 @@ class GameState:
             # This is a fake city, now it is becoming a real city.
             print(f"Declining to fresh city at {coords}")
             self.register_city(self.fresh_cities_for_decline[coords])
-        print(f"{hex.city=}, {hex.city.civ=}")
+        assert hex.city is not None, "Failed to register city!"
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.turn_num // 7)
         hex.city.wood = hex.city.metal = 0
@@ -471,14 +471,14 @@ class GameState:
             if move['move_type'] == 'choose_decline_option':
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
+                civ: Civ = self.civs_by_id[game_player.civ_id]
                 self.enter_decline_for_civ(civ, game_player)
 
                 game_player_to_return = game_player
 
                 from_civ_perspectives = []
                 coords = move['coords']
-                city = self.process_decline_option(coords, game_player, from_civ_perspectives)
+                city = self.process_decline_option(coords, from_civ_perspectives)
 
                 if len(from_civ_perspectives) > 1:
                     from_civ_perspectives = from_civ_perspectives[:1]
@@ -491,8 +491,6 @@ class GameState:
                 city.refresh_available_buildings()
                 city.refresh_available_units()
                 self.midturn_update()
-                print(f"{city.civ.game_player.player_num=}")
-                print(f"{game_player_to_return.civ_id=}")
 
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
@@ -576,20 +574,6 @@ class GameState:
             rdel(f'dream_game_state_from_civ_perspectives:{self.game_id}:{player_num}')
 
         rdel(f'turn_ended_by_player_num:{self.game_id}')
-
-        for player_num, game_player in self.game_player_by_player_num.items():
-            if game_player.civ_id is None:
-                
-                from_civ_perspectives = []
-
-                for decline_option in game_player.decline_options:
-                    self.process_decline_option(decline_option, game_player, from_civ_perspectives)
-                    self.refresh_foundability_by_civ()
-                    self.refresh_visibility_by_civ(short_sighted=True)
-                    game_state_to_dream_json = self.to_json()
-
-                    rset_json(f'dream_game_state:{self.game_id}:{player_num}', game_state_to_dream_json)       
-                    rset_json(f'dream_game_state_from_civ_perspectives:{self.game_id}:{player_num}', [civ.id for civ in from_civ_perspectives])
 
     def roll_turn(self, sess) -> None:
         self.turn_num += 1
@@ -708,7 +692,7 @@ class GameState:
             if len(decline_choice_big_civ_pool) >= n:
                 break
         result = random.sample(decline_choice_big_civ_pool, n)       
-        print(f"Sampling new civs ({n}). {advancement_level_to_use=}; {min_advancement_level=}\n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
+        print(f"Sampling new civs ({n}). {advancement_level_to_use=}; \n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
         return result
 
     def populate_fresh_cities_for_decline(self) -> None:
@@ -733,11 +717,12 @@ class GameState:
         from_civ_perspectives = []
 
         for coords in self.fresh_cities_for_decline:
-            self.process_decline_option(coords, None, from_civ_perspectives)
+            self.process_decline_option(coords, from_civ_perspectives)
         for city in self.cities_by_id.values():
             if city.civ_to_revolt_into is not None:
                 print(f"decline view for city {city.name}")
-                self.process_decline_option(city.hex.coords, None, from_civ_perspectives)
+                assert city.hex is not None, "Somehow got a city with no hex registered."
+                self.process_decline_option(city.hex.coords, from_civ_perspectives)
         
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ(short_sighted=True)
