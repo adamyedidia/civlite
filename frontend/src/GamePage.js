@@ -3062,55 +3062,34 @@ export default function GamePage() {
             .then(data => {
                 console.log('fetched!')
                 if (data.game_started) {
-                    console.log("Got new game state! Now I will throw it away and get it again. ???");
+                    // game is running, let's go get the game state.
                     getMovie(false);
-                    // launch game: could just do setGameState, I think?
-                    // Load mid-game: could do setGameState and setTurnNum
-                }
-                if (data.players) {
+                } else {
+                    // Game is in lobby state.
                     console.log("Updating players in the game", data.players);
                     setPlayersInGame(data.players);
+                    setTurnTimer(!data.turn_timer ? -1 : data.turn_timer);
                 }
-                setTurnTimer(!data.turn_timer ? -1 : data.turn_timer);
             });
     
     }
 
     const getMovie = (playAnimations) => {
-        if (!playAnimations) {
-            console.log("getMove(false);")
-            fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
-
+        fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
-                if (data.game_state && (turnNum === 1 || data.turn_num === turnNum)) {
-                    console.log("setting game state;", data.turn_num, turnNum)
+                setTurnNum(data.game_state.turn_num);
+                if (playAnimations) {
+                    const numFrames = data.num_frames;
+                    transitionEngineState(EngineStates.ANIMATING)
+                    triggerAnimations(data.game_state, numFrames);
+                } else {
                     setGameState(data.game_state);
-                }
-                if (data.turn_num) {
-                    console.log("setting turn num;", data.turn_num, turnNum)
-                    setTurnNum(data.turn_num);
                 }
             })
             .catch(error => {
                 console.error('Error fetching movie frame:', error);
             });
-        }
-        else {
-            fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
-
-                .then(response => response.json())
-                .then(data => {
-                    const numFrames = data.num_frames;
-
-                    transitionEngineState(EngineStates.ANIMATING)
-                    triggerAnimations(data.game_state, numFrames);
-                    setTurnNum(data.game_state.turn_num);
-                })
-                .catch(error => {
-                    console.error('Error fetching movie frame:', error);
-                });
-        }
     }
 
     useEffect(() => {
