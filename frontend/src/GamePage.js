@@ -245,6 +245,7 @@ export default function GamePage() {
     const engineStateRef = React.useRef(engineState);
 
     const [animationFrame, setAnimationFrame] = useState(null);
+    const [animationFrameLastPlayed, setAnimationFrameLastPlayed] = useState(0);
     const [animationTotalFrames, setAnimationTotalFrames] = useState(null);
     const [animationFinalState, setAnimationFinalState] = useState(null);
     const [animationActiveDelay, setAnimationActiveDelay] = useState(null);
@@ -2221,6 +2222,7 @@ export default function GamePage() {
                     setGameState(json.game_state);
                     break;
             }
+            setAnimationFrameLastPlayed(frameNum);
         } catch (error) {
             console.error('Error fetching movie frame:', error);
         }
@@ -2236,6 +2238,21 @@ export default function GamePage() {
 
     useEffect(() => {
         if (animationFrame === null) {return;}
+        else if (animationFrameLastPlayed === animationFrame) {
+            // This is the call that happens in the normal course of business when LastPlayed gets updated; 
+            // we can ignore it.
+            return;
+        }
+        else if (animationFrameLastPlayed == animationFrame - 2) {
+            console.error("time to play frame", animationFrame, "but last played", animationFrameLastPlayed, " -- is the network too slow?");
+            // When the network is too slow, we can't keep up with the animation frames. 
+            // We can abort this call; this function will be called again when animationFrameLastPlayed increments
+            return;
+        }
+        else if (animationFrameLastPlayed !== animationFrame  - 1) {
+            console.log("wtf is going on with the animation scheduling? last played frame", animationFrameLastPlayed, "now time for frame", animationFrame);
+        }
+        
         if (engineState !== EngineStates.ANIMATING) {
             console.log("Canceling animation");
             finalAnimationFrame();
@@ -2248,7 +2265,7 @@ export default function GamePage() {
         }
         setTimeout(() => setAnimationFrame(animationFrame + 1), animationActiveDelay);
         playAnimationFrame(animationFrame);
-    }, [animationFrame])
+    }, [animationFrame, animationFrameLastPlayed])
 
     const triggerAnimations = (finalGameState) => {
         if (engineState === EngineStates.ANIMATING) {
@@ -2257,6 +2274,7 @@ export default function GamePage() {
         }
         transitionEngineState(EngineStates.ANIMATING)
         setAnimationFrame(1);
+        setAnimationFrameLastPlayed(0);
         setAnimationFinalState(finalGameState);
     }
 
@@ -3062,7 +3080,7 @@ export default function GamePage() {
                 console.log('fetched!')
                 if (data.game_started) {
                     // game is running, let's go get the game state.
-                    fetchGameState(false);
+                    fetchTurnStartGameState(false);
                 } else {
                     // Game is in lobby state.
                     console.log("Updating players in the game", data.players);
@@ -3073,13 +3091,18 @@ export default function GamePage() {
     
     }
 
-    const fetchGameState = (playAnimations) => {
+    const fetchTurnStartGameState = (playAnimations) => {
         fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
+                console.log("Turn started: ", data.game_state.turn_num);
                 setTurnNum(data.game_state.turn_num);
                 setAnimationTotalFrames(data.num_frames);
-                setAnimationActiveDelay(Math.min(ANIMATION_DELAY, 20000 / data.num_frames));
+                const budgetedAnimationTime = Math.min(30, data.game_state.turn_num) * 1000;
+                // Give 5 seconds for the backend computation
+                const animationTime = Math.max(budgetedAnimationTime - 5000, 5000);
+                console.log("Attempting to play animation with", data.num_frames,  "frames in", animationTime/1000, "secs; turn has left", Math.floor(data.game_state.next_forced_roll_at - Date.now()/1000), " secs.");
+                setAnimationActiveDelay(Math.min(ANIMATION_DELAY, animationTime / data.num_frames));
 
                 if (playAnimations) {
                     triggerAnimations(data.game_state);
@@ -3088,7 +3111,7 @@ export default function GamePage() {
                 }
             })
             .catch(error => {
-                console.error('Error fetching movie frame:', error);
+                console.error('Error fetching turn start game state:', error);
             });
     }
 
@@ -3100,7 +3123,7 @@ export default function GamePage() {
           console.log('update received')
           if (gameStateExistsRef.current) {
             // Turn has rolled within a game.
-            fetchGameState(true);
+            fetchTurnStartGameState(true);
           }
           else {
             // Get here for updates before the game has launched (i.e. adding a player to the lobby)
