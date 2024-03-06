@@ -2069,12 +2069,7 @@ export default function GamePage() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                // getMovie(false);  // TODO why do we call getMovie here? Great point! Let's not!
-            }).catch(error => {
-                console.error('Error ending turn:', error);
-            });
+        });
     }
 
     const handleClickUnendTurn = () => {
@@ -2089,13 +2084,7 @@ export default function GamePage() {
             },
 
             body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    // setGameState(data.game_state);
-                }
-                getMovie(false);
-            });
+        })
     }
 
     
@@ -3071,13 +3060,17 @@ export default function GamePage() {
         fetch(`${URL}/api/game_state/${gameId}?player_num=${playerNum}&turn_num=${turnNum}&frame_num=${frameNum}`)
             .then(response => response.json())
             .then(data => {
+                console.log('fetched!')
                 if (data.game_state) {
+                    console.log("Got new game state! Now I will throw it away and get it again. ???");
                     getMovie(false);
+                    // launch game: could just do setGameState, I think?
+                    // Load mid-game: could do setGameState and setTurnNum
                 }
                 if (data.players) {
+                    console.log("Updating players in the game", data.players);
                     setPlayersInGame(data.players);
                 }
-                console.log('fetched!')
                 setTurnTimer(!data.turn_timer ? -1 : data.turn_timer);
             });
     
@@ -3085,17 +3078,19 @@ export default function GamePage() {
 
     const getMovie = (playAnimations) => {
         if (!playAnimations) {
+            console.log("getMove(false);")
             fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
 
             .then(response => response.json())
             .then(data => {
-                if (data.game_state && !(turnNum !== 1 && data.turn_num !== turnNum)) {
+                if (data.game_state && (turnNum === 1 || data.turn_num === turnNum)) {
+                    console.log("setting game state;", data.turn_num, turnNum)
                     setGameState(data.game_state);
                 }
                 if (data.turn_num) {
+                    console.log("setting turn num;", data.turn_num, turnNum)
                     setTurnNum(data.turn_num);
                 }
-                
             })
             .catch(error => {
                 console.error('Error fetching movie frame:', error);
@@ -3119,14 +3114,19 @@ export default function GamePage() {
     }
 
     useEffect(() => {
+        console.log("Setting up socket");
         socket.emit('join', { room: gameId, username: username });
         fetchGameState();
         socket.on('update', () => {
           console.log('update received')
           if (gameStateExistsRef.current) {
+            // Turn has rolled within a game.
             getMovie(true);
           }
           else {
+            // Get here for updates before the game has launched (i.e. adding a player to the lobby)
+            // And the "game has launched" update
+            console.log("fetchGameState from update.")
             fetchGameState();
           }
         })
@@ -3142,6 +3142,7 @@ export default function GamePage() {
             setEngineState(EngineStates.ROLLING);
         })
         return () => {
+            console.log("Destroying socket listeners.")
             socket.off('update');
             socket.off('mute_timer');
             socket.off('turn_end_change');
