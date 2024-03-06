@@ -396,31 +396,15 @@ def get_players_in_game(sess, game_id: str):
     return jsonify([player.user.username for player in players])
 
 
-@app.route('/api/game_state/<game_id>', methods=['GET'])
+@app.route('/api/game_status/<game_id>', methods=['GET'])
 @api_endpoint
 def get_game_state(sess, game_id):
-
-    player_num = request.args.get('player_num')
-
-    if player_num is None:
-        return jsonify({"error": "Player number is required"}), 400
-
-    turn_num = request.args.get('turn_num')
-
-    if turn_num is None:
-        return jsonify({"error": "Turn number is required"}), 400
-
-    frame_num = request.args.get('frame_num')
-
-    if frame_num is None:
-        return jsonify({"error": "Frame number is required"}), 400
-
     animation_frame = (
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.turn_num == turn_num)
-        .filter(AnimationFrame.player_num == player_num)
-        .filter(AnimationFrame.frame_num == frame_num)
+        .filter(AnimationFrame.turn_num == 1)
+        .filter(AnimationFrame.player_num == 0)
+        .filter(AnimationFrame.frame_num == 0)
         .one_or_none()
     )
 
@@ -446,18 +430,8 @@ def get_game_state(sess, game_id):
                             "turn_timer": game.seconds_per_turn,})
 
         return jsonify({"error": "Animation frame not found"}), 404
-    
-
-    game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}') or get_most_recent_game_state_json(sess, game_id)
-    game_state = GameState.from_json(game_state_json)
-
-    if game_state is None:
-        return jsonify({"error": "Game state not found"}), 404
-    
-    return {'game_state': {
-        **game_state.to_json(),
-        "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},
-    }}
+     
+    return jsonify({'game_started': True})
 
 
 @app.route('/api/movie/frame/<game_id>/<frame_num>', methods=['GET'])
@@ -563,67 +537,6 @@ def get_most_recent_state(sess, game_id):
         'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},} if game_state_json else {},
         'turn_num': turn_num,
         'num_frames': num_animation_frames_for_player,
-    })
-
-
-@app.route('/api/movie/<game_id>', methods=['GET'])
-@api_endpoint
-def get_latest_turn_movie(sess, game_id):
-    player_num = request.args.get('player_num')
-
-    if player_num is None:
-        return jsonify({"error": "Player number is required"}), 400
-
-    turn_num = (
-        sess.query(func.max(AnimationFrame.turn_num))
-        .filter(AnimationFrame.game_id == game_id)
-        .scalar()
-    )
-
-    animation_frames = (
-        sess.query(AnimationFrame)
-        .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.turn_num == turn_num)
-        .filter(AnimationFrame.player_num == player_num)
-        .order_by(AnimationFrame.frame_num)
-        .all()
-    )
-    
-    dream_game_state_json = rget_json(f'dream_game_state:{game_id}:{player_num}')
-    dream_game_state_json_from_civ_perspectives = rget_json(f'dream_game_state_from_civ_perspectives:{game_id}:{player_num}') or []
-
-    # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
-
-    staged_game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}')
-    game_state = GameState.from_json(dream_game_state_json) if dream_game_state_json else GameState.from_json(staged_game_state_json) if staged_game_state_json else None
-
-    game_state_json = None
-    if game_state:
-        game_player = game_state.game_player_by_player_num.get(int(player_num))
-        if game_player:
-            player_civ = game_state.civs_by_id.get(game_player.civ_id or '')
-            if player_civ:
-                game_state_json = game_state.to_json(from_civ_perspectives=[player_civ])
-            else:
-
-                if dream_game_state_json:
-                    from_civ_perspectives = [game_state.civs_by_id[civ_id] for civ_id in dream_game_state_json_from_civ_perspectives]
-                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
-
-                else:
-                    from_civ_perspectives = []
-
-                    for decline_option in game_player.decline_options:
-                        for civ in game_state.civs_by_id.values():
-                            if civ.template.name == decline_option[1]:
-                                from_civ_perspectives.append(civ)
-
-                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
-
-    return jsonify({
-        'animation_frames': [*[{'game_state': {**animation_frame.game_state, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {}}, 'data': animation_frame.data} for animation_frame in animation_frames], 
-                             *([{'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},}, 'data': {}}] if game_state_json else [])], 
-        'turn_num': turn_num,
     })
 
 @app.route('/api/open_games', methods=['GET'])
