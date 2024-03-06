@@ -26,3 +26,16 @@ def get_all_coords_up_to_n(n) -> list[tuple[int, int, int]]:
 def swap_two_elements_of_list(l: list, i: int, j: int) -> list:
     l[i], l[j] = l[j], l[i]
     return l
+
+
+def dream_key(game_id: str, player_num: int, turn_num: int) -> str:
+    return f'dream_game_state:{game_id}:{player_num}:{turn_num}'
+
+
+def staged_key(game_id: str, player_num: int, turn_num: int) -> str:
+    return f'staged_game_state:{game_id}:{player_num}:{turn_num}'
+
+
+def dream_key_from_civ_perspectives(game_id: str, player_num: int, turn_num: int) -> str:
+    return f'dream_game_state_from_civ_perspectives:{game_id}:{player_num}:{turn_num}'
+
