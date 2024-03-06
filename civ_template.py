@@ -10,6 +10,9 @@ class CivTemplate:
         self.secondary_color = secondary_color
         self.abilities: list[Ability] = [CIV_ABILITIES[ability[0]](*ability[1]) for ability in abilities]  # type: ignore
 
+    def __repr__(self) -> str:
+        return f"<CivTemplate {self.name}>"
+
     def to_json(self) -> dict:
         return {
             "name": self.name,
