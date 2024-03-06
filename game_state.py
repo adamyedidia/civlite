@@ -506,6 +506,8 @@ class GameState:
                 from_civ_perspectives = []
                 city: Optional[City] = None
                 for decline_option in self.game_player_by_player_num[player_num].decline_options:
+                    print('dec', decline_option[2], city_id)
+
                     if decline_option[2] == city_id:
                         game_player_to_return, city = self.process_decline_option(decline_option, game_player, from_civ_perspectives)
 
