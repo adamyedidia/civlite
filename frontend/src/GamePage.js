@@ -2250,14 +2250,13 @@ export default function GamePage() {
         playAnimationFrame(animationFrame);
     }, [animationFrame])
 
-    const triggerAnimations = (finalGameState, numFrames) => {
+    const triggerAnimations = (finalGameState) => {
         if (engineState === EngineStates.ANIMATING) {
             console.error("Already animating, but tried to start another animation!")
             return;
         }
+        transitionEngineState(EngineStates.ANIMATING)
         setAnimationFrame(0);
-        setAnimationTotalFrames(numFrames);
-        setAnimationActiveDelay(Math.min(ANIMATION_DELAY, 20000 / numFrames));
         setAnimationFinalState(finalGameState);
     }
 
@@ -3079,10 +3078,11 @@ export default function GamePage() {
             .then(response => response.json())
             .then(data => {
                 setTurnNum(data.game_state.turn_num);
+                setAnimationTotalFrames(data.num_frames);
+                setAnimationActiveDelay(Math.min(ANIMATION_DELAY, 20000 / data.num_frames));
+
                 if (playAnimations) {
-                    const numFrames = data.num_frames;
-                    transitionEngineState(EngineStates.ANIMATING)
-                    triggerAnimations(data.game_state, numFrames);
+                    triggerAnimations(data.game_state);
                 } else {
                     setGameState(data.game_state);
                 }
