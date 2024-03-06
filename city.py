@@ -57,7 +57,7 @@ class City:
 
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
-        self.revolting_starting_vitality: Optional[float] = None
+        self.revolting_starting_vitality: float = 1.0
         self.is_on_leaderboard: bool = False
         self.unhappiness: float = 0.0
 

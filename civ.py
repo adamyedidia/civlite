@@ -1,6 +1,7 @@
 import random
 from enum import Enum
-from typing import TYPE_CHECKING, Optional, List, Dict
+from typing import TYPE_CHECKING, Optional, Dict
+from collections import defaultdict
 from building_templates_list import BUILDINGS
 
 from civ_template import CivTemplate
@@ -18,6 +19,7 @@ import random
 if TYPE_CHECKING:
     from game_state import GameState
     from hex import Hex
+    from city import City
 
 
 class TechStatus(Enum):
@@ -46,6 +48,10 @@ class Civ:
         self.projected_city_power_income = 0.0
         self.in_decline = False
         self.initial_advancement_level = 0
+
+    def __eq__(self, other: 'Civ') -> bool:
+        # TODO(dfarhi) clean up all remaining instances of (civ1.id == civ2.id)
+        return other is not None and self.id == other.id
 
     def moniker(self) -> str:
         game_player_parenthetical = f' ({self.game_player.username})' if self.game_player else ''
@@ -168,27 +174,74 @@ class Civ:
             and (not building.get('is_wonder') or not game_state.wonders_built_to_civ_id.get(building['name']))
             and (not building.get('is_national_wonder') or not building['name'] in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
-        self.available_unit_buildings = [
-            unit.get("building_name") for unit in UNITS.values() 
+        self.available_unit_buildings: list[str] = [
+            str(unit.get("building_name")) for unit in UNITS.values() 
             if (((not unit.get('prereq')) or self.has_tech(unit.get("prereq"))) and 
                 unit.get("building_name") and
                 (TECHS[unit['prereq']]['advancement_level'] if unit.get('prereq') else 0) >= self.initial_advancement_level - 1)
-            ]  # type: ignore
+            ]
+
+    def bot_decide_decline(self, game_state: 'GameState') -> str | None:
+        """
+        Returns the coords of the location to decline to, or None if I shouldn't decline.
+        """
+        # Don't decline if I'm sieging a city
+        if any([city.under_siege_by_civ == self for city in game_state.cities_by_id.values()]):
+            print(f"{self.moniker()} deciding not to decline because I'm seiging a city.")
+            return None
+
+        # Don't decline if I'm sieging a camp
+        if any([camp.under_siege_by_civ == self for camp in game_state.camps]):
+            print(f"{self.moniker()} deciding not to decline because I'm seiging a camp.")
+            return None
+
+        # Don't decline if I have above average army size.
+        all_army_sizes: dict[str, float] = defaultdict(float)
+        for unit in game_state.units:
+            all_army_sizes[unit.civ.id] += unit.template.metal_cost
+        active_army_sizes: dict[str, float] = {
+            game_player.civ_id: all_army_sizes[game_player.civ_id] 
+            for game_player in game_state.game_player_by_player_num.values() 
+            if game_player.civ_id is not None}
+        my_rank: int = sum(active_army_sizes[self.id] <= other for other in active_army_sizes.values())
+        total_players: int = len(game_state.game_player_by_player_num)
+        if my_rank <= total_players / 2:
+            print(f"{self.moniker()} deciding not to decline because I'm rank {my_rank} of {total_players}")
+            return None
+
+        my_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ != self]
+
+        my_total_yields: float = sum(
+            [city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
+             for city in my_cities])
+        
+        option_total_yields: dict[str, float] = {}
+        for city in game_state.cities_by_id.values():
+            assert city.hex is not None, "Unregistered city found!"
+            if city.civ_to_revolt_into is None:
+                continue
+
+            current_total_yields = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
+            option_total_yields[city.hex.coords] = current_total_yields / city.civ.vitality * city.revolting_starting_vitality
+
+        for coords, city in game_state.fresh_cities_for_decline.items():
+            option_total_yields[coords] = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
+        
+        if len(option_total_yields) == 0:
+            print(f"{self.moniker()} deciding not to decline because there are no options.")
+            return None
+        best_option_yields, best_option = max((yields, coords) for coords, yields in option_total_yields.items())
+        print(f"{self.moniker()} deciding whether to revolt. My yields are: {my_total_yields}; options have: {option_total_yields}")
+        if best_option_yields <= my_total_yields:
+            print(f"{self.moniker()} deciding not to decline because I have {my_total_yields} and the best option has {best_option_yields}")
+            return None
+
+        print(f"{self.moniker()} deciding to decline at {best_option} because I have {my_total_yields} and the best option has {best_option_yields}")     
+        return best_option
 
     def bot_move(self, game_state: 'GameState') -> None:
-        if self.game_player and not self.in_decline and (self.vitality < (0.3 + random.random() * 0.2) or len([city for city in game_state.cities_by_id.values() if city.civ.id == self.id]) == 0):
-            game_player = self.game_player
-            decline_option = random.choice(self.game_player.decline_options)
-            game_state.enter_decline_for_civ(self, self.game_player)
-
-            from_civ_perspectives = []
-            city = game_state.process_decline_option(decline_option, from_civ_perspectives)
-            assert len(from_civ_perspectives) == 1
-            assert city is not None
-
-            civ = from_civ_perspectives[0]
-
-            game_state.make_new_civ_from_the_ashes(civ, game_player, city)
+        if self.game_player and not self.in_decline and (decline_coords := self.bot_decide_decline(game_state)):
+            game_state.execute_decline(decline_coords, self.game_player)
 
         if random.random() < 0.2 or self.target1 is None or self.target2 is None:
             enemy_cities = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]

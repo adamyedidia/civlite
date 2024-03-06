@@ -196,8 +196,6 @@ class GameState:
             lvl = tech['advancement_level']
             tech_counts_by_adv_level[lvl][tech_name] = num
 
-        print(tech_counts_by_adv_level)
-
         excess_techs = 0
         for level in sorted(list(tech_counts_by_adv_level.keys()), reverse=True):
             tech_counts = tech_counts_by_adv_level[level]
@@ -225,7 +223,6 @@ class GameState:
         
         civ.game_player = game_player
         game_player.civ_id = civ.id
-        print(f"{game_player.civ_id=}")
         chosen_techs = self.choose_techs_for_new_civ(city)
 
         civ.initialize_techs(chosen_techs)
@@ -262,7 +259,36 @@ class GameState:
 
         self.add_announcement(f'The {civ.moniker()} have been founded in {city.name}!')        
 
+    def execute_decline(self, coords: str, game_player: GamePlayer) -> list[Civ]:
+        """
+        Actually enter decline for real (not just for the imaginary decline options view GameState)
+        """
+        assert game_player.civ_id
+        civ: Civ = self.civs_by_id[game_player.civ_id]
+        self.enter_decline_for_civ(civ, game_player)
+
+        from_civ_perspectives = []
+        city: City = self.process_decline_option(coords, from_civ_perspectives)
+
+        if len(from_civ_perspectives) > 1:
+            from_civ_perspectives = from_civ_perspectives[:1]
+        assert city is not None
+
+        civ = from_civ_perspectives[0]
+
+        self.make_new_civ_from_the_ashes(civ, game_player, city)
+
+        city.refresh_available_buildings()
+        city.refresh_available_units()
+        self.midturn_update()
+        return from_civ_perspectives
+
+
     def process_decline_option(self, coords: str, from_civ_perspectives: list[Civ]) -> City:
+        """
+        The parts of entering decline that happen both when you do it for real,
+        and when the special decline options view GameState is produced.
+        """
         hex = self.hexes[coords]
         if hex.city:
             # This is not a fresh city , it's a pre-existing one.
@@ -288,7 +314,7 @@ class GameState:
         assert hex.city is not None, "Failed to register city!"
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.turn_num // 7)
-        hex.city.wood = hex.city.metal = 0
+        hex.city.wood = hex.city.metal = hex.city.unhappiness = 0
 
         new_civ = hex.city.civ
         self.civs_by_id[new_civ.id] = new_civ
@@ -359,7 +385,6 @@ class GameState:
                 assert game_player.civ_id
                 civ = self.civs_by_id[game_player.civ_id]
                 civ.select_tech(tech_name)
-                print(f"{civ.researching_tech_name=}")
                 game_player_to_return = game_player
 
             if move['move_type'] == 'choose_building':
@@ -469,34 +494,14 @@ class GameState:
                 self.midturn_update()
 
             if move['move_type'] == 'choose_decline_option':
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ: Civ = self.civs_by_id[game_player.civ_id]
-                self.enter_decline_for_civ(civ, game_player)
-
+                game_player: GamePlayer = self.game_player_by_player_num[player_num]
                 game_player_to_return = game_player
-
-                from_civ_perspectives = []
-                coords = move['coords']
-                city = self.process_decline_option(coords, from_civ_perspectives)
-
-                if len(from_civ_perspectives) > 1:
-                    from_civ_perspectives = from_civ_perspectives[:1]
-                assert city is not None
-
-                civ = from_civ_perspectives[0]
-
-                self.make_new_civ_from_the_ashes(civ, game_player, city)
-
-                city.refresh_available_buildings()
-                city.refresh_available_units()
-                self.midturn_update()
+                from_civ_perspectives = self.execute_decline(move["coords"], game_player)
 
 
         if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
             if from_civ_perspectives is None and game_player_to_return.civ_id is not None:
                 from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
-            print(self.to_json(from_civ_perspectives=from_civ_perspectives)['cities_by_id'])            
             return (from_civ_perspectives, game_state_to_return_json or self.to_json(from_civ_perspectives=from_civ_perspectives), game_state_to_store_json or self.to_json())
 
         return (None, self.to_json(), self.to_json())
@@ -704,6 +709,7 @@ class GameState:
 
         decline_choice_civ_pool = self.sample_new_civs(new_locations_needed)
         for hex, civ_name in zip(new_hexes, decline_choice_civ_pool):
+            assert hex.city is None, f"Attempting to put a fresh decline city on an existing city!"
             new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player=None)
             new_civ.vitality = 2.0 + self.turn_num * 0.1
 
@@ -717,6 +723,7 @@ class GameState:
         from_civ_perspectives = []
 
         for coords in self.fresh_cities_for_decline:
+            assert self.hexes[coords].city is None, f"City already exists at {coords}"
             self.process_decline_option(coords, from_civ_perspectives)
         for city in self.cities_by_id.values():
             if city.civ_to_revolt_into is not None:
