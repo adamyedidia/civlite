@@ -489,8 +489,11 @@ class GameState:
                         rset_json(f'dream_game_state_from_civ_perspectives:{self.game_id}:{player_num}', [civ.id for civ in from_civ_perspectives])
 
             if move['move_type'] == 'choose_decline_option':
+                print(f'player {player_num} is choosing a decline option')
+
                 game_player = self.game_player_by_player_num[player_num]
                 city_id = move['city_id']
+                print(f'chose {city_id}')
                 self.special_mode_by_player_num[player_num] = None
                 game_player_to_return = game_player
 
