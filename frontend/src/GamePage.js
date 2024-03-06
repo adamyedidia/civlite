@@ -2912,7 +2912,7 @@ export default function GamePage() {
                         isHoveredHex={!!hoveredHex}
                         handleClickEndTurn={handleClickEndTurn}
                         handleClickUnendTurn={handleClickUnendTurn}
-                        getMovie={getMovie}
+                        triggerAnimations={triggerAnimations}
                         engineState={engineState}
                         animationFrame={animationFrame}
                         animationTotalFrames={animationTotalFrames}
@@ -3055,14 +3055,14 @@ export default function GamePage() {
         })
     }
 
-    const fetchGameState = () => {
+    const fetchGameStatus = () => {
         fetch(`${URL}/api/game_status/${gameId}`)
             .then(response => response.json())
             .then(data => {
                 console.log('fetched!')
                 if (data.game_started) {
                     // game is running, let's go get the game state.
-                    getMovie(false);
+                    fetchGameState(false);
                 } else {
                     // Game is in lobby state.
                     console.log("Updating players in the game", data.players);
@@ -3073,7 +3073,7 @@ export default function GamePage() {
     
     }
 
-    const getMovie = (playAnimations) => {
+    const fetchGameState = (playAnimations) => {
         fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
@@ -3095,18 +3095,18 @@ export default function GamePage() {
     useEffect(() => {
         console.log("Setting up socket");
         socket.emit('join', { room: gameId, username: username });
-        fetchGameState();
+        fetchGameStatus();
         socket.on('update', () => {
           console.log('update received')
           if (gameStateExistsRef.current) {
             // Turn has rolled within a game.
-            getMovie(true);
+            fetchGameState(true);
           }
           else {
             // Get here for updates before the game has launched (i.e. adding a player to the lobby)
             // And the "game has launched" update
             console.log("fetchGameState from update.")
-            fetchGameState();
+            fetchGameStatus();
           }
         })
         socket.on('mute_timer', (data) => {

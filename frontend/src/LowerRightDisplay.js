@@ -20,12 +20,12 @@ const AnimationControlBar = ({animationFrame, animationTotalFrames}) => {
     </div>
 }
 
-const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, handleClickEndTurn, handleClickUnendTurn, getMovie, engineState, animationFrame, animationTotalFrames, cancelAnimations }) => {
+const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, handleClickEndTurn, handleClickUnendTurn, triggerAnimations, engineState, animationFrame, animationTotalFrames, cancelAnimations }) => {
     const toggleAnimations = () => {
         if (engineState === EngineStates.ANIMATING) {
             cancelAnimations();
         } else if (engineState === EngineStates.PLAYING) {
-            getMovie(true);
+            triggerAnimations(gameState);
         }
     }
     
