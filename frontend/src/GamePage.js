@@ -284,8 +284,8 @@ export default function GamePage() {
     const firstRenderRef = React.useRef(true);
 
     const myGamePlayer = gameState?.game_player_by_player_num?.[playerNum];
-    const myCivId = gameState?.game_player_by_player_num?.[playerNum]?.civ_id;
-    const myCiv = gameState?.civs_by_id?.[myCivId];
+    const myCivId = declineOptionsView ? nonDeclineViewGameState?.game_player_by_player_num?.[playerNum].civ_id : gameState?.game_player_by_player_num?.[playerNum].civ_id;
+    const myCiv = declineOptionsView ? nonDeclineViewGameState?.civs_by_id?.[myCivId] : gameState?.civs_by_id?.[myCivId];
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
@@ -2068,16 +2068,6 @@ export default function GamePage() {
         }
     }, [declineOptionsView])
 
-    const toggleDeclineView = () => {
-        setDeclineOptionsView(prevDeclineOptionsView => !prevDeclineOptionsView);
-    };
-
-    useEffect(() => {
-        if (engineState === EngineStates.PLAYING && myCiv && !myCiv?.researching_tech_name && !gameState?.special_mode_by_player_num?.[playerNum]) {
-            setTechChoices(myCiv.current_tech_choices);
-        }
-    }, [engineState, myCiv?.researching_tech_name])
-
     const handleClickEndTurn = () => {
         const data = { player_num: playerNum };
 
@@ -3201,7 +3191,7 @@ export default function GamePage() {
                     </Grid>
                 </Grid>
             )}
-            {techChoices && (
+            {techChoices && !declineOptionsView && (
                 <div className="tech-choices-container">
                     <DialogTitle>
                         <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
