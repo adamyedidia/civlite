@@ -171,10 +171,13 @@ class GameState:
 
     def choose_techs_for_new_civ(self, city: City):
         print("Calculating starting techs!")
+        assert city.hex is not None
+        # Make this function deterministic across staging and rolling
+        random.seed(hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
         chosen_techs_names = set()
         chosen_techs_by_advancement = defaultdict(int)
 
-        # Start with prereqs for teh buildings we have
+        # Start with prereqs for the buildings we have
         for building in city.buildings:
             prereq = building.template.prereq
             if prereq is not None:
@@ -219,8 +222,6 @@ class GameState:
         
 
     def make_new_civ_from_the_ashes(self, civ: Civ, game_player: GamePlayer, city: City) -> None:
-        # For reasons I don't understand, this function has to be deterministic -- it gets called twice during the turn and bad things happen if they are different. -dfarhi
-        
         civ.game_player = game_player
         game_player.civ_id = civ.id
         chosen_techs = self.choose_techs_for_new_civ(city)
@@ -232,30 +233,6 @@ class GameState:
 
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
-
-        best_unit_building_available: Optional[str] = None
-        best_unit_available: Optional[str] = None
-        best_strength_so_far = 0
-
-        for tech in civ.researched_techs:
-            if (tech_template := TECHS[tech]) and (unlocked_units := tech_template.get('unlocks_units')):
-                for unit_name in unlocked_units:
-                    if unit_name in UNITS:
-                        unit = UNITS[unit_name]
-                        unit_building = unit.get('building_name')
-
-                        if unit['strength'] > best_strength_so_far:
-                            best_unit_building_available = unit_building
-                            best_unit_available = unit_name
-                            best_strength_so_far = unit['strength']
-
-        if best_unit_building_available is not None and not any([building.template.name == best_unit_building_available for building in city.buildings]):
-            city.buildings.append(Building(unit_template=UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[best_unit_building_available]), building_template=None))
-
-        if city.hex and len(city.hex.units) == 0 and best_unit_available is not None:
-            unit = Unit(UnitTemplate.from_json(UNITS[best_unit_available]), civ)
-            unit.hex = city.hex
-            city.hex.units.append(unit)
 
         self.add_announcement(f'The {civ.moniker()} have been founded in {city.name}!')        
 
@@ -494,7 +471,7 @@ class GameState:
                 self.midturn_update()
 
             if move['move_type'] == 'choose_decline_option':
-                game_player: GamePlayer = self.game_player_by_player_num[player_num]
+                game_player = self.game_player_by_player_num[player_num]
                 game_player_to_return = game_player
                 from_civ_perspectives = self.execute_decline(move["coords"], game_player)
 
@@ -675,7 +652,7 @@ class GameState:
         for _, _, city in revolt_choices:
             if city.civ_to_revolt_into is None:
                 civ_name = self.sample_new_civs(1).pop(0)
-                civ_template = CivTemplate.from_json(CIVS[civ_name])
+                civ_template: CivTemplate = CivTemplate.from_json(CIVS[civ_name])
                 city.civ_to_revolt_into = civ_template
                 print(f"{city.name} => {city.civ_to_revolt_into=}")
         for id, city in self.cities_by_id.items():
