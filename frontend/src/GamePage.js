@@ -203,6 +203,27 @@ const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
 }
 
+const ChooseCapitalButton = ({playerNum, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital}) => {
+    const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ.game_player?.player_num == playerNum;
+    const content = isMyCity ? "Can't decline to my own city" : myGamePlayer?.decline_this_turn ? "Already declined this turn": `Make ${selectedCity.name} my capital`;
+    const disabled = engineState !== EngineStates.PLAYING || myGamePlayer?.decline_this_turn || isMyCity;
+    return <Button
+        style={{
+            backgroundColor: disabled ? "#aaaaaa" : "#ccffaa",
+            color: "black",
+            marginLeft: '20px',
+            padding: '10px 20px', // Increase padding for larger button
+            fontSize: '1.5em', // Increase font size for larger text
+            marginBottom: '10px',
+        }} 
+        variant="contained"
+        onClick={() => handleFoundCapital()}
+        disabled={disabled}
+    >
+        {content}
+    </Button>
+}
+
 export default function GamePage() {
     const { gameId } = useParams();
     const location = useLocation();
@@ -2973,21 +2994,15 @@ export default function GamePage() {
                     }}>
                         {engineState === EngineStates.PLAYING && selectedCity && 
                             (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] == 'starting_location') && 
-                            <Button
-                            style={{
-                                backgroundColor: myGamePlayer?.decline_this_turn ? "#aaaaaa" : "#ccffaa",
-                                color: "black",
-                                marginLeft: '20px',
-                                padding: '10px 20px', // Increase padding for larger button
-                                fontSize: '1.5em', // Increase font size for larger text
-                                marginBottom: '10px',
-                            }} 
-                            variant="contained"
-                            onClick={() => handleFoundCapital()}
-                            disabled={engineState !== EngineStates.PLAYING || myGamePlayer?.decline_this_turn}
-                        >
-                            {myGamePlayer?.decline_this_turn ? "Already declined this turn": `Make ${selectedCity.name} my capital`}
-                        </Button>}
+                            <ChooseCapitalButton 
+                                playerNum={playerNum}
+                                myGamePlayer={myGamePlayer}
+                                selectedCity={selectedCity}
+                                nonDeclineViewGameState={nonDeclineViewGameState}
+                                engineState={engineState}
+                                handleFoundCapital={handleFoundCapital}
+                            />
+                            }
                         {engineState === EngineStates.GAME_OVER && !gameOverDialogOpen && <Button
                             style={{
                                 backgroundColor: "#ccccff",
