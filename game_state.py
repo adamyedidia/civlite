@@ -938,7 +938,7 @@ def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) 
         most_recent_game_state = GameState.from_json(get_most_recent_game_state_json(sess, game_id))
 
         staged_moves = rget_json(staged_moves_key(game_id, int(player_num), most_recent_game_state.turn_num)) or []
-        game_state_json = rget_json(dream_key(game_id, int(player_num), most_recent_game_state.turn_num)) or get_most_recent_game_state_json(sess, game_id)
+        game_state_json = rget_json(staged_game_state_key(game_id, int(player_num), most_recent_game_state.turn_num)) or get_most_recent_game_state_json(sess, game_id)
         game_state = GameState.from_json(game_state_json)
         from_civ_perspectives, game_state_to_return_json, game_state_to_store_json = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
