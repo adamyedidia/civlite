@@ -224,6 +224,7 @@ class GameState:
     def make_new_civ_from_the_ashes(self, civ: Civ, game_player: GamePlayer, city: City) -> None:
         civ.game_player = game_player
         game_player.civ_id = civ.id
+        game_player.decline_this_turn = True
         chosen_techs = self.choose_techs_for_new_civ(city)
 
         civ.initialize_techs(chosen_techs)
@@ -246,6 +247,10 @@ class GameState:
 
         from_civ_perspectives = []
         city: City = self.process_decline_option(coords, from_civ_perspectives)
+        
+        # Remove it from the set of choices
+        if coords in self.fresh_cities_for_decline:
+            self.fresh_cities_for_decline.pop(coords)
 
         if len(from_civ_perspectives) > 1:
             from_civ_perspectives = from_civ_perspectives[:1]
@@ -292,8 +297,10 @@ class GameState:
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.turn_num // 7)
         hex.city.wood = hex.city.metal = hex.city.unhappiness = 0
+        hex.city.civ_to_revolt_into = None
 
         new_civ = hex.city.civ
+        new_civ.vitality = hex.city.revolting_starting_vitality
         self.civs_by_id[new_civ.id] = new_civ
         from_civ_perspectives.append(new_civ)
 
@@ -307,6 +314,8 @@ class GameState:
                     old_unit_civ.game_player.score_from_revolting_cities += 1
 
             neighbor_hex.camp = None
+
+        hex.city.midturn_update(self)
 
         return hex.city
 
@@ -330,6 +339,7 @@ class GameState:
                 for city in self.cities_by_id.values():
                     if (game_player := city.civ.game_player) and game_player.player_num == player_num:
                         if city.id == city_id:
+                            game_player.decline_this_turn = True
                             game_player_to_return = game_player
                             game_player_to_return.civ_id = city.civ.id
                             self.game_player_by_player_num[player_num].civ_id = city.civ.id
@@ -610,6 +620,9 @@ class GameState:
             unit.has_moved = False
             unit.has_attacked = False
 
+        for game_player in self.game_player_by_player_num.values():
+            game_player.decline_this_turn = False
+
         self.midturn_update()      
 
         self.sync_advancement_level()
@@ -688,7 +701,6 @@ class GameState:
         for hex, civ_name in zip(new_hexes, decline_choice_civ_pool):
             assert hex.city is None, f"Attempting to put a fresh decline city on an existing city!"
             new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player=None)
-            new_civ.vitality = 2.0 + self.turn_num * 0.1
 
             if new_civ.has_ability('ExtraCityPower'):
                 new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]

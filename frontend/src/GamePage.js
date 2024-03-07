@@ -283,7 +283,8 @@ export default function GamePage() {
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
 
-    const myGamePlayer = gameState?.game_player_by_player_num?.[playerNum];
+
+    const myGamePlayer = declineOptionsView ? nonDeclineViewGameState?.game_player_by_player_num?.[playerNum] : gameState?.game_player_by_player_num?.[playerNum];
     const myCivId = declineOptionsView ? nonDeclineViewGameState?.game_player_by_player_num?.[playerNum].civ_id : gameState?.game_player_by_player_num?.[playerNum].civ_id;
     const myCiv = declineOptionsView ? nonDeclineViewGameState?.civs_by_id?.[myCivId] : gameState?.civs_by_id?.[myCivId];
     const target1 = coordsToObject(myCiv?.target1);
@@ -2974,7 +2975,7 @@ export default function GamePage() {
                             (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] == 'starting_location') && 
                             <Button
                             style={{
-                                backgroundColor: "#ccffaa",
+                                backgroundColor: myGamePlayer?.decline_this_turn ? "#aaaaaa" : "#ccffaa",
                                 color: "black",
                                 marginLeft: '20px',
                                 padding: '10px 20px', // Increase padding for larger button
@@ -2983,9 +2984,9 @@ export default function GamePage() {
                             }} 
                             variant="contained"
                             onClick={() => handleFoundCapital()}
-                            disabled={engineState !== EngineStates.PLAYING}
+                            disabled={engineState !== EngineStates.PLAYING || myGamePlayer?.decline_this_turn}
                         >
-                            Make {selectedCity.name} my capital
+                            {myGamePlayer?.decline_this_turn ? "Already declined this turn": `Make ${selectedCity.name} my capital`}
                         </Button>}
                         {engineState === EngineStates.GAME_OVER && !gameOverDialogOpen && <Button
                             style={{

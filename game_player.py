@@ -15,6 +15,7 @@ class GamePlayer:
         self.score_from_survival = 0
         self.score_from_revolting_cities = 0
         self.renaissances = 0
+        self.decline_this_turn = False
 
         self.civ_id: Optional[str] = None
 
@@ -38,6 +39,7 @@ class GamePlayer:
             "sfs": self.score_from_survival,
             "sfrc": self.score_from_revolting_cities,
             "renaissances": self.renaissances,
+            "decline_this_turn": self.decline_this_turn,
         }
     
     @staticmethod
@@ -58,6 +60,7 @@ class GamePlayer:
         game_player.score_from_survival = json["sfs"]
         game_player.score_from_revolting_cities = json["sfrc"]
         game_player.renaissances = json["renaissances"]
+        game_player.decline_this_turn = json["decline_this_turn"]
 
         return game_player
 
