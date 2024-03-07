@@ -92,16 +92,14 @@ def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
 
 
 def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], other_decline_locations: list[Hex]) -> bool:
-    too_close = False
-    if len([hex for hex in decline_location.get_neighbors(hexes) if not hex.city]) < 6:
-        too_close = True
+    if any([hex.city is not None for hex in decline_location.get_neighbors(hexes)]):
+        return False
 
     for other_decline_location in other_decline_locations:
-        if other_decline_location.distance_to(decline_location) < 2:
-            too_close = True
-            break
+        if other_decline_location.coords != decline_location.coords and  other_decline_location.distance_to(decline_location) < 2:
+            return False
 
-    return not too_close
+    return True
 
 
 def generate_decline_locations(hexes: dict[str, Hex], n: int, existing_decline_locations: Optional[list[Hex]] = None) -> list[Hex]:
