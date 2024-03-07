@@ -32,8 +32,12 @@ def dream_key(game_id: str, player_num: int, turn_num: int) -> str:
     return f'dream_game_state:{game_id}:{player_num}:{turn_num}'
 
 
-def staged_key(game_id: str, player_num: int, turn_num: int) -> str:
+def staged_game_state_key(game_id: str, player_num: int, turn_num: int) -> str:
     return f'staged_game_state:{game_id}:{player_num}:{turn_num}'
+
+
+def staged_moves_key(game_id: str, player_num: int, turn_num: int) -> str:
+    return f'staged_moves:{game_id}:{player_num}:{turn_num}'
 
 
 def dream_key_from_civ_perspectives(game_id: str, player_num: int, turn_num: int) -> str:

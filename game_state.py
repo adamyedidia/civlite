@@ -21,7 +21,7 @@ from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
-from utils import swap_two_elements_of_list, generate_unique_id, dream_key, staged_key, dream_key_from_civ_perspectives
+from utils import swap_two_elements_of_list, generate_unique_id, dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives
 
 from sqlalchemy import func
 
@@ -579,7 +579,7 @@ class GameState:
             return
 
         for player_num in self.game_player_by_player_num.keys():
-            staged_moves = rget_json(f'staged_moves:{self.game_id}:{player_num}') or []
+            staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
             self.update_from_player_moves(player_num, staged_moves)
 
         civs = list(self.civs_by_id.values())[:]
@@ -598,8 +598,8 @@ class GameState:
         self.roll_turn(sess)
 
         # for player_num in self.game_player_by_player_num.keys():
-        #     rdel(staged_key(self.game_id, player_num, self.turn_num))
-        #     rdel(staged_key(self.game_id, player_num, self.turn_num))
+        #     rdel(staged_game_state_key(self.game_id, player_num, self.turn_num))
+        #     rdel(staged_moves_key(self.game_id, player_num, self.turn_num))
 
         #     # Dream game state is the fake game state that gets sent to people who are in decline
         #     rdel(dream_key(self.game_id, player_num, self.turn_num))
@@ -937,14 +937,14 @@ def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) 
     with rlock(f'staged_moves_lock:{game_id}:{player_num}'):
         most_recent_game_state = GameState.from_json(get_most_recent_game_state_json(sess, game_id))
 
-        staged_moves = rget_json(staged_key(game_id, int(player_num), most_recent_game_state.turn_num)) or []
+        staged_moves = rget_json(staged_moves_key(game_id, int(player_num), most_recent_game_state.turn_num)) or []
         game_state_json = rget_json(dream_key(game_id, int(player_num), most_recent_game_state.turn_num)) or get_most_recent_game_state_json(sess, game_id)
         game_state = GameState.from_json(game_state_json)
         from_civ_perspectives, game_state_to_return_json, game_state_to_store_json = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
         staged_moves.extend(moves)
 
-        rset_json(f'staged_moves:{game_id}:{player_num}', staged_moves, ex=7 * 24 * 60 * 60)
-        rset_json(f'staged_game_state:{game_id}:{player_num}', game_state_to_store_json, ex=7 * 24 * 60 * 60)
+        rset_json(staged_moves_key(game_id, player_num, most_recent_game_state.turn_num), staged_moves, ex=7 * 24 * 60 * 60)
+        rset_json(staged_game_state_key(game_id, player_num, most_recent_game_state.turn_num), game_state_to_store_json, ex=7 * 24 * 60 * 60)
 
         return game_state, from_civ_perspectives, game_state_to_return_json

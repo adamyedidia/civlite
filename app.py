@@ -22,7 +22,7 @@ from game_state import GameState, update_staged_moves, get_most_recent_game_stat
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
-from utils import dream_key, staged_key, dream_key_from_civ_perspectives
+from utils import dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives
 
 
 from settings import (
@@ -106,7 +106,7 @@ def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
         game_state_copy = get_most_recent_game_state(sess, game_id)
 
         for player_num in game_state_copy.game_player_by_player_num.keys():
-            staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
+            staged_moves = rget_json(staged_moves_key(game_id, player_num, turn_num)) or []
 
             for move in staged_moves:
                 if move.get('move_type') == 'enter_decline':
@@ -436,7 +436,6 @@ def get_game_state(sess, game_id):
     return jsonify({'game_started': True})
 
 
-
 @app.route('/api/movie/frame/<game_id>/<frame_num>', methods=['GET'])
 @api_endpoint
 def get_movie_frame(sess, game_id, frame_num):
@@ -506,7 +505,7 @@ def get_most_recent_state(sess, game_id):
 
     # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
 
-    staged_game_state_json = rget_json(staged_key(game_id, int(player_num), turn_num))
+    staged_game_state_json = rget_json(staged_game_state_key(game_id, int(player_num), turn_num))
     game_state = (
         GameState.from_json(dream_game_state_json) if dream_game_state_json 
         else GameState.from_json(staged_game_state_json) if staged_game_state_json 
@@ -571,7 +570,7 @@ def get_latest_turn_movie(sess, game_id):
 
     # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
 
-    staged_game_state_json = rget_json(staged_key(game_id, int(player_num), turn_num))
+    staged_game_state_json = rget_json(staged_game_state_key(game_id, int(player_num), turn_num))
     game_state = GameState.from_json(dream_game_state_json) if dream_game_state_json else GameState.from_json(staged_game_state_json) if staged_game_state_json else None
 
     game_state_json = None
