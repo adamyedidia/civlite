@@ -732,7 +732,7 @@ class GameState:
         cities_to_revolt = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.unhappiness >= 1], reverse=True)
         revolt_choices = cities_to_revolt[:3]
         if len(cities_to_revolt) > 0:
-            self.unhappiness_threshold = cities_to_revolt[-1][0]
+            self.unhappiness_threshold = revolt_choices[-1][0]
         print(f"revolt choices: {[city.name for _, _, city in revolt_choices]}; threshold: {self.unhappiness_threshold}")
         revolt_ids = set(id for _, id, _ in revolt_choices)
         for _, _, city in revolt_choices:
