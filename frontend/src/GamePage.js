@@ -199,6 +199,59 @@ function GameOverDialog({open, onClose, gameState}) {
     )
 }
 
+function DeclineFailedDialog({open, onClose}) {
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>
+                <Typography variant="h2" component="div">  
+                   Decline Failed
+                </Typography>
+            </DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Another player has already declined to this city. They have lower score than you, so they get it. Sorry.
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
+function DeclinePreemptedDialog({open, onClose}) {
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>
+                <Typography variant="h2" component="div">  
+                   Decline Failed
+                </Typography>
+            </DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Another player with lower score has chosen this decline option this turn.
+                </DialogContentText>
+                <DialogContentText>
+                    You will be put back into your prior civ.
+                </DialogContentText>
+                <DialogContentText>
+                    You can continue or choose another decline option.
+                </DialogContentText>
+                <DialogContentText>
+                    There is no timer this turn so you can decide.
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
 const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
 }
@@ -294,6 +347,8 @@ export default function GamePage() {
     const [gameConstants, setGameConstants] = useState(null);
 
     const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
+    const [declinePreemptedDialogOpen, setDeclinePreemptedDialogOpen] = useState(false);
+    const [declineFailedDialogOpen, setDeclineFailedDialogOpen] = useState(false);
 
     const [turnTimer, setTurnTimer] = useState(-1);
     const [timerMutedOnTurn, setTimerMutedOnTurn] = useState(null);
@@ -2438,11 +2493,14 @@ export default function GamePage() {
                 body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
-                    if (data.game_state) {
+                    const success = data.game_state.game_player_by_player_num[playerNum].civ_id == selectedCity.civ.id
+                    if (data.game_state && success) {
                         setGameState(data.game_state);
                         setNonDeclineViewGameState(data.game_state);  // Clear the old cached non-decline game state.
                         refreshSelectedCity(data.game_state);
                         setDeclineOptionsView(false);    
+                    } else if (data.game_state && !success) {
+                        setDeclineFailedDialogOpen(true);
                     }
                 });
 
@@ -3105,6 +3163,12 @@ export default function GamePage() {
         }
     }
 
+    const receiveDeclineEviction = () => {
+        fetchGameState();
+        console.log("!!!!!!!!!!!!!!Eviction!!!!!!!!!!!!!!!")
+        setDeclinePreemptedDialogOpen(true);
+    }
+
     useEffect(() => {
         socket.emit('join', { room: gameId, username: username });
         fetchGameState();
@@ -3121,6 +3185,11 @@ export default function GamePage() {
         })
         socket.on('mute_timer', (data) => {
             setTimerMutedOnTurn(data.turn_num);
+        })
+        socket.on('decline_evicted', (data) => {
+            if (data.player_num === playerNum) {
+                receiveDeclineEviction();
+            }
         })
         socket.on('turn_end_change', (data) => {
             setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});
@@ -3249,6 +3318,8 @@ export default function GamePage() {
                     gameConstants={gameConstants}
                 />
             )}
+            {declinePreemptedDialogOpen && <DeclinePreemptedDialog open={declinePreemptedDialogOpen} onClose={() => setDeclinePreemptedDialogOpen(false)}/>}
+            {declineFailedDialogOpen && <DeclineFailedDialog open={declineFailedDialogOpen} onClose={() => setDeclineFailedDialogOpen(false)}/>}
         </div>
     )
 }

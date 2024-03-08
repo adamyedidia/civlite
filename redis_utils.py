@@ -42,4 +42,4 @@ def rdel(key: str) -> None:
 
 
 def rlock(key: str):
-    return Lock(redis, key)
+    return Lock(redis, key, expire=60)

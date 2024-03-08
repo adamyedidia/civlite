@@ -703,17 +703,8 @@ def choose_initial_civ(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state, from_civ_perspectives, _ = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
-
-    city_list_one = [city for city in game_state.cities_by_id.values() if city.id == city_id]
-
-    if len(city_list_one) == 0:
-        return jsonify({"error": "City not found"}), 404
-    
-    city = city_list_one[0]
-
-    civ = city.civ
-
+    game_state, from_civ_perspectives, _, _ = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
+  
     return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
 
 
@@ -740,10 +731,15 @@ def enter_player_input(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    _, from_civ_perspectives, game_state_to_return_json = update_staged_moves(sess, game_id, player_num, [player_input])
+    _, from_civ_perspectives, game_state_to_return_json, decline_eviction_player = update_staged_moves(sess, game_id, player_num, [player_input])
 
-    if player_input.get('move_type') == 'enter_decline':
+    if player_input.get('move_type') == 'choose_decline_option':
         socketio.emit('mute_timer', {'turn_num': game_state_to_return_json['turn_num']}, room=game_id)  # type: ignore
+
+    if decline_eviction_player is not None:
+        set_turn_ended_by_player_num(game_id, decline_eviction_player, False)
+        socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)  # type: ignore
+        socketio.emit("decline_evicted", {'player_num': decline_eviction_player}, room=game_id)  # type: ignore
 
     return jsonify({'game_state': game_state_to_return_json})
     # return jsonify({'game_state': game_state.to_json()})
