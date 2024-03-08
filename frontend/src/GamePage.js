@@ -2493,7 +2493,8 @@ export default function GamePage() {
                 body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
-                    const success = data.game_state.game_player_by_player_num[playerNum].civ_id == selectedCity.civ.id
+                    const myNewCiv = data.game_state.civs_by_id?.[data.game_state.game_player_by_player_num[playerNum].civ_id];
+                    const success = myNewCiv?.name == selectedCity.civ.name;
                     if (data.game_state && success) {
                         setGameState(data.game_state);
                         setNonDeclineViewGameState(data.game_state);  // Clear the old cached non-decline game state.
@@ -2501,6 +2502,8 @@ export default function GamePage() {
                         setDeclineOptionsView(false);    
                     } else if (data.game_state && !success) {
                         setDeclineFailedDialogOpen(true);
+                    } else {
+                        console.error("No data.game_state found in response.")
                     }
                 });
 
