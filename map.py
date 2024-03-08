@@ -101,7 +101,7 @@ def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], othe
 
     for other_decline_location in other_decline_locations:
         # print(f"Distance to other is {other_decline_location.distance_to(decline_location)}")
-        if other_decline_location.coords != decline_location.coords and other_decline_location.distance_to(decline_location) < 2:
+        if other_decline_location.distance_to(decline_location) < 3:
             return False
 
     return True

@@ -770,7 +770,7 @@ class GameState:
 
     def populate_fresh_cities_for_decline(self) -> None:
         self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()
-                                             if is_valid_decline_location(self.hexes[coords], self.hexes, [self.hexes[coord] for coord in self.fresh_cities_for_decline])}
+                                             if is_valid_decline_location(self.hexes[coords], self.hexes, [self.hexes[other_coords] for other_coords in self.fresh_cities_for_decline if other_coords != coords])}
         new_locations_needed = max(2 - len(self.fresh_cities_for_decline), 0)
         if new_locations_needed == 0 and random.random() < 0.5:
             # randomly retire one of them

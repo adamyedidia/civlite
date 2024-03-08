@@ -2142,6 +2142,7 @@ export default function GamePage() {
         } else {
             // If we are toggling back from the decline view
             setGameState(nonDeclineViewGameState);
+            setSelectedCity(null);
         }
     }, [declineOptionsView])
 
