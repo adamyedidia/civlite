@@ -58,8 +58,8 @@ class City:
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
         self.revolting_starting_vitality: float = 1.0
-        self.is_on_leaderboard: bool = False
         self.unhappiness: float = 0.0
+        self.is_decline_view_option: bool = False
 
         self.handle_cleanup()
 
@@ -186,8 +186,11 @@ class City:
         self.midturn_update(game_state)
 
     @property
-    def food_demand(self):
-        return 2 * self.population
+    def food_demand(self) -> int:
+        if self.capital:
+            return int(0.5 * self.population)
+        else:
+            return 2 * self.population
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:
         self.unhappiness += self.projected_income['unhappiness']
@@ -547,9 +550,13 @@ class City:
         return None
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
-        self.civ = civ
-
         print(f"****Captured {self.name}****")
+        self.civ = civ
+        self.capital = False
+        self.unhappiness = 0
+        self.wood /= 2
+        self.metal /= 2
+
         for building in self.buildings:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
                 game_state.wonders_built_to_civ_id[building.template.name] = civ.id
@@ -795,9 +802,10 @@ class City:
             "terrains_dict": self.terrains_dict,
 
             "revolting_starting_vitality": self.revolting_starting_vitality,
-            "is_on_leaderboard": self.is_on_leaderboard,
             "unhappiness": self.unhappiness,
             "civ_to_revolt_into": self.civ_to_revolt_into.to_json() if self.civ_to_revolt_into else None,
+            "is_decline_view_option": self.is_decline_view_option,
+            "food_demand": self.food_demand,
         }
 
     @staticmethod
@@ -827,8 +835,8 @@ class City:
         city.terrains_dict = json.get("terrains_dict") or {}
         city.civ_to_revolt_into = CivTemplate.from_json(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]
-        city.is_on_leaderboard = json["is_on_leaderboard"]
         city.unhappiness = json["unhappiness"]
+        city.is_decline_view_option = json["is_decline_view_option"]
 
         city.handle_cleanup()
 

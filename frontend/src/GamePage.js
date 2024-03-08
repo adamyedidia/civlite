@@ -2372,7 +2372,7 @@ export default function GamePage() {
         // }
         // console.log(city.name, declineOptionsView, playerNum, city?.civ?.game_player?.player_num)
         if (declineOptionsView) {
-            return city?.capital && city?.civ?.game_player === null;
+            return city?.is_decline_view_option;
         }
         if (playerNum !== null && playerNum !== undefined) {
             return city?.civ?.game_player?.player_num === playerNum
@@ -2549,7 +2549,7 @@ export default function GamePage() {
                     }
                     
                 </svg>
-                {declineOptionsView && city.capital && city.civ.game_player === null && <>
+                {declineOptionsView && city.is_decline_view_option && <>
                     <image href={vitalityImg} x="-1.8" y="-1" height="3.6" width="3.6" />
                     <text x="0" y="0.4" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
                         {Math.floor(city.revolting_starting_vitality * 100)}%

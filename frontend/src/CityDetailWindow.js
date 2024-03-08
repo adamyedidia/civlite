@@ -207,7 +207,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100));
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay);
 
-    const foodDemanded = 2 * selectedCity.population;  // TODO(keep this in sync with backend)
+    const foodDemanded = selectedCity.food_demand;
     const incomeExceedsDemand = projectedIncome['food'] >= foodDemanded;
     const happinessIcon = (incomeExceedsDemand && selectedCity.unhappiness == 0) ? happyImg : (!incomeExceedsDemand && selectedCity.unhappiness == 0) ? neutralImg : sadImg;
     const unhappinessBarsMaxWidth = 180;

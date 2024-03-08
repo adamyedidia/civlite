@@ -655,7 +655,7 @@ class GameState:
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
-        cities_to_revolt = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.unhappiness > 0])
+        cities_to_revolt = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.unhappiness >= 1], reverse=True)
         for _, _, city in cities_to_revolt:
             if city.unhappiness >= 100:
                 pass  # TODO(dfarhi) - revolt to bot
@@ -699,7 +699,7 @@ class GameState:
 
         decline_choice_civ_pool = self.sample_new_civs(new_locations_needed)
         for hex, civ_name in zip(new_hexes, decline_choice_civ_pool):
-            assert hex.city is None, f"Attempting to put a fresh decline city on an existing city!"
+            assert hex.city is None, f"Attempting to put a fresh decline city on an existing city! {hex.city.name} @ {hex.coords}"
             new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player=None)
 
             if new_civ.has_ability('ExtraCityPower'):
@@ -713,12 +713,15 @@ class GameState:
 
         for coords in self.fresh_cities_for_decline:
             assert self.hexes[coords].city is None, f"City already exists at {coords}"
-            self.process_decline_option(coords, from_civ_perspectives)
+            city: City = self.process_decline_option(coords, from_civ_perspectives)
+            city.is_decline_view_option = True
+        
         for city in self.cities_by_id.values():
             if city.civ_to_revolt_into is not None:
                 print(f"decline view for city {city.name}")
                 assert city.hex is not None, "Somehow got a city with no hex registered."
                 self.process_decline_option(city.hex.coords, from_civ_perspectives)
+                city.is_decline_view_option = True
         
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ(short_sighted=True)

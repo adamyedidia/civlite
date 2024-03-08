@@ -136,7 +136,8 @@ const DeclineOptionRow = ({ city, setDeclineOptionsView, civTemplates, centerMap
 const CivVitalityDisplay = ({ civVitality, myCities, turnNum, myGamePlayer, declineOptionsView, centerMap, setDeclineOptionsView, declineViewGameState, 
     unitTemplates, civTemplates, buildingTemplates,
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding}) => {
-    const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.capital && city.civ.game_player === null);
+    const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.is_decline_view_option);
+    console.log(citiesReadyForRevolt)
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
         {turnNum > 1 && <Button className="toggle-decline-view" 
             onClick={() => setDeclineOptionsView(!declineOptionsView)}
