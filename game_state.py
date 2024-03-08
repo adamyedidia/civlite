@@ -246,9 +246,13 @@ class GameState:
         # During the turn, this is executed from the staged game_state of the new_player.
         # Therefore, no one's scores have changed since the start of the turn and we can just compare them raw.
         # During turn end, this should never be called.
-        return self.game_player_by_player_num[first_player_num].score > self.game_player_by_player_num[new_player_num].score
+        def priority(player_num):
+            # Priority is first by score, then by civ_id as a determinstic-but-random tiebreak.
+            game_player: GamePlayer = self.game_player_by_player_num[player_num]
+            return (-game_player.score, game_player.civ_id)
+        return priority(first_player_num) < priority(new_player_num)
 
-    def execute_decline(self, coords: str, game_player: GamePlayer, collisions_allowed=True) -> list[Civ]:
+    def execute_decline(self, coords: str, game_player: GamePlayer) -> list[Civ]:
         """
         Actually enter decline for real (not just for the imaginary decline options view GameState)
         """
