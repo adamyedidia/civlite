@@ -209,8 +209,7 @@ class Civ:
             print(f"{self.moniker()} deciding not to decline because I'm rank {my_rank} of {total_players}")
             return None
 
-        my_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ != self]
-
+        my_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self]
         my_total_yields: float = sum(
             [city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
              for city in my_cities])
@@ -232,7 +231,7 @@ class Civ:
             return None
         best_option_yields, best_option = max((yields, coords) for coords, yields in option_total_yields.items())
         print(f"{self.moniker()} deciding whether to revolt. My yields are: {my_total_yields}; options have: {option_total_yields}")
-        if best_option_yields <= my_total_yields:
+        if best_option_yields <= my_total_yields * 2:
             print(f"{self.moniker()} deciding not to decline because I have {my_total_yields} and the best option has {best_option_yields}")
             return None
 
