@@ -304,7 +304,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                                     <img src={projectedIncome['food'] >= foodDemanded ? cityImg : sadImg} height="30px"/>
                                 </div>
                             </WithTooltip>
-                            <WithTooltip tooltip={`Citizens expect 2 food income per population. ${selectedCity.name}'s income is ${projectedIncome['food'].toFixed(2)}.`}>
+                            <WithTooltip tooltip={`${selectedCity.capital ? "Capital city citizens expect 1 food per 2 population." : "Citizens expect 2 food per population."} ${selectedCity.name}'s income is ${projectedIncome['food'].toFixed(2)}.`}>
                             <table className="unhappiness-bars"><tbody>
                                 <tr>
                                     <td className="label">
