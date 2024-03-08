@@ -156,9 +156,9 @@ const CivVitalityDisplay = ({ civVitality, myCities, turnNum, myGamePlayer, decl
             </>}
         </div>
         <div className="unhappiness-threshold">
-            <WithTooltip tooltip={`Threshold unhappiness to enter decline choices`}>
+            <WithTooltip tooltip={`Threshold unhappiness to enter decline choices: ${unhappinessThreshold?.toFixed(2)}`}>
                 <div className="unhappiness-threshold-content">
-                    {unhappinessThreshold}
+                    {Math.floor(unhappinessThreshold)}
                     <img src={sadImg} height="16px"/>
                 </div>
             </WithTooltip>
