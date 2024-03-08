@@ -308,15 +308,12 @@ def _launch_game_inner(sess, game: Game) -> None:
         if game_player.is_bot:
             civ_option_tup = civ_options_tups[0]
             civ, starting_location = civ_option_tup
-            starting_city_name = generate_random_city_name(game_state)
-            starting_city = City(civ, name=starting_city_name)
-            starting_location.city = starting_city
-            starting_city.hex = starting_location
-            starting_city.populate_terrains_dict(game_state)
-            game_state.cities_by_id[starting_city.id] = starting_city
+            starting_city = game_state.new_city(civ, starting_location)
+            game_state.register_city(starting_city)
+            starting_city.capitalize(game_state)
+
             game_state.civs_by_id[civ.id] = civ
             civ.vitality = STARTING_CIV_VITALITY
-            starting_city.hex.city = starting_city
             starting_civs_for_players[player_num] = [civ]
             game_player.civ_id = civ.id
 
