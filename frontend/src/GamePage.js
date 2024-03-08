@@ -2880,7 +2880,8 @@ export default function GamePage() {
         return (
             <>
                 <div className="basic-example">
-                    <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140">
+                    <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140"
+                    style={{backgroundColor: declineOptionsView ? '#FF6666' : foundingCity ? '#99FF99' : '#4488FF'}}>
                     <Layout size={{ x: 3, y: 3 }}>
                         {hexagons.map((hex, i) => {
                             return (
