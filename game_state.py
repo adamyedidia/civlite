@@ -634,20 +634,26 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
-        print("moving units")
+        print("precommit")
+        sess.commit()
+
+        print("moving units 1")
         units_copy = self.units[:]
         random.shuffle(units_copy)
         for unit in units_copy:
             unit.move(sess, self)
             unit.attack(sess, self)
 
+        print("moving units 1: commit")
         sess.commit()
 
+        print("moving units 2")
         random.shuffle(units_copy)
         for unit in units_copy:
             unit.move(sess, self, sensitive=True)
             unit.attack(sess, self)
 
+        print("moving units 2: commit")
         sess.commit()
 
         for unit in units_copy:
@@ -766,6 +772,7 @@ class GameState:
             if new_civ.has_ability('ExtraCityPower'):
                 new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]
             city = self.new_city(new_civ, hex)
+            city.unhappiness = 70
             # Note that city is NOT registered; i.e. hex.city is not this city, since this is a fake city.
             self.fresh_cities_for_decline[hex.coords] = city
 
