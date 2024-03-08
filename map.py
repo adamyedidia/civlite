@@ -92,27 +92,30 @@ def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
 
 
 def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], other_decline_locations: list[Hex]) -> bool:
-    print(f"Considering decline at {decline_location.coords}. {[hex.city is not None for hex in decline_location.get_neighbors(hexes)]}")
+    # print(f"Considering decline at {decline_location.coords}. {[hex.city is not None for hex in decline_location.get_neighbors(hexes)]}")
     if any([hex.city is not None for hex in decline_location.get_neighbors(hexes)]):
         return False
 
     for other_decline_location in other_decline_locations:
-        print(f"Distance to other is {other_decline_location.distance_to(decline_location)}")
+        # print(f"Distance to other is {other_decline_location.distance_to(decline_location)}")
         if other_decline_location.coords != decline_location.coords and other_decline_location.distance_to(decline_location) < 2:
             return False
 
     return True
 
 
-def generate_decline_locations(hexes: dict[str, Hex], n: int, existing_decline_locations: Optional[list[Hex]] = None) -> list[Hex]:
-    decline_locations = existing_decline_locations or []
+def generate_decline_locations(hexes: dict[str, Hex], n: int, existing_decline_locations: list[Hex] = []) -> list[Hex]:
+    """
+    Generate n new decline locations that don't collide with the existing ones.
+    """
+    decline_locations = []
 
     num_attempts = 0
 
     while len(decline_locations) < n and num_attempts < 1000:
         decline_location = random.choice(list(hexes.values()))
 
-        if is_valid_decline_location(decline_location, hexes, decline_locations):
+        if is_valid_decline_location(decline_location, hexes, existing_decline_locations + decline_locations):
             decline_locations.append(decline_location)
         
         num_attempts += 1

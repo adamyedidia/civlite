@@ -731,9 +731,11 @@ def enter_player_input(sess, game_id):
     _, from_civ_perspectives, game_state_to_return_json, decline_eviction_player = update_staged_moves(sess, game_id, player_num, [player_input])
 
     if player_input.get('move_type') == 'choose_decline_option':
+        print(f"Muting timer due to decline")
         socketio.emit('mute_timer', {'turn_num': game_state_to_return_json['turn_num']}, room=game_id)  # type: ignore
 
     if decline_eviction_player is not None:
+        print(f"app.py evicting player {decline_eviction_player}")
         set_turn_ended_by_player_num(game_id, decline_eviction_player, False)
         socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)  # type: ignore
         socketio.emit("decline_evicted", {'player_num': decline_eviction_player}, room=game_id)  # type: ignore

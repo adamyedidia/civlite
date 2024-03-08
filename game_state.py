@@ -540,7 +540,7 @@ class GameState:
                             should_stage_moves = False
                     else:
                         raise ValueError("There are no other logical possibilities.")
-                    
+                    print(f"{proceed=}")
                     if proceed:
                         rset(redis_key, game_player.player_num)
                         from_civ_perspectives = self.execute_decline(coords, game_player)
@@ -778,11 +778,11 @@ class GameState:
             self.retire_fresh_city_option(coords)
             new_locations_needed += 1
         print(f"Generating {new_locations_needed} fresh cities for decline.")
-        new_hexes = generate_decline_locations(self.hexes, new_locations_needed)
+        new_hexes = generate_decline_locations(self.hexes, new_locations_needed, [self.hexes[coord] for coord in self.fresh_cities_for_decline])
 
         decline_choice_civ_pool = self.sample_new_civs(new_locations_needed)
         for hex, civ_name in zip(new_hexes, decline_choice_civ_pool):
-            assert hex.city is None, f"Attempting to put a fresh decline city on an existing city! {hex.city.name} @ {hex.coords}"
+            assert hex.city is None, f"Attempting to put a fresh decline city on an existing city! {hex.city.name} @ {hex.coords}; {new_hexes}"
             new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player=None)
 
             if new_civ.has_ability('ExtraCityPower'):
@@ -823,6 +823,7 @@ class GameState:
 
 
     def prepare_decline_choices(self) -> None:
+        assert False, "TODO remove this code"
         advancement_level_to_use = max(self.advancement_level, 1)
 
         num_players = len(self.game_player_by_player_num)
@@ -1076,12 +1077,14 @@ def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) 
         from_civ_perspectives, game_state_to_return_json, game_state_to_store_json, should_stage_moves, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
         if should_stage_moves:
+            print("Done processing, commiting staged moves")
             staged_moves.extend(moves)
 
         rset_json(f'staged_moves:{game_id}:{player_num}', staged_moves, ex=7 * 24 * 60 * 60)
         rset_json(f'staged_game_state:{game_id}:{player_num}', game_state_to_store_json, ex=7 * 24 * 60 * 60)
-
+    print("Move staged")
     if decline_eviction_player is not None:
+        print(f"eviciting player {decline_eviction_player}")
         # Find the "choose_decline_option" move in their moves, and trim back to that spot.
 
         with rlock(f'staged_moves_lock:{game_id}:{decline_eviction_player}'):
