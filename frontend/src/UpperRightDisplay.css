@@ -214,6 +214,37 @@ h2.tech-name {
     margin-right: 5px;
 }
 
+.unhappiness-threshold {
+    position: absolute;
+    left: -55px;
+    bottom: -10px;
+    background: #ecb0b0;
+    padding: 5px;
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+    height: 20px;
+}
+
+.unhappiness-threshold::after {
+    content: "";
+    position: absolute;
+    right: -20px;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    /* the 15s here are the main element's height - padding. The 20 is the length of the pointer. */
+    border-width: 15px 0 15px 20px;
+    border-color: transparent transparent transparent #ecb0b0; /* Match the element's background color */
+}
+
+
+.unhappiness-threshold-content {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+}
+
 /*
 ==========================================
 =============== SCORE AREA ===============

@@ -79,6 +79,7 @@ class GameState:
         self.next_forced_roll_at: Optional[float] = None
         self.roll_id: Optional[str] = None
         self.fresh_cities_for_decline: dict[str, City] = {}
+        self.unhappiness_threshold: float = 0.0
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -727,7 +728,9 @@ class GameState:
         self.populate_fresh_cities_for_decline()
         cities_to_revolt = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.unhappiness >= 1], reverse=True)
         revolt_choices = cities_to_revolt[:3]
-        print("revolt choices: ", [city.name for _, _, city in revolt_choices])
+        if len(cities_to_revolt) > 0:
+            self.unhappiness_threshold = cities_to_revolt[-1][0]
+        print(f"revolt choices: {[city.name for _, _, city in revolt_choices]}; threshold: {self.unhappiness_threshold}")
         revolt_ids = set(id for _, id, _ in revolt_choices)
         for _, _, city in revolt_choices:
             if city.civ_to_revolt_into is None:
@@ -772,7 +775,7 @@ class GameState:
             if new_civ.has_ability('ExtraCityPower'):
                 new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]
             city = self.new_city(new_civ, hex)
-            city.unhappiness = 70
+            city.unhappiness = 40
             # Note that city is NOT registered; i.e. hex.city is not this city, since this is a fake city.
             self.fresh_cities_for_decline[hex.coords] = city
 
@@ -982,7 +985,8 @@ class GameState:
             "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{self.game_id}') or {},
             "next_forced_roll_at": self.next_forced_roll_at,
             "roll_id": self.roll_id,
-            "fresh_cities_for_decline": {coords: city.to_json() for coords, city in self.fresh_cities_for_decline.items()}
+            "fresh_cities_for_decline": {coords: city.to_json() for coords, city in self.fresh_cities_for_decline.items()},
+            "unhappiness_threshold": self.unhappiness_threshold,
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
@@ -1017,6 +1021,7 @@ class GameState:
         game_state.turn_ended_by_player_num = json["turn_ended_by_player_num"]
         game_state.next_forced_roll_at = json.get("next_forced_roll_at")
         game_state.roll_id = json.get("roll_id")
+        game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
         game_state.midturn_update()
         return game_state
 

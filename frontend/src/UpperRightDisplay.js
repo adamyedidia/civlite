@@ -9,6 +9,7 @@ import metalImg from './images/metal.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';
 import declineImg from './images/phoenix.png';
+import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import workerImg from './images/worker.png';
 import ProgressBar from './ProgressBar';
@@ -137,6 +138,7 @@ const CivVitalityDisplay = ({ civVitality, myCities, turnNum, myGamePlayer, decl
     unitTemplates, civTemplates, buildingTemplates,
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding}) => {
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.is_decline_view_option);
+    const unhappinessThreshold = declineViewGameState?.unhappiness_threshold
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
         {turnNum > 1 && <Button className="toggle-decline-view" 
             onClick={() => setDeclineOptionsView(!declineOptionsView)}
@@ -152,6 +154,14 @@ const CivVitalityDisplay = ({ civVitality, myCities, turnNum, myGamePlayer, decl
                         civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} setSelectedCity={setSelectedCity} />
                     })}
             </>}
+        </div>
+        <div className="unhappiness-threshold">
+            <WithTooltip tooltip={`Threshold unhappiness to enter decline choices`}>
+                <div className="unhappiness-threshold-content">
+                    {unhappinessThreshold}
+                    <img src={sadImg} height="16px"/>
+                </div>
+            </WithTooltip>
         </div>
     </CivDetailPanel>
 }
