@@ -147,6 +147,8 @@ class City:
         self.food += self.projected_income["food"]
         self.civ.science += self.projected_income["science"]
         self.civ.city_power += self.projected_income["food"]
+        self.unhappiness += self.projected_income['unhappiness']
+
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
@@ -193,7 +195,6 @@ class City:
             return 2 * self.population
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:
-        self.unhappiness += self.projected_income['unhappiness']
         self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num + 0.035 * self.unhappiness
 
         if self.unhappiness > 100:
