@@ -3176,6 +3176,7 @@ export default function GamePage() {
         socket.on('update', () => {
           console.log('update received')
           if (gameStateExistsRef.current) {
+            setDeclineOptionsView(false);
             fetchDeclineViewGameState();
             getMovie(true);
           }
