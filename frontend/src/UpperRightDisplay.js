@@ -100,6 +100,9 @@ const DeclineOptionRow = ({ city, setDeclineOptionsView, civTemplates, centerMap
             <TextOnIcon image={workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
                 <b>{city.population}</b>
             </TextOnIcon>
+            <div className="unit-count" style={{visibility: city.revolt_unit_count > 0 ? "visible" : "hidden" }}>
+                {city.revolt_unit_count}
+            </div>
             {city.name}
         </div>
         <div className="revolt-cities-detail">

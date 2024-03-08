@@ -60,6 +60,7 @@ class City:
         self.revolting_starting_vitality: float = 1.0
         self.unhappiness: float = 0.0
         self.is_decline_view_option: bool = False
+        self.revolt_unit_count: int = 0
 
         self.handle_cleanup()
 
@@ -813,6 +814,7 @@ class City:
             "civ_to_revolt_into": self.civ_to_revolt_into.to_json() if self.civ_to_revolt_into else None,
             "is_decline_view_option": self.is_decline_view_option,
             "food_demand": self.food_demand,
+            "revolt_unit_count": self.revolt_unit_count,
         }
 
     @staticmethod

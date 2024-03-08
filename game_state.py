@@ -319,16 +319,19 @@ class GameState:
         self.civs_by_id[new_civ.id] = new_civ
         from_civ_perspectives.append(new_civ)
 
+        unit_count = 0
         for neighbor_hex in [hex, *hex.get_neighbors(self.hexes)]:
             for unit in neighbor_hex.units:
                 old_unit_civ = unit.civ
                 unit.civ = new_civ
+                unit_count += unit.get_stack_size()
                 
                 if old_unit_civ.game_player:
                     old_unit_civ.game_player.score += 1
                     old_unit_civ.game_player.score_from_revolting_cities += 1
 
             neighbor_hex.camp = None
+        hex.city.revolt_unit_count = unit_count
 
         hex.city.midturn_update(self)
 
