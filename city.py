@@ -64,6 +64,9 @@ class City:
 
         self.handle_cleanup()
 
+    def __repr__(self):
+        return f"<City {self.name} @ {self.hex.coords if self.hex else None}>"
+
     def has_building(self, building_name: str) -> bool:
         return any([(building.template.building_name if hasattr(building.template, 'building_name') else building.template.name) == building_name for building in self.buildings])  # type: ignore
 

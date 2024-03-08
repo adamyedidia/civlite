@@ -97,6 +97,10 @@
   gap: 20px;
 }
 
+body {
+  background-color: #4488FF;
+}
+
 .turn-num-card {
   border: 1px solid #ddd;
   padding: 5px;

@@ -93,8 +93,11 @@ def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
 
 def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], other_decline_locations: list[Hex]) -> bool:
     # print(f"Considering decline at {decline_location.coords}. {[hex.city is not None for hex in decline_location.get_neighbors(hexes)]}")
-    if any([hex.city is not None for hex in decline_location.get_neighbors(hexes)]):
-        return False
+    for hex in decline_location.get_neighbors(hexes):
+        if hex.city:
+            return False
+        if any(hex.is_foundable_by_civ.values()):
+            return False
 
     for other_decline_location in other_decline_locations:
         # print(f"Distance to other is {other_decline_location.distance_to(decline_location)}")
