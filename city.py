@@ -196,6 +196,12 @@ class City:
         self.unhappiness += self.projected_income['unhappiness']
         self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num + 0.035 * self.unhappiness
 
+        if self.unhappiness > 100:
+            # Revolt to AI
+            assert self.hex is not None
+            game_state.process_decline_option(self.hex.coords, [])
+            game_state.make_new_civ_from_the_ashes(self)
+
     def grow_inner(self, game_state: 'GameState') -> None:
         self.population += 1
 

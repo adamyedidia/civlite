@@ -221,12 +221,9 @@ class GameState:
         return chosen_techs_names
         
 
-    def make_new_civ_from_the_ashes(self, civ: Civ, game_player: GamePlayer, city: City) -> None:
-        civ.game_player = game_player
-        game_player.civ_id = civ.id
-        game_player.decline_this_turn = True
+    def make_new_civ_from_the_ashes(self, city: City) -> None:
         chosen_techs = self.choose_techs_for_new_civ(city)
-
+        civ = city.civ
         civ.initialize_techs(chosen_techs)
 
         self.refresh_foundability_by_civ()
@@ -234,6 +231,11 @@ class GameState:
 
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
+
+
+        city.refresh_available_buildings()
+        city.refresh_available_units()
+        self.midturn_update()
 
         self.add_announcement(f'The {civ.moniker()} have been founded in {city.name}!')        
 
@@ -258,11 +260,10 @@ class GameState:
 
         civ = from_civ_perspectives[0]
 
-        self.make_new_civ_from_the_ashes(civ, game_player, city)
-
-        city.refresh_available_buildings()
-        city.refresh_available_units()
-        self.midturn_update()
+        civ.game_player = game_player
+        game_player.civ_id = civ.id
+        game_player.decline_this_turn = True
+        self.make_new_civ_from_the_ashes(city)
         return from_civ_perspectives
 
 
@@ -656,9 +657,6 @@ class GameState:
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
         cities_to_revolt = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.unhappiness >= 1], reverse=True)
-        for _, _, city in cities_to_revolt:
-            if city.unhappiness >= 100:
-                pass  # TODO(dfarhi) - revolt to bot
         revolt_choices = cities_to_revolt[:3]
         print("revolt choices: ", [city.name for _, _, city in revolt_choices])
         revolt_ids = set(id for _, id, _ in revolt_choices)
