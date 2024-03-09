@@ -93,12 +93,17 @@ def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
 
 def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], other_decline_locations: list[Hex]) -> bool:
     # print(f"Considering decline at {decline_location.coords}. {[hex.city is not None for hex in decline_location.get_neighbors(hexes)]}")
+    # Don't choose a spot with a city or an active player's units nearby
     if decline_location.city is not None: 
+        return False
+    if any([unit.civ.game_player for unit in decline_location.units]):
         return False
     for hex in decline_location.get_neighbors(hexes):
         if hex.city is not None:
             return False
         if any(hex.is_foundable_by_civ.values()):
+            return False
+        if any([unit.civ.game_player for unit in hex.units]):
             return False
 
     for other_decline_location in other_decline_locations:
