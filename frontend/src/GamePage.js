@@ -302,7 +302,6 @@ export default function GamePage() {
 
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
-    const [frameNum, setFrameNum] = useState(0);
 
     const [civTemplates, setCivTemplates] = useState({});
     const [unitTemplates, setUnitTemplates] = useState(null);
@@ -333,7 +332,7 @@ export default function GamePage() {
 
     const [selectedCity, setSelectedCity] = useState(null);
 
-    const [techChoices, setTechChoices] = useState(null);
+    const [techChoiceDialogOpen, setTechChoiceDialogOpen] = useState(false);
 
     const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
 
@@ -361,10 +360,14 @@ export default function GamePage() {
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
 
-
-    const myGamePlayer = declineOptionsView ? nonDeclineViewGameState?.game_player_by_player_num?.[playerNum] : gameState?.game_player_by_player_num?.[playerNum];
-    const myCivId = declineOptionsView ? nonDeclineViewGameState?.game_player_by_player_num?.[playerNum].civ_id : gameState?.game_player_by_player_num?.[playerNum].civ_id;
-    const myCiv = declineOptionsView ? nonDeclineViewGameState?.civs_by_id?.[myCivId] : gameState?.civs_by_id?.[myCivId];
+    const getMyInfo = (gameState) => {
+        const gamePlayer = gameState?.game_player_by_player_num?.[playerNum];
+        const myCivId = gamePlayer?.civ_id;
+        const myCiv = gameState?.civs_by_id?.[myCivId];
+        return {gamePlayer, myCivId, myCiv};
+    }
+    const {myGamePlayer, myCivId, myCiv} = getMyInfo(declineOptionsView ? nonDeclineViewGameState : gameState);
+    const techChoices = myCiv?.current_tech_choices;
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
@@ -455,7 +458,7 @@ export default function GamePage() {
                 setSelectedCity(null);
                 setFoundingCity(false);
                 setShowFlagArrows(false);
-                setTechChoices(null);
+                setTechChoiceDialogOpen(false);
                 setDeclineOptionsView(false);
             }
         };
@@ -2153,6 +2156,7 @@ export default function GamePage() {
         if (declineOptionsView) {
             setNonDeclineViewGameState(gameState);
             setGameState(declineViewGameState);
+            setTechChoiceDialogOpen(false);
         } else {
             // If we are toggling back from the decline view
             setGameState(nonDeclineViewGameState);
@@ -2210,7 +2214,7 @@ export default function GamePage() {
             .then(data => {
                 if (data.game_state) {
                     setGameState(data.game_state);
-                    setTechChoices(null);
+                    setTechChoiceDialogOpen(false);
                 }
             });
     }
@@ -2333,6 +2337,8 @@ export default function GamePage() {
         setGameState(finalGameState);
         refreshSelectedCity(finalGameState);
         setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
+        const {_, __, myCiv} = getMyInfo(finalGameState);
+        sciencePopupIfNeeded(myCiv);
     }
 
     useEffect(() => {
@@ -2380,6 +2386,13 @@ export default function GamePage() {
     const cancelAnimations = () => {
         console.log("Manually cancelling animations")
         setEngineState(EngineStates.PLAYING, EngineStates.ANIMATING);
+    }
+
+    const sciencePopupIfNeeded = (civ) => {
+        console.log("popupifneeded", civ, civ?.researching_tech_name)
+        if (civ?.researching_tech_name === null) {
+            setTechChoiceDialogOpen(true);
+        }
     }
 
     const FlagArrow = ({hex}) => {
@@ -3025,7 +3038,7 @@ export default function GamePage() {
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
                         setHoveredCiv={setHoveredCiv}
-                        setTechChoices={setTechChoices}
+                        setTechChoiceDialogOpen={setTechChoiceDialogOpen}
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
                         isFoundingCity={foundingCity}
@@ -3190,6 +3203,8 @@ export default function GamePage() {
                     triggerAnimations(data.game_state);
                 } else {
                     setGameState(data.game_state);
+                    const {_, __, myCiv} = getMyInfo(data.game_state);
+                    sciencePopupIfNeeded(myCiv);
                 }
             })
             .catch(error => {
@@ -3318,7 +3333,7 @@ export default function GamePage() {
                     </Grid>
                 </Grid>
             )}
-            {techChoices && !declineOptionsView && (
+            {techChoiceDialogOpen && (
                 <div className="tech-choices-container">
                     <DialogTitle>
                         <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
@@ -3326,7 +3341,7 @@ export default function GamePage() {
                         </Typography>
                         <IconButton
                             aria-label="close"
-                            onClick={() => setTechChoices(null)}
+                            onClick={() => setTechChoiceDialogOpen(false)}
                             style={{
                                 position: 'absolute',
                                 right: 8,
