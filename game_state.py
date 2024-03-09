@@ -290,18 +290,6 @@ class GameState:
         if hex.city:
             # This is not a fresh city , it's a pre-existing one.
             print(f"Declining to existing city at {coords}")
-            old_civ = hex.city.civ
-
-            if old_civ.game_player:
-                old_civ.game_player.score += 5
-                old_civ.game_player.score_from_revolting_cities += 5
-
-                total_city_yields = sum([x for x in hex.city.projected_income.values()]) / old_civ.vitality
-
-                points_from_yields = int(total_city_yields / (5 * 1.025 ** (self.turn_num - 1)))
-
-                old_civ.game_player.score += points_from_yields
-                old_civ.game_player.score_from_revolting_cities += points_from_yields
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
             hex.city.civ = Civ(hex.city.civ_to_revolt_into, game_player=None)
         else:
