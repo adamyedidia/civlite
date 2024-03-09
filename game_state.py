@@ -315,8 +315,8 @@ class GameState:
                 unit_count += unit.get_stack_size()
                 
                 if old_unit_civ.game_player:
-                    old_unit_civ.game_player.score += unit.get_stack_size()
-                    old_unit_civ.game_player.score_from_revolting_cities += unit.get_stack_size()
+                    old_unit_civ.game_player.score += unit_count
+                    old_unit_civ.game_player.score_from_revolting_cities += unit_count
 
             neighbor_hex.camp = None
         hex.city.revolt_unit_count = unit_count
