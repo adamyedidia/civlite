@@ -1014,7 +1014,7 @@ def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) 
         rset_json(staged_game_state_key(game_id, player_num, turn_num), game_state_to_store_json, ex=7 * 24 * 60 * 60)
     print("Move staged")
     if decline_eviction_player is not None:
-        print(f"eviciting player {decline_eviction_player}")
+        print(f"evicting player {decline_eviction_player}")
         # Find the "choose_decline_option" move in their moves, and trim back to that spot.
 
         with rlock(f'staged_moves_lock:{game_id}:{decline_eviction_player}'):
