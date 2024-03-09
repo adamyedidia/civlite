@@ -766,13 +766,15 @@ class GameState:
     def retire_fresh_city_option(self, coords):
         print(f"retiring option at {coords}")
         self.fresh_cities_for_decline.pop(coords)
-        self.hexes[coords].camp = Camp(self.barbarians)
+        camp_level: int = max(0, self.advancement_level - 2)
+        print(f"Making camp at {coords} at level {camp_level}")
+        self.hexes[coords].camp = Camp(self.barbarians, advancement_level=camp_level)
 
     def populate_fresh_cities_for_decline(self) -> None:
         self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()
                                              if is_valid_decline_location(self.hexes[coords], self.hexes, [self.hexes[other_coords] for other_coords in self.fresh_cities_for_decline if other_coords != coords])}
         new_locations_needed = max(2 - len(self.fresh_cities_for_decline), 0)
-        if new_locations_needed == 0 and random.random() < 0.5:
+        if new_locations_needed == 0 and random.random() < 0.2 * len(self.game_player_by_player_num):  # Make one new camp per player per 5 turns.
             # randomly retire one of them
             coords: str = random.choice(list(self.fresh_cities_for_decline.keys()))
             self.retire_fresh_city_option(coords)
