@@ -205,7 +205,7 @@ const ScoreDisplay = ({ myGamePlayer }) => {
             </Grid>
             <Grid item>
                 <Typography>
-                    {myGamePlayer?.sfrc || 0} revolting units
+                    {myGamePlayer?.sfrc || 0} revolting units (1/unit)
                 </Typography>
             </Grid>                                                                     
         </Grid>
