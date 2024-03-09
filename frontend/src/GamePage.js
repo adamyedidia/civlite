@@ -226,7 +226,7 @@ function DeclinePreemptedDialog({open, onClose}) {
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>
                 <Typography variant="h2" component="div">  
-                   Decline Failed
+                   Decline Preempted
                 </Typography>
             </DialogTitle>
             <DialogContent>
