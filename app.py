@@ -525,6 +525,7 @@ def get_most_recent_state(sess, game_id):
     dream_game_state_json_from_civ_perspectives = rget_json(f'dream_game_state_from_civ_perspectives:{game_id}:{player_num}') or []
 
     # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
+    # TODO(dfarhi) clean this up and vastly simplify dream states now that they are only for the first turn.
 
     staged_game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}')
     game_state = (
