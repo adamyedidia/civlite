@@ -21,7 +21,7 @@ from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
-from utils import swap_two_elements_of_list, generate_unique_id
+from utils import swap_two_elements_of_list, generate_unique_id, dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives
 
 from sqlalchemy import func
 
@@ -380,7 +380,9 @@ class GameState:
                 self.refresh_visibility_by_civ()
 
                 for civ in self.civs_by_id.values():
-                    civ.fill_out_available_buildings(self)                
+                    civ.fill_out_available_buildings(self)      
+
+                rdel(dream_key(self.game_id, player_num, self.turn_num))
 
             if move['move_type'] == 'choose_tech':
                 tech_name = move['tech_name']
@@ -497,6 +499,8 @@ class GameState:
                 self.midturn_update()
 
             if move['move_type'] == 'choose_decline_option':
+                print(f'player {player_num} is choosing a decline option')
+
                 game_player = self.game_player_by_player_num[player_num]
                 game_player_to_return = game_player
                 coords = move['coords']
@@ -587,7 +591,7 @@ class GameState:
             return
 
         for player_num in self.game_player_by_player_num.keys():
-            staged_moves = rget_json(f'staged_moves:{self.game_id}:{player_num}') or []
+            staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
             self.update_from_player_moves(player_num, staged_moves)
 
         civs = list(self.civs_by_id.values())[:]
@@ -605,13 +609,13 @@ class GameState:
 
         self.roll_turn(sess)
 
-        for player_num in self.game_player_by_player_num.keys():
-            rdel(f'staged_moves:{self.game_id}:{player_num}')
-            rdel(f'staged_game_state:{self.game_id}:{player_num}')
+        # for player_num in self.game_player_by_player_num.keys():
+        #     rdel(staged_game_state_key(self.game_id, player_num, self.turn_num))
+        #     rdel(staged_moves_key(self.game_id, player_num, self.turn_num))
 
-            # Dream game state is the fake game state that gets sent to people who are in decline
-            rdel(f'dream_game_state:{self.game_id}:{player_num}')
-            rdel(f'dream_game_state_from_civ_perspectives:{self.game_id}:{player_num}')
+        #     # Dream game state is the fake game state that gets sent to people who are in decline
+        #     rdel(dream_key(self.game_id, player_num, self.turn_num))
+        #     rdel(dream_key_from_civ_perspectives(self.game_id, player_num, self.turn_num))
 
         rdel(f'turn_ended_by_player_num:{self.game_id}')
 
@@ -994,8 +998,11 @@ def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) 
     """
     with rlock(f'staged_moves_lock:{game_id}:{player_num}'):
         decline_eviction_player = None
-        staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
-        game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}') or get_most_recent_game_state_json(sess, game_id)
+        most_recent_game_state: GameState = get_most_recent_game_state(sess, game_id)
+        turn_num: int = most_recent_game_state.turn_num
+
+        staged_moves = rget_json(staged_moves_key(game_id, player_num, turn_num)) or []
+        game_state_json = rget_json(staged_game_state_key(game_id, player_num, turn_num)) or get_most_recent_game_state_json(sess, game_id)
         game_state = GameState.from_json(game_state_json)
         from_civ_perspectives, game_state_to_return_json, game_state_to_store_json, should_stage_moves, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
@@ -1003,24 +1010,24 @@ def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) 
             print("Done processing, commiting staged moves")
             staged_moves.extend(moves)
 
-        rset_json(f'staged_moves:{game_id}:{player_num}', staged_moves, ex=7 * 24 * 60 * 60)
-        rset_json(f'staged_game_state:{game_id}:{player_num}', game_state_to_store_json, ex=7 * 24 * 60 * 60)
+        rset_json(staged_moves_key(game_id, player_num, turn_num), staged_moves, ex=7 * 24 * 60 * 60)
+        rset_json(staged_game_state_key(game_id, player_num, turn_num), game_state_to_store_json, ex=7 * 24 * 60 * 60)
     print("Move staged")
     if decline_eviction_player is not None:
         print(f"eviciting player {decline_eviction_player}")
         # Find the "choose_decline_option" move in their moves, and trim back to that spot.
 
         with rlock(f'staged_moves_lock:{game_id}:{decline_eviction_player}'):
-            staged_moves = rget_json(f'staged_moves:{game_id}:{decline_eviction_player}') or []
+            staged_moves = rget_json(staged_moves_key(game_id, decline_eviction_player, turn_num)) or []
             for move_index, move in enumerate(staged_moves):
                 if move['move_type'] == 'choose_decline_option':
                     staged_moves = staged_moves[:move_index]
                     break
-            rset_json(f'staged_moves:{game_id}:{decline_eviction_player}', staged_moves)
+            rset_json(staged_moves_key(game_id, decline_eviction_player, turn_num), staged_moves)
             # Now recalculate their game state
             start_game_state_json = get_most_recent_game_state_json(sess, game_id)
             new_game_state: GameState = GameState.from_json(start_game_state_json)
             new_game_state.update_from_player_moves(decline_eviction_player, staged_moves, speculative=True)
-            rset_json(f'staged_game_state:{game_id}:{decline_eviction_player}', new_game_state.to_json(), ex=7 * 24 * 60 * 60)
+            rset_json(staged_game_state_key(game_id, decline_eviction_player, turn_num), new_game_state.to_json(), ex=7 * 24 * 60 * 60)
 
     return game_state, from_civ_perspectives, game_state_to_return_json, decline_eviction_player

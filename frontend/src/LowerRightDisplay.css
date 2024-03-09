@@ -37,3 +37,41 @@
     color: #666;
 }
 
+.animation-control-bar {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+}
+
+.animation-progress-bar {
+    width: 100%;
+    background-color: black;
+    height: 2px;
+    position: relative;
+    margin: 5px;
+}
+
+.animation-bar-dot {
+    background-color: #000;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    position: absolute;
+    /* left set by html */
+    /* vertically centered */
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.animation-control-bar-stop {
+    background-color: #444444;
+    height: 15px;
+    width: 15px;
+    border-radius: 1px;
+    border: 1px solid black;
+    margin: 5px;
+    cursor: pointer;
+}

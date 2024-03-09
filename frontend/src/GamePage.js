@@ -293,7 +293,13 @@ export default function GamePage() {
     const [engineState, setEngineState] = useState(EngineStates.PLAYING);
     // Ref to keep track of the current engineState
     const engineStateRef = React.useRef(engineState);
-    
+
+    const [animationFrame, setAnimationFrame] = useState(null);
+    const [animationFrameLastPlayed, setAnimationFrameLastPlayed] = useState(0);
+    const [animationTotalFrames, setAnimationTotalFrames] = useState(null);
+    const [animationFinalState, setAnimationFinalState] = useState(null);
+    const [animationActiveDelay, setAnimationActiveDelay] = useState(null);
+
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
     const [frameNum, setFrameNum] = useState(0);
@@ -331,8 +337,6 @@ export default function GamePage() {
 
     const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
 
-    const [animationRunIdUseState, setAnimationRunIdUseState] = useState(null);
-
     // TODO(dfarhi) combine thes flags into one state flag rather than several bools.
     const [foundingCity, setFoundingCity] = useState(false);
     const [declineOptionsView, setDeclineOptionsView] = useState(false);
@@ -341,8 +345,6 @@ export default function GamePage() {
     const [nonDeclineViewGameState, setNonDeclineViewGameState] = useState(null);  // My real game state, for if I cancel decline view
 
     const [techListDialogOpen, setTechListDialogOpen] = useState(false);
-
-    const animationRunIdRef = React.useRef(null);
 
     const [gameConstants, setGameConstants] = useState(null);
 
@@ -465,6 +467,22 @@ export default function GamePage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []); // Empty dependency array ensures this effect runs only once after the initial render
 
+    useEffect(() => {
+        // Prevent the default action of the spacebar (it scrolls to the bottom in default browser mode)
+        const handleKeyDown = (event) => {
+            if (event.key === ' ') {
+                event.preventDefault();
+            }
+        };
+
+        // Add event listener
+        window.addEventListener('keydown', handleKeyDown);
+
+        // Remove event listener on cleanup
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []); // Empty dependency array ensures this effect runs only once after the initial render
+
+    
     useEffect(() => {
         // When the user presses B
         const handleKeyDown = (event) => {
@@ -654,10 +672,6 @@ export default function GamePage() {
             document.removeEventListener('contextmenu', handleContextMenu);
         };
     }, [engineState]);
-
-    useEffect(() => {
-        animationRunIdRef.current = animationRunIdUseState;
-    }, [animationRunIdUseState]);
 
     const handleChangeTurnTimer = (value) => {
         const data = {
@@ -2155,12 +2169,7 @@ export default function GamePage() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                getMovie(false);  // TODO why do we call getMovie here?
-            }).catch(error => {
-                console.error('Error ending turn:', error);
-            });
+        });
     }
 
     const handleClickUnendTurn = () => {
@@ -2175,13 +2184,7 @@ export default function GamePage() {
             },
 
             body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    // setGameState(data.game_state);
-                }
-                getMovie(false);
-            });
+        })
     }
 
     
@@ -2289,61 +2292,94 @@ export default function GamePage() {
         }
     }
 
-    const triggerAnimations = async (finalGameState, numFrames) => {
-        const animationRunId = generateUniqueId();
+    const playAnimationFrame = async (frameNum) => {
+        try {
+            const response = await fetch(`${URL}/api/movie/frame/${gameId}/${frameNum}?player_num=${playerNum}`);
+            const json = await response.json();
+            if (!json.data) {
+                console.error("No data in frame", frameNum);
+                return;
+            }
+            switch (json.data.type) {
+                case 'UnitMovement':
+                    playMoveSound(moveSound, volume);
+                    showMovementArrows(json.data.coords);
+                    setGameState(json.game_state);
+                    break;
 
-        console.log(`animating! ${animationRunId}`);
-        // console.log(animationQueue)
+                case 'UnitAttack':
+                    if (json.data.attack_type === 'melee') {
+                        playMeleeAttackSound(meleeAttackSound, volume);
+                    } else if (json.data.attack_type === 'ranged') {
+                        playRangedAttackSound(rangedAttackSound, volume);
+                    } else if (json.data.attack_type === 'gunpowder_melee') {
+                        playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
+                    } else if (json.data.attack_type === 'gunpowder_ranged') {
+                        playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
+                    }
+                    showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
+                    setGameState(json.game_state);
+                    break;
+            }
+            setAnimationFrameLastPlayed(frameNum);
+        } catch (error) {
+            console.error('Error fetching movie frame:', error);
+        }
+    }
 
-        if (engineState === EngineStates.ANIMATING) {
+    const finalAnimationFrame = () => {
+        setAnimationFrame(null);
+        const finalGameState = animationFinalState;
+        setGameState(finalGameState);
+        refreshSelectedCity(finalGameState);
+        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
+    }
+
+    useEffect(() => {
+        if (animationFrame === null) {return;}
+        else if (animationFrameLastPlayed === animationFrame) {
+            // This is the call that happens in the normal course of business when LastPlayed gets updated; 
+            // we can ignore it.
             return;
         }
-
-        setAnimationRunIdUseState(animationRunId);
-
-        const animationDelay = Math.min(ANIMATION_DELAY, 20000 / numFrames);
-
-        for (let i = 0; i < numFrames; i++) {
-            try {
-                const response = await fetch(`${URL}/api/movie/frame/${gameId}/${i}?player_num=${playerNum}`);
-                const json = await response.json();
-                switch (json.data.type) {
-                    case 'UnitMovement':
-                        await new Promise((resolve) => setTimeout(resolve, animationDelay));
-                        playMoveSound(moveSound, volume);
-                        showMovementArrows(json.data.coords);
-                        setGameState(json.game_state);
-                        break;
-    
-                    case 'UnitAttack':
-                        await new Promise((resolve) => setTimeout(resolve, animationDelay));
-                        if (json.data.attack_type === 'melee') {
-                            playMeleeAttackSound(meleeAttackSound, volume);
-                        } else if (json.data.attack_type === 'ranged') {
-                            playRangedAttackSound(rangedAttackSound, volume);
-                        } else if (json.data.attack_type === 'gunpowder_melee') {
-                            playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
-                        } else if (json.data.attack_type === 'gunpowder_ranged') {
-                            playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
-                        }
-                        showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
-                        setGameState(json.game_state);
-                        break;
-                }
-            } catch (error) {
-                console.error('Error fetching movie frame:', error);
-            }
-
-            if ((animationRunId !== animationRunIdRef.current) && (numFrames > 1)) {
-                console.log("Removing duplicate animation")
-                return;
-            }            
+        else if (animationFrameLastPlayed == animationFrame - 2) {
+            console.error("time to play frame", animationFrame, "but last played", animationFrameLastPlayed, " -- is the network too slow?");
+            // When the network is too slow, we can't keep up with the animation frames. 
+            // We can abort this call; this function will be called again when animationFrameLastPlayed increments
+            return;
         }
+        else if (animationFrameLastPlayed !== animationFrame  - 1) {
+            console.log("wtf is going on with the animation scheduling? last played frame", animationFrameLastPlayed, "now time for frame", animationFrame);
+        }
+        
+        if (engineState !== EngineStates.ANIMATING) {
+            console.log("Canceling animation");
+            finalAnimationFrame();
+            return;
+        }
+        if (animationFrame >= animationTotalFrames) {
+            finalAnimationFrame();
+            transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
+            return;
+        }
+        setTimeout(() => setAnimationFrame(animationFrame + 1), animationActiveDelay);
+        playAnimationFrame(animationFrame);
+    }, [animationFrame, animationFrameLastPlayed])
 
-        await new Promise((resolve) => setTimeout(resolve, ANIMATION_DELAY));
-        setGameState(finalGameState);
-        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
-        transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
+    const triggerAnimations = (finalGameState) => {
+        if (engineState === EngineStates.ANIMATING) {
+            console.error("Already animating, but tried to start another animation!")
+            return;
+        }
+        transitionEngineState(EngineStates.ANIMATING)
+        setAnimationFrame(1);
+        setAnimationFrameLastPlayed(0);
+        setAnimationFinalState(finalGameState);
+    }
+
+    const cancelAnimations = () => {
+        console.log("Manually cancelling animations")
+        setEngineState(EngineStates.PLAYING, EngineStates.ANIMATING);
     }
 
     const FlagArrow = ({hex}) => {
@@ -2978,8 +3014,11 @@ export default function GamePage() {
                         isHoveredHex={!!hoveredHex}
                         handleClickEndTurn={handleClickEndTurn}
                         handleClickUnendTurn={handleClickUnendTurn}
-                        getMovie={getMovie}
+                        triggerAnimations={triggerAnimations}
                         engineState={engineState}
+                        animationFrame={animationFrame}
+                        animationTotalFrames={animationTotalFrames}
+                        cancelAnimations={cancelAnimations}
                     />}
                     {<UpperRightDisplay 
                         setHoveredUnit={setHoveredUnit} 
@@ -3116,80 +3155,76 @@ export default function GamePage() {
         })
     }
 
-    const fetchGameState = () => {
-        fetch(`${URL}/api/game_state/${gameId}?player_num=${playerNum}&turn_num=${turnNum}&frame_num=${frameNum}`)
+    const fetchGameStatus = () => {
+        fetch(`${URL}/api/game_status/${gameId}`)
             .then(response => response.json())
             .then(data => {
-                if (data.game_state) {
-                    getMovie(false);
-                }
-                if (data.players) {
-                    setPlayersInGame(data.players);
-                }
                 console.log('fetched!')
-                setTurnTimer(!data.turn_timer ? -1 : data.turn_timer);
+                if (data.game_started) {
+                    // game is running, let's go get the game state.
+                    fetchTurnStartGameState(false);
+                } else {
+                    // Game is in lobby state.
+                    console.log("Updating players in the game", data.players);
+                    setPlayersInGame(data.players);
+                    setTurnTimer(!data.turn_timer ? -1 : data.turn_timer);
+                }
             });
     
     }
 
-    const getMovie = (playAnimations) => {
-        console.log(playAnimations);
-
-        if (!playAnimations) {
-            fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
-
+    const fetchTurnStartGameState = (playAnimations) => {
+        fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
-                if (data.game_state && !(turnNum !== 1 && data.turn_num !== turnNum)) {
+                console.log("Turn started: ", data.game_state.turn_num);
+                setTurnNum(data.game_state.turn_num);
+                setAnimationTotalFrames(data.num_frames);
+                const budgetedAnimationTime = Math.min(30, data.game_state.turn_num) * 1000;
+                // Give 5 seconds for the backend computation
+                const animationTime = Math.max(budgetedAnimationTime - 5000, 5000);
+                console.log("Attempting to play animation with", data.num_frames,  "frames in", animationTime/1000, "secs; turn has left", Math.floor(data.game_state.next_forced_roll_at - Date.now()/1000), " secs.");
+                setAnimationActiveDelay(Math.min(ANIMATION_DELAY, animationTime / data.num_frames));
+
+                if (playAnimations) {
+                    triggerAnimations(data.game_state);
+                } else {
                     setGameState(data.game_state);
                 }
-                if (data.turn_num) {
-                    setTurnNum(data.turn_num);
-                }
-                
             })
             .catch(error => {
-                console.error('Error fetching movie frame:', error);
+                console.error('Error fetching turn start game state:', error);
             });
-        }
-        else {
-            fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
-
-                .then(response => response.json())
-                .then(data => {
-                    const numFrames = data.num_frames;
-
-                    transitionEngineState(EngineStates.ANIMATING)
-                    triggerAnimations(data.game_state, numFrames);
-                })
-                .catch(error => {
-                    console.error('Error fetching movie frame:', error);
-                });
-        }
     }
 
     const receiveDeclineEviction = () => {
-        fetchGameState();
+        fetchGameStatus();
         console.log("!!!!!!!!!!!!!!Eviction!!!!!!!!!!!!!!!")
         setDeclinePreemptedDialogOpen(true);
     }
 
     useEffect(() => {
+        console.log("Setting up socket");
         socket.emit('join', { room: gameId, username: username });
-        fetchGameState();
+        fetchGameStatus();
         fetchDeclineViewGameState();
         socket.on('update', () => {
           console.log('update received')
           if (gameStateExistsRef.current) {
             setDeclineOptionsView(false);
             fetchDeclineViewGameState();
-            getMovie(true);
+            // Turn has rolled within a game.
+            fetchTurnStartGameState(true);
           }
           else {
-            fetchGameState();
+            // Get here for updates before the game has launched (i.e. adding a player to the lobby)
+            // And the "game has launched" update
+            console.log("fetchGameState from update.")
+            fetchGameStatus();
           }
         })
         socket.on('mute_timer', (data) => {
+            console.log("mute timer turn ", data.turn_num);
             setTimerMutedOnTurn(data.turn_num);
         })
         socket.on('decline_evicted', (data) => {
@@ -3205,6 +3240,7 @@ export default function GamePage() {
             setEngineState(EngineStates.ROLLING);
         })
         return () => {
+            console.log("Destroying socket listeners.")
             socket.off('update');
             socket.off('mute_timer');
             socket.off('turn_end_change');

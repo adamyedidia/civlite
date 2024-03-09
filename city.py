@@ -628,6 +628,7 @@ class City:
 
     def capitalize(self, game_state: 'GameState') -> None:
         civ = self.civ
+        self.ever_controlled_by_civ_ids[self.civ.id] = True
         self.capital = True
     
         self.buildings_queue = []
@@ -635,6 +636,8 @@ class City:
         self.civ.fill_out_available_buildings(game_state)
         self.refresh_available_buildings()
         self.refresh_available_units()
+
+        self.under_siege_by_civ = None
 
         if civ.has_ability('IncreaseCapitalYields'):
             if self.hex:

@@ -22,6 +22,8 @@ from game_state import GameState, update_staged_moves, get_most_recent_game_stat
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
+from utils import dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives
+
 
 from settings import (
     LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, 
@@ -104,7 +106,7 @@ def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
         game_state_copy = get_most_recent_game_state(sess, game_id)
 
         for player_num in game_state_copy.game_player_by_player_num.keys():
-            staged_moves = rget_json(f'staged_moves:{game_id}:{player_num}') or []
+            staged_moves = rget_json(staged_moves_key(game_id, player_num, turn_num)) or []
 
             for move in staged_moves:
                 if move.get('move_type') == 'enter_decline':
@@ -354,8 +356,8 @@ def _launch_game_inner(sess, game: Game) -> None:
             game_state=game_state.to_json(from_civ_perspectives=starting_civs_for_players[player.player_num]),
         )
 
-        rset_json(f'dream_game_state:{game_id}:{player.player_num}', game_state.to_json())
-        rset_json(f'dream_game_state_from_civ_perspectives:{game_id}:{player.player_num}', [civ.id for civ in starting_civs_for_players[player.player_num]])
+        rset_json(dream_key(game_id, player.player_num, 1), game_state.to_json())
+        rset_json(dream_key_from_civ_perspectives(game_id, player.player_num, 1), [civ.id for civ in starting_civs_for_players[player.player_num]])
 
         sess.add(animation_frame)
 
@@ -393,31 +395,15 @@ def get_players_in_game(sess, game_id: str):
     return jsonify([player.user.username for player in players])
 
 
-@app.route('/api/game_state/<game_id>', methods=['GET'])
+@app.route('/api/game_status/<game_id>', methods=['GET'])
 @api_endpoint
 def get_game_state(sess, game_id):
-
-    player_num = request.args.get('player_num')
-
-    if player_num is None:
-        return jsonify({"error": "Player number is required"}), 400
-
-    turn_num = request.args.get('turn_num')
-
-    if turn_num is None:
-        return jsonify({"error": "Turn number is required"}), 400
-
-    frame_num = request.args.get('frame_num')
-
-    if frame_num is None:
-        return jsonify({"error": "Frame number is required"}), 400
-
     animation_frame = (
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.turn_num == turn_num)
-        .filter(AnimationFrame.player_num == player_num)
-        .filter(AnimationFrame.frame_num == frame_num)
+        .filter(AnimationFrame.turn_num == 1)
+        .filter(AnimationFrame.player_num == 0)
+        .filter(AnimationFrame.frame_num == 0)
         .one_or_none()
     )
 
@@ -443,18 +429,8 @@ def get_game_state(sess, game_id):
                             "turn_timer": game.seconds_per_turn,})
 
         return jsonify({"error": "Animation frame not found"}), 404
-    
-
-    game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}') or get_most_recent_game_state_json(sess, game_id)
-    game_state = GameState.from_json(game_state_json)
-
-    if game_state is None:
-        return jsonify({"error": "Game state not found"}), 404
-    
-    return {'game_state': {
-        **game_state.to_json(),
-        "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},
-    }}
+     
+    return jsonify({'game_started': True})
 
 
 @app.route('/api/movie/frame/<game_id>/<frame_num>', methods=['GET'])
@@ -521,13 +497,13 @@ def get_most_recent_state(sess, game_id):
         .scalar()
     )
     
-    dream_game_state_json = rget_json(f'dream_game_state:{game_id}:{player_num}')
-    dream_game_state_json_from_civ_perspectives = rget_json(f'dream_game_state_from_civ_perspectives:{game_id}:{player_num}') or []
+    dream_game_state_json = rget_json(dream_key(game_id, int(player_num), turn_num))
+    dream_game_state_json_from_civ_perspectives = rget_json(dream_key_from_civ_perspectives(game_id, int(player_num), turn_num)) or []
 
     # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
     # TODO(dfarhi) clean this up and vastly simplify dream states now that they are only for the first turn.
 
-    staged_game_state_json = rget_json(f'staged_game_state:{game_id}:{player_num}')
+    staged_game_state_json = rget_json(staged_game_state_key(game_id, int(player_num), turn_num))
     game_state = (
         GameState.from_json(dream_game_state_json) if dream_game_state_json 
         else GameState.from_json(staged_game_state_json) if staged_game_state_json 
