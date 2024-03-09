@@ -105,6 +105,8 @@ def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], othe
             return False
         if any([unit.civ.game_player for unit in hex.units]):
             return False
+    if len([hex for hex in decline_location.get_neighbors(hexes)]) < 6:
+        return False
 
     for other_decline_location in other_decline_locations:
         # print(f"Distance to other is {other_decline_location.distance_to(decline_location)}")
