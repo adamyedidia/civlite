@@ -820,74 +820,7 @@ class GameState:
         ))
 
         sess.commit()
-
-
-    def prepare_decline_choices(self) -> None:
-        assert False, "TODO remove this code"
-        advancement_level_to_use = max(self.advancement_level, 1)
-
-        num_players = len(self.game_player_by_player_num)
-
-        num_civs_to_sample = 3 * num_players
-
-        decline_choice_big_civ_pool = []
-
-        civs_already_in_game = [civ.template.name for civ in self.civs_by_id.values()]
-
-        for min_advancement_level in range(advancement_level_to_use, -1, -1):
-            decline_choice_big_civ_pool = [civ['name'] for civ in ANCIENT_CIVS.values() 
-                                           if civ['advancement_level'] <= advancement_level_to_use and civ['advancement_level'] >= min_advancement_level
-                                           and civ['name'] not in civs_already_in_game]
-
-            if len(decline_choice_big_civ_pool) >= num_civs_to_sample:
-                break
-
-        decline_choice_civ_pool = random.sample(decline_choice_big_civ_pool, num_civs_to_sample)
-
-        eligible_cities_for_declining = [city for city in self.cities_by_id.values() if city.civ.vitality < 1.0]
-
-        eligible_locations_for_declining = generate_decline_locations(self.hexes, max(num_civs_to_sample - len(eligible_cities_for_declining) + num_players, 0))
-
-        all_location_options: list[str] = [*[city.hex.coords for city in eligible_cities_for_declining if city.hex is not None], 
-                                  *[hex.coords for hex in eligible_locations_for_declining]]
-
-        min_options_per_player = min(len(all_location_options) // num_players, 3)
-
-        num_options_by_player = [min_options_per_player] * num_players
-
-        for i in range(len(all_location_options) % num_players):
-            if num_options_by_player[i] < 3:
-                num_options_by_player[i] += 1
-
-        random.shuffle(all_location_options)
-
-        counter = 0
-
-        for i, player_num in enumerate(self.game_player_by_player_num.keys()):
-            game_player = self.game_player_by_player_num[player_num]
-            decline_options: list[tuple[str, str, str]] = []
-            for _ in range(num_options_by_player[i]):
-                location = ''
-                index_to_swap_with = counter + 1
-                is_good_location = False
-                while True:
-                    location = all_location_options[counter]
-                    hex_at_location = self.hexes[location]
-                    city_at_location = hex_at_location.city
-                    if city_at_location is None or city_at_location.civ.id != game_player.civ_id:
-                        is_good_location = True
-                        break
-                    swap_two_elements_of_list(all_location_options, counter, index_to_swap_with)
-                    index_to_swap_with += 1
-                    if index_to_swap_with >= len(all_location_options):
-                        break
-                if is_good_location:
-                    city_id = city_at_location.id if city_at_location else generate_unique_id()
-                    decline_options.append((all_location_options[counter], decline_choice_civ_pool[counter], city_id))
-                counter += 1
-            game_player.decline_options = decline_options
-    
-
+ 
     def handle_wonder_built(self, sess, civ: Civ, building_template: BuildingTemplate, national: bool = False) -> None:
         if national:
             if civ.id not in self.national_wonders_built_by_civ_id:

@@ -19,8 +19,6 @@ class GamePlayer:
 
         self.civ_id: Optional[str] = None
 
-        # (hex coords, civ name, city_id)
-        self.decline_options: list[tuple[str, str, str]] = []
         self.is_bot = is_bot
 
     def to_json(self) -> dict:
@@ -29,7 +27,6 @@ class GamePlayer:
             "username": self.username,
             "score": self.score,
             "civ_id": self.civ_id,
-            "decline_options": self.decline_options,
             "is_bot": self.is_bot,
             "sfku": self.score_from_killing_units,
             "sfccac": self.score_from_capturing_cities_and_camps,
@@ -51,7 +48,6 @@ class GamePlayer:
         )
         game_player.score = json["score"]
         game_player.civ_id = json["civ_id"]
-        game_player.decline_options = json["decline_options"]
         game_player.score_from_killing_units = json["sfku"]
         game_player.score_from_capturing_cities_and_camps = json["sfccac"]
         game_player.score_from_researching_techs = json["sfrt"]
