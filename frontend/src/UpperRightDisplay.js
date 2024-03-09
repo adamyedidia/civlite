@@ -4,20 +4,31 @@ import { Grid, Typography } from '@mui/material';
 import { romanNumeral } from './TechListDialog.js';
 import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
+import woodImg from './images/wood.png';
+import metalImg from './images/metal.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';
 import declineImg from './images/phoenix.png';
+import sadImg from './images/sadface.png';
+import cityImg from './images/city.png';
+import workerImg from './images/worker.png';
 import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
+import { TextOnIcon } from './TextOnIcon.js';
+import { IconUnitDisplay } from './UnitDisplay.js';
+import { BriefBuildingDisplay } from './BuildingDisplay.js';
+import { WithTooltip } from './WithTooltip.js';
 
-const CivDetailPanel = ({title, icon, bignum, children}) => {
+const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
     const bignumCharLen = bignum.length;
     return (
         <div className={`civ-detail-panel ${title}-area`}>
-            <div className="icon">
-                <img src={icon}></img>
-                <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>
-            </div>
+            <WithTooltip tooltip={iconTooltip}>
+                <div className="icon">
+                    <img src={icon}></img>
+                    <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>
+                </div>
+            </WithTooltip>
             <div className="panel-content">
                 {children}
             </div>
@@ -29,31 +40,27 @@ const NewCityIcon = ({  civTemplate, size, disabled, children}) => {
     return <div className="new-city-icon" style={{height: size, width:size, backgroundColor: disabled? "#aaa" : civTemplate.primary_color, borderColor: disabled? "#888" : civTemplate.secondary_color}}> {children} </div>
 }
 
-const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity, isFoundingCity, disableUI}) => {
+const CityPowerDisplay = ({ civ, myCities, civTemplates, toggleFoundingCity, canFoundCity, isFoundingCity, disableUI}) => {
     const cityPowerCost = 100; // TODO is this const already defined somewhere?
     const storedProgress = (civ.city_power % cityPowerCost) / cityPowerCost * 100;
     const incomeProgress = civ.projected_city_power_income / cityPowerCost * 100;
     const newCities = Math.floor(civ.city_power / cityPowerCost);
     const civTemplate = civTemplates[civ.name];
-
-    const tooltipRef = React.useRef(null);
-
-    const showTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'visible';
-            tooltipRef.current.style.opacity = '1';
-        }
-    };
-
-    const hideTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'hidden';
-            tooltipRef.current.style.opacity = '0';
-        }
-    };
-
-    return <CivDetailPanel icon={foodImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}>
-        <div className={`city-power-new-cities`} onMouseOver={showTooltip} onMouseOut={hideTooltip}>
+    const iconTooltip = <table><tbody>
+        <tr><td> +10 </td><td> base </td></tr>
+        {myCities.map((city, index) => (
+            <tr key={index}><td> +{Math.floor(city.projected_income.city_power)} </td><td> from {city.name} </td></tr>
+        ))}
+    </tbody></table>
+    
+    return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}
+        iconTooltip={iconTooltip}
+    >
+        <WithTooltip tooltip={newCities == 0  ?  "Gather City Power to build new cities" :
+                newCities > 0 && !canFoundCity ? "No Valid City Sites" :
+                newCities > 0 && canFoundCity && !isFoundingCity ? "Click to found city" :
+                newCities > 0 && canFoundCity && isFoundingCity ? "Click to cancel found city" : null}>
+        <div className={`city-power-new-cities`}>
             {[...Array(newCities)].map((_, index) => (
                 <div key={index} className={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? null :toggleFoundingCity}>
                     <NewCityIcon civTemplate={civTemplate} disabled={!canFoundCity || (isFoundingCity & index > 0)}>
@@ -61,51 +68,104 @@ const CityPowerDisplay = ({ civ, civTemplates, toggleFoundingCity, canFoundCity,
                     </NewCityIcon>
                 </div>
             ))}
-            <div ref={tooltipRef} className="tooltip">
-                {newCities == 0  &&  "Gather City Power to build new cities"}
-                {newCities > 0 && !canFoundCity && "No Valid City Sites"}
-                {newCities > 0 && canFoundCity && !isFoundingCity && "Click to found city"}
-                {newCities > 0 && canFoundCity && isFoundingCity && "Click to cancel found city"}
-            </div>
         </div>
+        </WithTooltip>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={`${Math.floor(civ.city_power % cityPowerCost)} / ${cityPowerCost}`}/>
     </CivDetailPanel>
 };
 
-const CivVitalityDisplay = ({ civVitality, turnNum, setConfirmEnterDecline, disableUI }) => {
-    const newCivPercentage = Math.round((2.0 + turnNum * 0.1) * 100);
 
-
-    const tooltipRef = React.useRef(null);
-
-    const showTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'visible';
-            tooltipRef.current.style.opacity = '1';
-        }
-    };
-
-    const hideTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'hidden';
-            tooltipRef.current.style.opacity = '0';
-        }
-    };
-
-    return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
-        <div className={`decline-button ${disableUI ? "" : "enabled"}`} onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={() => {if (!disableUI) setConfirmEnterDecline(true);}}>
-            <span> Decline </span>
-            <div id="decline-button-vitality">
-                <img id="decline-button-vitality-icon" src={vitalityImg}/>
-                <div id="decline-button-new-vitality">
-                    {newCivPercentage}%
-                </div>
+const DeclineOptionRow = ({ city, setDeclineOptionsView, civTemplates, centerMap, unitTemplates, buildingTemplates, setHoveredCiv, setHoveredUnit, setHoveredBuilding, setSelectedCity}) => {
+    return <div className="decline-option-row"
+        style={{
+            backgroundColor: civTemplates[city.civ.name].primary_color, 
+            borderColor: civTemplates[city.civ.name].secondary_color}}
+        onClick = {() => {
+            setDeclineOptionsView(true);
+            setSelectedCity(city);
+            centerMap(city.hex);
+        }}
+        onMouseEnter={() => setHoveredCiv(civTemplates[city.civ.name])}
+        onMouseLeave={() => setHoveredCiv(null)}
+        >
+        <div className="revolt-cities-row">
+            <TextOnIcon image={vitalityImg} offset="-10px" style={{
+                width: "60px",
+                height: "60px",
+                position: "absolute",
+                left: "-10px",
+            }}>
+                {Math.floor(city.revolting_starting_vitality * 100)}%
+            </TextOnIcon>
+            <TextOnIcon image={workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
+                <b>{city.population}</b>
+            </TextOnIcon>
+            <div className="unit-count" style={{visibility: city.revolt_unit_count > 0 ? "visible" : "hidden" }}>
+                {city.revolt_unit_count}
             </div>
-            <img id="decline-phoenix-icon" src={declineImg} />
-            <div ref={tooltipRef} className="tooltip">
-                Enter Decline and begin as a new civ.
-            </div>
+            {city.name}
         </div>
+        <div className="revolt-cities-detail">
+            {Math.floor(city.projected_income['food'])}
+            <img src={foodImg}/>
+            {Math.floor(city.projected_income['science'])}
+            <img src={scienceImg}/>
+            {Math.floor(city.projected_income['wood'])}
+            <img src={woodImg}/>
+            {Math.floor(city.projected_income['metal'])}
+            <img src={metalImg}/>
+        </div>
+        <div className="revolt-cities-detail">
+        {city.available_units.map((unitName, index) => (
+            <div key={index} className="city-unit">
+                <IconUnitDisplay 
+                    unitName={unitName} 
+                    unitTemplates={unitTemplates} 
+                    setHoveredUnit={setHoveredUnit} 
+                    style={{borderRadius: '25%', height: "30px", width: "30px"}} 
+                />
+            </div>
+        ))}
+        </div>
+        <div className="revolt-cities-detail">
+        {city.buildings.filter(bldg => bldg.is_wonder).map((wonder, index) => (
+            <div key={index} className="city-wonder">
+                <BriefBuildingDisplay key={index} buildingName={wonder.name} buildingTemplates={buildingTemplates} setHoveredBuilding={setHoveredBuilding}/>
+            </div>
+        ))}
+        </div>
+    </div>
+}
+
+const CivVitalityDisplay = ({ civVitality, myCities, turnNum, myGamePlayer, declineOptionsView, centerMap, setDeclineOptionsView, declineViewGameState, 
+    unitTemplates, civTemplates, buildingTemplates,
+    setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding}) => {
+    const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.is_decline_view_option);
+    const unhappinessThreshold = declineViewGameState?.unhappiness_threshold
+    return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
+        {turnNum > 1 && <Button className="toggle-decline-view" 
+            onClick={() => setDeclineOptionsView(!declineOptionsView)}
+            variant="contained" 
+            color="primary"
+        >
+            {declineOptionsView ? "Close Decline View" : "View Decline Options"}
+        </Button>}
+        <div className="revolt-cities">
+            {citiesReadyForRevolt.length > 0 && <>
+                {citiesReadyForRevolt.sort((a, b) => b.revolting_starting_vitality - a.revolting_starting_vitality).map((city, index) => {
+                    return <DeclineOptionRow key={city.id} city={city} setDeclineOptionsView={setDeclineOptionsView} centerMap={centerMap}
+                        civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} setSelectedCity={setSelectedCity} />
+                    })}
+            </>}
+        </div>
+        {turnNum > 1 && <div className="unhappiness-threshold">
+            <WithTooltip tooltip={`Threshold unhappiness to enter decline choices: ${unhappinessThreshold?.toFixed(2)}`}>
+                <div className="unhappiness-threshold-content">
+                    {Math.floor(unhappinessThreshold)}
+                    <img src={sadImg} height="16px"/>
+                </div>
+            </WithTooltip>
+        </div>}
     </CivDetailPanel>
 }
 
@@ -145,19 +205,24 @@ const ScoreDisplay = ({ myGamePlayer }) => {
             </Grid>
             <Grid item>
                 <Typography>
-                    {myGamePlayer?.sfrc || 0} revolting cities
+                    {myGamePlayer?.sfrc || 0} revolting units (1/unit)
                 </Typography>
             </Grid>                                                                     
         </Grid>
     </CivDetailPanel>
 }
 
-const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setTechChoices, setHoveredTech, disableUI}) => {
+const ScienceDisplay = ({civ, myCities, techTemplates, setTechListDialogOpen, setTechChoices, setHoveredTech, disableUI}) => {
     const tech = techTemplates[civ.researching_tech_name];
     const techCost = tech?.name  == "Renaissance" ? civ.renaissance_cost : tech?.cost;
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income / techCost * 100 : 0;
-    return <CivDetailPanel title='science' icon={scienceImg} bignum={`+${Math.floor(civ.projected_science_income)}`}>
+    const iconTooltip = <table><tbody>
+        {myCities.map((city, index) => (
+            <tr key={index}><td> +{Math.floor(city.projected_income.science)} </td><td> from {city.name} </td></tr>
+        ))}
+    </tbody></table>
+    return <CivDetailPanel title='science' icon={scienceImg} iconTooltip={iconTooltip} bignum={`+${Math.floor(civ.projected_science_income)}`}>
         <h2 className="tech-name" 
             onMouseEnter={tech ? () => setHoveredTech(techTemplates[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}  
@@ -174,12 +239,18 @@ const ScienceDisplay = ({civ, techTemplates, setTechListDialogOpen, setTechChoic
     </CivDetailPanel>
 }
 
-const UpperRightDisplay = ({ canFoundCity, isFoundingCity, disableUI, civTemplates, setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, turnNum }) => {
+const UpperRightDisplay = ({ gameState, canFoundCity, isFoundingCity, disableUI, centerMap, declineOptionsView,
+    civTemplates, unitTemplates, buildingTemplates,
+    setConfirmEnterDecline, setTechChoices, setHoveredUnit, setHoveredBuilding, setHoveredTech, 
+    toggleFoundingCity, techTemplates, myCiv, myGamePlayer, setTechListDialogOpen, 
+    turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv}) => {
+    const myCities = Object.values(gameState.cities_by_id).filter(city => city.civ.game_player && city.civ.game_player.player_num === myGamePlayer?.player_num);
     return (
         <div className="upper-right-display">
-            {myCiv && <ScienceDisplay civ={myCiv} setTechListDialogOpen={setTechListDialogOpen} setTechChoices={setTechChoices} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
-            {myCiv && <CityPowerDisplay civ={myCiv} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
-            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} turnNum={turnNum} setConfirmEnterDecline={setConfirmEnterDecline} disableUI={disableUI}/>}
+            {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoices={setTechChoices} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
+            {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
+            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} myGamePlayer={myGamePlayer} turnNum={turnNum}
+                disableUI={disableUI} centerMap={centerMap} declineOptionsView={declineOptionsView} setDeclineOptionsView={setDeclineOptionsView} declineViewGameState={declineViewGameState} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
         </div>
     );

@@ -4,6 +4,7 @@ from building import Building
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from tech_templates_list import TECHS
+from civ_template import CivTemplate
 from civ import Civ
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
@@ -25,6 +26,7 @@ def resourcedict() -> Dict[str, float]:
         "metal": 0.0,
         "science": 0.0,
         "city_power": 0.0,
+        "unhappiness": 0.0,
     }
 
 class City:
@@ -53,7 +55,17 @@ class City:
         self.projected_income_focus = resourcedict()  # income from focus
         self.terrains_dict = {}
 
+        # Revolt stuff
+        self.civ_to_revolt_into: Optional[CivTemplate] = None
+        self.revolting_starting_vitality: float = 1.0
+        self.unhappiness: float = 0.0
+        self.is_decline_view_option: bool = False
+        self.revolt_unit_count: int = 0
+
         self.handle_cleanup()
+
+    def __repr__(self):
+        return f"<City {self.name} @ {self.hex.coords if self.hex else None}>"
 
     def has_building(self, building_name: str) -> bool:
         return any([(building.template.building_name if hasattr(building.template, 'building_name') else building.template.name) == building_name for building in self.buildings])  # type: ignore
@@ -78,8 +90,9 @@ class City:
 
         self.projected_income = self.projected_income_base.copy()
         self.projected_income[self.focus] += self.projected_income_focus[self.focus]
-        if self.focus == 'food':
-            self.projected_income['city_power'] += self.projected_income_focus['food']
+ 
+        self.projected_income['unhappiness'] = max(0, self.food_demand - self.projected_income['food'])
+        self.projected_income['city-power'] = max(0, self.projected_income['food'] - self.food_demand)
 
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
@@ -92,7 +105,6 @@ class City:
             yields["metal"] += hex.yields.metal * vitality
             yields["wood"] += hex.yields.wood * vitality
             yields["science"] += hex.yields.science * vitality
-            yields["city_power"] += hex.yields.food * vitality
         
         yields_per_population = {
             "food": 0,
@@ -109,11 +121,8 @@ class City:
         for key in yields_per_population:
             yields[key] += self.population * yields_per_population[key] * vitality
 
-            if key == 'food':
-                yields["city_power"] += self.population * yields_per_population[key] * vitality
 
         yields["food"] += 2 * vitality
-        yields["city_power"] += 2 * vitality
         return yields
 
     def _get_projected_yields_from_focus(self, game_state) -> dict[str, float]:
@@ -142,6 +151,8 @@ class City:
         self.food += self.projected_income["food"]
         self.civ.science += self.projected_income["science"]
         self.civ.city_power += self.projected_income["food"]
+        self.unhappiness += self.projected_income['unhappiness']
+
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
@@ -165,13 +176,36 @@ class City:
             for key in hex.is_foundable_by_civ:
                 hex.is_foundable_by_civ[key] = False            
 
-    def roll_turn(self, sess, game_state: 'GameState') -> None:
-        self.harvest_yields(game_state)
-        self.grow(game_state)
-        self.build_units(sess, game_state)
-        self.build_buildings(sess, game_state)
-        self.handle_siege(sess, game_state)
+    def roll_turn(self, sess, game_state: 'GameState', fake: bool = False) -> None:
+        """
+        Fake: is this just a fake city for decline view?
+        """
+        if not fake:
+            self.harvest_yields(game_state)
+            self.grow(game_state)
+            self.build_units(sess, game_state)
+            self.build_buildings(sess, game_state)
+            self.handle_siege(sess, game_state)
+        
+        self.handle_unhappiness(game_state)
         self.handle_cleanup()
+        self.midturn_update(game_state)
+
+    @property
+    def food_demand(self) -> int:
+        if self.capital:
+            return int(0.5 * self.population)
+        else:
+            return 2 * self.population
+
+    def handle_unhappiness(self, game_state: 'GameState') -> None:
+        self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num + 0.035 * self.unhappiness
+
+        if self.unhappiness > 100:
+            # Revolt to AI
+            assert self.hex is not None
+            game_state.process_decline_option(self.hex.coords, [])
+            game_state.make_new_civ_from_the_ashes(self)
 
     def grow_inner(self, game_state: 'GameState') -> None:
         self.population += 1
@@ -527,17 +561,21 @@ class City:
         return None
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
-        self.civ = civ
-
         print(f"****Captured {self.name}****")
+        self.civ = civ
+        self.capital = False
+        self.unhappiness = 0
+        self.wood /= 2
+        self.metal /= 2
+
         for building in self.buildings:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
                 game_state.wonders_built_to_civ_id[building.template.name] = civ.id
 
         military_bldgs = [building for building in self.buildings if isinstance(building.template, UnitTemplate)]
-        military_bldgs.sort(key=lambda unit: (-unit.template.advancement_level(), random.random()))
+        military_bldgs.sort(key=lambda unit: (-unit.template.advancement_level(), random.random()))  # type: ignore
         best_3 = military_bldgs[:3]
-        top_level = [building for building in military_bldgs if building.template.advancement_level() == military_bldgs[0].template.advancement_level()]
+        top_level = [building for building in military_bldgs if building.template.advancement_level() == military_bldgs[0].template.advancement_level()]  # type: ignore
         for building in military_bldgs:
             if building not in best_3 and building not in top_level:
                 self.buildings.remove(building)
@@ -633,7 +671,7 @@ class City:
         self.civ = civs_by_id[self.civ.id]
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
 
-    def bot_pick_economic_building(self, choices):
+    def bot_pick_economic_building(self, choices) -> Optional[BuildingTemplate]:
         national_wonders = [building for building in choices if building.is_national_wonder]
         wonders = [building for building in choices if building.is_wonder]
         nonwonders = [building for building in choices if not building.is_wonder and not building.is_national_wonder]
@@ -651,7 +689,7 @@ class City:
         if len(nonwonders) > 0:
             # print(f"    Choosing nonwonder; {self.available_buildings_to_descriptions=}")
             ACCEPTABLE_PAYOFF_TURNS = 8
-            inverse_payoff_turns = {
+            inverse_payoff_turns: dict[BuildingTemplate, float] = {
                 building: self.available_buildings_to_descriptions[building.name].get('value_for_ai', 0) / building.cost
                 for building in nonwonders
                 if building.name in self.available_buildings_to_descriptions and self.available_buildings_to_descriptions[building.name]['type'] == 'yield'
@@ -661,7 +699,7 @@ class City:
                 print(f"**** didn't consider these non-yield buildings: {set(nonwonders) - set(inverse_payoff_turns.keys() )}")
             if len(inverse_payoff_turns) > 0:
                 # calulcate the argmin of the payoff turns
-                best_building = max(inverse_payoff_turns, key=inverse_payoff_turns.get)
+                best_building = max(inverse_payoff_turns, key=lambda x: inverse_payoff_turns.get(x, 0))
                 if inverse_payoff_turns[best_building] > 1.0 / ACCEPTABLE_PAYOFF_TURNS:
                     return best_building
 
@@ -776,6 +814,13 @@ class City:
             "projected_income_focus": self.projected_income_focus,
             "growth_cost": self.growth_cost(),
             "terrains_dict": self.terrains_dict,
+
+            "revolting_starting_vitality": self.revolting_starting_vitality,
+            "unhappiness": self.unhappiness,
+            "civ_to_revolt_into": self.civ_to_revolt_into.to_json() if self.civ_to_revolt_into else None,
+            "is_decline_view_option": self.is_decline_view_option,
+            "food_demand": self.food_demand,
+            "revolt_unit_count": self.revolt_unit_count,
         }
 
     @staticmethod
@@ -803,6 +848,10 @@ class City:
         city.projected_income_base = json["projected_income_base"]
         city.projected_income_focus = json["projected_income_focus"]
         city.terrains_dict = json.get("terrains_dict") or {}
+        city.civ_to_revolt_into = CivTemplate.from_json(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
+        city.revolting_starting_vitality = json["revolting_starting_vitality"]
+        city.unhappiness = json["unhappiness"]
+        city.is_decline_view_option = json["is_decline_view_option"]
 
         city.handle_cleanup()
 

@@ -15,11 +15,10 @@ class GamePlayer:
         self.score_from_survival = 0
         self.score_from_revolting_cities = 0
         self.renaissances = 0
+        self.decline_this_turn = False
 
         self.civ_id: Optional[str] = None
 
-        # (hex coords, civ name, city_id)
-        self.decline_options: list[tuple[str, str, str]] = []
         self.is_bot = is_bot
 
     def to_json(self) -> dict:
@@ -28,7 +27,6 @@ class GamePlayer:
             "username": self.username,
             "score": self.score,
             "civ_id": self.civ_id,
-            "decline_options": self.decline_options,
             "is_bot": self.is_bot,
             "sfku": self.score_from_killing_units,
             "sfccac": self.score_from_capturing_cities_and_camps,
@@ -38,6 +36,7 @@ class GamePlayer:
             "sfs": self.score_from_survival,
             "sfrc": self.score_from_revolting_cities,
             "renaissances": self.renaissances,
+            "decline_this_turn": self.decline_this_turn,
         }
     
     @staticmethod
@@ -49,7 +48,6 @@ class GamePlayer:
         )
         game_player.score = json["score"]
         game_player.civ_id = json["civ_id"]
-        game_player.decline_options = json["decline_options"]
         game_player.score_from_killing_units = json["sfku"]
         game_player.score_from_capturing_cities_and_camps = json["sfccac"]
         game_player.score_from_researching_techs = json["sfrt"]
@@ -58,6 +56,7 @@ class GamePlayer:
         game_player.score_from_survival = json["sfs"]
         game_player.score_from_revolting_cities = json["sfrc"]
         game_player.renaissances = json["renaissances"]
+        game_player.decline_this_turn = json["decline_this_turn"]
 
         return game_player
 

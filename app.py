@@ -69,7 +69,7 @@ def recurse_to_json(obj):
 def broadcast(game_id):
     socketio.emit(
         'update', 
-        room=game_id,
+        room=game_id,  # type: ignore
     )
 
 
@@ -271,7 +271,7 @@ def add_bot_to_game(sess, game_id: str):
     sess.add(bot_player)
     sess.commit()
 
-    socketio.emit('update', room=game.id)
+    socketio.emit('update', room=game.id)  # type: ignore
 
     return jsonify({'game': game.to_json(), 'player_num': num_players_in_game})
 
@@ -310,15 +310,12 @@ def _launch_game_inner(sess, game: Game) -> None:
         if game_player.is_bot:
             civ_option_tup = civ_options_tups[0]
             civ, starting_location = civ_option_tup
-            starting_city_name = generate_random_city_name(game_state)
-            starting_city = City(civ, name=starting_city_name)
-            starting_location.city = starting_city
-            starting_city.hex = starting_location
-            starting_city.populate_terrains_dict(game_state)
-            game_state.cities_by_id[starting_city.id] = starting_city
+            starting_city = game_state.new_city(civ, starting_location)
+            game_state.register_city(starting_city)
+            starting_city.capitalize(game_state)
+
             game_state.civs_by_id[civ.id] = civ
             civ.vitality = STARTING_CIV_VITALITY
-            starting_city.hex.city = starting_city
             starting_civs_for_players[player_num] = [civ]
             game_player.civ_id = civ.id
 
@@ -504,6 +501,7 @@ def get_most_recent_state(sess, game_id):
     dream_game_state_json_from_civ_perspectives = rget_json(dream_key_from_civ_perspectives(game_id, int(player_num), turn_num)) or []
 
     # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
+    # TODO(dfarhi) clean this up and vastly simplify dream states now that they are only for the first turn.
 
     staged_game_state_json = rget_json(staged_game_state_key(game_id, int(player_num), turn_num))
     game_state = (
@@ -520,20 +518,8 @@ def get_most_recent_state(sess, game_id):
             if player_civ:
                 game_state_json = game_state.to_json(from_civ_perspectives=[player_civ])
             else:
-
-                if dream_game_state_json:
-                    from_civ_perspectives = [game_state.civs_by_id[civ_id] for civ_id in dream_game_state_json_from_civ_perspectives]
-                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
-
-                else:
-                    from_civ_perspectives = []
-
-                    for decline_option in game_player.decline_options:
-                        for civ in game_state.civs_by_id.values():
-                            if civ.template.name == decline_option[1]:
-                                from_civ_perspectives.append(civ)
-
-                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
+                from_civ_perspectives = [game_state.civs_by_id[civ_id] for civ_id in dream_game_state_json_from_civ_perspectives]
+                game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
     return jsonify({
         'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},} if game_state_json else {},
@@ -542,65 +528,28 @@ def get_most_recent_state(sess, game_id):
     })
 
 
-@app.route('/api/movie/<game_id>', methods=['GET'])
+@app.route('/api/decline_view/<game_id>', methods=['GET'])
 @api_endpoint
-def get_latest_turn_movie(sess, game_id):
-    player_num = request.args.get('player_num')
-
-    if player_num is None:
-        return jsonify({"error": "Player number is required"}), 400
-
+def get_decline_view(sess, game_id):
     turn_num = (
         sess.query(func.max(AnimationFrame.turn_num))
         .filter(AnimationFrame.game_id == game_id)
         .scalar()
     )
 
-    animation_frames = (
+    animation_frame = (
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
         .filter(AnimationFrame.turn_num == turn_num)
-        .filter(AnimationFrame.player_num == player_num)
-        .order_by(AnimationFrame.frame_num)
-        .all()
+        .filter(AnimationFrame.is_decline == True)
+        .one_or_none()
     )
-    
-    dream_game_state_json = rget_json(dream_key(game_id, int(player_num), turn_num))
-    dream_game_state_json_from_civ_perspectives = rget_json(dream_key_from_civ_perspectives(game_id, int(player_num), turn_num)) or []
-
-    # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
-
-    staged_game_state_json = rget_json(staged_game_state_key(game_id, int(player_num), turn_num))
-    game_state = GameState.from_json(dream_game_state_json) if dream_game_state_json else GameState.from_json(staged_game_state_json) if staged_game_state_json else None
-
-    game_state_json = None
-    if game_state:
-        game_player = game_state.game_player_by_player_num.get(int(player_num))
-        if game_player:
-            player_civ = game_state.civs_by_id.get(game_player.civ_id or '')
-            if player_civ:
-                game_state_json = game_state.to_json(from_civ_perspectives=[player_civ])
-            else:
-
-                if dream_game_state_json:
-                    from_civ_perspectives = [game_state.civs_by_id[civ_id] for civ_id in dream_game_state_json_from_civ_perspectives]
-                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
-
-                else:
-                    from_civ_perspectives = []
-
-                    for decline_option in game_player.decline_options:
-                        for civ in game_state.civs_by_id.values():
-                            if civ.template.name == decline_option[1]:
-                                from_civ_perspectives.append(civ)
-
-                    game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
     return jsonify({
-        'animation_frames': [*[{'game_state': {**animation_frame.game_state, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {}}, 'data': animation_frame.data} for animation_frame in animation_frames], 
-                             *([{'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},}, 'data': {}}] if game_state_json else [])], 
+        'game_state': {**animation_frame.game_state, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},} if animation_frame.game_state else {},
         'turn_num': turn_num,
     })
+
 
 @app.route('/api/open_games', methods=['GET'])
 @api_endpoint
@@ -656,17 +605,8 @@ def choose_initial_civ(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state, from_civ_perspectives, _ = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
-
-    city_list_one = [city for city in game_state.cities_by_id.values() if city.id == city_id]
-
-    if len(city_list_one) == 0:
-        return jsonify({"error": "City not found"}), 404
-    
-    city = city_list_one[0]
-
-    civ = city.civ
-
+    game_state, from_civ_perspectives, _, _ = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
+  
     return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
 
 
@@ -693,10 +633,17 @@ def enter_player_input(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    _, from_civ_perspectives, game_state_to_return_json = update_staged_moves(sess, game_id, player_num, [player_input])
+    _, from_civ_perspectives, game_state_to_return_json, decline_eviction_player = update_staged_moves(sess, game_id, player_num, [player_input])
 
-    if player_input.get('move_type') == 'enter_decline':
+    if player_input.get('move_type') == 'choose_decline_option':
+        print(f"Muting timer due to decline")
         socketio.emit('mute_timer', {'turn_num': game_state_to_return_json['turn_num']}, room=game_id)  # type: ignore
+
+    if decline_eviction_player is not None:
+        print(f"app.py evicting player {decline_eviction_player}")
+        set_turn_ended_by_player_num(game_id, decline_eviction_player, False)
+        socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)  # type: ignore
+        socketio.emit("decline_evicted", {'player_num': decline_eviction_player}, room=game_id)  # type: ignore
 
     return jsonify({'game_state': game_state_to_return_json})
     # return jsonify({'game_state': game_state.to_json()})
@@ -726,11 +673,11 @@ def end_turn(sess, game_id):
 
     turn_ended_by_player_num[player_num] = True
 
-    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)
+    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)  # type: ignore
 
     if game_state.turn_should_end(turn_ended_by_player_num):
         print("starting turn roll")
-        socketio.emit('start_turn_roll', {}, room=game_id)
+        socketio.emit('start_turn_roll', {}, room=game_id)  # type: ignore
         if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
             seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
             next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
@@ -801,7 +748,7 @@ def unend_turn(sess, game_id):
 
     set_turn_ended_by_player_num(game_id, player_num, False)
 
-    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)
+    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)  # type: ignore
 
     return jsonify({})
 

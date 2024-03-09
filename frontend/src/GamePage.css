@@ -97,12 +97,9 @@
   gap: 20px;
 }
 
-/* In your global CSS file (e.g., index.css or App.css) */
-
 body {
-  background-color: #4488FF; /* Or use a specific blue like #0000FF, rgb(0, 0, 255), etc. */
+  background-color: #4488FF;
 }
-
 
 .turn-num-card {
   border: 1px solid #ddd;

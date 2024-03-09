@@ -39,7 +39,9 @@ import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import SettingsDialog from './SettingsDialog';
 import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
+import vitalityImg from './images/heart.png';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
+import { TextOnIcon } from './TextOnIcon.js';
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -57,32 +59,6 @@ window.addEventListener('click', () => {
     userHasInteracted = true;
 });
 
-function ConfirmEnterDeclineDialog({open, onClose, onConfirm}) {
-    const handleConfirm = () => {
-        onConfirm();
-        onClose();
-    }
-
-    return (
-        <Dialog open={open} onClose={onClose}>
-            <DialogTitle>Confirm Enter Decline</DialogTitle>
-            <DialogContent>
-                <DialogContentText>
-                    Are you sure you want to enter decline? You will stop controlling your current civilization,
-                    and will be offered a choice of new civilizations to control.
-                </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose} color="primary">
-                    Cancel
-                </Button>
-                <Button onClick={handleConfirm} color="primary">
-                    Confirm
-                </Button>
-            </DialogActions>
-        </Dialog>
-    )
-}
 
 function RulesDialog({open, onClose, gameConstants}) {
     return (
@@ -223,8 +199,82 @@ function GameOverDialog({open, onClose, gameState}) {
     )
 }
 
+function DeclineFailedDialog({open, onClose}) {
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>
+                <Typography variant="h2" component="div">  
+                   Decline Failed
+                </Typography>
+            </DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Another player has already declined to this city. They have lower score than you, so they get it. Sorry.
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
+function DeclinePreemptedDialog({open, onClose}) {
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>
+                <Typography variant="h2" component="div">  
+                   Decline Failed
+                </Typography>
+            </DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Another player with lower score has chosen this decline option this turn.
+                </DialogContentText>
+                <DialogContentText>
+                    You will be put back into your prior civ.
+                </DialogContentText>
+                <DialogContentText>
+                    You can continue or choose another decline option.
+                </DialogContentText>
+                <DialogContentText>
+                    There is no timer this turn so you can decide.
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose} color="primary">
+                    Close
+                </Button>
+            </DialogActions>
+        </Dialog>
+    )
+}
+
 const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
+}
+
+const ChooseCapitalButton = ({playerNum, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital}) => {
+    const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ.game_player?.player_num == playerNum;
+    const content = isMyCity ? "Can't decline to my own city" : myGamePlayer?.decline_this_turn ? "Already declined this turn": `Make ${selectedCity.name} my capital`;
+    const disabled = engineState !== EngineStates.PLAYING || myGamePlayer?.decline_this_turn || isMyCity;
+    return <Button
+        style={{
+            backgroundColor: disabled ? "#aaaaaa" : "#ccffaa",
+            color: "black",
+            marginLeft: '20px',
+            padding: '10px 20px', // Increase padding for larger button
+            fontSize: '1.5em', // Increase font size for larger text
+            marginBottom: '10px',
+        }} 
+        variant="contained"
+        onClick={() => handleFoundCapital()}
+        disabled={disabled}
+    >
+        {content}
+    </Button>
 }
 
 export default function GamePage() {
@@ -287,15 +337,20 @@ export default function GamePage() {
 
     const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
 
+    // TODO(dfarhi) combine thes flags into one state flag rather than several bools.
     const [foundingCity, setFoundingCity] = useState(false);
+    const [declineOptionsView, setDeclineOptionsView] = useState(false);
 
-    const [confirmEnterDecline, setConfirmEnterDecline] = useState(false);
+    const [declineViewGameState, setDeclineViewGameState] = useState(null);
+    const [nonDeclineViewGameState, setNonDeclineViewGameState] = useState(null);  // My real game state, for if I cancel decline view
 
     const [techListDialogOpen, setTechListDialogOpen] = useState(false);
 
     const [gameConstants, setGameConstants] = useState(null);
 
     const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
+    const [declinePreemptedDialogOpen, setDeclinePreemptedDialogOpen] = useState(false);
+    const [declineFailedDialogOpen, setDeclineFailedDialogOpen] = useState(false);
 
     const [turnTimer, setTurnTimer] = useState(-1);
     const [timerMutedOnTurn, setTimerMutedOnTurn] = useState(null);
@@ -306,9 +361,10 @@ export default function GamePage() {
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
 
-    const myGamePlayer = gameState?.game_player_by_player_num?.[playerNum];
-    const myCivId = gameState?.game_player_by_player_num?.[playerNum]?.civ_id;
-    const myCiv = gameState?.civs_by_id?.[myCivId];
+
+    const myGamePlayer = declineOptionsView ? nonDeclineViewGameState?.game_player_by_player_num?.[playerNum] : gameState?.game_player_by_player_num?.[playerNum];
+    const myCivId = declineOptionsView ? nonDeclineViewGameState?.game_player_by_player_num?.[playerNum].civ_id : gameState?.game_player_by_player_num?.[playerNum].civ_id;
+    const myCiv = declineOptionsView ? nonDeclineViewGameState?.civs_by_id?.[myCivId] : gameState?.civs_by_id?.[myCivId];
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
@@ -373,6 +429,20 @@ export default function GamePage() {
         setEngineState(newState);
     }
 
+    // For testing that my backend stuff actually works
+
+    // useEffect(() => {
+    //     fetch(`${URL}/api/decline_view/${gameId}`, {
+    //         method: 'GET',
+    //         headers: {
+    //             'Content-Type': 'application/json'
+    //         },
+    //     }).then(response => response.json())
+    //         .then(data => {
+    //             console.log(data);
+    //             setGameState(data.game_state);
+    //         });
+    // }, [rulesDialogOpen])
 
     // console.log(selectedCity);
 
@@ -386,6 +456,7 @@ export default function GamePage() {
                 setFoundingCity(false);
                 setShowFlagArrows(false);
                 setTechChoices(null);
+                setDeclineOptionsView(false);
             }
         };
     
@@ -534,6 +605,27 @@ export default function GamePage() {
         };
     }, []);
     
+    const centerMap = (coords) => {
+        // coords should be like "0,0,0"
+        console.log("Centering on ", coords);
+        const hexRef = hexRefs.current[coords].current;
+
+        const hexGridRect = hexRef.getBoundingClientRect();
+        // Current x, y coords
+        const hexGridCenterX = hexGridRect.left + (hexGridRect.width / 2);
+        const hexGridCenterY = hexGridRect.top + (hexGridRect.height / 2);
+
+        // Absolute x, y coords
+        const hexGridAbsCenterX = hexGridCenterX + window.scrollX;
+        const hexGridAbsCenterY = hexGridCenterY + window.scrollY;
+
+        // Calculate the window's center position
+        const windowCenterX = window.innerWidth / 2;
+        const windowCenterY = window.innerHeight / 2;
+
+        // Scroll to the HexGrid's center
+        window.scrollTo(hexGridAbsCenterX - windowCenterX, hexGridAbsCenterY - windowCenterY);
+    }
 
     // Center the map on initial load
     const hasRunCenterRef = React.useRef(false);
@@ -543,18 +635,7 @@ export default function GamePage() {
 
         // Scroll to the middle of the map at start
         const centerCoords = "0,0,0";
-        const hexRef = hexRefs.current[centerCoords].current;
-
-        const hexGridRect = hexRef.getBoundingClientRect();
-        const hexGridCenterX = hexGridRect.left + (hexGridRect.width / 2);
-        const hexGridCenterY = hexGridRect.top + (hexGridRect.height / 2);
-
-        // Calculate the window's center position
-        const windowCenterX = window.innerWidth / 2;
-        const windowCenterY = window.innerHeight / 2;
-
-        // Scroll to the HexGrid's center
-        window.scrollTo(hexGridCenterX - windowCenterX, hexGridCenterY - windowCenterY);
+        centerMap(centerCoords);
         hasRunCenterRef.current = true;
     }, [gameState]);
 
@@ -2055,11 +2136,29 @@ export default function GamePage() {
         setFoundingCity(!foundingCity);
     }
 
+    const fetchDeclineViewGameState = async () => {
+        setDeclineViewGameState(null);
+        console.log("Fetching decline state.");
+        const response = await fetch(`${URL}/api/decline_view/${gameId}`);
+        const data = await response.json();
+        setDeclineViewGameState(data.game_state);
+        console.log("Fetched: ", declineViewGameState);
+    }
+
     useEffect(() => {
-        if (engineState === EngineStates.PLAYING && myCiv && !myCiv?.researching_tech_name && !gameState?.special_mode_by_player_num?.[playerNum]) {
-            setTechChoices(myCiv.current_tech_choices);
+        if (!declineViewGameState) {
+            console.error("Decline view game state not fetched yet.");
+            return;
         }
-    }, [engineState, myCiv?.researching_tech_name])
+        if (declineOptionsView) {
+            setNonDeclineViewGameState(gameState);
+            setGameState(declineViewGameState);
+        } else {
+            // If we are toggling back from the decline view
+            setGameState(nonDeclineViewGameState);
+            setSelectedCity(null);
+        }
+    }, [declineOptionsView])
 
     const handleClickEndTurn = () => {
         const data = { player_num: playerNum };
@@ -2363,6 +2462,10 @@ export default function GamePage() {
         // if (gameState?.special_mode_by_player_num[playerNum]) {
         //     return true;
         // }
+        // console.log(city.name, declineOptionsView, playerNum, city?.civ?.game_player?.player_num)
+        if (declineOptionsView) {
+            return city?.is_decline_view_option;
+        }
         if (playerNum !== null && playerNum !== undefined) {
             return city?.civ?.game_player?.player_num === playerNum
         }
@@ -2411,11 +2514,11 @@ export default function GamePage() {
                         refreshSelectedCity(data.game_state);            
                     }
                 });
-        } else if (gameState.special_mode_by_player_num[playerNum] == 'choose_decline_option') {
+        } else if (declineOptionsView) {
             const data = {
                 player_num: playerNum,
                 player_input: {
-                    city_id: selectedCity.id,
+                    coords: selectedCity.hex,
                     move_type: 'choose_decline_option',
                 },
             }
@@ -2427,9 +2530,17 @@ export default function GamePage() {
                 body: JSON.stringify(data),
             }).then(response => response.json())
                 .then(data => {
-                    if (data.game_state) {
+                    const myNewCiv = data.game_state.civs_by_id?.[data.game_state.game_player_by_player_num[playerNum].civ_id];
+                    const success = myNewCiv?.name == selectedCity.civ.name;
+                    if (data.game_state && success) {
                         setGameState(data.game_state);
+                        setNonDeclineViewGameState(data.game_state);  // Clear the old cached non-decline game state.
                         refreshSelectedCity(data.game_state);
+                        setDeclineOptionsView(false);    
+                    } else if (data.game_state && !success) {
+                        setDeclineFailedDialogOpen(true);
+                    } else {
+                        console.error("No data.game_state found in response.")
                     }
                 });
 
@@ -2535,7 +2646,14 @@ export default function GamePage() {
                         <image href={vpImage} x={5.75} y={1.1} height="1" />
                     }
                     
-                    </svg>
+                </svg>
+                {declineOptionsView && city.is_decline_view_option && <>
+                    <image href={vitalityImg} x="-1.8" y="-1" height="3.6" width="3.6" />
+                    <text x="0" y="0.4" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
+                        {Math.floor(city.revolting_starting_vitality * 100)}%
+                    </text>
+                    </>
+                }
             </>
         );
     };
@@ -2789,41 +2907,6 @@ export default function GamePage() {
             });
     }
 
-    const setConfirmEnterDeclineIfAllowed = (value) => {
-        if (engineState !== EngineStates.PLAYING) {return;}
-        setConfirmEnterDecline(value);
-    }
-
-    const handleEnterDecline = () => {
-        if (!myCivId) return;
-
-        const playerInput = {
-            'player_num': playerNum,
-            'move_type': 'enter_decline',
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    setTechChoices(null);
-                    // refreshSelectedCity(data.game_state);
-                }
-            });        
-    }
-
     const displayGameState = (gameState) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes).sort((a, b) => {
@@ -2837,7 +2920,8 @@ export default function GamePage() {
         return (
             <>
                 <div className="basic-example">
-                    <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140">
+                    <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140"
+                    style={{backgroundColor: declineOptionsView ? '#FF6666' : foundingCity ? '#99FF99' : '#4488FF'}}>
                     <Layout size={{ x: 3, y: 3 }}>
                         {hexagons.map((hex, i) => {
                             return (
@@ -2940,20 +3024,27 @@ export default function GamePage() {
                         setHoveredUnit={setHoveredUnit} 
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
+                        setHoveredCiv={setHoveredCiv}
                         setTechChoices={setTechChoices}
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
                         isFoundingCity={foundingCity}
                         techTemplates={techTemplates}
                         civTemplates={civTemplates}
+                        unitTemplates={unitTemplates}
+                        buildingTemplates={buildingTemplates}
                         myCiv={myCiv} 
                         myGamePlayer={myGamePlayer} 
+                        gameState={gameState}
+                        centerMap={centerMap}
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
-                        unitTemplates={unitTemplates}
                         setTechListDialogOpen={setTechListDialogOpen}
-                        setConfirmEnterDecline={setConfirmEnterDeclineIfAllowed}
+                        setSelectedCity={setSelectedCity}
                         disableUI={engineState !== EngineStates.PLAYING}
                         turnNum={turnNum}
+                        setDeclineOptionsView={setDeclineOptionsView}
+                        declineViewGameState={declineViewGameState}
+                        declineOptionsView={declineOptionsView}
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
@@ -3003,21 +3094,17 @@ export default function GamePage() {
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
-                        {engineState === EngineStates.PLAYING && gameState?.special_mode_by_player_num?.[playerNum] && selectedCity && <Button
-                            style={{
-                                backgroundColor: "#ccffaa",
-                                color: "black",
-                                marginLeft: '20px',
-                                padding: '10px 20px', // Increase padding for larger button
-                                fontSize: '1.5em', // Increase font size for larger text
-                                marginBottom: '10px',
-                            }} 
-                            variant="contained"
-                            onClick={() => handleFoundCapital()}
-                            disabled={engineState !== EngineStates.PLAYING}
-                        >
-                            Make {selectedCity.name} my capital
-                        </Button>}
+                        {engineState === EngineStates.PLAYING && selectedCity && 
+                            (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] == 'starting_location') && 
+                            <ChooseCapitalButton 
+                                playerNum={playerNum}
+                                myGamePlayer={myGamePlayer}
+                                selectedCity={selectedCity}
+                                nonDeclineViewGameState={nonDeclineViewGameState}
+                                engineState={engineState}
+                                handleFoundCapital={handleFoundCapital}
+                            />
+                            }
                         {engineState === EngineStates.GAME_OVER && !gameOverDialogOpen && <Button
                             style={{
                                 backgroundColor: "#ccccff",
@@ -3034,11 +3121,6 @@ export default function GamePage() {
                         </Button>}
                     </div>}
                 </div>
-                {confirmEnterDecline && <ConfirmEnterDeclineDialog
-                    open={confirmEnterDecline}
-                    onClose={() => setConfirmEnterDecline(false)}
-                    onConfirm={() => handleEnterDecline()}
-                />}
                 {techListDialogOpen && <TechListDialog
                     open={techListDialogOpen}
                     onClose={() => setTechListDialogOpen(false)}
@@ -3115,13 +3197,22 @@ export default function GamePage() {
             });
     }
 
+    const receiveDeclineEviction = () => {
+        fetchGameStatus();
+        console.log("!!!!!!!!!!!!!!Eviction!!!!!!!!!!!!!!!")
+        setDeclinePreemptedDialogOpen(true);
+    }
+
     useEffect(() => {
         console.log("Setting up socket");
         socket.emit('join', { room: gameId, username: username });
         fetchGameStatus();
+        fetchDeclineViewGameState();
         socket.on('update', () => {
           console.log('update received')
           if (gameStateExistsRef.current) {
+            setDeclineOptionsView(false);
+            fetchDeclineViewGameState();
             // Turn has rolled within a game.
             fetchTurnStartGameState(true);
           }
@@ -3135,6 +3226,11 @@ export default function GamePage() {
         socket.on('mute_timer', (data) => {
             console.log("mute timer turn ", data.turn_num);
             setTimerMutedOnTurn(data.turn_num);
+        })
+        socket.on('decline_evicted', (data) => {
+            if (data.player_num === playerNum) {
+                receiveDeclineEviction();
+            }
         })
         socket.on('turn_end_change', (data) => {
             setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});
@@ -3222,7 +3318,7 @@ export default function GamePage() {
                     </Grid>
                 </Grid>
             )}
-            {techChoices && (
+            {techChoices && !declineOptionsView && (
                 <div className="tech-choices-container">
                     <DialogTitle>
                         <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
@@ -3264,6 +3360,8 @@ export default function GamePage() {
                     gameConstants={gameConstants}
                 />
             )}
+            {declinePreemptedDialogOpen && <DeclinePreemptedDialog open={declinePreemptedDialogOpen} onClose={() => setDeclinePreemptedDialogOpen(false)}/>}
+            {declineFailedDialogOpen && <DeclineFailedDialog open={declineFailedDialogOpen} onClose={() => setDeclineFailedDialogOpen(false)}/>}
         </div>
     )
 }

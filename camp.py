@@ -1,5 +1,6 @@
 from collections import defaultdict
 from typing import Optional
+import random
 
 from civ import Civ
 
@@ -15,14 +16,27 @@ if TYPE_CHECKING:
     from hex import Hex
     from game_state import GameState
 
+UNITS_BY_AGE = defaultdict(set)
+for name, unit_dict in UNITS.items():
+    unit = UnitTemplate.from_json(unit_dict)
+    UNITS_BY_AGE[unit.advancement_level()].add(name)
+
+def random_unit_by_age(advancement_level):
+    if advancement_level <= 0:
+        return "Warrior"
+    if len(UNITS_BY_AGE[advancement_level]) > 0:
+        return random.choice(list(UNITS_BY_AGE[advancement_level]))
+    else:
+        return random_unit_by_age(advancement_level - 1)
 
 class Camp:
-    def __init__(self, civ: Civ):
+    def __init__(self, civ: Civ, advancement_level=0):
         self.id = generate_unique_id()
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None        
         self.civ: Civ = civ
         self.target: Optional['Hex'] = None
+        self.unit: UnitTemplate = UnitTemplate.from_json(UNITS[random_unit_by_age(advancement_level)])
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
@@ -148,7 +162,7 @@ class Camp:
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         if game_state.turn_num % 2 == 0:
-            self.build_unit(sess, game_state, UnitTemplate.from_json(UNITS["Warrior"]))
+            self.build_unit(sess, game_state, self.unit)
 
         self.handle_siege(sess, game_state)
 
@@ -159,6 +173,7 @@ class Camp:
             "under_siege_by_civ": self.under_siege_by_civ.to_json() if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
             "civ": self.civ.to_json(),
+            "unit": self.unit.name
         }
     
     @staticmethod
@@ -166,4 +181,5 @@ class Camp:
         camp = Camp(civ=Civ.from_json(json["civ"]))
         camp.id = json["id"]
         camp.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
+        camp.unit = UnitTemplate.from_json(UNITS[json["unit"]])
         return camp

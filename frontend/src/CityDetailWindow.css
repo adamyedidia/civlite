@@ -65,24 +65,6 @@
     padding-left: 8px;
 }
 
-.tooltip {
-  position: absolute;
-  background-color: black;
-  color: white;
-  text-align: left;
-  width: 200px;
-  font-size: 16px;
-  border-radius: 6px;
-  padding: 5px 10px;
-  z-index: 10000;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  visibility: hidden;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
 .panel-content{
     border: 8px solid;
     padding: 5px;
@@ -114,6 +96,9 @@
 .food-area .panel-content{
   border-color: #65ac37;
   background-color: #ddffdde0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .food-area .panel-banner {
@@ -329,3 +314,70 @@
   animation: rotateDash 6s linear infinite;
   pointer-events: none;
 }
+
+.growth-area {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.food-divider-line {
+  width: 100%;
+  height: 2px;
+  background-color: #65ac37;
+
+}
+
+.unhappiness-income-area {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+
+.unhappiness-income-value {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+}
+
+.unhappiness-current {
+  border: 1px solid black;
+  background: #eee;
+  border-radius: 5px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  width: fit-content;
+}
+
+.unhappiness-value {
+  font-size: 24px;
+}
+
+.unhappiness-bars td {
+  vertical-align: middle;
+}
+.unhappiness-bars td.label {
+  overflow-x: hidden;
+  white-space: nowrap;
+}
+.unhappiness-bars .bar {
+  width: 100%;
+  height: 15px;
+  display: flex;
+}
+.unhappiness-bars .bar.income {
+  background-color: #65ac37;
+}
+.unhappiness-bars .bar.demand {
+  background-color: #ac3737;
+}
+.unhappiness-bars .bar-tick {
+  height: 15px;
+  width: 1px;
+  background-color: #ddffdd;
+  margin-left: 1px;
+}
+

@@ -7,31 +7,24 @@ import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
 import scienceImg from './images/science.png';
+import happyImg from './images/happyface.png';
+import neutralImg from './images/neutralface.png';
+import sadImg from './images/sadface.png';
+import cityImg from './images/city.png';
+import declineImg from './images/phoenix.png';
+
+
 
 import workerImg from './images/worker.png';
 import { CityDetailPanel } from './CityDetailPanel.js';
 import { TextOnIcon } from './TextOnIcon.js';
 import ProgressBar from './ProgressBar.js';
+import { WithTooltip } from './WithTooltip.js';
 
 const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUnit, handleSetInfiniteQueue}) => {
-    const tooltipRef = React.useRef(null);
-
-    const showTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'visible';
-            tooltipRef.current.style.opacity = '1';
-        }
-    };
-
-    const hideTooltip = () => {
-        if (tooltipRef.current) {
-            tooltipRef.current.style.visibility = 'hidden';
-            tooltipRef.current.style.opacity = '0';
-        }
-    };
-
-    return (<div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''}`}
-        onMouseOver={showTooltip} onMouseOut={hideTooltip} onClick={(event) => {
+    return <WithTooltip tooltip="&#x1F5B1; Toggle infinite queue.">
+    <div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''}`}
+        onClick={(event) => {
             // click to toggle infinite queue
             if (isCurrentIQUnit) {
                 handleSetInfiniteQueue("")
@@ -49,11 +42,8 @@ const UnitQueueOption = ({unitName, isCurrentIQUnit, unitTemplates, setHoveredUn
             {unitTemplates[unitName].metal_cost}
             <img src={metalImg} height="10px"/>
         </div>
-        <div ref={tooltipRef} className="tooltip">
-            <p>&#x1F5B1; Toggle infinite queue.</p>
-        </div>
     </div>
-    );
+    </WithTooltip>;
 }
 
 const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
@@ -76,7 +66,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     setHoveredUnit, setHoveredBuilding, setSelectedCity
      }) => {
 
-    const [isBuildingListExpanded, setIsBuildingListExpanded] = useState(false);
+    const [isBuildingListExpanded, setIsBuildingListExpanded] = useState(declinePreviewMode);
 
 
     const handleClickClose = () => {
@@ -217,12 +207,17 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100));
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay);
 
+    const foodDemanded = selectedCity.food_demand;
+    const incomeExceedsDemand = projectedIncome['food'] >= foodDemanded;
+    const happinessIcon = (incomeExceedsDemand && selectedCity.unhappiness == 0) ? happyImg : (!incomeExceedsDemand && selectedCity.unhappiness == 0) ? neutralImg : sadImg;
+    const unhappinessBarsMaxWidth = 180;
+    const unhappinessBarsWidthPerUnit = Math.min(10, unhappinessBarsMaxWidth/foodDemanded, unhappinessBarsMaxWidth/projectedIncome['food']);
+    
     const metalAvailable = selectedCity.metal + projectedIncome['metal'];
     const woodAvailable = selectedCity.wood + projectedIncome['wood'];
 
     const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / unitTemplates[selectedCity.infinite_queue_unit].metal_cost) : 0;
     const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => buildingTemplates[item] ? buildingTemplates[item].cost : unitTemplatesByBuildingName[item].wood_cost);
-
 
     return (
         <div className="city-detail-window" 
@@ -239,8 +234,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             </div>
             <div className="city-detail-columns">
             <div className="city-detail-column">
-                <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus}>
-                    {selectedCityBuildingChoices && (<>
+                <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
+                    {selectedCityBuildingChoices && !declinePreviewMode && (<>
                         <div className="building-choices-container">
                             <BriefBuildingDisplayTitle title="Building Choices" />
                             {selectedCityBuildingChoices.map((buildingName, index) => (
@@ -249,7 +244,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                         </div>
                         <div className="building-choices-placeholder"/>
                     </>)}
-                    {selectedCityBuildingQueue && (
+                    {selectedCityBuildingQueue && !declinePreviewMode &&  (
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCityBuildingQueue.map((buildingName, index) => (
@@ -279,21 +274,78 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                 </CityDetailPanel>
             </div>
             <div className="city-detail-column">
-                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} total_tooltip="after this turn." handleClickFocus={handleClickFocus}>
-                    <ProgressBar darkPercent={foodProgressStoredDisplay} lightPercent={foodProgressProducedDisplay} barText={`${selectedCity.growth_cost} to grow`}/>
+                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced this turn.z" handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
+                    <div className='growth-area'>
+                        <TextOnIcon image={workerImg}>
+                            +
+                        </TextOnIcon>
+                        <ProgressBar darkPercent={foodProgressStoredDisplay} lightPercent={foodProgressProducedDisplay} barText={`${Math.floor(selectedCity.food)} + ${Math.floor(projectedIncome['food'])} / ${selectedCity.growth_cost}`}/>
+                    </div>
+                    <div className="food-divider-line"/>
+                    {!declinePreviewMode && <div className="unhappiness-area">
+                        <div className="unhappiness-current">
+                            <img src={happinessIcon} height="30px"/>
+                            <WithTooltip tooltip={`${selectedCity.unhappiness.toFixed(2)} unhappiness`}><>
+                            <span className="unhappiness-value">{Math.ceil(selectedCity.unhappiness)}</span>
+                            </></WithTooltip>
+                            <div style={{visibility: selectedCity.civ_to_revolt_into ? "visible" : "hidden"}}>
+                            <WithTooltip tooltip="This city is a revolt option for other players!">
+                                <img src={declineImg} height="30px"/>
+                            </WithTooltip>
+                            </div>
+                        </div>
+                        <div className="unhappiness-income-area">
+                            <WithTooltip tooltip={projectedIncome['food'] >= foodDemanded ? 
+                                `income exceeds demand; city produces city power ${projectedIncome['city-power'].toFixed(2)}` : 
+                                `demand exceds income; city is gaining unhappiness ${projectedIncome['unhappiness'].toFixed(2)}`}
+                            >
+                                <div className="unhappiness-income-value">
+                                    +{Math.floor(Math.abs(projectedIncome['food'] - foodDemanded))}
+                                    <img src={projectedIncome['food'] >= foodDemanded ? cityImg : sadImg} height="30px"/>
+                                </div>
+                            </WithTooltip>
+                            <WithTooltip tooltip={`${selectedCity.capital ? "Capital city citizens expect 1 food per 2 population." : "Citizens expect 2 food per population."} ${selectedCity.name}'s income is ${projectedIncome['food'].toFixed(2)}.`}>
+                            <table className="unhappiness-bars"><tbody>
+                                <tr>
+                                    <td className="label">
+                                        {Math.floor(projectedIncome['food'])}
+                                    </td>
+                                    <td>
+                                        <div className="bar income" style={{width: `${Math.floor(projectedIncome['food'] * unhappinessBarsWidthPerUnit)}px`}}>
+                                            {Array.from({ length: Math.floor(projectedIncome['food'])}).map((_, idx) => (
+                                                <div key={idx} className='bar-tick' style={{marginLeft: `${unhappinessBarsWidthPerUnit - 0.5}px`, marginRight: "-0.5px"}}></div>  // The -0.5 is the width of the tick
+                                            ))}
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td className="label">
+                                        {foodDemanded}
+                                    </td>
+                                    <td>
+                                        <div className="bar demand" style={{width: `${Math.floor(foodDemanded * unhappinessBarsWidthPerUnit)}px`}}>
+                                            {Array.from({ length: Math.floor(foodDemanded) }).map((_, idx) => (
+                                                <div key={idx} className='bar-tick' style={{marginLeft: `${unhappinessBarsWidthPerUnit - 0.5}px`}}></div>  // The -0.5 is the width of the tick
+                                            ))}
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody></table>
+                            </WithTooltip>
+                        </div>
+                    </div>}
                 </CityDetailPanel>
-                <CityDetailPanel title='science' icon={scienceImg} hideStored='true' selectedCity={selectedCity} override_stored_amount={0} total_prefix="+" total_tooltip="produced by this city." handleClickFocus={handleClickFocus}>
-
+                <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                 </CityDetailPanel>
-                <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus}>
+                <CityDetailPanel title="metal" icon={metalImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCityUnitChoices && (
                         <div className="unit-choices-container">
                             {selectedCityUnitChoices.map((unitName, index) => (
-                                <UnitQueueOption key={index} unitName={unitName} isCurrentIQUnit={selectedCity.infinite_queue_unit === unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue}/>
+                                <UnitQueueOption key={index} unitName={unitName} isCurrentIQUnit={!declinePreviewMode && selectedCity.infinite_queue_unit === unitName} unitTemplates={unitTemplates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue}/>
                             ))}
                         </div>
                     )}
-                    <div>
+                    {!declinePreviewMode && <div>
                         <h2> Producing This Turn </h2>
                         <div className="unit-queue-container">
                             {Array.from({ length: unitQueueNumber }).map((_, index) => (
@@ -302,7 +354,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                                 </div>
                             ))}
                         </div>
-                    </div>
+                    </div>}
                 </CityDetailPanel>
             </div>
             </div>
