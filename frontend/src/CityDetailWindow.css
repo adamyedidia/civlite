@@ -381,3 +381,49 @@
   margin-left: 1px;
 }
 
+.unhappiness-area-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.trade-hub {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 1px solid black;
+  background-color: #dddddd;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trade-hub img {
+  width: 90%;
+  height: 90%;
+}
+
+.trade-hub .not-active {
+  opacity: 0.4;
+}
+
+.trade-hub .active {
+  animation: rotateTradeHub 5s linear infinite;
+}
+
+@keyframes rotateTradeHub {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+.trade-hub:hover {
+  transform: scale(1.1);
+  background-color: #ffffff;
+}
+

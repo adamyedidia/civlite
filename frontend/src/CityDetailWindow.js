@@ -12,6 +12,7 @@ import neutralImg from './images/neutralface.png';
 import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import declineImg from './images/phoenix.png';
+import tradeHubImg from './images/tradehub.png';
 
 
 
@@ -188,6 +189,32 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             });
     }
 
+    const handleClickTradeHub = () => {
+        if (declinePreviewMode) return;
+        const playerInput = {
+            'city_id': selectedCity.id,
+            'move_type': 'trade_hub',
+        }
+
+        const data = {
+            player_num: playerNum,
+            player_input: playerInput,
+        }
+        fetch(playerApiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        }).then(response => response.json())
+            .then(data => {
+                if (data.game_state) {
+                    setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
+                }
+            });
+    }
+
     // A bit silly that we calculate the amount available of each resource here
     // And then recalculate each one in the CityDetailPanel.
  
@@ -283,16 +310,29 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                     </div>
                     <div className="food-divider-line"/>
                     {!declinePreviewMode && <div className="unhappiness-area">
-                        <div className="unhappiness-current">
-                            <img src={happinessIcon} height="30px"/>
-                            <WithTooltip tooltip={`${selectedCity.unhappiness.toFixed(2)} unhappiness`}><>
-                            <span className="unhappiness-value">{Math.ceil(selectedCity.unhappiness)}</span>
-                            </></WithTooltip>
-                            <div style={{visibility: selectedCity.civ_to_revolt_into ? "visible" : "hidden"}}>
-                            <WithTooltip tooltip="This city is a revolt option for other players!">
-                                <img src={declineImg} height="30px"/>
-                            </WithTooltip>
+                        <div className="unhappiness-area-top-row">
+                            <div className="unhappiness-current">
+                                <img src={happinessIcon} height="30px"/>
+                                <WithTooltip tooltip={`${selectedCity.unhappiness.toFixed(2)} unhappiness`}><>
+                                <span className="unhappiness-value">{Math.ceil(selectedCity.unhappiness)}</span>
+                                </></WithTooltip>
+                                <div style={{visibility: selectedCity.civ_to_revolt_into ? "visible" : "hidden"}}>
+                                <WithTooltip tooltip="This city is a revolt option for other players!">
+                                    <img src={declineImg} height="30px"/>
+                                </WithTooltip>
+                                </div>
                             </div>
+                            <WithTooltip tooltip={selectedCity.is_trade_hub ? 
+                                `Trade hub consumes 20 city power to remove 10 unhappiness per turn (if above 10). Click to cancel.` : 
+                                `Make this city your trade hub (20 city power -> 10 unhappiness)`}>
+                            <div className="trade-hub"
+                                onClick = {handleClickTradeHub}>
+                                    <img 
+                                    src={tradeHubImg}
+                                    className={selectedCity.is_trade_hub ? "active" : "not-active"}
+                                    />
+                            </div>
+                            </WithTooltip>
                         </div>
                         <div className="unhappiness-income-area">
                             <WithTooltip tooltip={projectedIncome['food'] >= foodDemanded ? 
@@ -300,8 +340,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                                 `demand exceds income; city is gaining unhappiness ${projectedIncome['unhappiness'].toFixed(2)}`}
                             >
                                 <div className="unhappiness-income-value">
-                                    +{Math.floor(Math.abs(projectedIncome['food'] - foodDemanded))}
-                                    <img src={projectedIncome['food'] >= foodDemanded ? cityImg : sadImg} height="30px"/>
+                                    +{projectedIncome['city-power'] > 0 ? Math.floor(projectedIncome['city-power']) : Math.floor(projectedIncome['unhappiness'])}
+                                    <img src={projectedIncome['city-power'] > 0 ? cityImg : sadImg} height="30px"/>
                                 </div>
                             </WithTooltip>
                             <WithTooltip tooltip={`${selectedCity.capital ? "Capital city citizens expect 1 food per 2 population." : "Citizens expect 2 food per population."} ${selectedCity.name}'s income is ${projectedIncome['food'].toFixed(2)}.`}>
