@@ -22,7 +22,7 @@ from game_state import GameState, update_staged_moves, get_most_recent_game_stat
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
-from utils import dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives
+from utils import dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives, turn_lock_key, generate_unique_id, moves_processing_key
 
 
 from settings import (
@@ -38,8 +38,7 @@ from unit_templates_list import UNITS
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from user import User, add_or_get_user, add_bot_users, BOT_USERNAMES
-from utils import generate_unique_id
-from redis_utils import rget_json, rset_json
+from redis_utils import rget_json, rset_json, rset, rget, CodeBlockCounter, await_empty_counter
 from threading import Timer
 
 # Create a logger
@@ -95,6 +94,39 @@ def api_endpoint(func):
     return wrapper
 
 
+def roll_turn(sess, game: Game, turn_num: int):
+    print("starting turn roll")
+
+    # Some dumb casting stuff to satisfy pylance
+    game_id: str = game.id  # type: ignore
+    seconds_per_turn: Optional[int] = game.seconds_per_turn  # type: ignore
+
+    socketio.emit('start_turn_roll', {}, room=game_id)  # type: ignore
+
+    #prevent future threads from starting
+    rset(turn_lock_key(game_id, turn_num), 1, ex=60*60)
+
+    # Wait till all active threads have finished, up to 2s
+    await_empty_counter(moves_processing_key(game_id, turn_num), 2, 0.1)
+    
+    # need to load the game state here, after await_empty_counter on the moves in flight.
+    # or else we'll have a stale version.
+    game_state: GameState = get_most_recent_game_state(sess, game_id)
+
+    if seconds_per_turn is not None and not game_state.game_over and game_state.turn_num < 200:
+        seconds_until_next_forced_roll: float = int(seconds_per_turn) + min(game_state.turn_num, 30)
+        next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
+        new_roll_id = generate_unique_id()
+
+        Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game.id, game_state.turn_num + 1, new_roll_id]).start()
+        game_state.next_forced_roll_at = next_forced_roll_at
+        game_state.roll_id = new_roll_id
+
+    game_state.end_turn(sess)
+
+    print("sending update signal")
+    broadcast(game.id)
+
 def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
     with SessionLocal() as sess:
         game = sess.query(Game).filter(Game.id == game_id).first()
@@ -103,36 +135,9 @@ def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
             return jsonify({"error": "Game not found"}), 404
         
         game_state = get_most_recent_game_state(sess, game_id)
-        game_state_copy = get_most_recent_game_state(sess, game_id)
-
-        for player_num in game_state_copy.game_player_by_player_num.keys():
-            staged_moves = rget_json(staged_moves_key(game_id, player_num, turn_num)) or []
-
-            for move in staged_moves:
-                if move.get('move_type') == 'enter_decline':
-                    return
-
-            game_state_copy.update_from_player_moves(player_num, staged_moves)
-
-        for game_player in game_state_copy.game_player_by_player_num.values():
-            if not game_player.civ_id:
-                return
 
         if turn_num == game_state.turn_num and roll_id == game_state.roll_id and not game_state.game_over:
-            if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
-                seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
-                next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
-                new_roll_id = generate_unique_id()
-
-                Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, turn_num + 1, new_roll_id]).start()
-                game_state.next_forced_roll_at = next_forced_roll_at
-                game_state.roll_id = new_roll_id
-             
-            game_state.end_turn(sess)
-           
-            print('Broadcasting: ', game_id)
-            socketio.emit('update', room=game_id)  # type: ignore
-
+            roll_turn(sess, game, turn_num)
 
 
 @app.route('/api/host_game', methods=['POST'])
@@ -633,17 +638,30 @@ def enter_player_input(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    _, from_civ_perspectives, game_state_to_return_json, decline_eviction_player = update_staged_moves(sess, game_id, player_num, [player_input])
+    # TODO this is kinda silly?
+    turn_num: int = get_most_recent_game_state(sess, game_id).turn_num
+    if rget(turn_lock_key(game_id, turn_num)) is not None:
+        return jsonify({"error": "Turn is over"}), 400
+    
+    # This block counts how many threads are currently running turns.
+    # We won't roll the turn until they are done.
+    with CodeBlockCounter(moves_processing_key(game_id, turn_num)):
+        # Conceivably, the turn could have rolled while we were incrementing the counter
+        if rget(turn_lock_key(game_id, turn_num)) is not None:
+            return jsonify({"error": "Turn is over"}), 400
+        
+        # Now do the actual roll.
+        _, _, game_state_to_return_json, decline_eviction_player = update_staged_moves(sess, game_id, player_num, [player_input])
 
-    if player_input.get('move_type') == 'choose_decline_option':
-        _pause_game_inner(sess, game_id)
+        if player_input.get('move_type') == 'choose_decline_option':
+            _pause_game_inner(sess, game_id)
         
 
-    if decline_eviction_player is not None:
-        print(f"app.py evicting player {decline_eviction_player}")
-        set_turn_ended_by_player_num(game_id, decline_eviction_player, False)
-        socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)  # type: ignore
-        socketio.emit("decline_evicted", {'player_num': decline_eviction_player}, room=game_id)  # type: ignore
+        if decline_eviction_player is not None:
+            print(f"app.py evicting player {decline_eviction_player}")
+            set_turn_ended_by_player_num(game_id, decline_eviction_player, False)
+            socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)  # type: ignore
+            socketio.emit("decline_evicted", {'player_num': decline_eviction_player}, room=game_id)  # type: ignore
 
     return jsonify({'game_state': game_state_to_return_json})
     # return jsonify({'game_state': game_state.to_json()})
@@ -676,21 +694,7 @@ def end_turn(sess, game_id):
     socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)  # type: ignore
 
     if game_state.turn_should_end(turn_ended_by_player_num):
-        print("starting turn roll")
-        socketio.emit('start_turn_roll', {}, room=game_id)  # type: ignore
-        if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
-            seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
-            next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
-            new_roll_id = generate_unique_id()
-
-            Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, game_state.turn_num + 1, new_roll_id]).start()
-            game_state.next_forced_roll_at = next_forced_roll_at
-            game_state.roll_id = new_roll_id
-
-        game_state.end_turn(sess)
-
-        print("sending update signal")
-        broadcast(game_id)
+        roll_turn(sess, game, turn_num=game_state.turn_num)
     else:
         rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)
 

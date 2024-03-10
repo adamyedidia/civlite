@@ -2,6 +2,7 @@ import redis as r
 from typing import Optional, Any
 from redis_lock import Lock
 import json
+import time
 
 redis = r.Redis(connection_pool=r.ConnectionPool(host='localhost', port=6379, db=15))
 
@@ -43,3 +44,36 @@ def rdel(key: str) -> None:
 
 def rlock(key: str):
     return Lock(redis, key, expire=60)
+
+class CodeBlockCounter:
+    def __init__(self, key: str):
+        self.key = key
+        self.lock = rlock(f"lock:{key}")
+
+    def __enter__(self):
+        with self.lock:
+            count = rget(self.key)
+            if count is None:
+                rset(self.key, 1)
+            else:
+                rset(self.key, int(count) + 1)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        with self.lock:
+            count = rget(self.key)
+            if count is not None and int(count) > 1:
+                rset(self.key, int(count) - 1)
+            else:
+                rdel(self.key)
+
+def await_empty_counter(key, max_time, time_increment):
+    for _ in range(int(max_time / time_increment)):
+        if rget(key) is None:
+            return
+        time.sleep(time_increment)
+    print("!!! Moves processing did not finish in time !!!")
+    print(f"Key: {key}")
+    print(f"Max time: {max_time}")
+    print(f"Time increment: {time_increment}")
+    return
+
