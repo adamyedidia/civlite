@@ -76,8 +76,6 @@ const CityPowerDisplay = ({ civ, myCities, civTemplates, toggleFoundingCity, can
 
 
 const DeclineOptionRow = ({ city, setDeclineOptionsView, civTemplates, centerMap, unitTemplates, buildingTemplates, setHoveredCiv, setHoveredUnit, setHoveredBuilding, setSelectedCity, civsById}) => {
-    console.log('city', city)
-
     return <div className="decline-option-row"
         style={{
             backgroundColor: civTemplates[city.civ.name]?.primary_color, 
