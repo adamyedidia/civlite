@@ -257,6 +257,17 @@ h2.tech-name {
     gap: 3px;
 }
 
+.distance-from-win {
+    font-size: 20px;
+    font-weight: bold;
+    background-color: #d32c2c;
+    padding: 5px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
 /*
 ==========================================
 =============== SCORE AREA ===============

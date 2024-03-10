@@ -631,6 +631,9 @@ class GameState:
 
         rdel(f'turn_ended_by_player_num:{self.game_id}')
 
+    def game_end_score(self):
+        return GAME_END_SCORE + EXTRA_GAME_END_SCORE_PER_PLAYER * len(self.game_player_by_player_num)
+
     def roll_turn(self, sess) -> None:
         self.turn_num += 1
 
@@ -710,7 +713,7 @@ class GameState:
             city.refresh_available_buildings()       
 
         for game_player in self.game_player_by_player_num.values():
-            if game_player.score >= GAME_END_SCORE + EXTRA_GAME_END_SCORE_PER_PLAYER * len(self.game_player_by_player_num):
+            if game_player.score >= self.game_end_score():
                 self.game_over = True
                 break
 
@@ -934,6 +937,7 @@ class GameState:
             "barbarians": self.barbarians.to_json(),
             "advancement_level": self.advancement_level,
             "game_over": self.game_over,
+            "game_end_score": self.game_end_score(),
             "announcements": self.announcements[:],
             "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{self.game_id}') or {},
             "next_forced_roll_at": self.next_forced_roll_at,
