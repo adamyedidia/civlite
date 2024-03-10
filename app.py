@@ -95,6 +95,24 @@ def api_endpoint(func):
     return wrapper
 
 
+def roll_turn(sess, game: Game, game_state: GameState):
+    print("starting turn roll")
+    socketio.emit('start_turn_roll', {}, room=game.id)  # type: ignore
+    seconds_per_turn: int = game.seconds_per_turn or 0  # type: ignore
+    if seconds_per_turn is not None and not game_state.game_over and game_state.turn_num < 200:
+        seconds_until_next_forced_roll: float = int(seconds_per_turn) + min(game_state.turn_num, 30)
+        next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
+        new_roll_id = generate_unique_id()
+
+        Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game.id, game_state.turn_num + 1, new_roll_id]).start()
+        game_state.next_forced_roll_at = next_forced_roll_at
+        game_state.roll_id = new_roll_id
+
+    game_state.end_turn(sess)
+
+    print("sending update signal")
+    broadcast(game.id)
+
 def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
     with SessionLocal() as sess:
         game = sess.query(Game).filter(Game.id == game_id).first()
@@ -119,20 +137,7 @@ def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
                 return
 
         if turn_num == game_state.turn_num and roll_id == game_state.roll_id and not game_state.game_over:
-            if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
-                seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
-                next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
-                new_roll_id = generate_unique_id()
-
-                Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, turn_num + 1, new_roll_id]).start()
-                game_state.next_forced_roll_at = next_forced_roll_at
-                game_state.roll_id = new_roll_id
-             
-            game_state.end_turn(sess)
-           
-            print('Broadcasting: ', game_id)
-            socketio.emit('update', room=game_id)  # type: ignore
-
+            roll_turn(sess, game, game_state)
 
 
 @app.route('/api/host_game', methods=['POST'])
@@ -676,21 +681,7 @@ def end_turn(sess, game_id):
     socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)  # type: ignore
 
     if game_state.turn_should_end(turn_ended_by_player_num):
-        print("starting turn roll")
-        socketio.emit('start_turn_roll', {}, room=game_id)  # type: ignore
-        if game.seconds_per_turn and not game_state.game_over and game_state.turn_num < 200:
-            seconds_until_next_forced_roll = game.seconds_per_turn + min(game_state.turn_num, 30)
-            next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
-            new_roll_id = generate_unique_id()
-
-            Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game_id, game_state.turn_num + 1, new_roll_id]).start()
-            game_state.next_forced_roll_at = next_forced_roll_at
-            game_state.roll_id = new_roll_id
-
-        game_state.end_turn(sess)
-
-        print("sending update signal")
-        broadcast(game_id)
+        roll_turn(sess, game, game_state)
     else:
         rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)
 
