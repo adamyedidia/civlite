@@ -225,7 +225,7 @@ BUILDINGS: dict[str, dict] = {
         }],
         "prereq": "Iron Working",
         "is_national_wonder": True,
-        "prereq": "Engineering",
+        "prereq": "Machinery",
     },
     "National College": {
         "name": "National College",
@@ -247,7 +247,7 @@ BUILDINGS: dict[str, dict] = {
             "numbers": ["wood", 2],
         }],
         "is_national_wonder": True,
-        "prereq": "Machinery",
+        "prereq": "Engineering",
     },
     "Husbandry Center": {
         "name": "Husbandry Center",
@@ -258,7 +258,7 @@ BUILDINGS: dict[str, dict] = {
             "numbers": ["food", 2],
         }],
         "is_national_wonder": True,
-        "prereq": "Chivalry",
+        "prereq": "Irrigation",
     },
     'Industrial Farm': {
         "name": "Industrial Farm",
@@ -349,7 +349,7 @@ BUILDINGS: dict[str, dict] = {
         }],
         "is_wonder": True,
         "vp_reward": 5,
-        "prereq": "Currency",
+        "prereq": "Engineering",
     },
     "Great Library": {
         "name": "Great Library",

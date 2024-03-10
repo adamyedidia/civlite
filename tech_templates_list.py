@@ -50,7 +50,7 @@ TECHS = {
     'Irrigation': {
         'name': 'Irrigation',
         'cost': 25,
-        'unlocks_buildings': ['Plantation'],
+        'unlocks_buildings': ['Plantation', 'Husbandry Center'],
         'advancement_level': 1,
     },
     'Writing': {
@@ -89,13 +89,13 @@ TECHS = {
     'Currency': {
         'name': 'Currency',
         'cost': 40,
-        'unlocks_buildings': ['Petra', 'Statue of Zeus'],
+        'unlocks_buildings': ['Petra'],
         'advancement_level': 2,
     },
     'Engineering': {
         'name': 'Engineering',
         'cost': 45,
-        'unlocks_buildings': ['Ironworks'],
+        'unlocks_buildings': ['Timberworks',  'Statue of Zeus'],
         'advancement_level': 2,
     },
     'Construction': {
@@ -113,8 +113,8 @@ TECHS = {
     'Machinery': {
         'name': 'Machinery',
         'cost': 60,
-        'unlocks_units': ['Crossbowman'],
-        'unlocks_buildings': ['Timberworks'],
+        'unlocks_units': [],
+        'unlocks_buildings': ['Ironworks'],
         'advancement_level': 3,
     },
     'Civil Service': {
@@ -128,12 +128,13 @@ TECHS = {
         'name': 'Chivalry',
         'cost': 65,
         'unlocks_units': ['Knight', 'Militia'],
-        'unlocks_buildings': ['Husbandry Center'],
+        'unlocks_buildings': [],
         'advancement_level': 3,
     },
     'Compass': {
         'name': 'Compass',
         'cost': 70,
+        'unlocks_units': ['Crossbowman'],
         'unlocks_buildings': ['Observatory', 'Great Lighthouse'],
         'advancement_level': 3,
     },
