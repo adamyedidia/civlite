@@ -31,10 +31,14 @@ def random_unit_by_age(advancement_level):
 
 class Camp:
     def __init__(self, civ: Civ, advancement_level=0):
+        # civ actually can be None very briefly before GameState.from_json() is done, 
+        # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
+
         self.id = generate_unique_id()
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None        
         self.civ: Civ = civ
+        self.civ_id: str = civ.id if civ else None  # type: ignore
         self.target: Optional['Hex'] = None
         self.unit: UnitTemplate = UnitTemplate.from_json(UNITS[random_unit_by_age(advancement_level)])
 
@@ -157,7 +161,7 @@ class Camp:
         self.hex = None
 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
-        self.civ = civs_by_id[self.civ.id]
+        self.civ = civs_by_id[self.civ_id]
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None            
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
@@ -172,14 +176,15 @@ class Camp:
             "id": self.id,
             "under_siege_by_civ": self.under_siege_by_civ.to_json() if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
-            "civ": self.civ.to_json(),
+            "civ_id": self.civ_id,
             "unit": self.unit.name
         }
     
     @staticmethod
     def from_json(json: dict):
-        camp = Camp(civ=Civ.from_json(json["civ"]))
+        camp = Camp(civ=None)  # type: ignore
         camp.id = json["id"]
+        camp.civ_id = json["civ_id"]
         camp.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
         camp.unit = UnitTemplate.from_json(UNITS[json["unit"]])
         return camp

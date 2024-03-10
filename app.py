@@ -550,8 +550,12 @@ def get_decline_view(sess, game_id):
         .one_or_none()
     )
 
+    game_state = GameState.from_json(animation_frame.game_state)
+
+    game_state_json = game_state.to_json(include_city_civ_details=True)
+
     return jsonify({
-        'game_state': {**animation_frame.game_state, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},} if animation_frame.game_state else {},
+        'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},} if animation_frame.game_state else {},
         'turn_num': turn_num,
     })
 

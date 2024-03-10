@@ -15,10 +15,14 @@ if TYPE_CHECKING:
 
 class Unit:
     def __init__(self, template: UnitTemplate, civ: Civ) -> None:
+        # civ actually can be None very briefly before GameState.from_json() is done, 
+        # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
+
         self.id = generate_unique_id()
         self.template = template
         self.health = 100
         self.civ = civ
+        self.civ_id: str = civ.id if civ else None  # type: ignore
         self.has_moved = False
         self.hex: Optional['Hex'] = None
         self.strength = self.template.strength
@@ -350,6 +354,7 @@ class Unit:
 
         if self.destination is None: return False
 
+        assert self.hex
         best_hex = None
         best_distance = self.hex.distance_to(self.destination) if not sensitive else self.hex.sensitive_distance_to(self.destination)
 
@@ -383,7 +388,7 @@ class Unit:
         hex.units.append(self)
 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
-        self.civ = civs_by_id[self.civ.id]
+        self.civ = civs_by_id[self.civ_id]
 
     def update_nearby_hexes_friendly_foundability(self) -> None:
         if self.hex is None:
@@ -404,7 +409,7 @@ class Unit:
             "id": self.id,
             "name": self.template.name,
             "health": self.health,
-            "civ": self.civ.to_json(),
+            "civ_id": self.civ_id,
             "has_moved": self.has_moved,
             "coords": self.hex.coords if self.hex is not None else None,
             "strength": self.strength,
@@ -418,12 +423,13 @@ class Unit:
     def from_json(json: dict,) -> "Unit":
         unit = Unit(
             template=UnitTemplate.from_json(UNITS[json["name"]]),
-            civ=Civ.from_json(json["civ"]),
+            civ=None,  # type: ignore
         )
         unit.id = json["id"]
         unit.health = json["health"]
         unit.has_moved = json["has_moved"]
         unit.strength = json["strength"]
         unit.has_attacked = json["has_attacked"]
+        unit.civ_id = json["civ_id"]
 
         return unit

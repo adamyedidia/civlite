@@ -31,9 +31,13 @@ def resourcedict() -> Dict[str, float]:
 
 class City:
     def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
+        # civ actually can be None very briefly before GameState.from_json() is done, 
+        # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
+
         self.id = id or generate_unique_id()
         self.civ: Civ = civ
-        self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True}
+        self.civ_id: str = civ.id if civ else None  # type: ignore
+        self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True} if civ else {}
         self.name = name
         self.population = 1
         self.buildings: list[Building] = []
@@ -256,6 +260,9 @@ class City:
                 self.terrains_dict[hex.terrain] += 1
 
     def refresh_available_buildings(self) -> None:
+        if not self.civ:
+            return
+
         self.available_buildings = [building_name for building_name in self.civ.available_buildings if not self.has_building(building_name) and not self.building_is_in_queue(building_name)]
 
         if not self.hex:
@@ -328,6 +335,8 @@ class City:
         self.refresh_available_buildings()
 
     def get_available_buildings(self) -> list[Union[BuildingTemplate, UnitTemplate]]:
+        if not self.civ:
+            return []
         building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
         buildings = [BuildingTemplate.from_json(BUILDINGS[building_name]) for building_name in self.available_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
         unit_buildings = [UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building_name]) for building_name in self.civ.available_unit_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
@@ -668,7 +677,7 @@ class City:
 
                 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
-        self.civ = civs_by_id[self.civ.id]
+        self.civ = civs_by_id[self.civ_id]
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
 
     def bot_pick_economic_building(self, choices) -> Optional[BuildingTemplate]:
@@ -787,10 +796,11 @@ class City:
         print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
         
 
-    def to_json(self) -> dict:
+    def to_json(self, include_civ_details: bool = False) -> dict:
         return {
             "id": self.id,
-            "civ": self.civ.to_json(),
+            "civ_id": self.civ_id,
+            **({"civ": self.civ.to_json()} if include_civ_details else {}),
             "ever_controlled_by_civ_ids": self.ever_controlled_by_civ_ids,
             "name": self.name,
             "population": self.population,
@@ -826,10 +836,11 @@ class City:
     @staticmethod
     def from_json(json: dict) -> "City":
         city = City(
-            civ=Civ.from_json(json["civ"]),
+            civ=Civ.from_json(json.get('civ')) if 'civ' in json else None,  # type: ignore
             name=json["name"],
         )
         city.id = json["id"]
+        city.civ_id = json["civ_id"]
         city.ever_controlled_by_civ_ids = json["ever_controlled_by_civ_ids"].copy()
         city.population = json["population"]
         city.buildings = [Building.from_json(building) for building in json["buildings"]]

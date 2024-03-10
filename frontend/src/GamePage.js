@@ -256,8 +256,8 @@ const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
 }
 
-const ChooseCapitalButton = ({playerNum, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital}) => {
-    const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ.game_player?.player_num == playerNum;
+const ChooseCapitalButton = ({playerNum, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital, civsById}) => {
+    const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player?.player_num == playerNum;
     const content = isMyCity ? "Can't decline to my own city" : myGamePlayer?.decline_this_turn ? "Already declined this turn": `Make ${selectedCity.name} my capital`;
     const disabled = engineState !== EngineStates.PLAYING || myGamePlayer?.decline_this_turn || isMyCity;
     return <Button
@@ -368,11 +368,15 @@ export default function GamePage() {
     }
     const {myGamePlayer, myCivId, myCiv} = getMyInfo(declineOptionsView ? nonDeclineViewGameState : gameState);
     const techChoices = myCiv?.current_tech_choices;
+
+    const civsById = gameState?.civs_by_id;
+
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
 
     const myCivIdRef = React.useRef(myCivId);
     const hoveredHexRef = React.useRef(hoveredHex);
+    const civsByIdRef = React.useRef(civsById);
     const lastSetPrimaryTargetRef = React.useRef(lastSetPrimaryTarget);
     const playerApiUrl= `${URL}/api/player_input/${gameId}`
     const target1Ref = React.useRef(target1);
@@ -400,6 +404,10 @@ export default function GamePage() {
     useEffect(() => {
         myCivIdRef.current = myCivId;
     }, [myCivId]);
+
+    useEffect(() => {
+        civsByIdRef.current = civsById;
+    }, [civsById])
 
     useEffect(() => {
         playerNumRef.current = playerNum;
@@ -2426,13 +2434,13 @@ export default function GamePage() {
         </div>
     }
 
-    const FlagArrows = ({hexagons, myCiv}) => {
+    const FlagArrows = ({hexagons, myCiv, civsById}) => {
         if (!showFlagArrows) { return; }
         return (
             <div className="flag-arrows-container">
                 {hexagons.map((hex, index) => {
                     if (!hex.units?.length) {return;}
-                    if (hex.units[0].civ.name != myCiv.name) {return;}
+                    if (civsById?.[hex.units?.[0]?.civ_id]?.name != myCiv?.name) {return;}
                     return <FlagArrow key={index} hex={hex} />
                 })}
             </div>
@@ -2480,7 +2488,7 @@ export default function GamePage() {
             return city?.is_decline_view_option;
         }
         if (playerNum !== null && playerNum !== undefined) {
-            return city?.civ?.game_player?.player_num === playerNum
+            return civsByIdRef.current?.[city.civ_id]?.game_player?.player_num === playerNum
         }
         return false;
     }
@@ -2562,8 +2570,10 @@ export default function GamePage() {
 
 
     const City = ({ city, isHovered, isSelected, isUnitInHex, everControlled }) => {
-        const primaryColor = civTemplates[city.civ.name]?.primary_color;
-        const secondaryColor = civTemplates[city.civ.name]?.secondary_color;
+        const civTemplate = civTemplates[civsById?.[city.civ_id]?.name]
+        
+        const primaryColor = civTemplate?.primary_color;
+        const secondaryColor = civTemplate?.secondary_color;
     
         const friendly = isFriendlyCity(city);
     
@@ -2689,8 +2699,10 @@ export default function GamePage() {
     };
 
     const Unit = ({ unit, isCityInHex }) => {
-        const primaryColor = civTemplates[unit.civ.name]?.primary_color;
-        const secondaryColor = civTemplates[unit.civ.name]?.secondary_color;
+        const unitCivTemplate = civTemplates[civsById?.[unit.civ_id]?.name]
+
+        const primaryColor = unitCivTemplate?.primary_color;
+        const secondaryColor = unitCivTemplate?.secondary_color;
         const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
     
         const scale = isCityInHex ? 0.95 : 1.4;
@@ -2793,8 +2805,8 @@ export default function GamePage() {
         setHoveredHex(hex);
         let hoveredCivPicked = false;
         if (hex.city) {
-            setHoveredCiv(civTemplates[hex.city.civ.name]);
-            setHoveredGamePlayer(hex?.city?.civ?.game_player?.username);
+            setHoveredCiv(civTemplates[civsByIdRef.current[hex?.city?.civ_id]?.name]);
+            setHoveredGamePlayer(civsByIdRef.current[hex?.city?.civ_id]?.game_player?.username);
             setHoveredCity(hex.city)
             hoveredCivPicked = true;
         }
@@ -2803,8 +2815,8 @@ export default function GamePage() {
         }
         if (hex?.units?.length > 0) {
             setHoveredUnit(hex?.units?.[0]);
-            setHoveredCiv(civTemplates[hex?.units?.[0]?.civ.name]);
-            setHoveredGamePlayer(hex?.units?.[0]?.civ?.game_player?.username);
+            setHoveredCiv(civTemplates[civsByIdRef.current[hex?.units?.[0]?.civ_id]?.name]);
+            setHoveredGamePlayer(civsByIdRef.current[hex?.units?.[0]?.civ_id]?.game_player?.username);
             hoveredCivPicked = true;
         }
         else {
@@ -3058,11 +3070,12 @@ export default function GamePage() {
                         setDeclineOptionsView={setDeclineOptionsView}
                         declineViewGameState={declineViewGameState}
                         declineOptionsView={declineOptionsView}
+                        civsById={civsById}
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
-                        myCivTemplate={civTemplates[selectedCity.civ.name]}
-                        declinePreviewMode={!myCiv || selectedCity.civ.name != myCiv.name}
+                        myCivTemplate={civTemplates[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
+                        declinePreviewMode={!myCiv || selectedCity.civ_id != myCivId}
                         playerNum={playerNum}
                         playerApiUrl={playerApiUrl}
                         setGameState={setGameState}
@@ -3096,7 +3109,7 @@ export default function GamePage() {
                             </Typography>
                         </div>}
                     </div>
-                    {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons}/>}
+                    {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons} civsById={civsById}/>}
                     {<div style={{
                         position: 'fixed', 
                         bottom: '10px', 
@@ -3116,6 +3129,7 @@ export default function GamePage() {
                                 nonDeclineViewGameState={nonDeclineViewGameState}
                                 engineState={engineState}
                                 handleFoundCapital={handleFoundCapital}
+                                civsById={civsById}
                             />
                             }
                         {engineState === EngineStates.GAME_OVER && !gameOverDialogOpen && <Button
