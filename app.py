@@ -640,14 +640,14 @@ def enter_player_input(sess, game_id):
     
     # TODO this is kinda silly?
     turn_num: int = get_most_recent_game_state(sess, game_id).turn_num
-    if rget(turn_lock_key(game_id, turn_num)) == 1:
+    if rget(turn_lock_key(game_id, turn_num)) is not None:
         return jsonify({"error": "Turn is over"}), 400
     
     # This block counts how many threads are currently running turns.
     # We won't roll the turn until they are done.
     with CodeBlockCounter(moves_processing_key(game_id, turn_num)):
         # Conceivably, the turn could have rolled while we were incrementing the counter
-        if rget(turn_lock_key(game_id, turn_num)):
+        if rget(turn_lock_key(game_id, turn_num)) is not None:
             return jsonify({"error": "Turn is over"}), 400
         
         # Now do the actual roll.
