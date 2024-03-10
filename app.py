@@ -654,8 +654,8 @@ def enter_player_input(sess, game_id):
         _, _, game_state_to_return_json, decline_eviction_player = update_staged_moves(sess, game_id, player_num, [player_input])
 
         if player_input.get('move_type') == 'choose_decline_option':
-            print(f"Muting timer due to decline")
-            socketio.emit('mute_timer', {'turn_num': game_state_to_return_json['turn_num']}, room=game_id)  # type: ignore
+            _pause_game_inner(sess, game_id)
+        
 
         if decline_eviction_player is not None:
             print(f"app.py evicting player {decline_eviction_player}")
@@ -701,14 +701,7 @@ def end_turn(sess, game_id):
     return jsonify({})
 
 
-@app.route('/api/pause/<game_id>', methods=['POST'])
-@api_endpoint
-def pause_game(sess, game_id):
-    game = sess.query(Game).filter(Game.id == game_id).first()
-
-    if not game:
-        return jsonify({"error": "Game not found"}), 404
-    
+def _pause_game_inner(sess, game_id: str) -> None:
     most_recent_game_state_animation_frame = (
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
@@ -724,10 +717,21 @@ def pause_game(sess, game_id):
     game_state.next_forced_roll_at = None
 
     most_recent_game_state_animation_frame.game_state = game_state.to_json()
-
+    
     sess.commit()
 
     socketio.emit('mute_timer', {'turn_num': game_state.turn_num}, room=game_id)  # type: ignore
+
+
+@app.route('/api/pause/<game_id>', methods=['POST'])
+@api_endpoint
+def pause_game(sess, game_id):
+    game = sess.query(Game).filter(Game.id == game_id).first()
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    _pause_game_inner(sess, game_id)
 
     return jsonify({})
 
