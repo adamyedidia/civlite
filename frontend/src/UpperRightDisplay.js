@@ -142,7 +142,14 @@ const CivVitalityDisplay = ({ civVitality, myCities, turnNum, myGamePlayer, decl
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding, civsById}) => {
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.is_decline_view_option);
     const unhappinessThreshold = declineViewGameState?.unhappiness_threshold
-    return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
+    const maxPlayerScore = Math.max(...Object.values(declineViewGameState?.game_player_by_player_num || {}).map(player => player.score));
+    const distanceFromWin = declineViewGameState?.game_end_score - maxPlayerScore;
+    let content = <>
+        {25 < distanceFromWin && distanceFromWin < 50 && <WithTooltip tooltip="Another player is within 50 points of winning. Declining may would let them win.">
+            <div className="distance-from-win">
+                GAME WILL END SOON
+            </div>
+        </WithTooltip>}
         {turnNum > 1 && <Button className="toggle-decline-view" 
             onClick={() => setDeclineOptionsView(!declineOptionsView)}
             variant="contained" 
@@ -168,12 +175,25 @@ const CivVitalityDisplay = ({ civVitality, myCities, turnNum, myGamePlayer, decl
                 </div>
             </WithTooltip>
         </div>}
+    </>
+    if (0 < distanceFromWin && distanceFromWin <= 25) {
+        content = <WithTooltip tooltip="Another player is within 25 points of winning. Declining now would let them win instantly.">
+        <div className="distance-from-win">
+            <div>GAME WILL END SOON</div>
+            <div className="distance-from-win-warning">
+                DECLINE IMPOSSIBLE
+            </div>
+        </div>
+        </WithTooltip>
+    }
+    return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(civVitality * 100)}%`}>
+        {content}
     </CivDetailPanel>
 }
 
-const ScoreDisplay = ({ myGamePlayer }) => {
+const ScoreDisplay = ({ myGamePlayer, gameEndScore }) => {
     const score = myGamePlayer?.score;
-    return <CivDetailPanel icon={vpImg} title='score' bignum={score}>
+    return <CivDetailPanel icon={vpImg} title='score' bignum={score} iconTooltip={`${gameEndScore} points to win`}>
         <Grid container direction="column" spacing={0}>
             <Grid item>
                 <Typography>
@@ -256,7 +276,7 @@ const UpperRightDisplay = ({ gameState, canFoundCity, isFoundingCity, disableUI,
                 declineViewGameState={declineViewGameState} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} 
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
                 civsById={civsById}/>}
-            {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} />}
+            {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={gameState.game_end_score}/>}
         </div>
     );
 };

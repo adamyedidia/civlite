@@ -366,7 +366,11 @@ export default function GamePage() {
         const myCiv = gameState?.civs_by_id?.[myCivId];
         return {gamePlayer, myCivId, myCiv};
     }
-    const {myGamePlayer, myCivId, myCiv} = getMyInfo(declineOptionsView ? nonDeclineViewGameState : gameState);
+    const info = getMyInfo(declineOptionsView ? nonDeclineViewGameState : gameState);
+    const myGamePlayer = info.gamePlayer;
+    const myCivId = info.myCivId;
+    const myCiv = info.myCiv;
+
     const techChoices = myCiv?.current_tech_choices;
 
     const civsById = gameState?.civs_by_id;
