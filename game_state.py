@@ -905,7 +905,7 @@ class GameState:
                 return civ
         raise Exception(f"Civ not found: {civ_name}, {self.civs_by_id}")
     
-    def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
+    def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None, include_city_civ_details: bool = False) -> dict:
         if self.game_over:
             from_civ_perspectives = None
 
@@ -913,7 +913,7 @@ class GameState:
             "game_id": self.game_id,
             "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
             "civs_by_id": {civ_id: civ.to_json() for civ_id, civ in self.civs_by_id.items()},
-            "cities_by_id": {city_id: city.to_json() for city_id, city in self.cities_by_id.items()},
+            "cities_by_id": {city_id: city.to_json(include_civ_details=include_city_civ_details) for city_id, city in self.cities_by_id.items()},
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
             "turn_num": self.turn_num,
             "wonders_built_to_civ_id": self.wonders_built_to_civ_id.copy(),
@@ -926,7 +926,7 @@ class GameState:
             "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{self.game_id}') or {},
             "next_forced_roll_at": self.next_forced_roll_at,
             "roll_id": self.roll_id,
-            "fresh_cities_for_decline": {coords: city.to_json() for coords, city in self.fresh_cities_for_decline.items()},
+            "fresh_cities_for_decline": {coords: city.to_json(include_civ_details=True) for coords, city in self.fresh_cities_for_decline.items()},
             "unhappiness_threshold": self.unhappiness_threshold,
         }
     

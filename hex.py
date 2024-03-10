@@ -153,7 +153,7 @@ class Hex:
                 "camp": self.camp.to_json() if self.camp else None,
                 "visibility_by_civ": self.visibility_by_civ,
                 "is_foundable_by_civ": self.is_foundable_by_civ,
-            } if from_civ_perspectives is None or any([self.visibility_by_civ.get(from_civ_perspective.id) for from_civ_perspective in from_civ_perspectives]) else {}),
+            } if (from_civ_perspectives is None or any([self.visibility_by_civ.get(from_civ_perspective.id) for from_civ_perspective in from_civ_perspectives])) and self.yields is not None else {}),
         }
     
     @staticmethod
@@ -163,15 +163,16 @@ class Hex:
             r=json["r"],
             s=json["s"],
             terrain=json["terrain"],
-            yields=Yields.from_json(json["yields"]),
+            yields=Yields.from_json(json_yields if (json_yields := json.get("yields")) else {"food": 0, "wood": 0, "metal": 0, "science": 0}),
         )
-        hex.units = [Unit.from_json(unit_json) for unit_json in json["units"]]
+        hex.units = [Unit.from_json(unit_json) for unit_json in json.get("units") or []]
         if json.get("city"):
-            hex.city = City.from_json(json["city"])
+            hex.city = City.from_json(json.get("city")) if "city" in json else None  # type: ignore
         if json.get("camp"):
-            hex.camp = Camp.from_json(json["camp"])
-        hex.visibility_by_civ = json["visibility_by_civ"].copy()
+            hex.camp = Camp.from_json(json.get("camp")) if "camp" in json else None  # type: ignore
+        hex.visibility_by_civ = (json.get("visibility_by_civ") or {}).copy()
         if json.get("is_foundable_by_civ"):
-            hex.is_foundable_by_civ = json["is_foundable_by_civ"].copy()
+            hex.is_foundable_by_civ = (json.get("is_foundable_by_civ") or {}).copy()
 
         return hex
+

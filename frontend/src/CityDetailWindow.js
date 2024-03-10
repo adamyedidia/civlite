@@ -221,8 +221,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
 
     return (
         <div className="city-detail-window" 
-            style={{borderColor: myCivTemplate.secondary_color}}>
-            <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate.primary_color}e0`}}>
+            style={{borderColor: myCivTemplate?.secondary_color}}>
+            <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate?.primary_color}e0`}}>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
                     <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
                 </h1>
