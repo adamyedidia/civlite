@@ -13,6 +13,7 @@ from unit_templates_list import PRODUCTION_BUILDINGS_BY_UNIT_NAME, UNITS, UNITS_
 from utils import generate_unique_id
 import random
 from typing import Dict
+import traceback
 
 if TYPE_CHECKING:
     from hex import Hex
@@ -797,9 +798,13 @@ class City:
         
 
     def to_json(self, include_civ_details: bool = False) -> dict:
+        if include_civ_details:
+            print("my to_json:", self.name, self.revolt_unit_count)
+                
+
         return {
             "id": self.id,
-            "civ_id": self.civ_id,
+            "civ_id": self.civ.id,
             **({"civ": self.civ.to_json()} if include_civ_details else {}),
             "ever_controlled_by_civ_ids": self.ever_controlled_by_civ_ids,
             "name": self.name,
@@ -863,6 +868,7 @@ class City:
         city.revolting_starting_vitality = json["revolting_starting_vitality"]
         city.unhappiness = json["unhappiness"]
         city.is_decline_view_option = json["is_decline_view_option"]
+        city.revolt_unit_count = json["revolt_unit_count"]
 
         city.handle_cleanup()
 

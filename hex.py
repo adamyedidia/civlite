@@ -163,7 +163,7 @@ class Hex:
             r=json["r"],
             s=json["s"],
             terrain=json["terrain"],
-            yields=Yields.from_json(json.get("yields")) if json.get("yields") else None,  # type: ignore
+            yields=Yields.from_json(json_yields if (json_yields := json.get("yields")) else {"food": 0, "wood": 0, "metal": 0, "science": 0}),
         )
         hex.units = [Unit.from_json(unit_json) for unit_json in json.get("units") or []]
         if json.get("city"):

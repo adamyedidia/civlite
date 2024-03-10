@@ -2552,7 +2552,7 @@ export default function GamePage() {
             }).then(response => response.json())
                 .then(data => {
                     const myNewCiv = data.game_state.civs_by_id?.[data.game_state.game_player_by_player_num[playerNum].civ_id];
-                    const success = myNewCiv?.name == selectedCity.civ.name;
+                    const success = myNewCiv?.name == civsByIdRef.current[selectedCity.civ_id].name;
                     if (data.game_state && success) {
                         setGameState(data.game_state);
                         setNonDeclineViewGameState(data.game_state);  // Clear the old cached non-decline game state.
@@ -2932,6 +2932,10 @@ export default function GamePage() {
             });
     }
 
+    const totalHexYields = (yields) => {
+        return Object.values(yields).reduce((a, b) => a + b, 0);
+    }
+
     const displayGameState = (gameState) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes).sort((a, b) => {
@@ -2960,7 +2964,7 @@ export default function GamePage() {
                                             cellStyle={foundingCity ? 
                                                     hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
                                                     : 
-                                                    hex.yields ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
+                                                    (hex.yields && totalHexYields(hex.yields) > 0) ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
                                             onClick={(e) => handleClickHex(hex, e)} 
                                             onMouseOver={() => handleMouseOverHex(hex)}
                                             onMouseLeave={() => handleMouseLeaveHex(hex)}

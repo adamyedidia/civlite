@@ -409,7 +409,7 @@ class Unit:
             "id": self.id,
             "name": self.template.name,
             "health": self.health,
-            "civ_id": self.civ_id,
+            "civ_id": self.civ.id,
             "has_moved": self.has_moved,
             "coords": self.hex.coords if self.hex is not None else None,
             "strength": self.strength,

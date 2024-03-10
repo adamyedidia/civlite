@@ -176,7 +176,7 @@ class Camp:
             "id": self.id,
             "under_siege_by_civ": self.under_siege_by_civ.to_json() if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
-            "civ_id": self.civ_id,
+            "civ_id": self.civ.id,
             "unit": self.unit.name
         }
     

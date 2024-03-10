@@ -310,9 +310,13 @@ class GameState:
         unit_count = 0
         for neighbor_hex in [hex, *hex.get_neighbors(self.hexes)]:
             for unit in neighbor_hex.units:
+                print('revolting unit', unit.to_json())
+
                 old_unit_civ = unit.civ
                 unit.civ = new_civ
                 unit_count += unit.get_stack_size()
+
+                print('unit count', unit_count)
                 
                 if old_unit_civ.game_player:
                     old_unit_civ.game_player.score += unit_count
@@ -320,6 +324,8 @@ class GameState:
 
             neighbor_hex.camp = None
         hex.city.revolt_unit_count = unit_count
+
+        print('unit count final', unit_count, hex.city.name)
 
         hex.city.midturn_update(self)
 
@@ -793,6 +799,8 @@ class GameState:
             assert self.hexes[coords].city is None, f"City already exists at {coords}"
             city: City = self.process_decline_option(coords, from_civ_perspectives)
             city.is_decline_view_option = True
+
+            print(f'revolt unit count for {city.name}: {city.revolt_unit_count}')
         
         for city in self.cities_by_id.values():
             if city.civ_to_revolt_into is not None:
