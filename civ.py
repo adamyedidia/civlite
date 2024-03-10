@@ -48,6 +48,7 @@ class Civ:
         self.projected_city_power_income = 0.0
         self.in_decline = False
         self.initial_advancement_level = 0
+        self.trade_hub_id: Optional[str] = None
 
     def __eq__(self, other: 'Civ') -> bool:
         # TODO(dfarhi) clean up all remaining instances of (civ1.id == civ2.id)
@@ -166,6 +167,7 @@ class Civ:
             "advancement_level": self.get_advancement_level(),
             "initial_advancement_level": self.initial_advancement_level,
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
+            "trade_hub_id": self.trade_hub_id,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -372,6 +374,7 @@ class Civ:
         civ.projected_city_power_income = json["projected_city_power_income"]
         civ.in_decline = json["in_decline"]
         civ.initial_advancement_level = json.get("initial_advancement_level", 0)
+        civ.trade_hub_id = json.get("trade_hub_id")
 
         return civ
 

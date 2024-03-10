@@ -80,6 +80,9 @@ class City:
         self.adjust_projected_yields(game_state)
         self.refresh_available_buildings()
 
+    def is_trade_hub(self):
+        return self.civ.trade_hub_id == self.id
+
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
             self.projected_income = resourcedict()
@@ -93,6 +96,10 @@ class City:
  
         self.projected_income['unhappiness'] = max(0, self.food_demand - self.projected_income['food'])
         self.projected_income['city-power'] = max(0, self.projected_income['food'] - self.food_demand)
+
+        if self.is_trade_hub() and self.unhappiness + self.projected_income["unhappiness"] > 10:
+            self.projected_income["unhappiness"] -= 10
+            self.projected_income['city-power'] -= 20
 
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
@@ -562,11 +569,14 @@ class City:
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         print(f"****Captured {self.name}****")
-        self.civ = civ
+        if self.is_trade_hub():
+            self.civ.trade_hub_id = None
         self.capital = False
         self.unhappiness = 0
         self.wood /= 2
         self.metal /= 2
+
+        self.civ = civ
 
         for building in self.buildings:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
@@ -821,6 +831,8 @@ class City:
             "is_decline_view_option": self.is_decline_view_option,
             "food_demand": self.food_demand,
             "revolt_unit_count": self.revolt_unit_count,
+
+            "is_trade_hub": self.is_trade_hub(),
         }
 
     @staticmethod

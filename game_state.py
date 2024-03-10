@@ -491,6 +491,18 @@ class GameState:
                 game_player_to_return = game_player
                 self.midturn_update()
 
+            if move['move_type'] == 'trade_hub':
+                game_player = self.game_player_by_player_num[player_num]
+                city_id = move['city_id']
+                assert game_player.civ_id is not None
+                civ: Civ = self.civs_by_id[game_player.civ_id]
+                if civ.trade_hub_id == city_id:
+                    civ.trade_hub_id = None
+                else:
+                    civ.trade_hub_id = city_id
+                game_player_to_return = game_player
+                self.midturn_update()
+
             if move['move_type'] == 'found_city':
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
