@@ -206,9 +206,14 @@ class City:
     @property
     def food_demand(self) -> int:
         if self.capital:
-            return int(0.5 * self.population)
+            result = int(0.5 * self.population)
         else:
-            return 2 * self.population
+            result = 2 * self.population
+        for building in self.buildings:
+            for ability in building.template.abilities:
+                if ability.name == 'DecreaseFoodDemand':
+                    result -= ability.numbers[0]
+        return result
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:
         self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num + 0.035 * self.unhappiness

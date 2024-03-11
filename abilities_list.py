@@ -84,6 +84,11 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Increase {x} yields per population in the city with a {x} focus by {y}.",
         numbers=[x, y],
     ),
+    "DecreaseFoodDemand": lambda x: Ability(
+        name="DecreaseFoodDemand",
+        description=f"Decrease food demand by {x}.",
+        numbers=[x],
+    ),
     "NewUnitsGainBonusStrength": lambda x: Ability(
         name="UnitsHaveExtraStrength",
         description=f"New units you build get +{x} extra strength.",
