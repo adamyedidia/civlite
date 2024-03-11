@@ -299,6 +299,7 @@ export default function GamePage() {
     const [animationTotalFrames, setAnimationTotalFrames] = useState(null);
     const [animationFinalState, setAnimationFinalState] = useState(null);
     const [animationActiveDelay, setAnimationActiveDelay] = useState(null);
+    const [animationsLastStartedAt, setAnimationsLastStartedAt] = useState(null);
 
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
@@ -2344,6 +2345,7 @@ export default function GamePage() {
     }
 
     const finalAnimationFrame = () => {
+        console.log("Animations took", (Date.now() - animationsLastStartedAt) / 1000, "seconds");
         setAnimationFrame(null);
         const finalGameState = animationFinalState;
         setGameState(finalGameState);
@@ -3214,14 +3216,16 @@ export default function GamePage() {
                 console.log("Turn started: ", data.game_state.turn_num);
                 setTurnNum(data.game_state.turn_num);
                 setAnimationTotalFrames(data.num_frames);
-                const budgetedAnimationTime = Math.min(30, data.game_state.turn_num) * 1000;
+                const budgetedAnimationTime = Math.min(10, data.game_state.turn_num) * 1000;
                 // Give 5 seconds for the backend computation
                 const animationTime = Math.max(budgetedAnimationTime - 5000, 5000);
-                console.log("Attempting to play animation with", data.num_frames,  "frames in", animationTime/1000, "secs; turn has left", Math.floor(data.game_state.next_forced_roll_at - Date.now()/1000), " secs.");
-                setAnimationActiveDelay(Math.min(ANIMATION_DELAY, animationTime / data.num_frames));
+                const animationDelay = Math.min(ANIMATION_DELAY, animationTime / data.num_frames)
+                console.log("Attempting to play animation with", data.num_frames,  "frames in", animationTime/1000, "secs; turn has left", Math.floor(data.game_state.next_forced_roll_at - Date.now()/1000), " secs. Playing one frame per", animationDelay, "ms");
+                setAnimationActiveDelay(animationDelay);
 
                 if (playAnimations) {
                     triggerAnimations(data.game_state);
+                    setAnimationsLastStartedAt(Date.now());
                 } else {
                     setGameState(data.game_state);
                     const {_, __, myCiv} = getMyInfo(data.game_state);
