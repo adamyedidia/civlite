@@ -74,20 +74,13 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
         setSelectedCity(null);
     }
 
-    const handleClickBuildingChoice = (buildingName) => {
-        if (declinePreviewMode) return;
-        const playerInput = {
-            'building_name': (buildingName),
-            'move_type': 'choose_building',
-            'city_id': selectedCity.id,
-        }
-
+    const submitPlayerInput = (moveType, playerInput) => {
         const data = {
             player_num: playerNum,
             player_input: playerInput,
         }
-
-        setHoveredBuilding(null);
+        playerInput['move_type'] = moveType;
+        playerInput['city_id'] = selectedCity.id;
 
         fetch(playerApiUrl, {
             method: 'POST',
@@ -102,122 +95,37 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                     refreshSelectedCity(data.game_state);
                 }
             });
+    }
+
+    const handleClickBuildingChoice = (buildingName) => {
+        if (declinePreviewMode) return;
+        setHoveredBuilding(null);
+        submitPlayerInput('choose_building', {'building_name': (buildingName),});
     }
 
     const handleCancelBuilding = (buildingName) => {
         if (declinePreviewMode) return;
-        const playerInput = {
-            'building_name': (buildingName),
-            'move_type': 'cancel_building',
-            'city_id': selectedCity.id,
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-
         setHoveredBuilding(null);
-
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
+        submitPlayerInput('cancel_building', {'building_name': (buildingName),});
     }
 
     const handleSetInfiniteQueue = (unitName) => {
         if (declinePreviewMode) return;
-        const playerInput = {
-            'unit_name': (unitName),
-            'move_type': 'select_infinite_queue',
-            'city_id': selectedCity.id,
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
+        submitPlayerInput('select_infinite_queue', {'unit_name': (unitName),});
     }
 
     const handleClickFocus = (focus) => {
         if (declinePreviewMode) return;
-        const playerInput = {
-            'city_id': selectedCity.id,
-            'focus': focus,
-            'move_type': 'choose_focus',
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
+        submitPlayerInput('choose_focus', {'focus': focus,});
     }
 
     const handleClickTradeHub = () => {
         if (declinePreviewMode) return;
-        const playerInput = {
-            'city_id': selectedCity.id,
-            'move_type': 'trade_hub',
-        }
-
-        const data = {
-            player_num: playerNum,
-            player_input: playerInput,
-        }
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
+        submitPlayerInput('trade_hub', {});
     }
 
     // A bit silly that we calculate the amount available of each resource here
     // And then recalculate each one in the CityDetailPanel.
- 
     const projectedIncome = selectedCity.projected_income || {
         food: 0,
         wood: 0,
