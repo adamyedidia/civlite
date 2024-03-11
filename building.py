@@ -27,6 +27,14 @@ class Building:
     def type(self) -> str:
         return "military" if self.unit_name else self.building_template.type  # type: ignore
 
+    @property
+    def is_national_wonder(self) -> bool:
+        return self.building_template is not None and self.building_template.is_national_wonder
+    
+    @property
+    def is_wonder(self) -> bool:
+        return self.building_template is not None and self.building_template.is_wonder
+
     def has_ability(self, ability_name: str) -> bool:
         return any([ability.name == ability_name for ability in self.template.abilities])
 

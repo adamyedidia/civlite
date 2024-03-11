@@ -169,7 +169,7 @@ UNITS = {
         "movement": 1,
         "range": 2,
         "tags": ["ranged"],
-        "prereq": "Machinery",
+        "prereq": "Compass",
         "abilities": [{
             "name": "BonusNextTo",
             "numbers": ["siege", 4],

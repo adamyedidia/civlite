@@ -301,6 +301,7 @@ class GameState:
         hex.city.population = max(hex.city.population, self.turn_num // 7)
         hex.city.wood = hex.city.metal = hex.city.unhappiness = 0
         hex.city.civ_to_revolt_into = None
+        hex.city.buildings = [b for b in hex.city.buildings if not b.is_national_wonder]
 
         new_civ = hex.city.civ
         new_civ.vitality = hex.city.revolting_starting_vitality

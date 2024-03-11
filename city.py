@@ -592,6 +592,8 @@ class City:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
                 game_state.wonders_built_to_civ_id[building.template.name] = civ.id
 
+        self.buildings = [b for b in self.buildings if not b.is_national_wonder]
+
         military_bldgs = [building for building in self.buildings if isinstance(building.template, UnitTemplate)]
         military_bldgs.sort(key=lambda unit: (-unit.template.advancement_level(), random.random()))  # type: ignore
         best_3 = military_bldgs[:3]
