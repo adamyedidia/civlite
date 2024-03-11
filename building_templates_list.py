@@ -82,6 +82,16 @@ BUILDINGS: dict[str, dict] = {
         "abilities": [],
         "vp_reward": 1,
     },
+    "Bazaar": {
+        "name": "Bazaar",
+        "type": "economy",
+        "cost": 10,
+        "prereq": "Currency",
+        "abilities": [{
+            "name": "DecreaseFoodDemand",
+            "numbers": [4],
+        }],
+    },
     "Workshop": {
         "name": "Workshop",
         "type": "economy",
@@ -204,17 +214,26 @@ BUILDINGS: dict[str, dict] = {
         }],
         "prereq": "Medicine",
     },
-    'Caravansery': {
-        "name": "Caravansery",
+    'Outpost': {
+        "name": "Outpost",
         "type": "economy",
         "cost": 15,
         "abilities": [{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", 2, 'desert'],
         }],
-        "prereq": "Economics",
+        "prereq": "Steel",
     },
-
+    "Caravansery": {
+        "name": "Caravansery",
+        "type": "economy",
+        "cost": 20,
+        "prereq": "Economics",
+        "abilities": [{
+            "name": "DecreaseFoodDemand",
+            "numbers": [10],
+        }],
+    },
     "Ironworks": {
         "name": "Ironworks",
         "type": "economy",

@@ -89,7 +89,7 @@ TECHS = {
     'Currency': {
         'name': 'Currency',
         'cost': 40,
-        'unlocks_buildings': ['Petra'],
+        'unlocks_buildings': ['Petra', 'Bazaar'],
         'advancement_level': 2,
     },
     'Engineering': {
@@ -192,6 +192,7 @@ TECHS = {
         'name': 'Steel',
         'cost': 120,
         'unlocks_units': ['Hussar'],
+        'unlocks_buildings': ['Outpost'],
         'advancement_level': 5,
     },
     'Military Science': {
