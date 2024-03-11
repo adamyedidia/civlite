@@ -51,7 +51,13 @@ const coordsToObject = (coords) => {
     return {q: q, r: r, s: s};
 }
 
-const ANIMATION_DELAY = 300;
+const MIN_ANIMATION_DELAY = 100;
+const MAX_ANIMATION_DELAY = 300;
+
+const now = () => {
+    const now = new Date();
+    return `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}.${now.getMilliseconds()}`;
+}
 
 let userHasInteracted = false;
 
@@ -295,7 +301,8 @@ export default function GamePage() {
     const engineStateRef = React.useRef(engineState);
 
     const [animationFrame, setAnimationFrame] = useState(null);
-    const [animationFrameLastPlayed, setAnimationFrameLastPlayed] = useState(0);
+    const animationFrameLastPlayedRef = React.useRef(0);
+
     const [animationTotalFrames, setAnimationTotalFrames] = useState(null);
     const [animationFinalState, setAnimationFinalState] = useState(null);
     const [animationActiveDelay, setAnimationActiveDelay] = useState(null);
@@ -2296,7 +2303,7 @@ export default function GamePage() {
 
         setTimeout(() => {
             document.body.removeChild(arrow);
-        }, ANIMATION_DELAY * 0.67);
+        }, MAX_ANIMATION_DELAY * 0.67);
     }
 
     const showMovementArrows = (coords) => {
@@ -2309,10 +2316,21 @@ export default function GamePage() {
         }
     }
 
+    const waitForFrame = async (frameNum) => {
+        if (animationFrameLastPlayedRef.current !== frameNum) {
+            console.log(now(), "Frame", frameNum, "delayed.")
+            while (animationFrameLastPlayedRef.current !== frameNum) { 
+                await new Promise(resolve => setTimeout(resolve, 20));
+            }
+        }
+    };
+
     const playAnimationFrame = async (frameNum) => {
         try {
             const response = await fetch(`${URL}/api/movie/frame/${gameId}/${frameNum}?player_num=${playerNum}`);
             const json = await response.json();
+            // Wait for previous frame to give us permission to go ahead.
+            await waitForFrame(animationFrame - 1);
             if (!json.data) {
                 console.error("No data in frame", frameNum);
                 return;
@@ -2338,13 +2356,18 @@ export default function GamePage() {
                     setGameState(json.game_state);
                     break;
             }
-            setAnimationFrameLastPlayed(frameNum);
+            // Wait MIN_ANIMATION_DELAY before saying we're done with this frame.
+            // So it definitely displays for at least that long.
+            await new Promise(resolve => setTimeout(resolve, MIN_ANIMATION_DELAY));
+            console.log(now(), ": Animation done frame", frameNum)
+            animationFrameLastPlayedRef.current = frameNum;
         } catch (error) {
             console.error('Error fetching movie frame:', error);
         }
     }
 
-    const finalAnimationFrame = () => {
+    const finalAnimationFrame = async () => {
+        await waitForFrame(animationTotalFrames);
         console.log("Animations took", (Date.now() - animationsLastStartedAt) / 1000, "seconds");
         setAnimationFrame(null);
         const finalGameState = animationFinalState;
@@ -2356,44 +2379,49 @@ export default function GamePage() {
     }
 
     useEffect(() => {
+        // This function triggers periodicially at the appropriate interval
+        // It achieves this by scheduling a future call to itself as its first action.
+        // (By updating the animationFrame)
         if (animationFrame === null) {return;}
-        else if (animationFrameLastPlayed === animationFrame) {
-            // This is the call that happens in the normal course of business when LastPlayed gets updated; 
-            // we can ignore it.
+        else if (animationFrameLastPlayedRef.current >= animationFrame) {
+            console.error("wtf is going on with the animation scheduling? last played frame", animationFrameLastPlayedRef.current, "now time for frame", animationFrame);
             return;
         }
-        else if (animationFrameLastPlayed == animationFrame - 2) {
-            console.error("time to play frame", animationFrame, "but last played", animationFrameLastPlayed, " -- is the network too slow?");
-            // When the network is too slow, we can't keep up with the animation frames. 
-            // We can abort this call; this function will be called again when animationFrameLastPlayed increments
-            return;
-        }
-        else if (animationFrameLastPlayed !== animationFrame  - 1) {
-            console.log("wtf is going on with the animation scheduling? last played frame", animationFrameLastPlayed, "now time for frame", animationFrame);
-        }
-        
+
+        // Check if any other process has cancelled the animations by changing the engine state to something else.
         if (engineState !== EngineStates.ANIMATING) {
             console.log("Canceling animation");
             finalAnimationFrame();
             return;
         }
-        if (animationFrame >= animationTotalFrames) {
-            finalAnimationFrame();
-            transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING)
+
+        // First thing, we schedule the next call to this function for the next frame.
+        // Do this before we do any other work, so that the metronome stays close to accurate.
+        if (animationFrame <= animationTotalFrames) {
+            setTimeout(() => setAnimationFrame(animationFrame + 1), animationActiveDelay);
+        }
+        else if (animationFrame == animationTotalFrames + 1) {
+            console.log(now(), ": Final animation frame.");
+            finalAnimationFrame().then(() => {
+                transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING);
+            });
             return;
         }
-        setTimeout(() => setAnimationFrame(animationFrame + 1), animationActiveDelay);
+        else {
+            console.error("wtf how did you get here?", animationFrame, animationTotalFrames)
+        }
         playAnimationFrame(animationFrame);
-    }, [animationFrame, animationFrameLastPlayed])
+    }, [animationFrame])
 
     const triggerAnimations = (finalGameState) => {
         if (engineState === EngineStates.ANIMATING) {
             console.error("Already animating, but tried to start another animation!")
             return;
         }
+        setAnimationsLastStartedAt(Date.now());
         transitionEngineState(EngineStates.ANIMATING)
         setAnimationFrame(1);
-        setAnimationFrameLastPlayed(0);
+        animationFrameLastPlayedRef.current = 0;
         setAnimationFinalState(finalGameState);
     }
 
@@ -3216,16 +3244,15 @@ export default function GamePage() {
                 console.log("Turn started: ", data.game_state.turn_num);
                 setTurnNum(data.game_state.turn_num);
                 setAnimationTotalFrames(data.num_frames);
-                const budgetedAnimationTime = Math.min(10, data.game_state.turn_num) * 1000;
+                const budgetedAnimationTime = Math.min(30, data.game_state.turn_num) * 1000;
                 // Give 5 seconds for the backend computation
                 const animationTime = Math.max(budgetedAnimationTime - 5000, 5000);
-                const animationDelay = Math.min(ANIMATION_DELAY, animationTime / data.num_frames)
+                const animationDelay = Math.min(MAX_ANIMATION_DELAY, animationTime / data.num_frames)
                 console.log("Attempting to play animation with", data.num_frames,  "frames in", animationTime/1000, "secs; turn has left", Math.floor(data.game_state.next_forced_roll_at - Date.now()/1000), " secs. Playing one frame per", animationDelay, "ms");
                 setAnimationActiveDelay(animationDelay);
 
                 if (playAnimations) {
                     triggerAnimations(data.game_state);
-                    setAnimationsLastStartedAt(Date.now());
                 } else {
                     setGameState(data.game_state);
                     const {_, __, myCiv} = getMyInfo(data.game_state);
