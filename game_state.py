@@ -304,7 +304,7 @@ class GameState:
         hex.city.civ_to_revolt_into = None
         hex.city.buildings = [b for b in hex.city.buildings if not b.is_national_wonder]
 
-        new_civ = hex.city.civ
+        new_civ: Civ = hex.city.civ
         new_civ.vitality = hex.city.revolting_starting_vitality
         self.civs_by_id[new_civ.id] = new_civ
         from_civ_perspectives.append(new_civ)
@@ -312,13 +312,14 @@ class GameState:
         unit_count = 0
         for neighbor_hex in [hex, *hex.get_neighbors(self.hexes)]:
             for unit in neighbor_hex.units:
-                old_unit_civ = unit.civ
+                old_unit_civ: Civ = unit.civ
                 unit.civ = new_civ
-                unit_count += unit.get_stack_size()
+                stack_size: int = unit.get_stack_size()
+                unit_count += stack_size
                 
                 if old_unit_civ.game_player:
-                    old_unit_civ.game_player.score += unit_count
-                    old_unit_civ.game_player.score_from_revolting_cities += unit_count
+                    old_unit_civ.game_player.score += stack_size
+                    old_unit_civ.game_player.score_from_revolting_cities += stack_size
 
             neighbor_hex.camp = None
         hex.city.revolt_unit_count = unit_count
