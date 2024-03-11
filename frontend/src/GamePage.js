@@ -300,13 +300,12 @@ export default function GamePage() {
     // Ref to keep track of the current engineState
     const engineStateRef = React.useRef(engineState);
 
-    const [animationFrame, setAnimationFrame] = useState(null);
     const animationFrameLastPlayedRef = React.useRef(0);
 
     const [animationTotalFrames, setAnimationTotalFrames] = useState(null);
-    const [animationFinalState, setAnimationFinalState] = useState(null);
+    const animationFinalStateRef = React.useRef(null);
     const [animationActiveDelay, setAnimationActiveDelay] = useState(null);
-    const [animationsLastStartedAt, setAnimationsLastStartedAt] = useState(null);
+    const animationsLastStartedAtRef = React.useRef(null);
 
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
@@ -2325,12 +2324,17 @@ export default function GamePage() {
         }
     };
 
-    const playAnimationFrame = async (frameNum) => {
+    const asyncLaunchAnimationFrame = async (frameNum) => {
         try {
+            // console.log(now(), "Fetching frame", frameNum);
             const response = await fetch(`${URL}/api/movie/frame/${gameId}/${frameNum}?player_num=${playerNum}`);
             const json = await response.json();
+            // console.log(now(), "Fetched frame", frameNum);
+
             // Wait for previous frame to give us permission to go ahead.
-            await waitForFrame(animationFrame - 1);
+            await waitForFrame(frameNum - 1);
+
+            // console.log(now(), "Showing frame", frameNum);
             if (!json.data) {
                 console.error("No data in frame", frameNum);
                 return;
@@ -2366,11 +2370,10 @@ export default function GamePage() {
         }
     }
 
-    const finalAnimationFrame = async () => {
-        await waitForFrame(animationTotalFrames);
-        console.log("Animations took", (Date.now() - animationsLastStartedAt) / 1000, "seconds");
-        setAnimationFrame(null);
-        const finalGameState = animationFinalState;
+    const finalAnimationFrame = async (lastFrameToAwait) => {
+        await waitForFrame(lastFrameToAwait);
+        console.log("Animations took", (Date.now() - animationsLastStartedAtRef.current) / 1000, "seconds");
+        const finalGameState = animationFinalStateRef.current;
         setGameState(finalGameState);
         refreshSelectedCity(finalGameState);
         setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
@@ -2378,51 +2381,43 @@ export default function GamePage() {
         sciencePopupIfNeeded(myCiv);
     }
 
+    const triggerAnimationsInner = async () => {
+        animationsLastStartedAtRef.current = Date.now();
+        animationFrameLastPlayedRef.current = 0;
+
+        for (let frameNum = 1; frameNum <= animationTotalFrames; frameNum++) {
+            // console.log(now(), "Playing frame", frameNum);
+            // Check if any other process has cancelled the animations by changing the engine state to something else.
+            if (engineStateRef.current !== EngineStates.ANIMATING) {
+                console.log("Canceling animation");
+                finalAnimationFrame(frameNum - 1);
+                return;
+            }
+            asyncLaunchAnimationFrame(frameNum);
+            await new Promise(resolve => setTimeout(resolve, animationActiveDelay));
+        }
+        console.log(now(), ": Final animation frame.");
+        finalAnimationFrame(animationTotalFrames).then(() => {
+            transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING);
+        });
+    }
+
     useEffect(() => {
-        // This function triggers periodicially at the appropriate interval
-        // It achieves this by scheduling a future call to itself as its first action.
-        // (By updating the animationFrame)
-        if (animationFrame === null) {return;}
-        else if (animationFrameLastPlayedRef.current >= animationFrame) {
-            console.error("wtf is going on with the animation scheduling? last played frame", animationFrameLastPlayedRef.current, "now time for frame", animationFrame);
-            return;
+        if (engineState === EngineStates.ANIMATING) {
+            triggerAnimationsInner();
         }
+    }, [engineState])
 
-        // Check if any other process has cancelled the animations by changing the engine state to something else.
-        if (engineState !== EngineStates.ANIMATING) {
-            console.log("Canceling animation");
-            finalAnimationFrame();
-            return;
-        }
-
-        // First thing, we schedule the next call to this function for the next frame.
-        // Do this before we do any other work, so that the metronome stays close to accurate.
-        if (animationFrame <= animationTotalFrames) {
-            setTimeout(() => setAnimationFrame(animationFrame + 1), animationActiveDelay);
-        }
-        else if (animationFrame == animationTotalFrames + 1) {
-            console.log(now(), ": Final animation frame.");
-            finalAnimationFrame().then(() => {
-                transitionEngineState(EngineStates.PLAYING, EngineStates.ANIMATING);
-            });
-            return;
-        }
-        else {
-            console.error("wtf how did you get here?", animationFrame, animationTotalFrames)
-        }
-        playAnimationFrame(animationFrame);
-    }, [animationFrame])
-
-    const triggerAnimations = (finalGameState) => {
+    const triggerAnimations = async (finalGameState) => {
         if (engineState === EngineStates.ANIMATING) {
             console.error("Already animating, but tried to start another animation!")
             return;
         }
-        setAnimationsLastStartedAt(Date.now());
-        transitionEngineState(EngineStates.ANIMATING)
-        setAnimationFrame(1);
-        animationFrameLastPlayedRef.current = 0;
-        setAnimationFinalState(finalGameState);
+        // Record the game state to go back to after animations.
+        animationFinalStateRef.current = finalGameState;
+        // Just need to set the engineState.
+        // And the useEffect will notice and do the real work.
+        transitionEngineState(EngineStates.ANIMATING);
     }
 
     const cancelAnimations = () => {
@@ -3078,7 +3073,7 @@ export default function GamePage() {
                         handleClickUnendTurn={handleClickUnendTurn}
                         triggerAnimations={triggerAnimations}
                         engineState={engineState}
-                        animationFrame={animationFrame}
+                        animationFrameLastPlayedRef={animationFrameLastPlayedRef}
                         animationTotalFrames={animationTotalFrames}
                         cancelAnimations={cancelAnimations}
                     />}

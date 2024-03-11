@@ -20,7 +20,9 @@ const AnimationControlBar = ({animationFrame, animationTotalFrames}) => {
     </div>
 }
 
-const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, handleClickEndTurn, handleClickUnendTurn, triggerAnimations, engineState, animationFrame, animationTotalFrames, cancelAnimations }) => {
+const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, 
+    handleClickEndTurn, handleClickUnendTurn, 
+    triggerAnimations, engineState, animationFrameLastPlayedRef, animationTotalFrames, cancelAnimations }) => {
     const toggleAnimations = () => {
         if (engineState === EngineStates.ANIMATING) {
             cancelAnimations();
@@ -60,7 +62,7 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
                 >
                     {engineState === EngineStates.ANIMATING ? 
                         <AnimationControlBar 
-                            animationFrame={animationFrame}
+                            animationFrame={animationFrameLastPlayedRef.current}
                             animationTotalFrames={animationTotalFrames}
                         />
 
