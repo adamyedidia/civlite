@@ -138,13 +138,14 @@ const DeclineOptionRow = ({ city, setDeclineOptionsView, civTemplates, centerMap
     </div>
 }
 
-const CivVitalityDisplay = ({ civVitality, myCities, turnNum, myGamePlayer, declineOptionsView, centerMap, setDeclineOptionsView, declineViewGameState, 
+const CivVitalityDisplay = ({ civVitality, turnNum, centerMap, 
+    setDeclineOptionsView, declineViewGameState, gameState, declineOptionsView, 
     unitTemplates, civTemplates, buildingTemplates,
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding, civsById}) => {
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.is_decline_view_option);
-    const unhappinessThreshold = declineViewGameState?.unhappiness_threshold
-    const maxPlayerScore = Math.max(...Object.values(declineViewGameState?.game_player_by_player_num || {}).map(player => player.score));
-    const distanceFromWin = declineViewGameState?.game_end_score - maxPlayerScore;
+    const unhappinessThreshold = gameState?.unhappiness_threshold
+    const maxPlayerScore = Math.max(...Object.values(gameState?.game_player_by_player_num || {}).map(player => player.score));
+    const distanceFromWin = gameState?.game_end_score - maxPlayerScore;
     let content = <>
         {25 < distanceFromWin && distanceFromWin < 50 && <WithTooltip tooltip="Another player is within 50 points of winning. Declining may would let them win.">
             <div className="distance-from-win">
@@ -177,7 +178,7 @@ const CivVitalityDisplay = ({ civVitality, myCities, turnNum, myGamePlayer, decl
             </WithTooltip>
         </div>}
     </>
-    if (0 < distanceFromWin && distanceFromWin <= 25) {
+    if (0 < distanceFromWin && distanceFromWin <= 25 && !declineOptionsView) {
         content = <WithTooltip tooltip="Another player is within 25 points of winning. Declining now would let them win instantly.">
         <div className="distance-from-win">
             <div>GAME WILL END SOON</div>
@@ -274,7 +275,7 @@ const UpperRightDisplay = ({ gameState, canFoundCity, isFoundingCity, disableUI,
             {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} myGamePlayer={myGamePlayer} turnNum={turnNum}
                 disableUI={disableUI} centerMap={centerMap} declineOptionsView={declineOptionsView} setDeclineOptionsView={setDeclineOptionsView} 
-                declineViewGameState={declineViewGameState} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} 
+                declineViewGameState={declineViewGameState} gameState={gameState} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} 
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
                 civsById={civsById}/>}
             {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={gameState.game_end_score}/>}
