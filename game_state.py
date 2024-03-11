@@ -1,4 +1,5 @@
 import math
+from datetime import datetime, timedelta
 from typing import Any, Optional
 from animation_frame import AnimationFrame
 from building import Building
@@ -599,7 +600,24 @@ class GameState:
         for camp in self.camps:
             camp.update_nearby_hexes_hostile_foundability(self.hexes)
 
-    def end_turn(self, sess) -> None:
+    def start_of_new_turn_frame(self, sess, seconds_per_turn) -> None:
+        if seconds_per_turn is not None and not self.game_over and self.turn_num < 200:
+            seconds_until_next_forced_roll: float = int(seconds_per_turn) + min(self.turn_num, 30)
+            next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
+            new_roll_id = generate_unique_id()
+
+            self.next_forced_roll_at = next_forced_roll_at
+            self.roll_id = new_roll_id
+        else:
+            self.next_forced_roll_at = None
+            self.roll_id = None
+
+        self.add_animation_frame(sess, {
+            "type": "StartOfNewTurn",
+        })
+
+
+    def end_turn(self, sess, seconds_per_turn) -> None:
         if self.game_over:
             return
 
@@ -622,13 +640,17 @@ class GameState:
 
         self.roll_turn(sess)
 
-        # for player_num in self.game_player_by_player_num.keys():
-        #     rdel(staged_game_state_key(self.game_id, player_num, self.turn_num))
-        #     rdel(staged_moves_key(self.game_id, player_num, self.turn_num))
+        print("committing changes")
+        sess.commit()
 
-        #     # Dream game state is the fake game state that gets sent to people who are in decline
-        #     rdel(dream_key(self.game_id, player_num, self.turn_num))
-        #     rdel(dream_key_from_civ_perspectives(self.game_id, player_num, self.turn_num))
+        print("final animation frame")
+        self.start_of_new_turn_frame(sess, seconds_per_turn)
+        sess.commit()
+
+        print("Creating decline view")
+        self.create_decline_view(sess)   
+
+        print("roll complete")
 
         rdel(f'turn_ended_by_player_num:{self.game_id}')
 
@@ -721,19 +743,6 @@ class GameState:
         self.handle_decline_options()
         for city in self.fresh_cities_for_decline.values():
             city.roll_turn(sess, self, fake=True)
-
-        print("adding animation frame")
-        self.add_animation_frame(sess, {
-            "type": "StartOfNewTurn",
-        })
-
-        print("committing changes")
-        sess.commit()
-
-        print("Creating decline view")
-        self.create_decline_view(sess)   
-
-        print("roll complete")     
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()

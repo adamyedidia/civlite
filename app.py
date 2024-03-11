@@ -113,16 +113,10 @@ def roll_turn(sess, game: Game, turn_num: int):
     # or else we'll have a stale version.
     game_state: GameState = get_most_recent_game_state(sess, game_id)
 
-    if seconds_per_turn is not None and not game_state.game_over and game_state.turn_num < 200:
-        seconds_until_next_forced_roll: float = int(seconds_per_turn) + min(game_state.turn_num, 30)
-        next_forced_roll_at = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
-        new_roll_id = generate_unique_id()
+    game_state.end_turn(sess, seconds_per_turn)
 
-        Timer(seconds_until_next_forced_roll, load_and_roll_turn_in_game, args=[sess, game.id, game_state.turn_num + 1, new_roll_id]).start()
-        game_state.next_forced_roll_at = next_forced_roll_at
-        game_state.roll_id = new_roll_id
-
-    game_state.end_turn(sess)
+    if game_state.next_forced_roll_at is not None:
+        Timer(game_state.next_forced_roll_at - datetime.now().timestamp(), load_and_roll_turn_in_game, args=[sess, game_id, turn_num + 1, game_state.roll_id]).start()
 
     print("sending update signal")
     broadcast(game.id)
