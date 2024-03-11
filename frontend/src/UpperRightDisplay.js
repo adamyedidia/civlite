@@ -48,9 +48,10 @@ const CityPowerDisplay = ({ civ, myCities, civTemplates, toggleFoundingCity, can
     const civTemplate = civTemplates[civ.name];
     const iconTooltip = <table><tbody>
         <tr><td> +10 </td><td> base </td></tr>
-        {myCities.map((city, index) => (
-            <tr key={index}><td> +{Math.floor(city.projected_income.city_power)} </td><td> from {city.name} </td></tr>
-        ))}
+        {myCities.map((city, index) => {
+            const amount = Math.floor(city.projected_income['city-power']);
+            return amount > 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
+        })}
     </tbody></table>
     
     return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}
