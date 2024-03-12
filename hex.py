@@ -25,6 +25,9 @@ class Hex:
         self.visibility_by_civ: dict[str, bool] = {}
         self.is_foundable_by_civ: dict[str, bool] = {}
 
+    def visible_to_civ(self, civ: Civ) -> bool:
+        return self.visibility_by_civ.get(civ.id, False)
+
     def __repr__(self):
         return f"<Hex {self.coords}>"
 
@@ -153,7 +156,7 @@ class Hex:
                 "camp": self.camp.to_json() if self.camp else None,
                 "visibility_by_civ": self.visibility_by_civ,
                 "is_foundable_by_civ": self.is_foundable_by_civ,
-            } if (from_civ_perspectives is None or any([self.visibility_by_civ.get(from_civ_perspective.id) for from_civ_perspective in from_civ_perspectives])) and self.yields is not None else {}),
+            } if (from_civ_perspectives is None or any([self.visible_to_civ(from_civ_perspective) for from_civ_perspective in from_civ_perspectives])) and self.yields is not None else {}),
         }
     
     @staticmethod

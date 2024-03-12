@@ -79,7 +79,7 @@ class Unit:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
-        if self.has_moved or self.hex is None or self.get_closest_target() is None or self.has_attacked:
+        if self.has_moved or self.hex is None or self.has_attacked:
             return
         should_move_sensitively = sensitive
         starting_hex = self.hex
@@ -155,46 +155,33 @@ class Unit:
                 self.fight(sess, game_state, best_target)
                 self.has_attacked = True
 
+    def target_score(self, target: 'Unit') -> tuple[float, float, float, float]:
+        """
+        Ranking function for which target to attack
+        """
+        assert target.hex is not None and self.hex is not None
+
+        type_scores = {
+            'military': 2,
+            'support': 1,
+        }
+        seiging_my_city: bool = (target.hex.city is not None and target.hex.city.civ == self.civ and len(target.hex.units) > 0 and target.hex.units[0].civ != self.civ)
+        closest_target: Hex = self.destination or self.hex
+        return seiging_my_city, -closest_target.distance_to(target.hex), type_scores[target.template.type], -target.strength
+
+    def valid_attack(self, target: 'Unit') -> bool:
+        visible: bool = target.hex is not None and target.hex.visible_to_civ(self.civ)
+        return visible and target.civ.id != self.civ.id
+
     def get_best_target(self, hexes_to_check: list['Hex']) -> Optional['Unit']:
         if self.hex is None:
             return None
 
-        type_scores = {
-            'military': 1,
-            'support': 2,
-        }
-
-        best_target = None
-        best_target_distance = 10
-        best_target_type_score = 10
-        best_target_strength = 10000
-
-        closest_target = self.get_closest_target()
-        if closest_target is None:
-            closest_target = self.hex
-
-        for hex in hexes_to_check:
-            if hex.visibility_by_civ.get(self.civ.id):
-                for unit in hex.units:
-                    if unit.civ.id != self.civ.id:
-                        distance = closest_target.distance_to(hex)
-                        if distance < best_target_distance:
-                            best_target = unit
-                            best_target_distance = distance
-                            best_target_type_score = type_scores[unit.template.type]
-                            best_target_strength = unit.strength
-                        elif distance == best_target_distance and type_scores[unit.template.type] < best_target_type_score:
-                            best_target = unit
-                            best_target_distance = distance
-                            best_target_type_score = type_scores[unit.template.type]
-                            best_target_strength = unit.strength
-                        elif distance == best_target_distance and type_scores[unit.template.type] == best_target_type_score and unit.strength < best_target_strength:
-                            best_target = unit
-                            best_target_distance = distance
-                            best_target_type_score = type_scores[unit.template.type]
-                            best_target_strength = unit.strength
-
-        return best_target
+        units: list[Unit] = [unit for hex in hexes_to_check for unit in hex.units if self.valid_attack(unit)]
+        if len(units) > 0:
+            return max(units, key=self.target_score)
+        else:
+            return None
 
     def get_damage_to_deal_from_effective_strengths(self, effective_strength: float, target_effective_strength: float) -> int:
         ratio_of_strengths = effective_strength / target_effective_strength
@@ -318,28 +305,28 @@ class Unit:
         neighbors = self.hex.get_neighbors(game_state.hexes)
         # shuffle(neighbors)  Do not shuffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
         for neighboring_hex in neighbors:
-            # Attack neighboring camps
-            if neighboring_hex.camp and not (len(neighboring_hex.units) > 0 and neighboring_hex.units[0].civ.id == self.civ.id):
-                self.destination = neighboring_hex
-                return self.destination
-            
-            # Attack neighboring empty cities
-            if neighboring_hex.city and neighboring_hex.city.civ.id != self.civ.id and len(neighboring_hex.units) == 0:
-                self.destination = neighboring_hex
-                return self.destination
-            
-            # Attack neighboring friendly cities under seige
-            if (neighboring_hex.city and neighboring_hex.city.civ.id == self.civ.id and neighboring_hex.units and neighboring_hex.units[0].civ.id != self.civ.id):
-                self.destination = neighboring_hex
-                return self.destination
-            
             # Don't abandon threatened cities
             if self.hex.city and neighboring_hex.units and neighboring_hex.units[0].civ.id != self.civ.id:
                 self.destination =  None
                 return self.destination
 
             # Move into adjacent friendly empty threatened cities
-            if neighboring_hex.is_threatened_city(game_state) and neighboring_hex.city.civ.id == self.civ.id and len(neighboring_hex.units) == 0:
+            if neighboring_hex.city is not None and neighboring_hex.is_threatened_city(game_state) and neighboring_hex.city.civ.id == self.civ.id and len(neighboring_hex.units) == 0:
+                self.destination = neighboring_hex
+                return self.destination
+
+            # Attack neighboring friendly cities under seige
+            if (neighboring_hex.city and neighboring_hex.city.civ.id == self.civ.id and neighboring_hex.units and neighboring_hex.units[0].civ.id != self.civ.id):
+                self.destination = neighboring_hex
+                return self.destination
+
+            # Attack neighboring empty cities
+            if neighboring_hex.city and neighboring_hex.city.civ.id != self.civ.id and len(neighboring_hex.units) == 0:
+                self.destination = neighboring_hex
+                return self.destination
+
+            # Attack neighboring camps
+            if neighboring_hex.camp and not (len(neighboring_hex.units) > 0 and neighboring_hex.units[0].civ.id == self.civ.id):
                 self.destination = neighboring_hex
                 return self.destination
 
