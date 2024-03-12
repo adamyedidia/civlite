@@ -50,7 +50,7 @@ const CityPowerDisplay = ({ civ, myCities, civTemplates, toggleFoundingCity, can
         <tr><td> +10 </td><td> base </td></tr>
         {myCities.map((city, index) => {
             const amount = Math.floor(city.projected_income['city-power']);
-            return amount > 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
+            return amount != 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
         })}
     </tbody></table>
     

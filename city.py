@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from hex import Hex
     from game_state import GameState
 
+TRADE_HUB_CITY_POWER_PER_TURN = 20
 
 def resourcedict() -> Dict[str, float]:
     return {
@@ -102,9 +103,13 @@ class City:
         self.projected_income['unhappiness'] = max(0, self.food_demand - self.projected_income['food'])
         self.projected_income['city-power'] = max(0, self.projected_income['food'] - self.food_demand)
 
-        if self.is_trade_hub() and self.unhappiness + self.projected_income["unhappiness"] > 10:
-            self.projected_income["unhappiness"] -= 10
-            self.projected_income['city-power'] -= 20
+        if self.is_trade_hub():
+            city_power_to_consume: float = min(
+                TRADE_HUB_CITY_POWER_PER_TURN, 
+                self.civ.city_power, 
+                2 * (self.unhappiness + self.projected_income['unhappiness']))
+            self.projected_income["unhappiness"] -= 0.5 * city_power_to_consume
+            self.projected_income['city-power'] -= city_power_to_consume
 
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
