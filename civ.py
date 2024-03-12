@@ -210,6 +210,14 @@ class Civ:
         if my_rank <= total_players / 2:
             print(f"{self.moniker()} deciding not to decline because I'm rank {my_rank} of {total_players}")
             return None
+        
+        # Don't decline if it would let someone else win
+        assert self.game_player is not None
+        other_players = [player for player in game_state.game_player_by_player_num.values() if player.player_num != self.game_player.player_num]
+        max_player_score = max(other_players, key=lambda player: player.score).score
+        if game_state.game_end_score() - max_player_score < 25:
+                print(f"{self.moniker()} deciding not to decline because opponent would win.")
+                return None
 
         my_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self]
         my_total_yields: float = sum(

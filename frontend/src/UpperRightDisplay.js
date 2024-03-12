@@ -147,7 +147,6 @@ const CivVitalityDisplay = ({ playerNum, civVitality, turnNum, centerMap,
     // Max of all other players' scores
     const maxPlayerScore = Math.max(...Object.values(gameState?.game_player_by_player_num || {}).map(player => player.player_num === playerNum ? 0 : player.score));
     const distanceFromWin = gameState?.game_end_score - maxPlayerScore;
-    console.log(maxPlayerScore)
     let content = <>
         {25 < distanceFromWin && distanceFromWin < 50 && <WithTooltip tooltip="Another player is within 50 points of winning. Declining may let them win.">
             <div className="distance-from-win">
