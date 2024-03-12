@@ -79,7 +79,7 @@ class Unit:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
-        if self.has_moved or self.hex is None or self.get_closest_target() is None or self.has_attacked:
+        if self.has_moved or self.hex is None or self.has_attacked:
             return
         should_move_sensitively = sensitive
         starting_hex = self.hex
@@ -155,46 +155,33 @@ class Unit:
                 self.fight(sess, game_state, best_target)
                 self.has_attacked = True
 
+    def target_score(self, target: 'Unit') -> tuple[float, float, float]:
+        """
+        Ranking function for which target to attack
+        """
+
+        type_scores = {
+            'military': 2,
+            'support': 1,
+        }
+
+        assert target.hex is not None and self.hex is not None
+        closest_target: Hex = self.destination or self.hex
+        return -closest_target.distance_to(target.hex), type_scores[target.template.type], -target.strength
+
+    def valid_attack(self, target: 'Unit') -> bool:
+        visible: bool = target.hex is not None and target.hex.visible_to_civ(self.civ)
+        return visible and target.civ.id != self.civ.id
+
     def get_best_target(self, hexes_to_check: list['Hex']) -> Optional['Unit']:
         if self.hex is None:
             return None
 
-        type_scores = {
-            'military': 1,
-            'support': 2,
-        }
-
-        best_target = None
-        best_target_distance = 10
-        best_target_type_score = 10
-        best_target_strength = 10000
-
-        closest_target = self.get_closest_target()
-        if closest_target is None:
-            closest_target = self.hex
-
-        for hex in hexes_to_check:
-            if hex.visibility_by_civ.get(self.civ.id):
-                for unit in hex.units:
-                    if unit.civ.id != self.civ.id:
-                        distance = closest_target.distance_to(hex)
-                        if distance < best_target_distance:
-                            best_target = unit
-                            best_target_distance = distance
-                            best_target_type_score = type_scores[unit.template.type]
-                            best_target_strength = unit.strength
-                        elif distance == best_target_distance and type_scores[unit.template.type] < best_target_type_score:
-                            best_target = unit
-                            best_target_distance = distance
-                            best_target_type_score = type_scores[unit.template.type]
-                            best_target_strength = unit.strength
-                        elif distance == best_target_distance and type_scores[unit.template.type] == best_target_type_score and unit.strength < best_target_strength:
-                            best_target = unit
-                            best_target_distance = distance
-                            best_target_type_score = type_scores[unit.template.type]
-                            best_target_strength = unit.strength
-
-        return best_target
+        units: list[Unit] = [unit for hex in hexes_to_check for unit in hex.units if self.valid_attack(unit)]
+        if len(units) > 0:
+            return max(units, key=self.target_score)
+        else:
+            return None
 
     def get_damage_to_deal_from_effective_strengths(self, effective_strength: float, target_effective_strength: float) -> int:
         ratio_of_strengths = effective_strength / target_effective_strength

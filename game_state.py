@@ -918,7 +918,7 @@ class GameState:
         self.add_animation_frame_for_civ(sess, data, None, no_commit=True)
 
         for civ in self.civs_by_id.values():
-            if hexes_must_be_visible is None or any(hex.visibility_by_civ.get(civ.id) for hex in hexes_must_be_visible) and civ.game_player is not None:
+            if hexes_must_be_visible is None or any(hex.visible_to_civ(civ) for hex in hexes_must_be_visible) and civ.game_player is not None:
                 self.add_animation_frame_for_civ(sess, data, civ, no_commit=True)
 
         if not no_commit:
