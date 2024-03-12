@@ -138,16 +138,18 @@ const DeclineOptionRow = ({ city, setDeclineOptionsView, civTemplates, centerMap
     </div>
 }
 
-const CivVitalityDisplay = ({ civVitality, turnNum, centerMap, 
+const CivVitalityDisplay = ({ playerNum, civVitality, turnNum, centerMap, 
     setDeclineOptionsView, declineViewGameState, gameState, declineOptionsView, 
     unitTemplates, civTemplates, buildingTemplates,
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding, civsById}) => {
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.is_decline_view_option);
     const unhappinessThreshold = gameState?.unhappiness_threshold
-    const maxPlayerScore = Math.max(...Object.values(gameState?.game_player_by_player_num || {}).map(player => player.score));
+    // Max of all other players' scores
+    const maxPlayerScore = Math.max(...Object.values(gameState?.game_player_by_player_num || {}).map(player => player.player_num === playerNum ? 0 : player.score));
     const distanceFromWin = gameState?.game_end_score - maxPlayerScore;
+    console.log(maxPlayerScore)
     let content = <>
-        {25 < distanceFromWin && distanceFromWin < 50 && <WithTooltip tooltip="Another player is within 50 points of winning. Declining may would let them win.">
+        {25 < distanceFromWin && distanceFromWin < 50 && <WithTooltip tooltip="Another player is within 50 points of winning. Declining may let them win.">
             <div className="distance-from-win">
                 GAME WILL END SOON
             </div>
@@ -273,7 +275,7 @@ const UpperRightDisplay = ({ gameState, canFoundCity, isFoundingCity, disableUI,
         <div className="upper-right-display">
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} techTemplates={techTemplates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} civTemplates={civTemplates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
-            {myCiv && <CivVitalityDisplay civVitality={myCiv.vitality} myGamePlayer={myGamePlayer} turnNum={turnNum}
+            {myCiv && <CivVitalityDisplay playerNum={myGamePlayer?.player_num} civVitality={myCiv.vitality} myGamePlayer={myGamePlayer} turnNum={turnNum}
                 disableUI={disableUI} centerMap={centerMap} declineOptionsView={declineOptionsView} setDeclineOptionsView={setDeclineOptionsView} 
                 declineViewGameState={declineViewGameState} gameState={gameState} civTemplates={civTemplates} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} 
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
