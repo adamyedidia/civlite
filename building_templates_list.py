@@ -222,7 +222,7 @@ BUILDINGS: dict[str, dict] = {
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", 2, 'desert'],
         }],
-        "prereq": "Steel",
+        "prereq": "Rifling",
     },
     "Caravansery": {
         "name": "Caravansery",

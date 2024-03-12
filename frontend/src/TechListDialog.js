@@ -140,7 +140,6 @@ const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, 
                     {techLevelBox(7)}
                     {techLevelBox(8)}
                     {techLevelBox(9)}
-                    {techLevelBox(10)}
                 </TechColumn>
             </DialogContent>
         </Dialog>
