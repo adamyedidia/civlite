@@ -2567,8 +2567,10 @@ export default function GamePage() {
             }).then(response => response.json())
                 .then(data => {
                     if (data.game_state) {
+                        const myNewCiv = data.game_state.civs_by_id?.[data.game_state.game_player_by_player_num[playerNum].civ_id];
                         setGameState(data.game_state);
-                        refreshSelectedCity(data.game_state);            
+                        refreshSelectedCity(data.game_state);    
+                        sciencePopupIfNeeded(myNewCiv);        
                     }
                 });
         } else if (declineOptionsView) {
@@ -2593,7 +2595,8 @@ export default function GamePage() {
                         setGameState(data.game_state);
                         setNonDeclineViewGameState(data.game_state);  // Clear the old cached non-decline game state.
                         refreshSelectedCity(data.game_state);
-                        setDeclineOptionsView(false);    
+                        setDeclineOptionsView(false);
+                        sciencePopupIfNeeded(myNewCiv);
                     } else if (data.game_state && !success) {
                         setDeclineFailedDialogOpen(true);
                     } else {
