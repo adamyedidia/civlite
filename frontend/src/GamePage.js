@@ -696,6 +696,14 @@ export default function GamePage() {
         };
     }, [engineState]);
 
+    useEffect(() => {
+        if (engineState !== EngineStates.PLAYING) {
+            document.body.style.cursor = 'wait';
+        } else {
+            document.body.style.cursor = 'default';
+        }
+    }, [engineState]);
+
     const handleChangeTurnTimer = (value) => {
         const data = {
             seconds_per_turn: value === -1 ? null : value,
