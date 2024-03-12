@@ -1169,7 +1169,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 7],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "United States": {
         "name": "United States",
@@ -1180,7 +1180,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Infantry", 7],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "Mexico": {
         "name": "Mexico",
@@ -1191,7 +1191,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery", 7],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "United Kingdom": {
         "name": "United Kingdom",
@@ -1202,7 +1202,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 7],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "Indonesia": {
         "name": "Indonesia",
@@ -1213,7 +1213,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 7],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "Japan": {
         "name": "Japan",
@@ -1224,7 +1224,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Swordsman", 12],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "Korea": {
         "name": "Korea",
@@ -1235,7 +1235,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 7],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "Ethiopia": {
         "name": "Ethiopia",
@@ -1246,7 +1246,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 7],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },    
     "Italy": {
         "name": "Italy",
@@ -1257,7 +1257,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery", 7],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "Germany": {
         "name": "Germany",
@@ -1268,7 +1268,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Tank", 7],
         }],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "Comanches": {
         "name": "Comanches",
@@ -1281,7 +1281,7 @@ ANCIENT_CIVS = {
         #     "numbers": ["Cavalry", 7],
         # }
         ],
-        "advancement_level": 6,
+        "advancement_level": 5,
     },
     "Canada": {
         "name": "Canada",
@@ -1292,7 +1292,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Infantry", 8],
         }],
-        "advancement_level": 8,
+        "advancement_level": 7,
     },
     "Australia": {
         "name": "Australia",
@@ -1303,7 +1303,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Bazooka", 8],
         }],
-        "advancement_level": 8,
+        "advancement_level": 7,
     },
     "Vietnam": {
         "name": "Vietnam",
@@ -1314,7 +1314,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Bazooka", 8],
         }],
-        "advancement_level": 8,
+        "advancement_level": 7,
     },
     "India": {
         "name": "India",
@@ -1322,7 +1322,7 @@ ANCIENT_CIVS = {
             "name": "StartWithResources",
             "numbers": ["food", 150],
         }],
-        "advancement_level": 8,
+        "advancement_level": 7,
     },
     "Soviet Union": {
         "name": "Soviet Union",
@@ -1333,7 +1333,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rocket Launcher", 8],
         }],
-        "advancement_level": 8,
+        "advancement_level": 7,
     },
     "Communist China": {
         "name": "Communist China",
@@ -1344,7 +1344,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rocket Launcher", 8],
         }],
-        "advancement_level": 8,
+        "advancement_level": 7,
     },
     "Turkey": {
         "name": "Turkey",
@@ -1355,7 +1355,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Infantry", 8],
         }],
-        "advancement_level": 8,
+        "advancement_level": 7,
     },
     "Solaria": {
         "name": "Solaria",
@@ -1371,7 +1371,7 @@ ANCIENT_CIVS = {
             "name": "StartWithResources",
             "numbers": ["food", 400],
         }],
-        "advancement_level": 10,
+        "advancement_level": 9,
     },
     "Greater EuroZone": {
         "name": "Greater EuroZone",
@@ -1379,7 +1379,7 @@ ANCIENT_CIVS = {
             "name": "IncreaseFocusYields",
             "numbers": ["wood", 30],
         }],
-        "advancement_level": 10,
+        "advancement_level": 9,
     },
     "Celestial Empire": {
         "name": "Celestial Empire",
@@ -1387,7 +1387,7 @@ ANCIENT_CIVS = {
             "name": "StartWithResources",
             "numbers": ["metal", 150],
         }],
-        "advancement_level": 10,
+        "advancement_level": 9,
     },
     "The Machine Intelligence": {
         "name": "The Machine Intelligence",
@@ -1395,7 +1395,7 @@ ANCIENT_CIVS = {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Giant Death Robot", 100],
         }],
-        "advancement_level": 10,
+        "advancement_level": 9,
     },
 }
 
