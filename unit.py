@@ -26,8 +26,12 @@ class Unit:
         self.has_moved = False
         self.hex: Optional['Hex'] = None
         self.strength = self.template.strength
-        self.has_attacked = False
+        self.attacks_used = 0
         self.destination = None
+
+    @property
+    def done_attacking(self):
+        return self.attacks_used >= self.get_stack_size()
 
     def __repr__(self):
         return f"<Unit {self.civ.moniker()} {self.template.name} @ {self.hex.coords if self.hex is not None else None}"
@@ -79,15 +83,33 @@ class Unit:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
-        if self.has_moved or self.hex is None or self.has_attacked:
+        if self.has_moved or self.hex is None:
             return
-        should_move_sensitively = sensitive
+        stack_count_not_acted: int = self.get_stack_size() - self.attacks_used
+        if stack_count_not_acted == 0:
+            return
+        
         starting_hex = self.hex
         coord_strs = [starting_hex.coords]
         for _ in range(self.template.movement):
-            if self.move_one_step(game_state, coord_strs, sensitive=should_move_sensitively):
+            if self.move_one_step(game_state, coord_strs, sensitive=sensitive):
                 self.has_moved = True
-                should_move_sensitively = True
+                sensitive = True
+
+        # At this point we might have moved with whole stack
+        # When we should have left some behind
+        if self.has_moved and self.attacks_used > 0:
+            split_unit: Unit = Unit(self.template, self.civ)
+
+            split_unit.health = self.attacks_used * 100
+            self.health -= split_unit.health
+
+            split_unit.attacks_used = self.attacks_used
+            self.attacks_used = 0
+
+            split_unit.hex = starting_hex
+            starting_hex.units.append(split_unit)
+            game_state.units.append(split_unit)
 
         if self.has_moved:
             new_hex = self.hex
@@ -140,7 +162,7 @@ class Unit:
         return len([unit for unit in units_in_neighboring_hexes if unit.civ.id == self.civ.id])
 
     def attack(self, sess, game_state: 'GameState') -> None:
-        if self.hex is None or self.has_attacked:
+        if self.hex is None or self.done_attacking:
             return
 
         for _ in range(self.get_stack_size()):
@@ -153,7 +175,7 @@ class Unit:
 
             if best_target is not None:
                 self.fight(sess, game_state, best_target)
-                self.has_attacked = True
+                self.attacks_used += 1
 
     def target_score(self, target: 'Unit') -> tuple[float, float, float, float]:
         """
@@ -401,7 +423,8 @@ class Unit:
             "coords": self.hex.coords if self.hex is not None else None,
             "strength": self.strength,
             "template": self.template.to_json(),
-            "has_attacked": self.has_attacked,
+            "attacks_used": self.attacks_used,
+            "done_attacking": self.done_attacking,
             "stack_size": self.get_stack_size(),
             "closest_target": self.destination.coords if self.destination is not None else None,
         }
@@ -416,7 +439,7 @@ class Unit:
         unit.health = json["health"]
         unit.has_moved = json["has_moved"]
         unit.strength = json["strength"]
-        unit.has_attacked = json["has_attacked"]
+        unit.attacks_used = json["attacks_used"]
         unit.civ_id = json["civ_id"]
 
         return unit
