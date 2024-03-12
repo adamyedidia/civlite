@@ -220,22 +220,6 @@ UNITS = {
         "prereq": "Gunpowder",
         "abilities": [],
     },
-    "Hussar": {
-        "name": "Hussar",
-        "building_name": "Ducal Stable",
-        "type": "military",
-        "metal_cost": 15,
-        "wood_cost": 25,
-        "strength": 15,
-        "movement": 2,
-        "range": 1,
-        "tags": ["mounted"],
-        "prereq": "Steel",
-        "abilities": [{
-            "name": "BonusNextTo",
-            "numbers": ["gunpowder", 5],
-        }],
-    },
     "Cannon": {
         "name": "Cannon",
         "building_name": "Foundry",
