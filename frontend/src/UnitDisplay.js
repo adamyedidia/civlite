@@ -12,8 +12,8 @@ export const BriefUnitDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefUnitDisplay = ({ unitName, unitTemplates, onClick, setHoveredUnit }) => {
-    const unit = unitTemplates[unitName]
+export const BriefUnitDisplay = ({ unitName, templates, onClick, setHoveredUnit }) => {
+    const unit = templates.UNITS[unitName]
 
     return (
         <div 
@@ -28,8 +28,8 @@ export const BriefUnitDisplay = ({ unitName, unitTemplates, onClick, setHoveredU
     );
 };
 
-export const IconUnitDisplay = ({ unitName, unitTemplates, style, onClick, setHoveredUnit }) => {
-    const unit = unitTemplates[unitName];
+export const IconUnitDisplay = ({ unitName, templates, style, onClick, setHoveredUnit }) => {
+    const unit = templates.UNITS[unitName];
     const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
     return (
         <div 

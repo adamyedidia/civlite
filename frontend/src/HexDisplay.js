@@ -75,7 +75,7 @@ export const YieldImages2 = ({ yields }) => {
 };
 
 
-const HexDisplay = ({ hoveredHex, unitTemplates }) => {
+const HexDisplay = ({ hoveredHex, templates }) => {
     if (!hoveredHex) {
         return null;
     }
@@ -88,7 +88,7 @@ const HexDisplay = ({ hoveredHex, unitTemplates }) => {
             {hoveredHex.city && <p>City: {hoveredHex.city.name} ({hoveredHex.city.population})</p>}
             <div className="hex-units">
                 {hoveredHex.units && hoveredHex.units.map((unit, index) => (
-                    <UnitDisplay key={index} unit={unitTemplates[unit]} />
+                    <UnitDisplay key={index} unit={templates.UNITS[unit]} />
                 ))}
             </div>
             {`${hoveredHex.q}, ${hoveredHex.r}, ${hoveredHex.s}`}

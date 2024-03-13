@@ -12,8 +12,8 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, hideCost, style, buildingTemplates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
-    const building = unitTemplatesByBuildingName?.[buildingName] || buildingTemplates[buildingName];
+export const BriefBuildingDisplay = ({ buildingName, hideCost, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
+    const building = unitTemplatesByBuildingName?.[buildingName] || templates.BUILDINGS[buildingName];
 
     const description = descriptions?.[buildingName];
 
@@ -37,7 +37,7 @@ export const BriefBuildingDisplay = ({ buildingName, hideCost, style, buildingTe
     );
 };
 
-const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuildingName, disabledMsg, onClick }) => {
+const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName, disabledMsg, onClick }) => {
     return (
         unitTemplatesByBuildingName[buildingName] ? 
             <div className="building-card" onClick={onClick}>
@@ -50,13 +50,13 @@ const BuildingDisplay = ({ buildingName, buildingTemplates, unitTemplatesByBuild
             :
             <div className={`building-card ${disabledMsg ? 'wonder-disabled' : ''}`} onClick={onClick}>
                 {disabledMsg && <p className='wonder-disabled-msg'>{disabledMsg}</p>}
-                <h2>{buildingTemplates[buildingName]?.name}</h2>
-                <p>Cost: {buildingTemplates[buildingName]?.cost} wood</p>
-                {buildingTemplates[buildingName]?.vp_reward && <p>VP reward: {buildingTemplates[buildingName]?.vp_reward}</p>}
-                {buildingTemplates[buildingName]?.is_wonder && <p>Wonder</p>}
-                {buildingTemplates[buildingName]?.is_national_wonder && <p>National Wonder</p>}
+                <h2>{templates.BUILDINGS[buildingName]?.name}</h2>
+                <p>Cost: {templates.BUILDINGS[buildingName]?.cost} wood</p>
+                {templates.BUILDINGS[buildingName]?.vp_reward && <p>VP reward: {templates.BUILDINGS[buildingName]?.vp_reward}</p>}
+                {templates.BUILDINGS[buildingName]?.is_wonder && <p>Wonder</p>}
+                {templates.BUILDINGS[buildingName]?.is_national_wonder && <p>National Wonder</p>}
                 <ul>
-                    {buildingTemplates[buildingName]?.abilities.map((ability, index) => (
+                    {templates.BUILDINGS[buildingName]?.abilities.map((ability, index) => (
                         <li key={index}>{ability.description}</li>
                     ))}
                 </ul>
