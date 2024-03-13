@@ -3193,7 +3193,7 @@ export default function GamePage() {
                 </div>
                 {techListDialogOpen && <TechListDialog
                     open={techListDialogOpen}
-                    onClose={() => setTechListDialogOpen(false)}
+                    onClose={() => {setHoveredTech(null); setTechListDialogOpen(false)}}
                     setHoveredTech={setHoveredTech}
                     handleClickTech={handleClickTech}
                     techTemplates={techTemplates}
