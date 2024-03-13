@@ -329,11 +329,11 @@ class GameState:
         return hex.city
 
 
-    # Returns (from_civ_perspectives, game state to pass to frontend, game state to store)
-    def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False) -> tuple[Optional[list[Civ]], dict, dict, bool, Optional[int]]:
+    def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False, 
+                                 city_owner_by_city_id: Optional[dict] = None) -> tuple[Optional[list[Civ]], dict, dict, bool, Optional[int]]:
         """
         Returns:
-          - from_civs_perspectives: ???
+          - from_civ_perspectives: the set of players from whose perspectives the game state should be seen
           - game_state_to_return: game_state to send to the client
           - game_state_to_store: game_state to put in redis
           - should_stage_moves: should we add these moves to the player's staged moves?
@@ -351,6 +351,10 @@ class GameState:
         random.seed(seed_value)
 
         for move_index, move in enumerate(moves):
+            if ((city_id := move.get('city_id')) is not None 
+                    and (city_owner := (city_owner_by_city_id or {}).get(city_id)) is not None 
+                    and city_owner != player_num):
+                continue
             if move['move_type'] == 'choose_starting_city':
                 city_id = move['city_id']
                 self.special_mode_by_player_num[player_num] = None
@@ -622,9 +626,21 @@ class GameState:
         if self.game_over:
             return
 
+        # Defaults to being permissive; city_ids that exist will cause it to be the case that
+        # only commands from that player's player num get respected
+        city_owner_by_city_id: dict[str, int] = {}
+
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
-            self.update_from_player_moves(player_num, staged_moves)
+
+            for move in staged_moves:
+                if move['move_type'] == 'choose_decline_option':
+                    if (city := self.hexes[move['coords']].city):
+                        city_owner_by_city_id[city.id] = player_num
+
+        for player_num in self.game_player_by_player_num.keys():
+            staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
+            self.update_from_player_moves(player_num, staged_moves, city_owner_by_city_id=city_owner_by_city_id)
 
         civs = list(self.civs_by_id.values())[:]
 
