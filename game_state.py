@@ -707,13 +707,13 @@ class GameState:
         print("moving units 2: commit")
         sess.commit()
 
+        print("Merging units")
+        # New units could have appeared in self.units due to splits
+        # But that's ok, they've all acted by definition, so they don't need to be in this loop
+        random.shuffle(units_copy)
         for unit in units_copy:
-            if not unit.has_moved and not unit.has_attacked and unit.friendly_neighboring_unit_count(self) >= 4 and not unit.currently_sieging():
+            if not unit.has_moved and unit.attacks_used == 0 and unit.friendly_neighboring_unit_count(self) >= 4 and not unit.currently_sieging():
                 unit.merge_into_neighboring_unit(sess, self)
-
-        # random.shuffle(units_copy)
-        # for unit in units_copy:
-        #     unit.attack(sess, self)
 
         print("Acting cities & civs")
         cities_copy = list(self.cities_by_id.values())
@@ -734,7 +734,7 @@ class GameState:
         print("Final refresh")
         for unit in units_copy:
             unit.has_moved = False
-            unit.has_attacked = False
+            unit.attacks_used = 0
 
         for game_player in self.game_player_by_player_num.values():
             game_player.decline_this_turn = False
