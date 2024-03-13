@@ -88,7 +88,6 @@ def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], othe
         if any([unit.civ.game_player for unit in hex.units]):
             return False
         
-    print(decline_location.get_distance_2_hexes(hexes))
     for hex in decline_location.get_distance_2_hexes(hexes):
         # Can't be within 2 of an existing city.
         if hex.city is not None:
@@ -108,7 +107,7 @@ def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], othe
 
 def sample_weight(q, r, s) -> float:
     radius: int = max(abs(q), abs(r), abs(s))
-    return 0.3 ** (radius)
+    return 0.2 ** (radius)
 
 def generate_decline_locations(hexes: dict[str, Hex], n: int, existing_decline_locations: list[Hex] = []) -> list[Hex]:
     """
@@ -128,4 +127,5 @@ def generate_decline_locations(hexes: dict[str, Hex], n: int, existing_decline_l
         hexes_list.pop(idx)
         weights.pop(idx)
 
+    random.shuffle(decline_locations)
     return decline_locations
