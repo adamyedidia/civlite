@@ -12,7 +12,7 @@ const TechColumn = ({children}) => {
 
 export const romanNumeral = (level) => { return level === 1 ? 'I' : level === 2 ? 'II' : level === 3 ? 'III' : level === 4 ? 'IV' : level === 5 ? 'V' : level === 6 ? 'VI' : level === 7 ? 'VII' : level === 8 ? 'VIII' : level === 9 ? 'IX' : level === 10 ? 'X' : level === 11 ? 'XI' : level === 12 ? 'XII' : level === 13 ? 'XIII' : '???';}
 
-const TechLevelBox = ({level, techs, myCiv, gameState, techTemplates, unitTemplates, buildingTemplates, setHoveredTech, handleClickTech}) => {
+const TechLevelBox = ({level, techs, myCiv, gameState, templates, setHoveredTech, handleClickTech}) => {
     const levelRomanNumeral = romanNumeral(level);
 
     // Need to keep this in sync with python code. Might be better to pass it down.
@@ -28,16 +28,16 @@ const TechLevelBox = ({level, techs, myCiv, gameState, techTemplates, unitTempla
                 }
             </div>
             {techs.map((tech) => (
-                <TechCard key={tech.name} tech={tech} gameState={gameState} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} techTemplates={techTemplates} myCiv={myCiv} setHoveredTech={setHoveredTech} handleClickTech={handleClickTech}/>
+                <TechCard key={tech.name} tech={tech} gameState={gameState} templates={templates} myCiv={myCiv} setHoveredTech={setHoveredTech} handleClickTech={handleClickTech}/>
             ))}
         </div>
     )
 }
 
-const TechCard = ({tech, gameState, techTemplates, unitTemplates, buildingTemplates, myCiv, setHoveredTech, handleClickTech}) => {
+const TechCard = ({tech, gameState, templates, myCiv, setHoveredTech, handleClickTech}) => {
     return <div
         className={`tech-tree-card ${myCiv.techs_status[tech.name]} `}
-        onMouseEnter={() => setHoveredTech(techTemplates[tech.name])}
+        onMouseEnter={() => setHoveredTech(templates.TECHS[tech.name])}
         onMouseLeave={() => setHoveredTech(null)}
     onClick={() => myCiv.techs_status[tech.name] === 'available' && handleClickTech(tech)}
 
@@ -49,7 +49,7 @@ const TechCard = ({tech, gameState, techTemplates, unitTemplates, buildingTempla
                     return <IconUnitDisplay
                         key={index}
                         unitName={unitName}
-                        unitTemplates={unitTemplates}
+                        templates={templates}
                     ></IconUnitDisplay>
                 })}
             </div>
@@ -59,7 +59,7 @@ const TechCard = ({tech, gameState, techTemplates, unitTemplates, buildingTempla
                         key={index} 
                         buildingName={buildingName} 
                         hideCost={true} 
-                        buildingTemplates={buildingTemplates} 
+                        templates={templates} 
                         setHoveredBuilding={()=>null}
                         disabledMsg={gameState.wonders_built_to_civ_id.hasOwnProperty(buildingName) ? `==  Built by ${gameState.civs_by_id[gameState.wonders_built_to_civ_id[buildingName]].name}  ==` : ""} 
                         style={{
@@ -80,10 +80,10 @@ const TechCard = ({tech, gameState, techTemplates, unitTemplates, buildingTempla
     </div>
 }
 
-const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, gameState, techTemplates, unitTemplates, buildingTemplates}) => {
-    if (!myCiv || !techTemplates) return null;
+const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, gameState, templates}) => {
+    if (!myCiv || !templates) return null;
     
-    const advancementLevels = Object.values(techTemplates).reduce((acc, tech) => {
+    const advancementLevels = Object.values(templates.TECHS).reduce((acc, tech) => {
         const level = tech.advancement_level;
         if (!acc[level]) {
             acc[level] = [];
@@ -93,7 +93,7 @@ const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, 
     }, {});
 
     const techLevelBox = (level) => {
-        return <TechLevelBox level={level} techs={advancementLevels[level]} myCiv={myCiv} gameState={gameState} techTemplates={techTemplates} buildingTemplates={buildingTemplates} unitTemplates={unitTemplates} setHoveredTech={setHoveredTech} handleClickTech={handleClickTech}/>
+        return <TechLevelBox level={level} techs={advancementLevels[level]} myCiv={myCiv} gameState={gameState} templates={templates} setHoveredTech={setHoveredTech} handleClickTech={handleClickTech}/>
     }
 
     return (

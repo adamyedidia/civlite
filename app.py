@@ -807,29 +807,15 @@ def get_game_constants(sess):
     })
 
 
-@app.route('/api/civ_templates', methods=['GET'])
+@app.route('/api/templates', methods=['GET'])
 @api_endpoint
-def get_civ_templates(sess):
-    return jsonify({civ_template['name']: CivTemplate.from_json(civ_template).to_json() for civ_template in CIVS.values()})
-
-
-@app.route('/api/unit_templates', methods=['GET'])
-@api_endpoint
-def get_unit_templates(sess):
-    return jsonify({unit_template['name']: UnitTemplate.from_json(unit_template).to_json() for unit_template in UNITS.values()})
-
-
-@app.route('/api/tech_templates', methods=['GET'])
-@api_endpoint
-def get_tech_templates(sess):
-    return jsonify({tech_template['name']: {**TechTemplate.from_json(tech_template).to_json()} for tech_template in TECHS.values()})
-
-
-@app.route('/api/building_templates', methods=['GET'])
-@api_endpoint
-def get_building_templates(sess):
-    return jsonify({building_template['name']: BuildingTemplate.from_json(building_template).to_json() for building_template in BUILDINGS.values()})
-
+def get_all_templates(sess):
+    return jsonify({
+        'CIVS': {civ_template['name']: CivTemplate.from_json(civ_template).to_json() for civ_template in CIVS.values()},
+        'UNITS': {unit_template['name']: UnitTemplate.from_json(unit_template).to_json() for unit_template in UNITS.values()},
+        'TECHS': {tech_template['name']: {**TechTemplate.from_json(tech_template).to_json()} for tech_template in TECHS.values()},
+        'BUILDINGS': {building_template['name']: BuildingTemplate.from_json(building_template).to_json() for building_template in BUILDINGS.values()},
+    })
 
 @socketio.on('connect')
 def on_connect():

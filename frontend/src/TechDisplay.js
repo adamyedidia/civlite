@@ -4,7 +4,7 @@ import './TechDisplay.css'; // Assuming you have a separate CSS file for styling
 import BuildingDisplay from './BuildingDisplay';
 import { romanNumeral } from './TechListDialog';
 
-const TechDisplay = ({ tech, civ, unitTemplates, buildingTemplates, unitTemplatesByBuildingName, gameState, onClick }) => {
+const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameState, onClick }) => {
     if (tech.name == "Renaissance") {
         tech.cost = civ.renaissance_cost
     }
@@ -18,7 +18,7 @@ const TechDisplay = ({ tech, civ, unitTemplates, buildingTemplates, unitTemplate
             <p>Cost: {tech.cost} science</p>
             <div className="unlocked-units">
                 {tech.unlocks_units && tech.unlocks_units.map((unitName, index) => (
-                    <UnitDisplay key={index} unit={unitTemplates[unitName]} />
+                    <UnitDisplay key={index} unit={templates.UNITS[unitName]} />
                 ))}
             </div>
             <div className="unlocked-units">
@@ -26,7 +26,7 @@ const TechDisplay = ({ tech, civ, unitTemplates, buildingTemplates, unitTemplate
                     <BuildingDisplay 
                         key={index} 
                         buildingName={buildingName} 
-                        buildingTemplates={buildingTemplates} 
+                        templates={templates} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName} 
                         disabledMsg={gameState.wonders_built_to_civ_id.hasOwnProperty(buildingName) ? `==  Built by ${gameState.civs_by_id[gameState.wonders_built_to_civ_id[buildingName]].name}  ==` : ""} 
                         onClick={() => {}} 

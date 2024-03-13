@@ -310,15 +310,12 @@ export default function GamePage() {
     const [playersInGame, setPlayersInGame] = useState(null);
     const [turnNum, setTurnNum] = useState(1);
 
-    const [civTemplates, setCivTemplates] = useState({});
-    const [unitTemplates, setUnitTemplates] = useState(null);
-    const [techTemplates, setTechTemplates] = useState(null);
-    const [buildingTemplates, setBuildingTemplates] = useState(null);
+    const [templates, setTemplates] = useState(null);
     const [volume, setVolume] = useState(100);
     const [settingsDialogOpen, setSettingsDialogOpen] = useState(false);
 
     const unitTemplatesByBuildingName = {};
-    Object.values(unitTemplates || {}).forEach(unitTemplate => {
+    Object.values(templates?.UNITS || {}).forEach(unitTemplate => {
         if (unitTemplate.building_name) {
             unitTemplatesByBuildingName[unitTemplate.building_name] = unitTemplate;
         }
@@ -2247,25 +2244,9 @@ export default function GamePage() {
     }
    
     useEffect(() => {
-        fetch(`${URL}/api/civ_templates`)
+        fetch(`${URL}/api/templates`)
             .then(response => response.json())
-            .then(data => setCivTemplates(data));
-
-        fetch(`${URL}/api/unit_templates`)
-            .then(response => response.json())
-            .then(data => setUnitTemplates(data));
-        
-        fetch(`${URL}/api/tech_templates`)
-            .then(response => response.json())
-            .then(data => setTechTemplates(data));
-
-        fetch(`${URL}/api/building_templates`)
-            .then(response => response.json())
-            .then(data => setBuildingTemplates(data));
-        
-        fetch(`${URL}/api/game_constants`)
-            .then(response => response.json())
-            .then(data => setGameConstants(data));
+            .then(data => setTemplates(data));
     }, [])
 
 
@@ -2609,7 +2590,7 @@ export default function GamePage() {
 
 
     const City = ({ city, isHovered, isSelected, isUnitInHex, everControlled }) => {
-        const civTemplate = civTemplates[civsById?.[city.civ_id]?.name]
+        const civTemplate = templates.CIVS[civsById?.[city.civ_id]?.name]
         
         const primaryColor = civTemplate?.primary_color;
         const secondaryColor = civTemplate?.secondary_color;
@@ -2738,7 +2719,7 @@ export default function GamePage() {
     };
 
     const Unit = ({ unit, isCityInHex }) => {
-        const unitCivTemplate = civTemplates[civsById?.[unit.civ_id]?.name]
+        const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
 
         const primaryColor = unitCivTemplate?.primary_color;
         const secondaryColor = unitCivTemplate?.secondary_color;
@@ -3074,7 +3055,7 @@ export default function GamePage() {
                         </Grid>}
                     {hoveredCiv && <CivDisplay civ={hoveredCiv} civTemplates={civTemplates} hoveredGamePlayer={hoveredGamePlayer}/>}
                     {hoveredHex && (
-                        <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
+                        <HexDisplay hoveredHex={hoveredHex} templates={templates} />
                     )}
                     {<LowerRightDisplay 
                         gameState={gameState}
@@ -3100,10 +3081,7 @@ export default function GamePage() {
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
                         isFoundingCity={foundingCity}
-                        techTemplates={techTemplates}
-                        civTemplates={civTemplates}
-                        unitTemplates={unitTemplates}
-                        buildingTemplates={buildingTemplates}
+                        templates={templates}
                         myCiv={myCiv} 
                         myGamePlayer={myGamePlayer} 
                         gameState={gameState}
@@ -3120,7 +3098,7 @@ export default function GamePage() {
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
-                        myCivTemplate={civTemplates[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
+                        myCivTemplate={templates.CIVS[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
                         declinePreviewMode={!myCiv || selectedCity.civ_id != myCivId}
                         playerNum={playerNum}
                         playerApiUrl={playerApiUrl}
@@ -3132,8 +3110,7 @@ export default function GamePage() {
                         selectedCityUnitChoices={selectedCityUnitChoices}
                         selectedCity={selectedCity} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName}
-                        buildingTemplates={buildingTemplates}
-                        unitTemplates={unitTemplates}
+                        templates={templates}
                         descriptions={descriptions}
                         setHoveredUnit={setHoveredUnit}
                         setHoveredBuilding={setHoveredBuilding}
@@ -3141,13 +3118,13 @@ export default function GamePage() {
                         />}
                     <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
                         {hoveredBuilding && (
-                            <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} buildingTemplates={buildingTemplates} />
+                            <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
                         )}
                         {hoveredUnit && (
                             <UnitDisplay unit={hoveredUnit} />
                         )}
                         {hoveredTech && (
-                            <TechDisplay tech={hoveredTech} civ={myCiv} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
+                            <TechDisplay tech={hoveredTech} civ={myCiv} templates={templates}  unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
                         )}
                         {!hoveredBuilding && !hoveredUnit && !hoveredTech && <div className='turn-num-card'>
                             <Typography variant="h4">
@@ -3199,9 +3176,7 @@ export default function GamePage() {
                     onClose={() => {setHoveredTech(null); setTechListDialogOpen(false)}}
                     setHoveredTech={setHoveredTech}
                     handleClickTech={handleClickTech}
-                    techTemplates={techTemplates}
-                    unitTemplates={unitTemplates}
-                    buildingTemplates={buildingTemplates}
+                    templates={templates}
                     myCiv={myCiv}
                     gameState={gameState}
                 />}
@@ -3349,7 +3324,7 @@ export default function GamePage() {
         })
     }
 
-    if (!civTemplates || !unitTemplates || !techTemplates) {
+    if (!templates) {
         return (
             <div>
                 <h1>Game Page</h1>
@@ -3416,7 +3391,7 @@ export default function GamePage() {
                     </DialogTitle>
                     <div className="tech-choices-content">
                         {techChoices.map((tech, index) => (
-                            <TechDisplay key={index} tech={tech} civ={myCiv} unitTemplates={unitTemplates} buildingTemplates={buildingTemplates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(tech)} />
+                            <TechDisplay key={index} tech={tech} civ={myCiv} templates={templates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(tech)} />
                         ))}
                     </div>
                 </div>
