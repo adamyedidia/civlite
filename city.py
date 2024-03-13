@@ -817,9 +817,7 @@ class City:
         
 
     def to_json(self, include_civ_details: bool = False) -> dict:
-        if include_civ_details:
-            print("my to_json:", self.name, self.revolt_unit_count)
-                
+               
 
         return {
             "id": self.id,

@@ -305,9 +305,14 @@ class Civ:
         return base_cost * (1 + self.game_player.renaissances)
 
     def complete_research(self, tech: TechTemplate, game_state: 'GameState'):
+
+        for tech_name, status in self.techs_status.items():
+            if status == TechStatus.AVAILABLE and tech_name != "Renaissance" and tech_name != tech.name:
+                self.techs_status[tech_name] = TechStatus.DISCARDED
+
         if tech.name == "Renaissance":
             print(f"Renaissance for civ {self.moniker()}")
-            cost = self.renaissance_cost()
+            cost: int = self.renaissance_cost()
             self.science -= cost
             for tech_name, status in self.techs_status.items():
                 if status == TechStatus.DISCARDED:
@@ -319,9 +324,7 @@ class Civ:
         else:
             self.science -= tech.cost
             self.techs_status[tech.name] = TechStatus.RESEARCHED
-            for tech_name, status in self.techs_status.items():
-                if status == TechStatus.AVAILABLE and tech_name != "Renaissance":
-                    self.techs_status[tech_name] = TechStatus.DISCARDED
+
         # Never discard renaissance
         self.techs_status['Renaissance'] = TechStatus.UNAVAILABLE
 
