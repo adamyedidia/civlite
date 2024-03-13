@@ -3053,7 +3053,7 @@ export default function GamePage() {
                                 </Button>
                             </Grid>
                         </Grid>}
-                    {hoveredCiv && <CivDisplay civ={hoveredCiv} civTemplates={civTemplates} hoveredGamePlayer={hoveredGamePlayer}/>}
+                    {hoveredCiv && <CivDisplay civ={hoveredCiv} templates={templates} hoveredGamePlayer={hoveredGamePlayer}/>}
                     {hoveredHex && (
                         <HexDisplay hoveredHex={hoveredHex} templates={templates} />
                     )}
