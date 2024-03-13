@@ -70,67 +70,62 @@ def create_hex_map(map_size: int) -> dict[str, Hex]:
     return hexes
 
 
-def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
-
-    starting_locations = []
-
-    while len(starting_locations) < n:
-        starting_location = random.choice(list(hexes.values()))
-
-        if len(starting_location.get_neighbors(hexes)) >= 6:
-            too_close = False
-
-            for other_starting_location in starting_locations:
-                if other_starting_location.distance_to(starting_location) < 3:
-                    too_close = True
-                    break
-            
-            if not too_close:
-                starting_locations.append(starting_location)
-
-    return starting_locations
-
-
 def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], other_decline_locations: list[Hex]) -> bool:
-    # print(f"Considering decline at {decline_location.coords}. {[hex.city is not None for hex in decline_location.get_neighbors(hexes)]}")
     # Don't choose a spot with a city or an active player's units nearby
     if decline_location.city is not None: 
         return False
+    # Don't use spaces with units
     if any([unit.civ.game_player for unit in decline_location.units]):
         return False
     for hex in decline_location.get_neighbors(hexes):
+        # Can't be next to a city.
         if hex.city is not None:
             return False
+        # Can't be next to a potential city
         if any(hex.is_foundable_by_civ.values()):
             return False
+        # Can't be next to an active player's unit. That would be weird.
         if any([unit.civ.game_player for unit in hex.units]):
             return False
+        
+    print(decline_location.get_distance_2_hexes(hexes))
+    for hex in decline_location.get_distance_2_hexes(hexes):
+        # Can't be within 2 of an existing city.
+        if hex.city is not None:
+            return False
+    
+    # Don't use the edge of the map.
     if len([hex for hex in decline_location.get_neighbors(hexes)]) < 6:
         return False
 
+    # Stay at least 3 from other fresh sites.
     for other_decline_location in other_decline_locations:
-        # print(f"Distance to other is {other_decline_location.distance_to(decline_location)}")
         if other_decline_location.distance_to(decline_location) < 3:
             return False
 
     return True
 
 
+def sample_weight(q, r, s) -> float:
+    radius: int = max(abs(q), abs(r), abs(s))
+    return 0.3 ** (radius)
+
 def generate_decline_locations(hexes: dict[str, Hex], n: int, existing_decline_locations: list[Hex] = []) -> list[Hex]:
     """
     Generate n new decline locations that don't collide with the existing ones.
     """
-    decline_locations = []
+    decline_locations: list[Hex] = []
 
-    num_attempts = 0
+    hexes_list: list[Hex] = list(hexes.values())
+    weights: list[float] = [sample_weight(hex.q, hex.r, hex.s) for hex in hexes_list]
 
-    while len(decline_locations) < n and num_attempts < 1000:
-        print(num_attempts, n, len(decline_locations))
-        decline_location = random.choice(list(hexes.values()))
-
+    while len(decline_locations) < n and len(hexes_list) > 0:
+        decline_location: Hex = random.choices(hexes_list, weights=weights)[0]
         if is_valid_decline_location(decline_location, hexes, existing_decline_locations + decline_locations):
             decline_locations.append(decline_location)
         
-        num_attempts += 1
+        idx: int = hexes_list.index(decline_location)
+        hexes_list.pop(idx)
+        weights.pop(idx)
 
     return decline_locations

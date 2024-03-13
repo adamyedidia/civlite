@@ -19,7 +19,7 @@ from database import SessionLocal
 from game import Game
 from game_player import GamePlayer
 from game_state import GameState, update_staged_moves, get_most_recent_game_state, get_most_recent_game_state_json, get_turn_ended_by_player_num, set_turn_ended_by_player_num
-from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
+from map import create_hex_map, generate_decline_locations, infer_map_size_from_num_players
 from player import Player
 
 from utils import dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives, turn_lock_key, generate_unique_id, moves_processing_key
@@ -294,7 +294,7 @@ def _launch_game_inner(sess, game: Game) -> None:
 
     assert num_players <= 8
 
-    starting_locations = generate_starting_locations(hexes, 3 * num_players)
+    starting_locations = generate_decline_locations(hexes, 3 * num_players, [])
 
     game_players = [GamePlayer(player_num=player.player_num, username=player.user.username, is_bot=player.is_bot) for player in players]
 
