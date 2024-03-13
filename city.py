@@ -176,11 +176,8 @@ class City:
             return
         self.hex.visibility_by_civ[self.civ.id] = True
 
-        if short_sighted:
-            neighbors = self.hex.get_neighbors(game_state.hexes)
-        else:
-            neighbors = self.hex.get_hexes_within_distance_2(game_state.hexes)
-
+        # Always let cities have sight 2, even in decline mode (short_sighted = True)
+        neighbors = self.hex.get_hexes_within_distance_2(game_state.hexes)
 
         for nearby_hex in neighbors:
             nearby_hex.visibility_by_civ[self.civ.id] = True
