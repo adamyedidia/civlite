@@ -3,7 +3,10 @@ import './CivDisplay.css'; // Assuming you have a separate CSS file for styling
 
 class CivDisplay extends React.Component {
     render() {
-        const { name, abilities, primary_color, secondary_color, vitality } = this.props.civ;
+        const { civ, civTemplates } = this.props
+
+        const { vitality, name } = civ;
+        const { abilities, primary_color, secondary_color } = civTemplates[name];
 
         const hoveredGamePlayerDisplay = this.props?.hoveredGamePlayer ? ` (${this.props.hoveredGamePlayer})` : '';
 
