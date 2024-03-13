@@ -325,6 +325,7 @@ export default function GamePage() {
     });
 
     const [hoveredCiv, setHoveredCiv] = useState(null);
+    const [hoveredCivVitality, setHoveredCivVitality] = useState(null);
     const [hoveredGamePlayer, setHoveredGamePlayer] = useState(null);
     const [hoveredHex, setHoveredHex] = useState(null);
 
@@ -2844,8 +2845,9 @@ export default function GamePage() {
         setHoveredHex(hex);
         let hoveredCivPicked = false;
         if (hex.city) {
-            const civ = civsByIdRef.current[hex?.city?.civ_id]
-            setHoveredCiv({...civTemplates[civ?.name], vitality: civ.vitality});
+            const cityCiv = civsByIdRef.current[hex?.city?.civ_id]
+            setHoveredCiv(civTemplates[cityCiv?.name]);
+            setHoveredCivVitality(cityCiv?.vitality);
             setHoveredGamePlayer(civsByIdRef.current[hex?.city?.civ_id]?.game_player?.username);
             setHoveredCity(hex.city)
             hoveredCivPicked = true;
@@ -2857,7 +2859,8 @@ export default function GamePage() {
             const unit = hex?.units?.[0];
             const civ = civsByIdRef.current[unit?.civ_id]
             setHoveredUnit(unit);
-            setHoveredCiv({...civTemplates[civ?.name], vitality: civ.vitality});
+            setHoveredCiv(civTemplates[civ?.name]);
+            setHoveredCivVitality(civ?.vitality);
             setHoveredGamePlayer(civsByIdRef.current[hex?.units?.[0]?.civ_id]?.game_player?.username);
             hoveredCivPicked = true;
         }
@@ -3072,7 +3075,7 @@ export default function GamePage() {
                                 </Button>
                             </Grid>
                         </Grid>}
-                    {hoveredCiv && <CivDisplay civ={hoveredCiv} hoveredGamePlayer={hoveredGamePlayer}/>}
+                    {hoveredCiv && <CivDisplay civ={{...hoveredCiv, vitality: hoveredCivVitality}} hoveredGamePlayer={hoveredGamePlayer}/>}
                     {hoveredHex && (
                         <HexDisplay hoveredHex={hoveredHex} unitTemplates={unitTemplates} />
                     )}
