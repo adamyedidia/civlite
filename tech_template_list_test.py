@@ -56,6 +56,16 @@ class TestConsistency:
         for bldg_name in BUILDINGS:
             assert bldg_name in found_bldgs, f"Building {bldg_name} is not unlocked by any tech. It think it should be unlocked by {BUILDINGS[bldg_name].get('prereq')}"
 
+    def test_civ_special_units_consistency(self):
+        for name, json in CIVS.items():
+            civ_template = CivTemplate.from_json(json)
+
+            for ability in civ_template.abilities:
+                if ability.name == 'IncreasedStrengthForUnit':
+                    numbers = ability.numbers
+                    unit_name = numbers[0]
+                    assert unit_name in UNITS, f"Unit {unit_name} does not exist"
+
 
        
 

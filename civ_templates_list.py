@@ -815,7 +815,7 @@ ANCIENT_CIVS = {
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Hussar", 4],
+            "numbers": ["Cannon", 4],
         }],
         "advancement_level": 2,
     },
@@ -914,7 +914,7 @@ ANCIENT_CIVS = {
             "numbers": ["wood", "hills", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Hussar", 4],
+            "numbers": ["Musketman", 4],
         }],
         "advancement_level": 2,
     },
@@ -1123,7 +1123,7 @@ ANCIENT_CIVS = {
             "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Hussar", 5],
+            "numbers": ["Cavalry", 5],
         }],
         "advancement_level": 4,
     },
@@ -1134,7 +1134,7 @@ ANCIENT_CIVS = {
             "numbers": ["wood", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Hussar", 5],
+            "numbers": ["Cavalry", 5],
         }],
         "advancement_level": 4,
     },
