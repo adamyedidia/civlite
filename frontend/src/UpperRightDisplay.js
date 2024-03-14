@@ -44,7 +44,7 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     const cityPowerCost = 100; // TODO is this const already defined somewhere?
     const storedProgress = (civ.city_power % cityPowerCost) / cityPowerCost * 100;
     const incomeProgress = civ.projected_city_power_income / cityPowerCost * 100;
-    const newCities = Math.floor(civ.city_power / cityPowerCost);
+    const newCities = Math.max(0, Math.floor(civ.city_power / cityPowerCost));
     const civTemplate = templates.CIVS[civ.name];
     const iconTooltip = <table><tbody>
         <tr><td> +10 </td><td> base </td></tr>
