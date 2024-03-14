@@ -29,6 +29,7 @@ import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
 import LowerRightDisplay from './LowerRightDisplay.js';
 import TechListDialog from './TechListDialog';
+import TaskBar from './TaskBar';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
@@ -378,6 +379,8 @@ export default function GamePage() {
     const techChoices = myCiv?.current_tech_choices;
 
     const civsById = gameState?.civs_by_id;
+
+    const myCities = Object.values(gameState?.cities_by_id || {}).filter(city => civsById?.[city.civ_id]?.game_player?.player_num === myGamePlayer?.player_num);
 
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
@@ -3083,6 +3086,7 @@ export default function GamePage() {
                         isFoundingCity={foundingCity}
                         templates={templates}
                         myCiv={myCiv} 
+                        myCities={myCities}
                         myGamePlayer={myGamePlayer} 
                         gameState={gameState}
                         centerMap={centerMap}
@@ -3169,7 +3173,12 @@ export default function GamePage() {
                         >
                             See end game info
                         </Button>}
+                        {engineState === EngineStates.PLAYING && !declineOptionsView && myCiv &&
+                            <TaskBar myCiv={myCiv} myCities={myCities} canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} setTechChoiceDialogOpen={setTechChoiceDialogOpen} />
+                        }
+
                     </div>}
+
                 </div>
                 {techListDialogOpen && <TechListDialog
                     open={techListDialogOpen}

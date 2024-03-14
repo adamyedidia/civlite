@@ -48,7 +48,7 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     const civTemplate = templates.CIVS[civ.name];
     const iconTooltip = <table><tbody>
         <tr><td> +10 </td><td> base </td></tr>
-        {myCities.map((city, index) => {
+        {myCities?.map((city, index) => {
             const amount = Math.floor(city.projected_income['city-power']);
             return amount != 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
         })}
@@ -243,7 +243,7 @@ const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTec
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income / techCost * 100 : 0;
     const iconTooltip = <table><tbody>
-        {myCities.map((city, index) => (
+        {myCities?.map((city, index) => (
             <tr key={index}><td> +{Math.floor(city.projected_income.science)} </td><td> from {city.name} </td></tr>
         ))}
     </tbody></table>
@@ -267,9 +267,8 @@ const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTec
 const UpperRightDisplay = ({ gameState, canFoundCity, isFoundingCity, disableUI, centerMap, declineOptionsView,
     templates,
     setConfirmEnterDecline, setTechChoiceDialogOpen, setHoveredUnit, setHoveredBuilding, setHoveredTech, 
-    toggleFoundingCity, myCiv, myGamePlayer, setTechListDialogOpen, 
+    toggleFoundingCity, myCiv, myGamePlayer, myCities, setTechListDialogOpen, 
     turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, civsById}) => {
-    const myCities = Object.values(gameState.cities_by_id).filter(city => civsById?.[city.civ_id]?.game_player?.player_num === myGamePlayer?.player_num);
     return (
         <div className="upper-right-display">
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} templates={templates} disableUI={disableUI}/>}
