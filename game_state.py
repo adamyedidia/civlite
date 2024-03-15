@@ -10,7 +10,7 @@ from collections import defaultdict
 from city import City, generate_random_city_name
 from civ import Civ
 from civ_template import CivTemplate
-from civ_templates_list import BARBARIAN_CIV, CIV_TEMPLATES
+from civ_templates_list import BARBARIAN_CIV, CIV_TEMPLATES, REVOLT_CIV_TEMPLATES, FRESH_CIV_TEMPLATES
 from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
@@ -771,7 +771,7 @@ class GameState:
         revolt_ids = set(id for _, id, _ in revolt_choices)
         for _, _, city in revolt_choices:
             if city.civ_to_revolt_into is None:
-                civ_name = self.sample_new_civs(1).pop(0)
+                civ_name = self.sample_new_civs(1, REVOLT_CIV_TEMPLATES).pop(0)
                 civ_template: CivTemplate = CIV_TEMPLATES[civ_name]
                 city.civ_to_revolt_into = civ_template
                 print(f"{city.name} => {city.civ_to_revolt_into=}")
@@ -779,7 +779,7 @@ class GameState:
             if id not in revolt_ids:
                 city.civ_to_revolt_into = None
 
-    def sample_new_civs(self, n):
+    def sample_new_civs(self, n: int, pool: list[CivTemplate]) -> list[str]:
         decline_choice_big_civ_pool = []
 
         advancement_level_to_use = max(self.advancement_level, 1)
@@ -787,7 +787,7 @@ class GameState:
             [city.civ.template.name for city in self.fresh_cities_for_decline.values()] + \
             [city.civ_to_revolt_into.name for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]
         for min_advancement_level in range(advancement_level_to_use, -1, -1):
-            decline_choice_big_civ_pool = [civ.name for civ in CIV_TEMPLATES.values() 
+            decline_choice_big_civ_pool = [civ.name for civ in pool
                                            if civ.advancement_level <= advancement_level_to_use and civ.advancement_level >= min_advancement_level
                                            and civ.name not in civs_already_in_game]
 
@@ -816,7 +816,7 @@ class GameState:
         print(f"Generating {new_locations_needed} fresh cities for decline.")
         new_hexes = generate_decline_locations(self.hexes, new_locations_needed, [self.hexes[coord] for coord in self.fresh_cities_for_decline])
 
-        decline_choice_civ_pool = self.sample_new_civs(new_locations_needed)
+        decline_choice_civ_pool = self.sample_new_civs(new_locations_needed, FRESH_CIV_TEMPLATES)
         for hex, civ_name in zip(new_hexes, decline_choice_civ_pool):
             assert hex.city is None, f"Attempting to put a fresh decline city on an existing city! {hex.city.name} @ {hex.coords}; {new_hexes}"
             new_civ = Civ(CIV_TEMPLATES[civ_name], game_player=None)

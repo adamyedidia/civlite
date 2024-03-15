@@ -138,6 +138,165 @@ FRESH_CIV_TEMPLATES: list[CivTemplate] = [
         abilities=[CIV_ABILITIES["ExtraVpsPerUnitKilled"](1)],
         advancement_level=0,
     ),    
+    CivTemplate(
+        name="Huns",
+        abilities=[
+            CIV_ABILITIES["StartWithResources"]("metal", 20),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Horse Archer", 3),
+        ],
+        advancement_level=1,
+    ),
+    CivTemplate(
+        name="Vikings",
+        abilities=[
+            CIV_ABILITIES["IncreaseFocusYields"]("metal", 2),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Swordsman", 3),
+        ],
+        advancement_level=1,
+    ),
+    CivTemplate(
+        name="Goths",
+        abilities=[
+            CIV_ABILITIES["ExtraVpsPerCityCaptured"](5),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Swordsman", 3),
+        ],
+        advancement_level=1,
+    ),
+    CivTemplate(
+        name="Franks",
+        abilities=[
+            CIV_ABILITIES["StartWithResources"]("wood", 20),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Knight", 3),
+        ],
+        advancement_level=1,
+    ),
+    CivTemplate(
+        name="Cumans",
+        abilities=[
+            CIV_ABILITIES["IncreaseYieldsForTerrain"]("metal", "forest", 1),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Horse Archer", 3),
+        ],
+        advancement_level=1,
+    ),
+    CivTemplate(
+        name="Xhosa",
+        abilities=[
+            CIV_ABILITIES["IncreaseYieldsForTerrain"]("wood", "grassland", 1),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Archer", 3),
+        ],
+        advancement_level=1,
+    ),
+    CivTemplate(
+        name="Polynesia",
+        abilities=[
+            CIV_ABILITIES["ExtraCityPower"](100),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Slinger", 5),
+        ],
+        advancement_level=1,
+    ),
+    CivTemplate(
+        name="Mongols",
+        abilities=[
+            CIV_ABILITIES["IncreaseCapitalYields"]("metal", 3),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Horse Archer", 4),
+        ],
+        advancement_level=2,
+    ),
+    CivTemplate(
+        name="Aztecs",
+        abilities=[
+            CIV_ABILITIES["ExtraVpsPerUnitKilled"](1),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Swordsman", 4),
+        ],
+        advancement_level=2,
+    ),
+    CivTemplate(
+        name="Inca",
+        abilities=[
+            CIV_ABILITIES["IncreaseCapitalYields"]("wood", 3),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Pikeman", 4),
+        ],
+        advancement_level=2,
+    ),
+    CivTemplate(
+        name="Songhai",
+        abilities=[
+            CIV_ABILITIES["IncreaseFocusYields"]("food", 3),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Knight", 4),
+        ],
+        advancement_level=2,
+    ),
+    CivTemplate(
+        name="England",
+        abilities=[
+            CIV_ABILITIES["IncreaseYieldsForTerrain"]("wood", "forest", 2),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Crossbowman", 4),
+        ],
+        advancement_level=2,
+    ),
+    CivTemplate(
+        name="Novgorod",
+        abilities=[
+            CIV_ABILITIES["IncreaseYieldsForTerrain"]("wood", "hills", 2),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Musketman", 4),
+        ],
+        advancement_level=2,
+    ),
+    CivTemplate(
+        name="Sweden",
+        abilities=[
+            CIV_ABILITIES["StartWithResources"]("science", 40),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Rifleman", 5),
+        ],
+        advancement_level=4,
+    ),
+    CivTemplate(
+        name="Lithuania",
+        abilities=[
+            CIV_ABILITIES["StartWithResources"]("wood", 40),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Cavalry", 5),
+        ],
+        advancement_level=4,
+    ),
+    CivTemplate(
+        name="Brazil",
+        abilities=[
+            CIV_ABILITIES["StartWithResources"]("metal", 50),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Rifleman", 7),
+        ],
+        advancement_level=5,
+    ),
+    CivTemplate(
+        name="United States",
+        abilities=[
+            CIV_ABILITIES["ExtraVpsPerCityCaptured"](5),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Infantry", 7),
+        ],
+        advancement_level=5,
+    ),
+    CivTemplate(
+        name="Canada",
+        abilities=[
+            CIV_ABILITIES["StartWithResources"]("science", 75),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Infantry", 8),
+        ],
+        advancement_level=7,
+    ),
+    CivTemplate(
+        name="Australia",
+        abilities=[
+            CIV_ABILITIES["StartWithResources"]("food", 75),
+            CIV_ABILITIES["IncreasedStrengthForUnit"]("Bazooka", 8),
+        ],
+        advancement_level=7,
+    ),
+    CivTemplate(
+        name="Arctic Alliance",
+        abilities=[
+            CIV_ABILITIES["StartWithResources"]("food", 400),
+        ],
+        advancement_level=9,
+    ),
 ]
 
 REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
@@ -182,34 +341,10 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         advancement_level=1,
     ),
     CivTemplate(
-        name="Huns",
-        abilities=[
-            CIV_ABILITIES["StartWithResources"]("metal", 20),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Horse Archer", 3),
-        ],
-        advancement_level=1,
-    ),
-    CivTemplate(
         name="Carthage",
         abilities=[
             CIV_ABILITIES["StartWithResources"]("food", 20),
             CIV_ABILITIES["IncreasedStrengthForUnit"]("Horseman", 3),
-        ],
-        advancement_level=1,
-    ),
-    CivTemplate(
-        name="Goths",
-        abilities=[
-            CIV_ABILITIES["ExtraVpsPerCityCaptured"](5),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Swordsman", 3),
-        ],
-        advancement_level=1,
-    ),
-    CivTemplate(
-        name="Franks",
-        abilities=[
-            CIV_ABILITIES["StartWithResources"]("wood", 20),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Knight", 3),
         ],
         advancement_level=1,
     ),
@@ -238,14 +373,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         advancement_level=1,
     ),
     CivTemplate(
-        name="Vikings",
-        abilities=[
-            CIV_ABILITIES["IncreaseFocusYields"]("metal", 2),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Swordsman", 3),
-        ],
-        advancement_level=1,
-    ),
-    CivTemplate(
         name="Byzantines",
         abilities=[
             CIV_ABILITIES["ExtraVpsPerWonder"](5),
@@ -258,14 +385,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         abilities=[
             CIV_ABILITIES["IncreaseYieldsForTerrain"]("food", "grassland", 1),
             CIV_ABILITIES["IncreasedStrengthForUnit"]("Catapult", 3),
-        ],
-        advancement_level=1,
-    ),
-    CivTemplate(
-        name="Polynesia",
-        abilities=[
-            CIV_ABILITIES["ExtraCityPower"](100),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Slinger", 5),
         ],
         advancement_level=1,
     ),
@@ -310,14 +429,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         advancement_level=1,
     ),
     CivTemplate(
-        name="Xhosa",
-        abilities=[
-            CIV_ABILITIES["IncreaseYieldsForTerrain"]("wood", "grassland", 1),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Archer", 3),
-        ],
-        advancement_level=1,
-    ),
-    CivTemplate(
         name="Xiongnu",
         abilities=[
             CIV_ABILITIES["ExtraVpsPerUnitKilled"](1),
@@ -329,14 +440,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         abilities=[
             CIV_ABILITIES["IncreaseYieldsForTerrain"]("science", "plains", 1),
             CIV_ABILITIES["IncreasedStrengthForUnit"]("Archer", 3),
-        ],
-        advancement_level=1,
-    ),
-    CivTemplate(
-        name="Cumans",
-        abilities=[
-            CIV_ABILITIES["IncreaseYieldsForTerrain"]("metal", "forest", 1),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Horse Archer", 3),
         ],
         advancement_level=1,
     ),
@@ -376,38 +479,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         name="Mali",
         abilities=[
             CIV_ABILITIES["IncreaseFocusYields"]("science", 3),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Pikeman", 4),
-        ],
-        advancement_level=2,
-    ),
-    CivTemplate(
-        name="Songhai",
-        abilities=[
-            CIV_ABILITIES["IncreaseFocusYields"]("food", 3),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Knight", 4),
-        ],
-        advancement_level=2,
-    ),
-    CivTemplate(
-        name="Mongols",
-        abilities=[
-            CIV_ABILITIES["IncreaseCapitalYields"]("metal", 3),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Horse Archer", 4),
-        ],
-        advancement_level=2,
-    ),
-    CivTemplate(
-        name="Aztecs",
-        abilities=[
-            CIV_ABILITIES["ExtraVpsPerUnitKilled"](1),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Swordsman", 4),
-        ],
-        advancement_level=2,
-    ),
-    CivTemplate(
-        name="Inca",
-        abilities=[
-            CIV_ABILITIES["IncreaseCapitalYields"]("wood", 3),
             CIV_ABILITIES["IncreasedStrengthForUnit"]("Pikeman", 4),
         ],
         advancement_level=2,
@@ -481,22 +552,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         abilities=[
             CIV_ABILITIES["IncreaseYieldsForTerrain"]("food", "grassland", 2),
             CIV_ABILITIES["IncreasedStrengthForUnit"]("Militia", 4),
-        ],
-        advancement_level=2,
-    ),
-    CivTemplate(
-        name="England",
-        abilities=[
-            CIV_ABILITIES["IncreaseYieldsForTerrain"]("wood", "forest", 2),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Crossbowman", 4),
-        ],
-        advancement_level=2,
-    ),
-    CivTemplate(
-        name="Novgorod",
-        abilities=[
-            CIV_ABILITIES["IncreaseYieldsForTerrain"]("wood", "hills", 2),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Musketman", 4),
         ],
         advancement_level=2,
     ),
@@ -581,14 +636,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         advancement_level=4,
     ),
     CivTemplate(
-        name="Sweden",
-        abilities=[
-            CIV_ABILITIES["StartWithResources"]("science", 40),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Rifleman", 5),
-        ],
-        advancement_level=4,
-    ),
-    CivTemplate(
         name="Russia",
         abilities=[
             CIV_ABILITIES["ExtraCityPower"](250),
@@ -653,14 +700,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         advancement_level=4,
     ),
     CivTemplate(
-        name="Lithuania",
-        abilities=[
-            CIV_ABILITIES["StartWithResources"]("wood", 40),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Cavalry", 5),
-        ],
-        advancement_level=4,
-    ),
-    CivTemplate(
         name="Netherlands",
         abilities=[
             CIV_ABILITIES["StartWithResources"]("science", 40),
@@ -675,22 +714,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
             CIV_ABILITIES["IncreasedStrengthForUnit"]("Gatling Gun", 5),
         ],
         advancement_level=4,
-    ),
-    CivTemplate(
-        name="Brazil",
-        abilities=[
-            CIV_ABILITIES["StartWithResources"]("metal", 50),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Rifleman", 7),
-        ],
-        advancement_level=5,
-    ),
-    CivTemplate(
-        name="United States",
-        abilities=[
-            CIV_ABILITIES["ExtraVpsPerCityCaptured"](5),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Infantry", 7),
-        ],
-        advancement_level=5,
     ),
     CivTemplate(
         name="Mexico",
@@ -764,22 +787,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         advancement_level=5,
     ),
     CivTemplate(
-        name="Canada",
-        abilities=[
-            CIV_ABILITIES["StartWithResources"]("science", 75),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Infantry", 8),
-        ],
-        advancement_level=7,
-    ),
-    CivTemplate(
-        name="Australia",
-        abilities=[
-            CIV_ABILITIES["StartWithResources"]("food", 75),
-            CIV_ABILITIES["IncreasedStrengthForUnit"]("Bazooka", 8),
-        ],
-        advancement_level=7,
-    ),
-    CivTemplate(
         name="Vietnam",
         abilities=[
             CIV_ABILITIES["StartWithResources"]("wood", 75),
@@ -822,13 +829,6 @@ REVOLT_CIV_TEMPLATES: list[CivTemplate] = [
         name="Solaria",
         abilities=[
             CIV_ABILITIES["StartWithResources"]("science", 200),
-        ],
-        advancement_level=9,
-    ),
-    CivTemplate(
-        name="Arctic Alliance",
-        abilities=[
-            CIV_ABILITIES["StartWithResources"]("food", 400),
         ],
         advancement_level=9,
     ),
