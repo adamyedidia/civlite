@@ -43,7 +43,7 @@
     height: 70px;
 }
 
-.tech-level-box.disabled .tech-tree-card{
+.tech-level-box.disabled .tech-tree-card.unavailable{
     background-color: #dde;
 }
 

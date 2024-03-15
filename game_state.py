@@ -189,7 +189,7 @@ class GameState:
         print(f"Starting with prereqs for buildings: {chosen_techs_names}")
 
         # Calculate mean tech amount at each level
-        civs_to_compare_to = [civ for civ in self.civs_by_id.values() if civ.game_player]
+        civs_to_compare_to: list[Civ] = [civ for civ in self.civs_by_id.values() if civ.game_player and civ != city.civ]
         if len(civs_to_compare_to) == 0:
             civs_to_compare_to = [civ for civ in self.civs_by_id.values()]
 
