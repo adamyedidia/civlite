@@ -5,7 +5,7 @@ from collections import defaultdict
 from building_templates_list import BUILDINGS
 
 from civ_template import CivTemplate
-from civ_templates_list import ANCIENT_CIVS, CIVS
+from civ_templates_list import CIV_TEMPLATES
 from game_player import GamePlayer
 from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD
 from tech_template import TechTemplate
@@ -369,7 +369,7 @@ class Civ:
     @staticmethod
     def from_json(json: dict) -> "Civ":
         civ = Civ(
-            civ_template=CivTemplate.from_json(CIVS[json["name"]]),
+            civ_template=CIV_TEMPLATES[json["name"]],
             game_player=GamePlayer.from_json(json["game_player"]) if json["game_player"] else None,
         )
         civ.id = json["id"]
@@ -395,7 +395,7 @@ class Civ:
 def create_starting_civ_options_for_players(game_players: list[GamePlayer], starting_locations: list['Hex']) -> dict[int, list[tuple[Civ, 'Hex']]]:
     assert len(game_players) <= 8
 
-    starting_civ_option_jsons = random.sample([civ for civ in list(ANCIENT_CIVS.values()) if civ['advancement_level'] == 0], NUM_STARTING_LOCATION_OPTIONS * len(game_players))
+    starting_civ_option_civs: list[CivTemplate] = random.sample([civ for civ in list(CIV_TEMPLATES.values()) if civ.advancement_level == 0], NUM_STARTING_LOCATION_OPTIONS * len(game_players))
 
     starting_civ_options = {}
 
@@ -404,7 +404,7 @@ def create_starting_civ_options_for_players(game_players: list[GamePlayer], star
     for game_player in game_players:
         starting_civ_options[game_player.player_num] = []
         for _ in range(NUM_STARTING_LOCATION_OPTIONS):
-            civ = Civ(CivTemplate.from_json(starting_civ_option_jsons[counter]), game_player)
+            civ = Civ(starting_civ_option_civs[counter], game_player)
             civ.get_new_tech_choices()
             if civ.has_ability('ExtraCityPower'):
                 civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]

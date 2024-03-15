@@ -2,7 +2,7 @@ import pytest
 
 from tech_templates_list import TECHS
 from unit_templates_list import UNITS
-from civ_templates_list import CIVS
+from civ_templates_list import CIV_TEMPLATES
 from building_templates_list import BUILDINGS
 from tech_template import TechTemplate
 from unit_template import UnitTemplate
@@ -21,8 +21,7 @@ class TestConsistency:
             assert unit_template.name == name, f"key and name mismatch: {name} != {unit_template.name}"
 
     def test_civ_names_consistency(self):
-        for name, json in CIVS.items():
-            civ_template = CivTemplate.from_json(json)
+        for name, civ_template in CIV_TEMPLATES.items():
             assert civ_template.name == name, f"key and name mismatch: {name} != {civ_template.name}"
 
     def test_building_name_consistency(self):
@@ -57,8 +56,7 @@ class TestConsistency:
             assert bldg_name in found_bldgs, f"Building {bldg_name} is not unlocked by any tech. It think it should be unlocked by {BUILDINGS[bldg_name].get('prereq')}"
 
     def test_civ_special_units_consistency(self):
-        for name, json in CIVS.items():
-            civ_template = CivTemplate.from_json(json)
+        for name, civ_template in CIV_TEMPLATES.items():
 
             for ability in civ_template.abilities:
                 if ability.name == 'IncreasedStrengthForUnit':

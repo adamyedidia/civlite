@@ -4,6 +4,7 @@ from building import Building
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from tech_templates_list import TECHS
+from civ_templates_list import CIV_TEMPLATES
 from civ_template import CivTemplate
 from civ import Civ
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
@@ -883,7 +884,7 @@ class City:
         city.projected_income_base = json["projected_income_base"]
         city.projected_income_focus = json["projected_income_focus"]
         city.terrains_dict = json.get("terrains_dict") or {}
-        city.civ_to_revolt_into = CivTemplate.from_json(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
+        city.civ_to_revolt_into = CIV_TEMPLATES[json["civ_to_revolt_into"]["name"]] if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]
         city.unhappiness = json["unhappiness"]
         city.is_decline_view_option = json["is_decline_view_option"]
