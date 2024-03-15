@@ -34,7 +34,7 @@ export const TaskBar = ({myCiv, myCities, canFoundCity, setSelectedCity, setFoun
     );
 
     return <div className="task-bar">
-        {canFoundCity && <TaskIcon icon={cityImg} onClick={() => {setFoundingCity(true)}} tooltip="Found city" />}
+        {canFoundCity && myCiv?.city_power > 100 && <TaskIcon icon={cityImg} onClick={() => {setFoundingCity(true)}} tooltip="Found city" />}
         {!myCiv?.researching_tech_name && <TaskIcon icon={scienceImg} onClick={() => {setTechChoiceDialogOpen(true)}} tooltip="Choose research" />}
         {!myCiv?.trade_hub_id && anyUnhappyCities && <TaskIcon icon={tradeHubImg} 
             tooltip={<div>Select trade hub (in city window). Unhappy cities: {unhappyCitiesList}</div>}
