@@ -2970,7 +2970,7 @@ export default function GamePage() {
             return a.r - b.r + 0.1 * (a.q - b.q);
         });
 
-        const canFoundCity = hexagons.some(hex => hex.is_foundable_by_civ?.[myCivId]);
+        const canFoundCity = hexagons.some(hex => hex.is_foundable_by_civ?.[myCivId]) && myCiv?.city_power > 100;
 
         return (
             <>
