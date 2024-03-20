@@ -3036,8 +3036,8 @@ export default function GamePage() {
                                             unit={hex.units[0]}
                                             isCityInHex={hex?.city || hex?.camp}
                                         />}
-                                        {target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
-                                        {target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
+                                        {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
+                                        {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
                                     </Hexagon>
                                 // </div>
                             );
