@@ -1,14 +1,22 @@
-from typing import Union
+from typing import Optional
 from abilities_list import CIV_ABILITIES
 from ability import Ability
+from civ_templates_colors_list import colors_list
 
 
 class CivTemplate:
-    def __init__(self, name: str, primary_color: str, secondary_color: str, abilities: list[list[Union[str, list]]]):
-        self.name = name
-        self.primary_color = primary_color
-        self.secondary_color = secondary_color
-        self.abilities: list[Ability] = [CIV_ABILITIES[ability[0]](*ability[1]) for ability in abilities]  # type: ignore
+    def __init__(self, 
+                name: str, 
+                abilities: list[Ability], 
+                advancement_level: int, 
+                colors: Optional[tuple[str, str]] = None, 
+            ):
+        self.name: str = name
+        if colors is None:
+            colors = colors_list.pop(0)
+        self.primary_color, self.secondary_color = colors
+        self.abilities: list[Ability] = abilities
+        self.advancement_level: int = advancement_level
 
     def __repr__(self) -> str:
         return f"<CivTemplate {self.name}>"
@@ -23,9 +31,4 @@ class CivTemplate:
     
     @staticmethod
     def from_json(json: dict) -> "CivTemplate":
-        return CivTemplate(
-            name=json["name"],
-            primary_color=json["primary_color"],
-            secondary_color=json["secondary_color"],
-            abilities=[[ability["name"], ability["numbers"]] for ability in json["abilities"]],
-        )
+        raise ValueError("Don't recreate Templates from json. Get them by name from CIV_TEMPLATES.")

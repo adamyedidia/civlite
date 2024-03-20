@@ -14,7 +14,7 @@ from animation_frame import AnimationFrame
 from city import City, generate_random_city_name
 from civ import Civ, create_starting_civ_options_for_players
 from civ_template import CivTemplate
-from civ_templates_list import CIVS
+from civ_templates_list import CIV_TEMPLATES
 from database import SessionLocal
 from game import Game
 from game_player import GamePlayer
@@ -811,7 +811,7 @@ def get_game_constants(sess):
 @api_endpoint
 def get_all_templates(sess):
     return jsonify({
-        'CIVS': {civ_template['name']: CivTemplate.from_json(civ_template).to_json() for civ_template in CIVS.values()},
+        'CIVS': {name: civ_template.to_json() for name, civ_template in CIV_TEMPLATES.items()},
         'UNITS': {unit_template['name']: UnitTemplate.from_json(unit_template).to_json() for unit_template in UNITS.values()},
         'TECHS': {tech_template['name']: {**TechTemplate.from_json(tech_template).to_json()} for tech_template in TECHS.values()},
         'BUILDINGS': {building_template['name']: BuildingTemplate.from_json(building_template).to_json() for building_template in BUILDINGS.values()},
