@@ -107,13 +107,13 @@ const DeclineOptionRow = ({ city, setDeclineOptionsView, templates, centerMap, s
             {city.name}
         </div>
         <div className="revolt-cities-detail">
-            {Math.floor(city.projected_income['food'])}
+            {Math.floor(city.projected_income_base['food'])}
             <img src={foodImg}/>
-            {Math.floor(city.projected_income['science'])}
+            {Math.floor(city.projected_income_base['science'])}
             <img src={scienceImg}/>
-            {Math.floor(city.projected_income['wood'])}
+            {Math.floor(city.projected_income_base['wood'])}
             <img src={woodImg}/>
-            {Math.floor(city.projected_income['metal'])}
+            {Math.floor(city.projected_income_base['metal'])}
             <img src={metalImg}/>
         </div>
         <div className="revolt-cities-detail">
