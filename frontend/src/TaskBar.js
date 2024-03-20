@@ -20,7 +20,7 @@ const TaskIcon = ({icon, onClick, tooltip}) => {
 }
 
 
-export const TaskBar = ({myCiv, myCities, canFoundCity, setSelectedCity, setFoundingCity, setTechChoiceDialogOpen}) => {
+export const TaskBar = ({myCiv, myCities, myUnits, canFoundCity, setSelectedCity, setFoundingCity, setTechChoiceDialogOpen}) => {
     const anyUnhappyCities = myCities?.some(city => city.unhappiness > 0 || city.projected_income['unhappiness'] > 0);
     
     // Generate the list of unhappy cities as a JSX element
@@ -33,14 +33,14 @@ export const TaskBar = ({myCiv, myCities, canFoundCity, setSelectedCity, setFoun
         </ul>
     );
 
-    return <div className="task-bar">
+return <div className="task-bar">
         {canFoundCity && myCiv?.city_power > 100 && <TaskIcon icon={cityImg} onClick={() => {setFoundingCity(true)}} tooltip="Found city" />}
         {!myCiv?.researching_tech_name && <TaskIcon icon={scienceImg} onClick={() => {setTechChoiceDialogOpen(true)}} tooltip="Choose research" />}
         {!myCiv?.trade_hub_id && anyUnhappyCities && <TaskIcon icon={tradeHubImg} 
             tooltip={<div>Select trade hub (in city window). Unhappy cities: {unhappyCitiesList}</div>}
         />}
-        {!myCiv?.target1 && <TaskIcon icon={flag1Img} tooltip="Select primary flag" />}
-        {!myCiv?.target2 && <TaskIcon icon={flag2Img} tooltip="Select secondary flag" />}
+        {!myCiv?.target1 && myUnits.length > 0 && <TaskIcon icon={flag1Img} tooltip="Select primary flag" />}
+        {!myCiv?.target2 && myUnits.length > 1 && <TaskIcon icon={flag2Img} tooltip="Select secondary flag" />}
     </div>
 }
 

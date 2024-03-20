@@ -381,6 +381,9 @@ export default function GamePage() {
     const civsById = gameState?.civs_by_id;
 
     const myCities = Object.values(gameState?.cities_by_id || {}).filter(city => civsById?.[city.civ_id]?.game_player?.player_num === myGamePlayer?.player_num);
+    const myUnits = Object.values(gameState?.hexes || {})
+        .filter(hex => hex.units?.length > 0 && civsById?.[hex.units[0].civ_id]?.game_player?.player_num === myGamePlayer?.player_num)
+        .map(hex => hex.units[0])
 
     const target1 = coordsToObject(myCiv?.target1);
     const target2 = coordsToObject(myCiv?.target2);
@@ -3174,7 +3177,7 @@ export default function GamePage() {
                             See end game info
                         </Button>}
                         {engineState === EngineStates.PLAYING && !declineOptionsView && myCiv &&
-                            <TaskBar myCiv={myCiv} myCities={myCities} canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} setTechChoiceDialogOpen={setTechChoiceDialogOpen} />
+                            <TaskBar myCiv={myCiv} myCities={myCities} myUnits={myUnits} canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} setTechChoiceDialogOpen={setTechChoiceDialogOpen} />
                         }
 
                     </div>}
