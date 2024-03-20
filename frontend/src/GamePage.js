@@ -3177,7 +3177,7 @@ export default function GamePage() {
                             See end game info
                         </Button>}
                         {engineState === EngineStates.PLAYING && !declineOptionsView && myCiv &&
-                            <TaskBar myCiv={myCiv} myCities={myCities} myUnits={myUnits} canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} setTechChoiceDialogOpen={setTechChoiceDialogOpen} />
+                            <TaskBar myCiv={myCiv} myCities={myCities} myUnits={myUnits} canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} setTechChoiceDialogOpen={setTechChoiceDialogOpen} techChoiceDialogOpen={techChoiceDialogOpen}/>
                         }
 
                     </div>}

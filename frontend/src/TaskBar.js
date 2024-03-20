@@ -20,7 +20,7 @@ const TaskIcon = ({icon, onClick, tooltip}) => {
 }
 
 
-export const TaskBar = ({myCiv, myCities, myUnits, canFoundCity, setSelectedCity, setFoundingCity, setTechChoiceDialogOpen}) => {
+export const TaskBar = ({myCiv, myCities, myUnits, canFoundCity, setSelectedCity, setFoundingCity, setTechChoiceDialogOpen, techChoiceDialogOpen}) => {
     const anyUnhappyCities = myCities?.some(city => city.unhappiness > 0 || city.projected_income['unhappiness'] > 0);
     
     // Generate the list of unhappy cities as a JSX element
@@ -35,7 +35,7 @@ export const TaskBar = ({myCiv, myCities, myUnits, canFoundCity, setSelectedCity
 
 return <div className="task-bar">
         {canFoundCity && myCiv?.city_power > 100 && <TaskIcon icon={cityImg} onClick={() => {setFoundingCity(true)}} tooltip="Found city" />}
-        {!myCiv?.researching_tech_name && <TaskIcon icon={scienceImg} onClick={() => {setTechChoiceDialogOpen(true)}} tooltip="Choose research" />}
+        {!myCiv?.researching_tech_name && !techChoiceDialogOpen && <TaskIcon icon={scienceImg} onClick={() => {setTechChoiceDialogOpen(true)}} tooltip="Choose research" />}
         {!myCiv?.trade_hub_id && anyUnhappyCities && <TaskIcon icon={tradeHubImg} 
             tooltip={<div>Select trade hub (in city window). Unhappy cities: {unhappyCitiesList}</div>}
         />}
