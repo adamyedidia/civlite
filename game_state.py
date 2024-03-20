@@ -206,7 +206,7 @@ class GameState:
             tech_counts = tech_counts_by_adv_level[level]
             total = sum(tech_counts.values())
             target_num = total / len(civs_to_compare_to) - excess_techs
-            print(f"Level {level}; excess {excess_techs}; target: {target_num}")
+            print(f"Level {level}; excess {excess_techs}; target: {target_num}; already have {chosen_techs_by_advancement[level]}")
             if chosen_techs_by_advancement[level] >= math.floor(target_num):
                 excess_techs = chosen_techs_by_advancement[level] - target_num
                 continue
