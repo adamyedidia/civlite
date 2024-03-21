@@ -1,6 +1,5 @@
 .civ-card {
     border: 10px solid; /* Border color will be set inline */
-    padding: 10px;
     border-radius: 5px;
     position: fixed;
     right: 10px;
