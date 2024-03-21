@@ -371,7 +371,8 @@ export default function GamePage() {
         const myCiv = gameState?.civs_by_id?.[myCivId];
         return {gamePlayer, myCivId, myCiv};
     }
-    const info = getMyInfo(declineOptionsView ? nonDeclineViewGameState : gameState);
+    const mainGameState = declineOptionsView ? nonDeclineViewGameState : gameState;
+    const info = getMyInfo(mainGameState);
     const myGamePlayer = info.gamePlayer;
     const myCivId = info.myCivId;
     const myCiv = info.myCiv;
@@ -380,8 +381,8 @@ export default function GamePage() {
 
     const civsById = gameState?.civs_by_id;
 
-    const myCities = Object.values(gameState?.cities_by_id || {}).filter(city => civsById?.[city.civ_id]?.game_player?.player_num === myGamePlayer?.player_num);
-    const myUnits = Object.values(gameState?.hexes || {})
+    const myCities = Object.values(mainGameState?.cities_by_id || {}).filter(city => civsById?.[city.civ_id]?.game_player?.player_num === myGamePlayer?.player_num);
+    const myUnits = Object.values(mainGameState?.hexes || {})
         .filter(hex => hex.units?.length > 0 && civsById?.[hex.units[0].civ_id]?.game_player?.player_num === myGamePlayer?.player_num)
         .map(hex => hex.units[0])
 
@@ -3091,7 +3092,7 @@ export default function GamePage() {
                         myCiv={myCiv} 
                         myCities={myCities}
                         myGamePlayer={myGamePlayer} 
-                        gameState={gameState}
+                        mainGameState={mainGameState}
                         centerMap={centerMap}
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
                         setTechListDialogOpen={setTechListDialogOpen}
