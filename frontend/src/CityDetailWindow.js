@@ -77,6 +77,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     const submitPlayerInput = (moveType, playerInput) => {
         const data = {
             player_num: playerNum,
+            turn_num: gameState.turn_num,
             player_input: playerInput,
         }
         playerInput['move_type'] = moveType;

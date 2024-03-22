@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { URL } from './settings';
 import './Timer.css';
 
-function Timer({ nextForcedRollAt, onTimerElapsed, gameId, disabledText }) {
+function Timer({ nextForcedRollAt, onTimerElapsed, gameId, disabledText, rolling }) {
   const [secondsElapsed, setSecondsElapsed] = useState(0);
 
   const handlePause = () => {
@@ -46,7 +46,7 @@ function Timer({ nextForcedRollAt, onTimerElapsed, gameId, disabledText }) {
   const isTimeLow = secondsElapsed === 4 || secondsElapsed === 2 || secondsElapsed === 0; // Check if time is 3 or fewer seconds
 
   return (
-      <div className="time-display">
+      <div className={`time-display ${rolling ? 'rolling' : ''}`}>
             {disabledText ? disabledText : <>
               <Typography variant="h2" style={{ color: isTimeLow ? 'red' : 'inherit'}}>
                   {formatTime(secondsElapsed)}

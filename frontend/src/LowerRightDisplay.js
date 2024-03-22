@@ -20,7 +20,7 @@ const AnimationControlBar = ({animationFrame, animationTotalFrames}) => {
     </div>
 }
 
-const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, 
+const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, nextForcedRollAt, turnEndedByPlayerNum, hoveredHex, 
     handleClickEndTurn, handleClickUnendTurn, 
     triggerAnimations, engineState, animationFrameLastPlayedRef, animationTotalFrames, cancelAnimations }) => {
     const toggleAnimations = () => {
@@ -30,7 +30,7 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
             triggerAnimations(gameState);
         }
     }
-    
+   
     return <div className="lower-right-display">
         <AnnouncementsDisplay announcements={gameState?.announcements} />
         <div className="end-turn-area">
@@ -73,7 +73,7 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
                 gamePlayerByPlayerNum={gameState?.game_player_by_player_num}
                 turnEndedByPlayerNum={turnEndedByPlayerNum}
             />
-            {gameState?.next_forced_roll_at && <Timer nextForcedRollAt={gameState?.next_forced_roll_at} gameId={gameId} disabledText={timerMuted && "Paused"}/>}
+            {nextForcedRollAt && <Timer nextForcedRollAt={nextForcedRollAt} gameId={gameId} disabledText={timerMuted && "Paused"} rolling={engineState === EngineStates.ROLLING}/>}
             
         </div>
     </div>

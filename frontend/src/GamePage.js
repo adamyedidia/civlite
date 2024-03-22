@@ -309,7 +309,7 @@ export default function GamePage() {
     const animationsLastStartedAtRef = React.useRef(null);
 
     const [playersInGame, setPlayersInGame] = useState(null);
-    const [turnNum, setTurnNum] = useState(1);
+    const [nextForcedRollAt, setNextForcedRollAt] = useState(null);
 
     const [templates, setTemplates] = useState(null);
     const [volume, setVolume] = useState(100);
@@ -2233,6 +2233,7 @@ export default function GamePage() {
 
         const data = {
             player_num: playerNum,
+            turn_num: gameStateRef.current.turn_num,
             player_input: playerInput,
         }
         fetch(playerApiUrl, {
@@ -2372,7 +2373,6 @@ export default function GamePage() {
         const finalGameState = animationFinalStateRef.current;
         setGameState(finalGameState);
         refreshSelectedCity(finalGameState);
-        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
         const {_, __, myCiv} = getMyInfo(finalGameState);
         sciencePopupIfNeeded(myCiv);
     }
@@ -2564,6 +2564,7 @@ export default function GamePage() {
         } else if (declineOptionsView) {
             const data = {
                 player_num: playerNum,
+                turn_num: gameStateRef.current.turn_num,
                 player_input: {
                     coords: selectedCity.hex,
                     move_type: 'choose_decline_option',
@@ -2875,6 +2876,7 @@ export default function GamePage() {
 
             const data = {
                 player_num: playerNum,
+                turn_num: gameStateRef.current.turn_num,
                 player_input: playerInput,
             }
 
@@ -2915,6 +2917,7 @@ export default function GamePage() {
 
         const data = {
             player_num: playerNumRef.current,
+            turn_num: gameStateRef.current.turn_num,
             player_input: playerInput,
         }
 
@@ -2943,6 +2946,7 @@ export default function GamePage() {
 
         const data = {
             player_num: playerNumRef.current,
+            turn_num: gameStateRef.current.turn_num,
             player_input: playerInput,
         }
 
@@ -3068,7 +3072,8 @@ export default function GamePage() {
                         gameState={gameState}
                         gameId={gameId}
                         playerNum={playerNum}
-                        timerMuted={timerMutedOnTurn === turnNum || engineState === EngineStates.GAME_OVER}
+                        timerMuted={timerMutedOnTurn === gameState?.turn_num || engineState === EngineStates.GAME_OVER}
+                        nextForcedRollAt={nextForcedRollAt}
                         turnEndedByPlayerNum={turnEndedByPlayerNum}
                         isHoveredHex={!!hoveredHex}
                         handleClickEndTurn={handleClickEndTurn}
@@ -3098,7 +3103,7 @@ export default function GamePage() {
                         setTechListDialogOpen={setTechListDialogOpen}
                         setSelectedCity={setSelectedCity}
                         disableUI={engineState !== EngineStates.PLAYING}
-                        turnNum={turnNum}
+                        turnNum={gameState?.turn_num}
                         setDeclineOptionsView={setDeclineOptionsView}
                         declineViewGameState={declineViewGameState}
                         declineOptionsView={declineOptionsView}
@@ -3239,13 +3244,12 @@ export default function GamePage() {
             .then(response => response.json())
             .then(data => {
                 console.log("Turn started: ", data.game_state.turn_num);
-                setTurnNum(data.game_state.turn_num);
                 setAnimationTotalFrames(data.num_frames);
                 const budgetedAnimationTime = Math.min(30, data.game_state.turn_num) * 1000;
                 // Give 5 seconds for the backend computation
                 const animationTime = Math.max(budgetedAnimationTime - 5000, 5000);
                 const animationDelay = Math.min(MAX_ANIMATION_DELAY, animationTime / data.num_frames)
-                console.log("Attempting to play animation with", data.num_frames,  "frames in", animationTime/1000, "secs; turn has left", Math.floor(data.game_state.next_forced_roll_at - Date.now()/1000), " secs. Playing one frame per", animationDelay, "ms");
+                console.log("Attempting to play animation with", data.num_frames,  "frames in", animationTime/1000, "secs; turn has left", Math.floor(nextForcedRollAt - Date.now()/1000), " secs. Playing one frame per", animationDelay, "ms");
                 setAnimationActiveDelay(animationDelay);
 
                 if (playAnimations) {
@@ -3272,13 +3276,14 @@ export default function GamePage() {
         socket.emit('join', { room: gameId, username: username });
         fetchGameStatus();
         fetchDeclineViewGameState();
-        socket.on('update', () => {
+        socket.on('update', (data) => {
           console.log('update received')
           if (gameStateExistsRef.current) {
             setDeclineOptionsView(false);
             fetchDeclineViewGameState();
             // Turn has rolled within a game.
             fetchTurnStartGameState(true);
+            setNextForcedRollAt(data.next_forced_roll_at);
           }
           else {
             // Get here for updates before the game has launched (i.e. adding a player to the lobby)
@@ -3295,6 +3300,10 @@ export default function GamePage() {
             if (data.player_num === playerNum) {
                 receiveDeclineEviction();
             }
+        })
+        socket.on('overtime', (data) => {
+            console.log("overtime", data);
+            // TODO
         })
         socket.on('turn_end_change', (data) => {
             setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});

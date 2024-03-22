@@ -43,9 +43,6 @@ def staged_moves_key(game_id: str, player_num: int, turn_num: int) -> str:
 def dream_key_from_civ_perspectives(game_id: str, player_num: int, turn_num: int) -> str:
     return f'dream_game_state_from_civ_perspectives:{game_id}:{player_num}:{turn_num}'
 
-def turn_lock_key(game_id: str, turn_num: int) -> str:
-    return f'turn_lock:{game_id}:{turn_num}'
-
 def moves_processing_key(game_id: str, turn_num: int) -> str:
     return f'moves_processing:{game_id}:{turn_num}'
 

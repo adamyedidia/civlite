@@ -11,3 +11,6 @@
     align-items: center;
 }
 
+.time-display.rolling > * {
+    visibility: hidden;
+}
