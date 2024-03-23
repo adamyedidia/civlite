@@ -2984,8 +2984,6 @@ export default function GamePage() {
 
         const canFoundCity = hexagons.some(hex => hex.is_foundable_by_civ?.[myCivId]) && myCiv?.city_power > 100;
 
-        console.log(overtimeDeclineCivs)
-
         return (
             <>
                 <div className="basic-example">
@@ -3236,7 +3234,6 @@ export default function GamePage() {
                 if (data.game_started) {
                     // game is running, let's go get the game state.
                     fetchTurnStartGameState(false);
-                    fetchTurnTimerStatus();
                 } else {
                     // Game is in lobby state.
                     console.log("Updating players in the game", data.players);
@@ -3252,7 +3249,7 @@ export default function GamePage() {
             .then(response => response.json())
             .then(data => {
                 console.log("Turn started: ", data.game_state.turn_num);
-                fetchTurnTimerStatus();
+                fetchTurnTimerStatus(data.game_state.turn_num);
                 setAnimationTotalFrames(data.num_frames);
                 const budgetedAnimationTime = Math.min(30, data.game_state.turn_num) * 1000;
                 // Give 5 seconds for the backend computation
@@ -3280,8 +3277,8 @@ export default function GamePage() {
         setDeclinePreemptedDialogOpen(true);
     }
 
-    const fetchTurnTimerStatus = async () => {
-        fetch(`${URL}/api/turn_timer_status/${gameId}`).then(response => response.json()).then(data => {
+    const fetchTurnTimerStatus = async (turn_num) => {
+        fetch(`${URL}/api/turn_timer_status/${gameId}/${turn_num}`).then(response => response.json()).then(data => {
             setNextForcedRollAt(data.next_forced_roll_at);
             setTurnEndedByPlayerNum(data.turn_ended_by_player_num);
             setTimerStatus(data.status);
@@ -3297,7 +3294,6 @@ export default function GamePage() {
           console.log('update received')
           if (gameStateExistsRef.current) {
             // Turn has rolled within a game.
-            fetchTurnTimerStatus();
             setDeclineOptionsView(false);
             fetchDeclineViewGameState();
             fetchTurnStartGameState(true);
@@ -3320,7 +3316,7 @@ export default function GamePage() {
         })
         socket.on('overtime', (data) => {
             console.log("overtime", data);
-            fetchTurnTimerStatus();
+            fetchTurnTimerStatus(gameState.turn_num);
         })
         socket.on('turn_end_change', (data) => {
             setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});

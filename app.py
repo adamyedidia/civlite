@@ -623,12 +623,15 @@ def enter_player_input(sess, game_id):
     # return jsonify({'game_state': game_state.to_json()})
 
 
-@app.route('/api/turn_timer_status/<game_id>', methods=['GET'])
+@app.route('/api/turn_timer_status/<game_id>/<turn_num>', methods=['GET'])
 @api_endpoint
-def turn_ended_status(sess, game_id):
+def turn_ended_status(sess, game_id, turn_num):
     game = FullGame.get(sess, socketio, game_id)
     if not game:
         return jsonify({"error": "Game not found"}), 404
+    if int(turn_num) != game.turn_num:
+        print(f"Turn num mismatch in game {game_id}: {turn_num} != {game.turn_num}")
+        return jsonify({"error": f"Wrong turn {turn_num}; game is on {game.turn_num}"}), 404
 
     return jsonify({
         "turn_ended_by_player_num": game.get_turn_ended_all_players(),
