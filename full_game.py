@@ -76,7 +76,12 @@ class FullGame():
     def get_turn_ended_all_players(self) -> dict[int, bool]:   
         return {player_num: self.turn_ended_by_player(player_num) for player_num in range(len(self.game.players))}
 
-    def set_turn_ended_by_player_num(self, player_num, ended: bool, broadcast=True):
+    def set_turn_ended_by_player_num(self, player_num, ended: bool, broadcast=True, via_player_input=False) -> None:
+        # Don't let manual turn sets go through in mid-roll
+        if via_player_input and rlock(self.roll_turn_lock_key(self.turn_num)).locked():
+            print(f"Can't set end turn status while turn is rolling {self.game_id}.")
+            return
+
         rset(self.turn_ended_by_player_key(player_num), "true" if ended else "false")
         if broadcast:
             self.broadcast('turn_end_change', {'player_num': player_num, 'turn_ended': ended})
@@ -122,19 +127,24 @@ class FullGame():
     def get_overtime_decline_civs(self) -> list[int]:
         return [player_num for player_num in range(len(self.game.players)) if self.has_player_declined(player_num, self.turn_num)]
 
-    def roll_turn(self, sess):
-        print(f"rolling turn {self.turn_num} in game {self.game_id}")
-
-        # Don't roll if there's a person who has declined and not ended turn
+    def _enter_overtime_if_needed(self, sess) -> bool:
         declined_players: set[int] = {player_num for player_num in self.get_overtime_decline_civs() if not self.turn_ended_by_player(player_num)}
         if declined_players:
             print(f"Not rolling turn {self.turn_num} in game {self.game_id} because player(s) {', '.join(map(str, declined_players))} have declined and not ended turn")
             self.game.timer_status = TimerStatus.OVERTIME  # type: ignore
             sess.commit()
-            self.broadcast("overtime", {"turn_num": self.turn_num, "declined_players": list(declined_players)})
+            self.broadcast("overtime", {"turn_num": self.turn_num})
             for player in range(len(self.game.players)):
                 if player not in declined_players and not self.turn_ended_by_player(player):
                     self.set_turn_ended_by_player_num(player, True)
+            return True
+        return False
+
+    def roll_turn(self, sess) -> None:
+        print(f"rolling turn {self.turn_num} in game {self.game_id}")
+
+        # Don't roll if there's a person who has declined and not ended turn
+        if self._enter_overtime_if_needed(sess):
             return
 
 
@@ -145,7 +155,13 @@ class FullGame():
 
                 # Wait till all active threads have finished, up to 5s
                 await_empty_counter(moves_processing_key(self.game_id, self.turn_num), 5, 0.1)
-                
+
+                # Conceivably a move in the queue caused overtime
+                if self._enter_overtime_if_needed(sess):
+                    # Release the lock so we can roll the turn again.
+                    lock.release()
+                    return
+
                 # need to load the game state here, after await_empty_counter on the moves in flight.
                 # or else we'll have a stale version.
                 game_state: GameState = get_most_recent_game_state(sess, self.game_id)

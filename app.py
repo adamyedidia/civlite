@@ -658,7 +658,7 @@ def end_turn(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
 
-    game.set_turn_ended_by_player_num(player_num, True)
+    game.set_turn_ended_by_player_num(player_num, True, via_player_input=True)
     game.roll_turn_if_needed(sess)
 
     return jsonify({})
@@ -697,7 +697,7 @@ def unend_turn(sess, game_id):
     if game.timer_status == TimerStatus.OVERTIME and not game.has_player_declined(player_num, game.turn_num):
         return jsonify({"error": "Can't unend turn after time"}), 400
 
-    game.set_turn_ended_by_player_num(player_num, False)
+    game.set_turn_ended_by_player_num(player_num, False, via_player_input=True)
 
     return jsonify({})
 

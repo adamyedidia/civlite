@@ -3316,7 +3316,9 @@ export default function GamePage() {
         })
         socket.on('overtime', (data) => {
             console.log("overtime", data);
-            fetchTurnTimerStatus(gameState.turn_num);
+            // Set engine state to PLAYING, just in case we accidentally got a start_turn_roll state before the decline processed.
+            setEngineState(EngineStates.PLAYING);
+            fetchTurnTimerStatus(data.turn_num);
         })
         socket.on('turn_end_change', (data) => {
             setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});
