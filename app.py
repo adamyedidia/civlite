@@ -312,6 +312,8 @@ def _launch_game_inner(sess, game: Game) -> None:
 
         sess.add(animation_frame)
 
+    full_game = FullGame(game, socketio)
+    full_game.start_turn()
     game.launched = True  # type: ignore
 
     sess.commit()
@@ -621,14 +623,18 @@ def enter_player_input(sess, game_id):
     # return jsonify({'game_state': game_state.to_json()})
 
 
-@app.route('/api/turn_ended_status/<game_id>', methods=['GET'])
+@app.route('/api/turn_timer_status/<game_id>', methods=['GET'])
 @api_endpoint
 def turn_ended_status(sess, game_id):
     game = FullGame.get(sess, socketio, game_id)
     if not game:
         return jsonify({"error": "Game not found"}), 404
 
-    return jsonify(game.get_turn_ended_all_players())
+    return jsonify({
+        "turn_ended_by_player_num": game.get_turn_ended_all_players(),
+        "overtime_decline_civs": game.get_overtime_decline_civs(),
+        "next_forced_roll_at": game.next_forced_roll_at,
+        })
 
 @app.route('/api/end_turn/<game_id>', methods=['POST'])
 @api_endpoint

@@ -12,8 +12,7 @@ export default function TurnEndedDisplay({ gamePlayerByPlayerNum, turnEndedByPla
                 return (
                     <div key={playerNum} className="turn-ended-card">
                         <span>
-                            {gamePlayer.civ_id? (turnEnded || gamePlayer?.is_bot ? '✅' : '🤔') :
-                            <img src={declineImg} style={{width: '25px', height: '25px'}}/>}
+                            {turnEnded || gamePlayer?.is_bot ? '✅' : '🤔'}
                         </span>
                         <span>
                             {gamePlayer?.username}

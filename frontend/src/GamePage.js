@@ -301,6 +301,8 @@ export default function GamePage() {
     // Ref to keep track of the current engineState
     const engineStateRef = React.useRef(engineState);
 
+    const [overtimeDeclineCivs, setOvertimeDeclineCivs] = useState(null);
+
     const animationFrameLastPlayedRef = React.useRef(0);
 
     const [animationTotalFrames, setAnimationTotalFrames] = useState(null);
@@ -2980,6 +2982,8 @@ export default function GamePage() {
 
         const canFoundCity = hexagons.some(hex => hex.is_foundable_by_civ?.[myCivId]) && myCiv?.city_power > 100;
 
+        console.log(overtimeDeclineCivs)
+
         return (
             <>
                 <div className="basic-example">
@@ -3078,6 +3082,7 @@ export default function GamePage() {
                         isHoveredHex={!!hoveredHex}
                         handleClickEndTurn={handleClickEndTurn}
                         handleClickUnendTurn={handleClickUnendTurn}
+                        overtimeUnendTurnDisabled={overtimeDeclineCivs && overtimeDeclineCivs.length > 0 ? !overtimeDeclineCivs.includes(playerNum) : false}
                         triggerAnimations={triggerAnimations}
                         engineState={engineState}
                         animationFrameLastPlayedRef={animationFrameLastPlayedRef}
@@ -3229,6 +3234,7 @@ export default function GamePage() {
                 if (data.game_started) {
                     // game is running, let's go get the game state.
                     fetchTurnStartGameState(false);
+                    fetchTurnTimerStatus();
                 } else {
                     // Game is in lobby state.
                     console.log("Updating players in the game", data.players);
@@ -3239,18 +3245,12 @@ export default function GamePage() {
     
     }
 
-    const resetTurnEndedStatus = () => {
-        fetch(`${URL}/api/turn_ended_status/${gameId}`).then(response => response.json()).then(data => {
-            setTurnEndedByPlayerNum(data);
-        });
-    }
-
     const fetchTurnStartGameState = (playAnimations) => {
         fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
                 console.log("Turn started: ", data.game_state.turn_num);
-                resetTurnEndedStatus();
+                fetchTurnTimerStatus();
                 setAnimationTotalFrames(data.num_frames);
                 const budgetedAnimationTime = Math.min(30, data.game_state.turn_num) * 1000;
                 // Give 5 seconds for the backend computation
@@ -3278,16 +3278,23 @@ export default function GamePage() {
         setDeclinePreemptedDialogOpen(true);
     }
 
+    const fetchTurnTimerStatus = async () => {
+        fetch(`${URL}/api/turn_timer_status/${gameId}`).then(response => response.json()).then(data => {
+            setNextForcedRollAt(data.next_forced_roll_at);
+            setOvertimeDeclineCivs(data.overtime_decline_civs);
+            setTurnEndedByPlayerNum(data.turn_ended_by_player_num);
+        });
+    }
+
     useEffect(() => {
         console.log("Setting up socket");
         socket.emit('join', { room: gameId, username: username });
         fetchGameStatus();
-        fetchDeclineViewGameState();
         socket.on('update', (data) => {
           console.log('update received')
           if (gameStateExistsRef.current) {
             // Turn has rolled within a game.
-            setNextForcedRollAt(data.next_forced_roll_at);
+            fetchTurnTimerStatus();
             setDeclineOptionsView(false);
             fetchDeclineViewGameState();
             fetchTurnStartGameState(true);
@@ -3310,7 +3317,7 @@ export default function GamePage() {
         })
         socket.on('overtime', (data) => {
             console.log("overtime", data);
-            // TODO
+            fetchTurnTimerStatus();
         })
         socket.on('turn_end_change', (data) => {
             setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});
@@ -3325,6 +3332,8 @@ export default function GamePage() {
             socket.off('mute_timer');
             socket.off('turn_end_change');
             socket.off('start_turn_roll');
+            socket.off('decline_evicted');
+            socket.off('overtime');
         }
     }, [socket])
 

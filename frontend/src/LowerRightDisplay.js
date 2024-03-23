@@ -21,7 +21,7 @@ const AnimationControlBar = ({animationFrame, animationTotalFrames}) => {
 }
 
 const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, nextForcedRollAt, turnEndedByPlayerNum, hoveredHex, 
-    handleClickEndTurn, handleClickUnendTurn, 
+    handleClickEndTurn, handleClickUnendTurn, overtimeUnendTurnDisabled,
     triggerAnimations, engineState, animationFrameLastPlayedRef, animationTotalFrames, cancelAnimations }) => {
     const toggleAnimations = () => {
         if (engineState === EngineStates.ANIMATING) {
@@ -30,7 +30,7 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, nextForce
             triggerAnimations(gameState);
         }
     }
-   
+    console.log(overtimeUnendTurnDisabled);
     return <div className="lower-right-display">
         <AnnouncementsDisplay announcements={gameState?.announcements} />
         <div className="end-turn-area">
@@ -39,10 +39,11 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, nextForce
                     style={{backgroundColor: "#cccc88", fontSize:"2em", height: "120px", padding: "5px"}} 
                     variant="contained"
                     onClick={turnEndedByPlayerNum?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
-                    disabled={engineState !== EngineStates.PLAYING}
+                    disabled={engineState !== EngineStates.PLAYING || overtimeUnendTurnDisabled}
                 >
                     {engineState === EngineStates.PLAYING && 
-                        (turnEndedByPlayerNum?.[playerNum] ? "Unend turn" : gameState?.special_mode_by_player_num?.[playerNum] === "choose_decline_option" ? "End turn (mulligan)" : "End turn")
+                        (overtimeUnendTurnDisabled ? <p style={{fontSize: "0.5em"}}>Can't unend turn Decline Overtime</p>
+                        : turnEndedByPlayerNum?.[playerNum] ? "Unend turn" : "End turn")
                     }
                     {engineState === EngineStates.GAME_OVER && "Game Over" }
                     {engineState === EngineStates.ROLLING && <>

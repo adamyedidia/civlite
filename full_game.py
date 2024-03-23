@@ -76,9 +76,10 @@ class FullGame():
     def get_turn_ended_all_players(self) -> dict[int, bool]:   
         return {player_num: self.turn_ended_by_player(player_num) for player_num in range(len(self.game.players))}
 
-    def set_turn_ended_by_player_num(self, player_num, ended: bool):
+    def set_turn_ended_by_player_num(self, player_num, ended: bool, broadcast=True):
         rset(self.turn_ended_by_player_key(player_num), "true" if ended else "false")
-        self.broadcast('turn_end_change', {'player_num': player_num, 'turn_ended': ended})
+        if broadcast:
+            self.broadcast('turn_end_change', {'player_num': player_num, 'turn_ended': ended})
 
     def roll_turn_if_needed(self, sess):
         for player_num in range(len(self.game.players)):
@@ -115,14 +116,17 @@ class FullGame():
         self.socketio.emit(
             signal, 
             data or {},
-            room=self.game.id,  # type: ignore
+            room=self.game_id,
         )
+
+    def get_overtime_decline_civs(self) -> list[int]:
+        return [player_num for player_num in range(len(self.game.players)) if self.has_player_declined(player_num, self.turn_num)]
 
     def roll_turn(self, sess):
         print(f"rolling turn {self.turn_num} in game {self.game_id}")
 
         # Don't roll if there's a person who has declined and not ended turn
-        declined_players: set[int] = {player_num for player_num in range(len(self.game.players)) if self.has_player_declined(player_num, self.turn_num) and not self.turn_ended_by_player(player_num)}
+        declined_players: set[int] = {player_num for player_num in self.get_overtime_decline_civs() if not self.turn_ended_by_player(player_num)}
         if declined_players:
             print(f"Not rolling turn {self.turn_num} in game {self.game_id} because player(s) {', '.join(map(str, declined_players))} have declined and not ended turn")
             self.broadcast("mute_timer", {"turn_num": self.turn_num})
@@ -166,10 +170,7 @@ class FullGame():
                     # TODO should we not even have game_state.game_over?
                 self.game.timer_status = TimerStatus.NORMAL  # type: ignore
                 sess.commit()
-                self.broadcast('update', {"next_forced_roll_at": self.game.next_forced_roll_at})
-                for player_num, player in enumerate(self.game.players):
-                    if not player.is_bot:
-                        self.set_turn_ended_by_player_num(player_num, False)
+                self.start_turn()
             except Exception as e:
                 # Note we only relesae the lock if there's an exception
                 # Otherwise we just hold the lock forever
@@ -178,6 +179,12 @@ class FullGame():
                 raise e
         else:
             print(f"Another thread is already rolling turn {self.turn_num} for game {self.game_id}.")
+
+    def start_turn(self) -> None:
+        self.broadcast('update')
+        for player_num, player in enumerate(self.game.players):
+            if not player.is_bot:
+                self.set_turn_ended_by_player_num(player_num, False, broadcast=False)
 
     def has_player_declined(self, player_num, turn_num) -> bool:
         staged_moves = rget_json(staged_moves_key(self.game_id, player_num, turn_num)) or []
