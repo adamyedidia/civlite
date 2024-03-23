@@ -92,12 +92,12 @@ class FullGame():
         return self.game.timer_status == TimerStatus.PAUSED  # type: ignore
     
     def pause(self, sess):
-        if rlock(self.roll_turn_lock_key(self.turn_num)).locked:
+        if rlock(self.roll_turn_lock_key(self.turn_num)).locked():
             print(f"Another thread is already rolling turn {self.turn_num} for game {self.game_id}.")
             return
 
         # TODO something weird could probably happen if the turn starts rolling in the middle of this function.
-
+        print(f"Pausing game {self.game_id} turn {self.turn_num}")
         self.game.timer_status = TimerStatus.PAUSED  # type: ignore
         sess.commit()
         self.socketio.emit('mute_timer', {'turn_num': self.turn_num}, room=self.game_id)
@@ -129,7 +129,6 @@ class FullGame():
         declined_players: set[int] = {player_num for player_num in self.get_overtime_decline_civs() if not self.turn_ended_by_player(player_num)}
         if declined_players:
             print(f"Not rolling turn {self.turn_num} in game {self.game_id} because player(s) {', '.join(map(str, declined_players))} have declined and not ended turn")
-            self.broadcast("mute_timer", {"turn_num": self.turn_num})
             self.game.timer_status = TimerStatus.OVERTIME  # type: ignore
             sess.commit()
             self.broadcast("overtime", {"turn_num": self.turn_num, "declined_players": list(declined_players)})

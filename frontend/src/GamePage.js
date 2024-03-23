@@ -301,6 +301,8 @@ export default function GamePage() {
     // Ref to keep track of the current engineState
     const engineStateRef = React.useRef(engineState);
 
+    const [timerStatus, setTimerStatus] = useState(null);
+
     const [overtimeDeclineCivs, setOvertimeDeclineCivs] = useState(null);
 
     const animationFrameLastPlayedRef = React.useRef(0);
@@ -3076,7 +3078,7 @@ export default function GamePage() {
                         gameState={gameState}
                         gameId={gameId}
                         playerNum={playerNum}
-                        timerMuted={timerMutedOnTurn === gameState?.turn_num || engineState === EngineStates.GAME_OVER}
+                        timerStatus={timerStatus}
                         nextForcedRollAt={nextForcedRollAt}
                         turnEndedByPlayerNum={turnEndedByPlayerNum}
                         isHoveredHex={!!hoveredHex}
@@ -3281,8 +3283,9 @@ export default function GamePage() {
     const fetchTurnTimerStatus = async () => {
         fetch(`${URL}/api/turn_timer_status/${gameId}`).then(response => response.json()).then(data => {
             setNextForcedRollAt(data.next_forced_roll_at);
-            setOvertimeDeclineCivs(data.overtime_decline_civs);
             setTurnEndedByPlayerNum(data.turn_ended_by_player_num);
+            setTimerStatus(data.status);
+            setOvertimeDeclineCivs(data.overtime_decline_civs);
         });
     }
 
@@ -3308,7 +3311,7 @@ export default function GamePage() {
         })
         socket.on('mute_timer', (data) => {
             console.log("mute timer turn ", data.turn_num);
-            setTimerMutedOnTurn(data.turn_num);
+            setTimerStatus("PAUSED");
         })
         socket.on('decline_evicted', (data) => {
             if (data.player_num === playerNum) {

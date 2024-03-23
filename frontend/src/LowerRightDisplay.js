@@ -20,7 +20,7 @@ const AnimationControlBar = ({animationFrame, animationTotalFrames}) => {
     </div>
 }
 
-const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, nextForcedRollAt, turnEndedByPlayerNum, hoveredHex, 
+const LowerRightDisplay = ({ gameState, gameId, playerNum, timerStatus, nextForcedRollAt, turnEndedByPlayerNum, hoveredHex, 
     handleClickEndTurn, handleClickUnendTurn, overtimeUnendTurnDisabled,
     triggerAnimations, engineState, animationFrameLastPlayedRef, animationTotalFrames, cancelAnimations }) => {
     const toggleAnimations = () => {
@@ -30,7 +30,6 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, nextForce
             triggerAnimations(gameState);
         }
     }
-    console.log(overtimeUnendTurnDisabled);
     return <div className="lower-right-display">
         <AnnouncementsDisplay announcements={gameState?.announcements} />
         <div className="end-turn-area">
@@ -74,7 +73,11 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, nextForce
                 gamePlayerByPlayerNum={gameState?.game_player_by_player_num}
                 turnEndedByPlayerNum={turnEndedByPlayerNum}
             />
-            {nextForcedRollAt && <Timer nextForcedRollAt={nextForcedRollAt} gameId={gameId} disabledText={timerMuted && "Paused"} rolling={engineState === EngineStates.ROLLING}/>}
+            {nextForcedRollAt && <Timer 
+                nextForcedRollAt={nextForcedRollAt} 
+                gameId={gameId} 
+                disabledText={engineState === EngineStates.GAME_OVER ? "Game Over" : timerStatus === "PAUSED" ? "Paused" : timerStatus == "OVERTIME" ? "Decline Overtime" : ""} 
+                rolling={engineState === EngineStates.ROLLING}/>}
             
         </div>
     </div>

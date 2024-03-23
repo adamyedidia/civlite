@@ -634,6 +634,7 @@ def turn_ended_status(sess, game_id):
         "turn_ended_by_player_num": game.get_turn_ended_all_players(),
         "overtime_decline_civs": game.get_overtime_decline_civs(),
         "next_forced_roll_at": game.next_forced_roll_at,
+        "status": game.timer_status.value,
         })
 
 @app.route('/api/end_turn/<game_id>', methods=['POST'])

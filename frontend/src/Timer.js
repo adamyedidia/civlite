@@ -27,8 +27,8 @@ function Timer({ nextForcedRollAt, onTimerElapsed, gameId, disabledText, rolling
       const currentTime = Date.now();
       const difference = Math.floor((nextForcedRollAt * 1000 - currentTime) / 1000);
       setSecondsElapsed(difference);
-      if (onTimerElapsed && difference <= 0) {
-        onTimerElapsed();
+      if (difference <= 0) {
+        onTimerElapsed && onTimerElapsed();
         clearInterval(intervalId);
       }
     }, 1000);
