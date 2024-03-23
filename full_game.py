@@ -73,6 +73,9 @@ class FullGame():
         assert ended in ["true", "false"], f"turn_ended_by_player_key {self.turn_ended_by_player_key(player_num)} not set"
         return ended == "true"
     
+    def get_turn_ended_all_players(self) -> dict[int, bool]:   
+        return {player_num: self.turn_ended_by_player(player_num) for player_num in range(len(self.game.players))}
+
     def set_turn_ended_by_player_num(self, player_num, ended: bool):
         rset(self.turn_ended_by_player_key(player_num), "true" if ended else "false")
         self.broadcast('turn_end_change', {'player_num': player_num, 'turn_ended': ended})

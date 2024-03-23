@@ -621,6 +621,15 @@ def enter_player_input(sess, game_id):
     # return jsonify({'game_state': game_state.to_json()})
 
 
+@app.route('/api/turn_ended_status/<game_id>', methods=['GET'])
+@api_endpoint
+def turn_ended_status(sess, game_id):
+    game = FullGame.get(sess, socketio, game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+
+    return jsonify(game.get_turn_ended_all_players())
+
 @app.route('/api/end_turn/<game_id>', methods=['POST'])
 @api_endpoint
 def end_turn(sess, game_id):

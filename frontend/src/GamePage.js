@@ -3239,11 +3239,18 @@ export default function GamePage() {
     
     }
 
+    const resetTurnEndedStatus = () => {
+        fetch(`${URL}/api/turn_ended_status/${gameId}`).then(response => response.json()).then(data => {
+            setTurnEndedByPlayerNum(data);
+        });
+    }
+
     const fetchTurnStartGameState = (playAnimations) => {
         fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
                 console.log("Turn started: ", data.game_state.turn_num);
+                resetTurnEndedStatus();
                 setAnimationTotalFrames(data.num_frames);
                 const budgetedAnimationTime = Math.min(30, data.game_state.turn_num) * 1000;
                 // Give 5 seconds for the backend computation
@@ -3279,11 +3286,11 @@ export default function GamePage() {
         socket.on('update', (data) => {
           console.log('update received')
           if (gameStateExistsRef.current) {
+            // Turn has rolled within a game.
+            setNextForcedRollAt(data.next_forced_roll_at);
             setDeclineOptionsView(false);
             fetchDeclineViewGameState();
-            // Turn has rolled within a game.
             fetchTurnStartGameState(true);
-            setNextForcedRollAt(data.next_forced_roll_at);
           }
           else {
             // Get here for updates before the game has launched (i.e. adding a player to the lobby)
