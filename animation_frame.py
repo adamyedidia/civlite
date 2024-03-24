@@ -2,7 +2,6 @@ from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from database import Base
-from game import Game
 
 
 class AnimationFrame(Base):
@@ -11,7 +10,7 @@ class AnimationFrame(Base):
     id = Column(Integer, primary_key=True)
 
     game_id = Column(String, ForeignKey("games.id"))
-    game = relationship(Game, backref="game_state_records")
+    game = relationship("Game", backref="game_state_records")
 
     turn_num = Column(Integer, nullable=False)
     player_num = Column(Integer)
