@@ -17,7 +17,6 @@ from civ_template import CivTemplate
 from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game, TimerStatus
-from full_game import FullGame
 from game_player import GamePlayer
 from game_state import GameState, update_staged_moves, get_most_recent_game_state
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
@@ -138,7 +137,7 @@ def join_game(sess, game_id: str):
 
     user = add_or_get_user(sess, username)
 
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -168,11 +167,11 @@ def join_game(sess, game_id: str):
 def set_turn_timer(sess, game_id: str):
     data = request.json
 
-    seconds_per_turn = None
+    seconds_per_turn: int | None = None
     if data:    
         seconds_per_turn = data.get('seconds_per_turn')
 
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -189,7 +188,7 @@ def set_turn_timer(sess, game_id: str):
 @app.route('/api/add_bot_to_game/<game_id>', methods=['POST'])
 @api_endpoint
 def add_bot_to_game(sess, game_id: str):
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -312,8 +311,7 @@ def _launch_game_inner(sess, game: Game) -> None:
 
         sess.add(animation_frame)
 
-    full_game = FullGame(game, socketio)
-    full_game.start_turn()
+    game.start_turn()
     game.launched = True  # type: ignore
 
     sess.commit()
@@ -322,7 +320,7 @@ def _launch_game_inner(sess, game: Game) -> None:
 @app.route('/api/launch_game/<game_id>', methods=['POST'])
 @api_endpoint
 def launch_game(sess, game_id):
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -361,11 +359,7 @@ def get_game_state(sess, game_id):
     )
 
     if animation_frame is None:
-        game = (
-            sess.query(Game)
-            .filter(Game.id == game_id)
-            .one_or_none()
-        )
+        game = Game.get(sess, socketio, game_id)
 
         if game is None:
             return jsonify({"error": "Game not found"}), 404
@@ -427,7 +421,7 @@ def get_most_recent_state(sess, game_id):
     if player_num is None:
         return jsonify({"error": "Player number is required"}), 400
     
-    game = FullGame.get(sess, socketio, game_id)
+    game = Game.get(sess, socketio, game_id)
     if game is None:
         return jsonify({"error": "Game not found"}), 404
 
@@ -563,7 +557,7 @@ def choose_initial_civ(sess, game_id):
     if not city_id:
         return jsonify({"error": "City ID is required"}), 400
     
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -596,7 +590,7 @@ def enter_player_input(sess, game_id):
     if not turn_num:
         return jsonify({"error": "Turn number is required"}), 400
 
-    game = FullGame.get(sess, socketio, game_id)
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -626,7 +620,7 @@ def enter_player_input(sess, game_id):
 @app.route('/api/turn_timer_status/<game_id>/<turn_num>', methods=['GET'])
 @api_endpoint
 def turn_ended_status(sess, game_id, turn_num):
-    game = FullGame.get(sess, socketio, game_id)
+    game = Game.get(sess, socketio, game_id)
     if not game:
         return jsonify({"error": "Game not found"}), 404
     if int(turn_num) != game.turn_num:
@@ -653,7 +647,7 @@ def end_turn(sess, game_id):
     if player_num is None:
         return jsonify({"error": "Username is required"}), 400
     
-    game = FullGame.get(sess, socketio, game_id)
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -667,7 +661,7 @@ def end_turn(sess, game_id):
 @app.route('/api/pause/<game_id>', methods=['POST'])
 @api_endpoint
 def pause_game(sess, game_id):
-    game = FullGame.get(sess, socketio, game_id)
+    game = Game.get(sess, socketio, game_id)
     if not game:
         return jsonify({"error": "Game not found"}), 404
 
@@ -689,7 +683,7 @@ def unend_turn(sess, game_id):
     if player_num is None:
         return jsonify({"error": "Username is required"}), 400
     
-    game = FullGame.get(sess, socketio, game_id)
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -705,7 +699,7 @@ def unend_turn(sess, game_id):
 @app.route('/api/building_choices/<game_id>/<city_id>', methods=['GET'])
 @api_endpoint
 def get_building_choices(sess, game_id, city_id):
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
