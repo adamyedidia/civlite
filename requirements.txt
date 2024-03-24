@@ -6,3 +6,5 @@ flask-socketio
 redis
 python-redis-lock
 pytest
+sqlalchemy-stubs
+sqlalchemy
