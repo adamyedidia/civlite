@@ -16,6 +16,7 @@ class GamePlayer:
         self.score_from_revolting_cities = 0
         self.renaissances = 0
         self.decline_this_turn = False
+        self.failed_to_decline_this_turn = False
 
         self.civ_id: Optional[str] = None
 
@@ -37,6 +38,7 @@ class GamePlayer:
             "sfrc": self.score_from_revolting_cities,
             "renaissances": self.renaissances,
             "decline_this_turn": self.decline_this_turn,
+            "failed_to_decline_this_turn": self.failed_to_decline_this_turn,
         }
     
     @staticmethod
@@ -57,6 +59,7 @@ class GamePlayer:
         game_player.score_from_revolting_cities = json["sfrc"]
         game_player.renaissances = json["renaissances"]
         game_player.decline_this_turn = json["decline_this_turn"]
+        game_player.failed_to_decline_this_turn = json["failed_to_decline_this_turn"]
 
         return game_player
 

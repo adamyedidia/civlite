@@ -263,10 +263,13 @@ const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
 }
 
-const ChooseCapitalButton = ({playerNum, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital, civsById}) => {
+const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital, civsById}) => {
     const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player?.player_num == playerNum;
-    const content = isMyCity ? "Can't decline to my own city" : myGamePlayer?.decline_this_turn ? "Already declined this turn": `Make ${selectedCity.name} my capital`;
-    const disabled = engineState !== EngineStates.PLAYING || myGamePlayer?.decline_this_turn || isMyCity;
+    const content = isMyCity ? "Can't decline to my own city" 
+        : myGamePlayer?.decline_this_turn ? "Already declined this turn"
+        : (isOvertime && myGamePlayer.failed_decline_this_turn) ? "Can't decline in overtime"
+        : `Make ${selectedCity.name} my capital`;
+    const disabled = engineState !== EngineStates.PLAYING || myGamePlayer?.decline_this_turn || isMyCity || (isOvertime && myGamePlayer.failed_decline_this_turn);
     return <Button
         style={{
             backgroundColor: disabled ? "#aaaaaa" : "#ccffaa",
@@ -3165,6 +3168,7 @@ export default function GamePage() {
                             (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] == 'starting_location') && 
                             <ChooseCapitalButton 
                                 playerNum={playerNum}
+                                isOvertime={timerStatus === "OVERTIME"}
                                 myGamePlayer={myGamePlayer}
                                 selectedCity={selectedCity}
                                 nonDeclineViewGameState={nonDeclineViewGameState}
@@ -3245,6 +3249,7 @@ export default function GamePage() {
     }
 
     const fetchTurnStartGameState = (playAnimations) => {
+        fetchDeclineViewGameState();
         fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
@@ -3295,7 +3300,6 @@ export default function GamePage() {
           if (gameStateExistsRef.current) {
             // Turn has rolled within a game.
             setDeclineOptionsView(false);
-            fetchDeclineViewGameState();
             fetchTurnStartGameState(true);
           }
           else {

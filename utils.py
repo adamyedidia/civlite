@@ -31,11 +31,6 @@ def swap_two_elements_of_list(l: list, i: int, j: int) -> list:
 def dream_key(game_id: str, player_num: int, turn_num: int) -> str:
     return f'dream_game_state:{game_id}:{player_num}:{turn_num}'
 
-
-def staged_game_state_key(game_id: str, player_num: int, turn_num: int) -> str:
-    return f'staged_game_state:{game_id}:{player_num}:{turn_num}'
-
-
 def staged_moves_key(game_id: str, player_num: int, turn_num: int) -> str:
     return f'staged_moves:{game_id}:{player_num}:{turn_num}'
 

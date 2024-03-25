@@ -9,9 +9,11 @@ from typing import Optional
 from flask_socketio import SocketIO
 
 from enum import Enum as PyEnum
-from game_state import GameState, get_most_recent_game_state
+from game_state import GameState
+from civ import Civ
+from animation_frame import AnimationFrame
 from utils import moves_processing_key, staged_moves_key
-from redis_utils import rset, rget, await_empty_counter, rlock, rget_json
+from redis_utils import rset, rget, await_empty_counter, rlock, rget_json, rset_json
 
 
 class TimerStatus(PyEnum):
@@ -173,7 +175,7 @@ class Game(Base):
 
                 # need to load the game state here, after await_empty_counter on the moves in flight.
                 # or else we'll have a stale version.
-                game_state: GameState = get_most_recent_game_state(sess, self.id)
+                game_state: GameState = self.get_most_recent_game_state(sess)
 
                 game_state.end_turn(sess)
 
@@ -210,12 +212,77 @@ class Game(Base):
             if not player.is_bot:
                 self.set_turn_ended_by_player_num(player_num, False, broadcast=False)
 
-    def has_player_declined(self, player_num, turn_num) -> bool:
+    def has_player_declined(self, player_num, turn_num, count_preempted=True) -> bool:
         staged_moves = rget_json(staged_moves_key(self.id, player_num, turn_num)) or []
         for move in staged_moves:
             if move['move_type'] == 'choose_decline_option':
-                return True
+                if count_preempted or not 'preempted' in move:
+                    return True
         return False
+    
+    def get_most_recent_game_state(self, sess) -> GameState:
+        most_recent_game_state_animation_frame = (
+            sess.query(AnimationFrame)
+            .filter(AnimationFrame.game_id == self.id)
+            .filter(AnimationFrame.player_num == None)
+            .order_by(AnimationFrame.turn_num.desc())
+            .order_by(AnimationFrame.frame_num.desc())
+            .first()
+        )
+
+        assert most_recent_game_state_animation_frame is not None
+
+        most_recent_game_state = most_recent_game_state_animation_frame.game_state
+
+        return GameState.from_json(most_recent_game_state)
+
+    def _staged_game_state_key(self, player_num: int, turn_num: int) -> str:
+        return f'staged_game_state:{self.id}:{player_num}:{turn_num}'
+
+    def update_staged_moves(self, sess, player_num: int, moves: list[dict]) -> tuple[GameState, Optional[list[Civ]], dict, Optional[int]]:
+        """
+        Returns
+        - game_state: ???
+        - from_civ_perspectives: ???
+        - game_state_to_return_json: game state to give to the client
+        - decline_eviction_player: if a player was evicted from a decline.
+        """
+        with rlock(f'staged_moves_lock:{self.id}:{player_num}'):
+            decline_eviction_player = None
+
+            staged_moves = rget_json(staged_moves_key(self.id, player_num, self.turn_num)) or []
+            game_state_json = rget_json(self._staged_game_state_key(player_num, self.turn_num))
+            if game_state_json is not None:
+                game_state = GameState.from_json(game_state_json)
+            else:
+                game_state = self.get_most_recent_game_state(sess)
+            from_civ_perspectives, game_state_to_return_json, game_state_to_store_json, should_stage_moves, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
+
+            if should_stage_moves:
+                print("Done processing, commiting staged moves")
+                staged_moves.extend(moves)
+
+            rset_json(staged_moves_key(self.id, player_num, self.turn_num), staged_moves, ex=7 * 24 * 60 * 60)
+            rset_json(self._staged_game_state_key(player_num, self.turn_num), game_state_to_store_json, ex=7 * 24 * 60 * 60)
+        print("Move staged")
+        if decline_eviction_player is not None:
+            print(f"evicting player {decline_eviction_player}")
+            # Find the "choose_decline_option" move in their moves, and trim back to that spot.
+
+            with rlock(f'staged_moves_lock:{self.id}:{decline_eviction_player}'):
+                staged_moves = rget_json(staged_moves_key(self.id, decline_eviction_player, self.turn_num)) or []
+                for move_index, move in enumerate(staged_moves):
+                    if move['move_type'] == 'choose_decline_option':
+                        staged_moves = staged_moves[:move_index + 1]
+                        staged_moves[-1]['preempted'] = True
+                        break
+                rset_json(staged_moves_key(self.id, decline_eviction_player, self.turn_num), staged_moves)
+                # Now recalculate their game state
+                recalc_game_state: GameState = self.get_most_recent_game_state(sess)
+                recalc_game_state.update_from_player_moves(decline_eviction_player, staged_moves, speculative=True)
+                rset_json(self._staged_game_state_key(decline_eviction_player, self.turn_num), recalc_game_state.to_json(), ex=7 * 24 * 60 * 60)
+
+        return game_state, from_civ_perspectives, game_state_to_return_json, decline_eviction_player
 
 def load_and_roll_turn_in_game(sess, socketio, game_id: str, turn_num: int):
     with SessionLocal() as sess:

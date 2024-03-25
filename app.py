@@ -18,11 +18,11 @@ from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game, TimerStatus
 from game_player import GamePlayer
-from game_state import GameState, update_staged_moves, get_most_recent_game_state
+from game_state import GameState
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
-from utils import dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives, generate_unique_id, moves_processing_key
+from utils import dream_key, dream_key_from_civ_perspectives, generate_unique_id, moves_processing_key
 
 
 from settings import (
@@ -456,7 +456,7 @@ def get_most_recent_state(sess, game_id):
     # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
     # TODO(dfarhi) clean this up and vastly simplify dream states now that they are only for the first turn.
 
-    staged_game_state_json = rget_json(staged_game_state_key(game_id, int(player_num), turn_num))
+    staged_game_state_json = rget_json(game._staged_game_state_key(int(player_num), turn_num))
     game_state = (
         GameState.from_json(dream_game_state_json) if dream_game_state_json 
         else GameState.from_json(staged_game_state_json) if staged_game_state_json 
@@ -562,7 +562,7 @@ def choose_initial_civ(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state, from_civ_perspectives, _, _ = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
+    game_state, from_civ_perspectives, _, _ = game.update_staged_moves(sess, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
   
     return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
 
@@ -605,8 +605,8 @@ def enter_player_input(sess, game_id):
         if not game.accepting_moves(turn_num=turn_num):
             return jsonify({"error": "Turn is over"}), 400
         
-        # Now do the actual roll.
-        _, _, game_state_to_return_json, decline_eviction_player = update_staged_moves(sess, game_id, player_num, [player_input])      
+        # Now do the actual update.
+        _, _, game_state_to_return_json, decline_eviction_player = game.update_staged_moves(sess, player_num, [player_input])      
 
         if decline_eviction_player is not None:
             print(f"app.py evicting player {decline_eviction_player}")
@@ -704,7 +704,7 @@ def get_building_choices(sess, game_id, city_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state = get_most_recent_game_state(sess, game_id)
+    game_state = game.get_most_recent_game_state(sess)
 
     city = game_state.cities_by_id.get(city_id)
 

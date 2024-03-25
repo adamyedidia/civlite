@@ -22,7 +22,7 @@ from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
-from utils import swap_two_elements_of_list, generate_unique_id, dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives
+from utils import dream_key, staged_moves_key
 
 from sqlalchemy import func
 
@@ -502,6 +502,11 @@ class GameState:
 
                 game_player = self.game_player_by_player_num[player_num]
                 game_player_to_return = game_player
+
+                if 'preempted' in move:
+                    game_player.failed_to_decline_this_turn = True
+                    continue
+
                 coords = move['coords']
 
                 assert not game_player.decline_this_turn, f"Player {player_num} is trying to decline twice in one turn."
@@ -528,7 +533,9 @@ class GameState:
                         else:
                             # The client figures out the action failed based on the fact that I'm still the same civ.
                             # That isn't super robust.
-                            should_stage_moves = False
+                            move['preempted'] = True
+                            game_player.failed_to_decline_this_turn = True
+
                     else:
                         raise ValueError("There are no other logical possibilities.")
                     print(f"{proceed=}")
@@ -597,7 +604,7 @@ class GameState:
             staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
 
             for move in staged_moves:
-                if move['move_type'] == 'choose_decline_option':
+                if move['move_type'] == 'choose_decline_option' and 'preempted' not in move:
                     if (city := self.hexes[move['coords']].city):
                         city_owner_by_city_id[city.id] = player_num
 
@@ -700,6 +707,7 @@ class GameState:
 
         for game_player in self.game_player_by_player_num.values():
             game_player.decline_this_turn = False
+            game_player.failed_to_decline_this_turn = False
 
         self.midturn_update()      
 
@@ -964,69 +972,3 @@ class GameState:
         game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
         game_state.midturn_update()
         return game_state
-
-
-def get_most_recent_game_state_json(sess, game_id: str) -> dict:
-    most_recent_game_state_animation_frame = (
-        sess.query(AnimationFrame)
-        .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.player_num == None)
-        .order_by(AnimationFrame.turn_num.desc())
-        .order_by(AnimationFrame.frame_num.desc())
-        .first()
-    )
-
-    assert most_recent_game_state_animation_frame is not None
-
-    most_recent_game_state = most_recent_game_state_animation_frame.game_state
-
-    return most_recent_game_state
-
-
-def get_most_recent_game_state(sess, game_id: str) -> GameState:
-    return GameState.from_json(get_most_recent_game_state_json(sess, game_id))
-
-
-def update_staged_moves(sess, game_id: str, player_num: int, moves: list[dict]) -> tuple[GameState, Optional[list[Civ]], dict, Optional[int]]:
-    """
-    Returns
-      - game_state: ???
-      - from_civ_perspectives: ???
-      - game_state_to_return_json: game state to give to the client
-      - decline_eviction_player: if a player was evicted from a decline.
-    """
-    with rlock(f'staged_moves_lock:{game_id}:{player_num}'):
-        decline_eviction_player = None
-        most_recent_game_state: GameState = get_most_recent_game_state(sess, game_id)
-        turn_num: int = most_recent_game_state.turn_num
-
-        staged_moves = rget_json(staged_moves_key(game_id, player_num, turn_num)) or []
-        game_state_json = rget_json(staged_game_state_key(game_id, player_num, turn_num)) or get_most_recent_game_state_json(sess, game_id)
-        game_state = GameState.from_json(game_state_json)
-        from_civ_perspectives, game_state_to_return_json, game_state_to_store_json, should_stage_moves, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
-
-        if should_stage_moves:
-            print("Done processing, commiting staged moves")
-            staged_moves.extend(moves)
-
-        rset_json(staged_moves_key(game_id, player_num, turn_num), staged_moves, ex=7 * 24 * 60 * 60)
-        rset_json(staged_game_state_key(game_id, player_num, turn_num), game_state_to_store_json, ex=7 * 24 * 60 * 60)
-    print("Move staged")
-    if decline_eviction_player is not None:
-        print(f"evicting player {decline_eviction_player}")
-        # Find the "choose_decline_option" move in their moves, and trim back to that spot.
-
-        with rlock(f'staged_moves_lock:{game_id}:{decline_eviction_player}'):
-            staged_moves = rget_json(staged_moves_key(game_id, decline_eviction_player, turn_num)) or []
-            for move_index, move in enumerate(staged_moves):
-                if move['move_type'] == 'choose_decline_option':
-                    staged_moves = staged_moves[:move_index]
-                    break
-            rset_json(staged_moves_key(game_id, decline_eviction_player, turn_num), staged_moves)
-            # Now recalculate their game state
-            start_game_state_json = get_most_recent_game_state_json(sess, game_id)
-            new_game_state: GameState = GameState.from_json(start_game_state_json)
-            new_game_state.update_from_player_moves(decline_eviction_player, staged_moves, speculative=True)
-            rset_json(staged_game_state_key(game_id, decline_eviction_player, turn_num), new_game_state.to_json(), ex=7 * 24 * 60 * 60)
-
-    return game_state, from_civ_perspectives, game_state_to_return_json, decline_eviction_player
