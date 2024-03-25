@@ -265,11 +265,12 @@ const generateUniqueId = () => {
 
 const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital, civsById}) => {
     const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player?.player_num == playerNum;
-    const content = isMyCity ? "Can't decline to my own city" 
-        : myGamePlayer?.decline_this_turn ? "Already declined this turn"
-        : (isOvertime && myGamePlayer.failed_decline_this_turn) ? "Can't decline in overtime"
-        : `Make ${selectedCity.name} my capital`;
-    const disabled = engineState !== EngineStates.PLAYING || myGamePlayer?.decline_this_turn || isMyCity || (isOvertime && myGamePlayer.failed_decline_this_turn);
+    const disabledMsg = isMyCity ? "Can't decline to my own city" 
+            : myGamePlayer?.decline_this_turn ? "Already declined this turn"
+            : (isOvertime && myGamePlayer?.failed_decline_this_turn) ? "Can't decline in overtime"
+            : null;
+    const content = disabledMsg ? disabledMsg : `Make ${selectedCity.name} my capital`;
+    const disabled = engineState !== EngineStates.PLAYING || disabledMsg !== null;
     return <Button
         style={{
             backgroundColor: disabled ? "#aaaaaa" : "#ccffaa",
