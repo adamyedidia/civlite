@@ -3,7 +3,7 @@ import './TurnEndedDisplay.css';
 
 import declineImg from './images/phoenix.png'
 
-export default function TurnEndedDisplay({ gamePlayerByPlayerNum, turnEndedByPlayerNum }) {
+export default function TurnEndedDisplay({ gamePlayerByPlayerNum, turnEndedByPlayerNum, isOvertime }) {
     return (
         <div className="turn-ended-display">
             {gamePlayerByPlayerNum && Object.keys(gamePlayerByPlayerNum).map((playerNum) => {
@@ -12,7 +12,8 @@ export default function TurnEndedDisplay({ gamePlayerByPlayerNum, turnEndedByPla
                 return (
                     <div key={playerNum} className="turn-ended-card">
                         <span>
-                            {turnEnded || gamePlayer?.is_bot ? '✅' : '🤔'}
+                            {turnEnded || gamePlayer?.is_bot ? '✅' : 
+                            isOvertime ?  <img src={declineImg} width={20} height={20}/>: '🤔'}
                         </span>
                         <span>
                             {gamePlayer?.username}

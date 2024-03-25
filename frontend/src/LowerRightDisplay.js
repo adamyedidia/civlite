@@ -72,6 +72,7 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerStatus, nextForc
             <TurnEndedDisplay 
                 gamePlayerByPlayerNum={gameState?.game_player_by_player_num}
                 turnEndedByPlayerNum={turnEndedByPlayerNum}
+                isOvertime={timerStatus === "OVERTIME"}
             />
             {nextForcedRollAt && <Timer 
                 nextForcedRollAt={nextForcedRollAt} 
