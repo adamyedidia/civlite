@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from database import Base
 
+
 class AnimationFrame(Base):
     __tablename__ = "animation_frames"
 

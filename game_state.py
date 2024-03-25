@@ -214,6 +214,9 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
+        if civ.has_ability('ExtraCityPower'):
+            civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
+
 
         city.refresh_available_buildings()
         city.refresh_available_units()
@@ -791,8 +794,6 @@ class GameState:
             assert hex.city is None, f"Attempting to put a fresh decline city on an existing city! {hex.city.name} @ {hex.coords}; {new_hexes}"
             new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player=None)
 
-            if new_civ.has_ability('ExtraCityPower'):
-                new_civ.city_power += new_civ.numbers_of_ability('ExtraCityPower')[0]
             city = self.new_city(new_civ, hex)
             city.unhappiness = 40
             # Note that city is NOT registered; i.e. hex.city is not this city, since this is a fake city.

@@ -7,3 +7,5 @@ redis
 sqlalchemy-stubs
 python-redis-lock
 pytest
+sqlalchemy-stubs
+sqlalchemy
