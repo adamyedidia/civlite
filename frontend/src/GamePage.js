@@ -267,7 +267,7 @@ const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity,
     const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player?.player_num == playerNum;
     const disabledMsg = isMyCity ? "Can't decline to my own city" 
             : myGamePlayer?.decline_this_turn ? "Already declined this turn"
-            : (isOvertime && myGamePlayer?.failed_decline_this_turn) ? "Can't decline in overtime"
+            : (isOvertime && !myGamePlayer?.failed_decline_this_turn) ? "Can't decline in overtime"
             : null;
     const content = disabledMsg ? disabledMsg : `Make ${selectedCity.name} my capital`;
     const disabled = engineState !== EngineStates.PLAYING || disabledMsg !== null;
