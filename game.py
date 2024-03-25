@@ -104,7 +104,7 @@ class Game(Base):
 
     @property
     def timer_paused(self) -> bool:
-        return self.timer_status == TimerStatus.PAUSED  # type: ignore
+        return self.timer_status == TimerStatus.PAUSED
     
     def pause(self, sess):
         if rlock(self.roll_turn_lock_key(self.turn_num)).locked():
@@ -113,7 +113,7 @@ class Game(Base):
 
         # TODO something weird could probably happen if the turn starts rolling in the middle of this function.
         print(f"Pausing game {self.id} turn {self.turn_num}")
-        self.timer_status = TimerStatus.PAUSED  # type: ignore
+        self.timer_status = TimerStatus.PAUSED
         sess.commit()
         self.broadcast('mute_timer', {'turn_num': self.turn_num})
 
@@ -142,7 +142,7 @@ class Game(Base):
         declined_players: set[int] = {player_num for player_num in self.get_overtime_decline_civs() if not self.turn_ended_by_player(player_num)}
         if declined_players:
             print(f"Not rolling turn {self.turn_num} in game {self.id} because player(s) {', '.join(map(str, declined_players))} have declined and not ended turn")
-            self.timer_status = TimerStatus.OVERTIME  # type: ignore
+            self.timer_status = TimerStatus.OVERTIME
             sess.commit()
             self.broadcast("overtime", {"turn_num": self.turn_num})
             for player in range(len(self.players)):
@@ -183,16 +183,16 @@ class Game(Base):
                     seconds_until_next_forced_roll: float = int(self.seconds_per_turn) + min(self.turn_num, 30)
                     next_forced_roll_at: float = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
 
-                    self.next_forced_roll_at = next_forced_roll_at  # type: ignore
+                    self.next_forced_roll_at = next_forced_roll_at
                     Timer(next_forced_roll_at - datetime.now().timestamp(), 
                         load_and_roll_turn_in_game, 
                         args=[sess, self.socketio, self.id, self.turn_num + 1]).start()
                 else:
-                    self.next_forced_roll_at = None  # type: ignore
+                    self.next_forced_roll_at = None
 
-                self.turn_num = self.turn_num + 1  # type: ignore
+                self.turn_num = self.turn_num + 1
                 if game_state.game_over:
-                    self.game_over = True  # type: ignore
+                    self.game_over = True
                     # TODO should we not even have game_state.game_over?
                 self.timer_status = TimerStatus.NORMAL
                 sess.commit()

@@ -165,17 +165,18 @@ def join_game(sess, game_id: str):
 @app.route('/api/set_turn_timer/<game_id>', methods=['POST'])
 @api_endpoint
 def set_turn_timer(sess, game_id: str):
-    data = request.json
-
-    seconds_per_turn: int | None = None
-    if data:    
-        seconds_per_turn = data.get('seconds_per_turn')
-
     game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
+
+    data = request.json
     
+    if not data:    
+        return jsonify({"error": "Invalid data"}), 400
+
+    seconds_per_turn = data.get('seconds_per_turn')
+
     game.seconds_per_turn = seconds_per_turn
 
     sess.commit()
@@ -227,7 +228,7 @@ def add_bot_to_game(sess, game_id: str):
 
 
 def _launch_game_inner(sess, game: Game) -> None:
-    game_id: str = game.id  # type: ignore
+    game_id: str = game.id
 
     players = (
         sess.query(Player)
@@ -239,9 +240,9 @@ def _launch_game_inner(sess, game: Game) -> None:
 
     map_size = infer_map_size_from_num_players(num_players)
 
-    hexes = create_hex_map(map_size)  # type: ignore
+    hexes = create_hex_map(map_size)
 
-    game_state = GameState(game_id, hexes)  # type: ignore
+    game_state = GameState(game_id, hexes)
 
     assert num_players <= 8
 
@@ -631,7 +632,7 @@ def turn_ended_status(sess, game_id, turn_num):
         "turn_ended_by_player_num": game.get_turn_ended_all_players(),
         "overtime_decline_civs": game.get_overtime_decline_civs(),
         "next_forced_roll_at": game.next_forced_roll_at,
-        "status": game.timer_status.value,
+        "status": game.timer_status.value,  # type: ignore
         })
 
 @app.route('/api/end_turn/<game_id>', methods=['POST'])
