@@ -14,7 +14,7 @@ from city import City
 from building_template import BuildingTemplate
 from building import Building
 from animation_frame import AnimationFrame
-from game_state import GameState, update_staged_moves, get_most_recent_game_state
+from game_state import GameState
 
 
 def main():
@@ -37,8 +37,6 @@ def main():
         "BuildingTemplate": BuildingTemplate,
         "Building": Building,
         "AnimationFrame": AnimationFrame,
-        "get_most_recent_game_state": get_most_recent_game_state,
-        "update_staged_moves": update_staged_moves,
     }
 
     embed(user_ns=user_ns)
