@@ -175,7 +175,7 @@ class Game(Base):
 
                 # need to load the game state here, after await_empty_counter on the moves in flight.
                 # or else we'll have a stale version.
-                game_state: GameState = self.get_most_recent_game_state(sess)
+                game_state: GameState = self.get_turn_start_game_state(sess)
 
                 game_state.end_turn(sess)
 
@@ -196,6 +196,7 @@ class Game(Base):
                     # TODO should we not even have game_state.game_over?
                 self.timer_status = TimerStatus.NORMAL
                 sess.commit()
+                print(f"Game {self.id} finished rolling turn, starting turn {self.turn_num}")
                 self.start_turn()
             except Exception as e:
                 # Note we only relesae the lock if there's an exception
@@ -220,12 +221,12 @@ class Game(Base):
                     return True
         return False
     
-    def get_most_recent_game_state(self, sess) -> GameState:
+    def get_turn_start_game_state(self, sess) -> GameState:
         most_recent_game_state_animation_frame = (
             sess.query(AnimationFrame)
             .filter(AnimationFrame.game_id == self.id)
             .filter(AnimationFrame.player_num == None)
-            .order_by(AnimationFrame.turn_num.desc())
+            .order_by(AnimationFrame.turn_num == self.turn_num - 1)
             .order_by(AnimationFrame.frame_num.desc())
             .first()
         )
@@ -255,7 +256,7 @@ class Game(Base):
             if game_state_json is not None:
                 game_state = GameState.from_json(game_state_json)
             else:
-                game_state = self.get_most_recent_game_state(sess)
+                game_state = self.get_turn_start_game_state(sess)
             from_civ_perspectives, game_state_to_return_json, game_state_to_store_json, should_stage_moves, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
             if should_stage_moves:
@@ -278,7 +279,7 @@ class Game(Base):
                         break
                 rset_json(staged_moves_key(self.id, decline_eviction_player, self.turn_num), staged_moves)
                 # Now recalculate their game state
-                recalc_game_state: GameState = self.get_most_recent_game_state(sess)
+                recalc_game_state: GameState = self.get_turn_start_game_state(sess)
                 recalc_game_state.update_from_player_moves(decline_eviction_player, staged_moves, speculative=True)
                 rset_json(self._staged_game_state_key(decline_eviction_player, self.turn_num), recalc_game_state.to_json(), ex=7 * 24 * 60 * 60)
 

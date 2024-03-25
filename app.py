@@ -384,21 +384,18 @@ def get_game_state(sess, game_id):
 @app.route('/api/movie/frame/<game_id>/<frame_num>', methods=['GET'])
 @api_endpoint
 def get_movie_frame(sess, game_id, frame_num):
+    game = Game.get(sess, socketio, game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
     player_num = request.args.get('player_num')
 
     if player_num is None:
         return jsonify({"error": "Player number is required"}), 400
 
-    turn_num = (
-        sess.query(func.max(AnimationFrame.turn_num))
-        .filter(AnimationFrame.game_id == game_id)
-        .scalar()
-    )
-
     animation_frame: Optional[AnimationFrame] = (
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.turn_num == turn_num)
+        .filter(AnimationFrame.turn_num == game.turn_num)
         .filter(AnimationFrame.player_num == player_num)
         .filter(AnimationFrame.frame_num == frame_num)
         .one_or_none()
@@ -409,7 +406,7 @@ def get_movie_frame(sess, game_id, frame_num):
     
     return jsonify({
         'game_state': animation_frame.game_state,
-        'turn_num': turn_num,
+        'turn_num': game.turn_num,
         'data': animation_frame.data,
     })
 
@@ -426,18 +423,10 @@ def get_most_recent_state(sess, game_id):
     if game is None:
         return jsonify({"error": "Game not found"}), 404
 
-    turn_num = (
-        sess.query(func.max(AnimationFrame.turn_num))
-        .filter(AnimationFrame.game_id == game_id)
-        .scalar()
-    )
-    
-    assert turn_num == game.turn_num
-
     last_animation_frame = (
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.turn_num == turn_num)
+        .filter(AnimationFrame.turn_num == game.turn_num)
         .filter(AnimationFrame.player_num == None)
         .order_by(AnimationFrame.frame_num.desc())
         .first()
@@ -446,18 +435,18 @@ def get_most_recent_state(sess, game_id):
     num_animation_frames_for_player = (
         sess.query(func.count(AnimationFrame.id))
         .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.turn_num == turn_num)
+        .filter(AnimationFrame.turn_num == game.turn_num)
         .filter(AnimationFrame.player_num == player_num)
         .scalar()
     )
     
-    dream_game_state_json = rget_json(dream_key(game_id, int(player_num), turn_num))
-    dream_game_state_json_from_civ_perspectives = rget_json(dream_key_from_civ_perspectives(game_id, int(player_num), turn_num)) or []
+    dream_game_state_json = rget_json(dream_key(game_id, int(player_num), game.turn_num))
+    dream_game_state_json_from_civ_perspectives = rget_json(dream_key_from_civ_perspectives(game_id, int(player_num), game.turn_num)) or []
 
     # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
     # TODO(dfarhi) clean this up and vastly simplify dream states now that they are only for the first turn.
 
-    staged_game_state_json = rget_json(game._staged_game_state_key(int(player_num), turn_num))
+    staged_game_state_json = rget_json(game._staged_game_state_key(int(player_num), game.turn_num))
     game_state = (
         GameState.from_json(dream_game_state_json) if dream_game_state_json 
         else GameState.from_json(staged_game_state_json) if staged_game_state_json 
@@ -477,7 +466,7 @@ def get_most_recent_state(sess, game_id):
 
     return jsonify({
         'game_state': game_state_json,
-        'turn_num': turn_num,
+        'turn_num': game.turn_num,
         'num_frames': num_animation_frames_for_player,
     })
 
@@ -705,7 +694,7 @@ def get_building_choices(sess, game_id, city_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state = game.get_most_recent_game_state(sess)
+    game_state = game.get_turn_start_game_state(sess)
 
     city = game_state.cities_by_id.get(city_id)
 
