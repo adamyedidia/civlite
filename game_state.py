@@ -67,7 +67,7 @@ class GameState:
         self.announcements = []
         self.fresh_cities_for_decline: dict[str, City] = {}
         self.unhappiness_threshold: float = 0.0
-        self.civ_ids_with_game_player: list[str] = []
+        self.civ_ids_with_game_player_at_turn_start: list[str] = []
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -170,7 +170,7 @@ class GameState:
         print(f"Starting with prereqs for buildings: {chosen_techs_names}")
 
         # Calculate mean tech amount at each level
-        civs_to_compare_to: list[Civ] = [civ for civ in self.civs_by_id.values() if civ.id in self.civ_ids_with_game_player and civ != city.civ]
+        civs_to_compare_to: list[Civ] = [civ for civ in self.civs_by_id.values() if civ.id in self.civ_ids_with_game_player_at_turn_start and civ != city.civ]
         if len(civs_to_compare_to) == 0:
             civs_to_compare_to = [civ for civ in self.civs_by_id.values()]
 
@@ -604,7 +604,7 @@ class GameState:
         # only commands from that player's player num get respected
         city_owner_by_city_id: dict[str, int] = {}
 
-        self.civ_ids_with_game_player = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
+        self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
 
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
