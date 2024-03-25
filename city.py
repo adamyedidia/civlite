@@ -436,12 +436,31 @@ class City:
                 if give_up_if_still_impossible:
                     return False
                 num_merges = 0
+
+                # Try merging friendly units
                 for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
                     if hex.units and hex.units[0].civ.id == self.civ.id:
                         if hex.units[0].merge_into_neighboring_unit(sess, game_state, always_merge_if_possible=True):
                             num_merges += 1
                     if num_merges >= 2:
                         break
+
+                # If that doesn't work, try merging enemy units, so long as they aren't on the city itself
+                if num_merges == 0:
+                    for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                        if hex.units and not hex.city:
+                            if hex.units[0].merge_into_neighboring_unit(sess, game_state, always_merge_if_possible=True):
+                                num_merges += 1
+                                break
+                        if num_merges >= 2:
+                            break
+
+                # If that doesn't work, and we have a lot of metal to spend, try removing friendly units altogether
+                if num_merges == 0 and self.metal > 75:
+                    for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                        if hex.units and hex.units[0].civ.id == self.civ.id and hex.units[0].health < 300:
+                            hex.units[0].remove_from_game(game_state)
+                            break
 
                 return self.build_unit(sess, game_state, unit, give_up_if_still_impossible=True)
 
