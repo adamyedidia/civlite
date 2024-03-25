@@ -16,13 +16,13 @@ from civ import Civ, create_starting_civ_options_for_players
 from civ_template import CivTemplate
 from civ_templates_list import CIVS
 from database import SessionLocal
-from game import Game
+from game import Game, TimerStatus
 from game_player import GamePlayer
-from game_state import GameState, update_staged_moves, get_most_recent_game_state, get_most_recent_game_state_json, get_turn_ended_by_player_num, set_turn_ended_by_player_num
+from game_state import GameState
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
-from utils import dream_key, staged_game_state_key, staged_moves_key, dream_key_from_civ_perspectives, turn_lock_key, generate_unique_id, moves_processing_key
+from utils import dream_key, dream_key_from_civ_perspectives, generate_unique_id, moves_processing_key
 
 
 from settings import (
@@ -39,7 +39,6 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from user import User, add_or_get_user, add_bot_users, BOT_USERNAMES
 from redis_utils import rget_json, rset_json, rset, rget, CodeBlockCounter, await_empty_counter
-from threading import Timer
 
 # Create a logger
 logger = logging.getLogger('__name__')
@@ -65,13 +64,6 @@ def recurse_to_json(obj):
         return obj
 
 
-def broadcast(game_id):
-    socketio.emit(
-        'update', 
-        room=game_id,  # type: ignore
-    )
-
-
 # decorator that takes in an api endpoint and calls recurse_to_json on its result
 def api_endpoint(func):
     @wraps(func)
@@ -92,47 +84,6 @@ def api_endpoint(func):
             return jsonify({"error": "Unexpected error"}), 500
 
     return wrapper
-
-
-def roll_turn(sess, game: Game, turn_num: int):
-    print("starting turn roll")
-
-    # Some dumb casting stuff to satisfy pylance
-    game_id: str = game.id  # type: ignore
-    seconds_per_turn: Optional[int] = game.seconds_per_turn  # type: ignore
-
-    socketio.emit('start_turn_roll', {}, room=game_id)  # type: ignore
-
-    #prevent future threads from starting
-    rset(turn_lock_key(game_id, turn_num), 1, ex=60*60)
-
-    # Wait till all active threads have finished, up to 2s
-    await_empty_counter(moves_processing_key(game_id, turn_num), 2, 0.1)
-    
-    # need to load the game state here, after await_empty_counter on the moves in flight.
-    # or else we'll have a stale version.
-    game_state: GameState = get_most_recent_game_state(sess, game_id)
-
-    game_state.end_turn(sess, seconds_per_turn)
-
-    if game_state.next_forced_roll_at is not None:
-        Timer(game_state.next_forced_roll_at - datetime.now().timestamp(), load_and_roll_turn_in_game, args=[sess, game_id, turn_num + 1, game_state.roll_id]).start()
-
-    print("sending update signal")
-    broadcast(game.id)
-
-def load_and_roll_turn_in_game(sess, game_id: str, turn_num: int, roll_id: str):
-    with SessionLocal() as sess:
-        game = sess.query(Game).filter(Game.id == game_id).first()
-
-        if not game:
-            return jsonify({"error": "Game not found"}), 404
-        
-        game_state = get_most_recent_game_state(sess, game_id)
-
-        if turn_num == game_state.turn_num and roll_id == game_state.roll_id and not game_state.game_over:
-            roll_turn(sess, game, turn_num)
-
 
 @app.route('/api/host_game', methods=['POST'])
 @api_endpoint
@@ -186,7 +137,7 @@ def join_game(sess, game_id: str):
 
     user = add_or_get_user(sess, username)
 
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -214,17 +165,18 @@ def join_game(sess, game_id: str):
 @app.route('/api/set_turn_timer/<game_id>', methods=['POST'])
 @api_endpoint
 def set_turn_timer(sess, game_id: str):
-    data = request.json
-
-    seconds_per_turn = None
-    if data:    
-        seconds_per_turn = data.get('seconds_per_turn')
-
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
+
+    data = request.json
     
+    if not data:    
+        return jsonify({"error": "Invalid data"}), 400
+
+    seconds_per_turn = data.get('seconds_per_turn')
+
     game.seconds_per_turn = seconds_per_turn
 
     sess.commit()
@@ -237,7 +189,7 @@ def set_turn_timer(sess, game_id: str):
 @app.route('/api/add_bot_to_game/<game_id>', methods=['POST'])
 @api_endpoint
 def add_bot_to_game(sess, game_id: str):
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -276,7 +228,7 @@ def add_bot_to_game(sess, game_id: str):
 
 
 def _launch_game_inner(sess, game: Game) -> None:
-    game_id: str = game.id  # type: ignore
+    game_id: str = game.id
 
     players = (
         sess.query(Player)
@@ -288,9 +240,9 @@ def _launch_game_inner(sess, game: Game) -> None:
 
     map_size = infer_map_size_from_num_players(num_players)
 
-    hexes = create_hex_map(map_size)  # type: ignore
+    hexes = create_hex_map(map_size)
 
-    game_state = GameState(game_id, hexes)  # type: ignore
+    game_state = GameState(game_id, hexes)
 
     assert num_players <= 8
 
@@ -360,6 +312,7 @@ def _launch_game_inner(sess, game: Game) -> None:
 
         sess.add(animation_frame)
 
+    game.start_turn()
     game.launched = True  # type: ignore
 
     sess.commit()
@@ -368,7 +321,7 @@ def _launch_game_inner(sess, game: Game) -> None:
 @app.route('/api/launch_game/<game_id>', methods=['POST'])
 @api_endpoint
 def launch_game(sess, game_id):
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
@@ -407,11 +360,7 @@ def get_game_state(sess, game_id):
     )
 
     if animation_frame is None:
-        game = (
-            sess.query(Game)
-            .filter(Game.id == game_id)
-            .one_or_none()
-        )
+        game = Game.get(sess, socketio, game_id)
 
         if game is None:
             return jsonify({"error": "Game not found"}), 404
@@ -459,7 +408,7 @@ def get_movie_frame(sess, game_id, frame_num):
         return jsonify({"error": "Animation frame not found"}), 404
     
     return jsonify({
-        'game_state': {**animation_frame.game_state, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},},  # type: ignore
+        'game_state': animation_frame.game_state,
         'turn_num': turn_num,
         'data': animation_frame.data,
     })
@@ -473,11 +422,17 @@ def get_most_recent_state(sess, game_id):
     if player_num is None:
         return jsonify({"error": "Player number is required"}), 400
     
+    game = Game.get(sess, socketio, game_id)
+    if game is None:
+        return jsonify({"error": "Game not found"}), 404
+
     turn_num = (
         sess.query(func.max(AnimationFrame.turn_num))
         .filter(AnimationFrame.game_id == game_id)
         .scalar()
     )
+    
+    assert turn_num == game.turn_num
 
     last_animation_frame = (
         sess.query(AnimationFrame)
@@ -502,7 +457,7 @@ def get_most_recent_state(sess, game_id):
     # Dream game state is the fake game state that gets sent to people who are in decline and haven't selected a civ
     # TODO(dfarhi) clean this up and vastly simplify dream states now that they are only for the first turn.
 
-    staged_game_state_json = rget_json(staged_game_state_key(game_id, int(player_num), turn_num))
+    staged_game_state_json = rget_json(game._staged_game_state_key(int(player_num), turn_num))
     game_state = (
         GameState.from_json(dream_game_state_json) if dream_game_state_json 
         else GameState.from_json(staged_game_state_json) if staged_game_state_json 
@@ -521,7 +476,7 @@ def get_most_recent_state(sess, game_id):
                 game_state_json = game_state.to_json(from_civ_perspectives=from_civ_perspectives)
 
     return jsonify({
-        'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},} if game_state_json else {},
+        'game_state': game_state_json,
         'turn_num': turn_num,
         'num_frames': num_animation_frames_for_player,
     })
@@ -549,7 +504,7 @@ def get_decline_view(sess, game_id):
     game_state_json = game_state.to_json(include_city_civ_details=True)
 
     return jsonify({
-        'game_state': {**game_state_json, "turn_ended_by_player_num": rget_json(f'turn_ended_by_player_num:{game_id}') or {},} if animation_frame.game_state else {},
+        'game_state': game_state_json,
         'turn_num': turn_num,
     })
 
@@ -603,12 +558,12 @@ def choose_initial_civ(sess, game_id):
     if not city_id:
         return jsonify({"error": "City ID is required"}), 400
     
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state, from_civ_perspectives, _, _ = update_staged_moves(sess, game_id, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
+    game_state, from_civ_perspectives, _, _ = game.update_staged_moves(sess, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
   
     return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
 
@@ -631,39 +586,54 @@ def enter_player_input(sess, game_id):
     if not player_input:
         return jsonify({"error": "Player input is required"}), 400
 
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    turn_num = data.get('turn_num')
+
+    if not turn_num:
+        return jsonify({"error": "Turn number is required"}), 400
+
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    # TODO this is kinda silly?
-    turn_num: int = get_most_recent_game_state(sess, game_id).turn_num
-    if rget(turn_lock_key(game_id, turn_num)) is not None:
+    if not game.accepting_moves(turn_num=turn_num):
         return jsonify({"error": "Turn is over"}), 400
     
     # This block counts how many threads are currently running turns.
     # We won't roll the turn until they are done.
     with CodeBlockCounter(moves_processing_key(game_id, turn_num)):
         # Conceivably, the turn could have rolled while we were incrementing the counter
-        if rget(turn_lock_key(game_id, turn_num)) is not None:
+        if not game.accepting_moves(turn_num=turn_num):
             return jsonify({"error": "Turn is over"}), 400
         
-        # Now do the actual roll.
-        _, _, game_state_to_return_json, decline_eviction_player = update_staged_moves(sess, game_id, player_num, [player_input])
-
-        if player_input.get('move_type') == 'choose_decline_option':
-            _pause_game_inner(sess, game_id)
-        
+        # Now do the actual update.
+        _, _, game_state_to_return_json, decline_eviction_player = game.update_staged_moves(sess, player_num, [player_input])      
 
         if decline_eviction_player is not None:
             print(f"app.py evicting player {decline_eviction_player}")
-            set_turn_ended_by_player_num(game_id, decline_eviction_player, False)
-            socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)  # type: ignore
+            game.set_turn_ended_by_player_num(decline_eviction_player, False)
             socketio.emit("decline_evicted", {'player_num': decline_eviction_player}, room=game_id)  # type: ignore
 
     return jsonify({'game_state': game_state_to_return_json})
     # return jsonify({'game_state': game_state.to_json()})
 
+
+@app.route('/api/turn_timer_status/<game_id>/<turn_num>', methods=['GET'])
+@api_endpoint
+def turn_ended_status(sess, game_id, turn_num):
+    game = Game.get(sess, socketio, game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    if int(turn_num) != game.turn_num:
+        print(f"Turn num mismatch in game {game_id}: {turn_num} != {game.turn_num}")
+        return jsonify({"error": f"Wrong turn {turn_num}; game is on {game.turn_num}"}), 404
+
+    return jsonify({
+        "turn_ended_by_player_num": game.get_turn_ended_all_players(),
+        "overtime_decline_civs": game.get_overtime_decline_civs(),
+        "next_forced_roll_at": game.next_forced_roll_at,
+        "status": game.timer_status.value,  # type: ignore
+        })
 
 @app.route('/api/end_turn/<game_id>', methods=['POST'])
 @api_endpoint
@@ -678,58 +648,25 @@ def end_turn(sess, game_id):
     if player_num is None:
         return jsonify({"error": "Username is required"}), 400
     
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
 
-    game_state = get_most_recent_game_state(sess, game_id)
-
-    turn_ended_by_player_num = get_turn_ended_by_player_num(game_id)
-
-    turn_ended_by_player_num[player_num] = True
-
-    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': True}, room=game_id)  # type: ignore
-
-    if game_state.turn_should_end(turn_ended_by_player_num):
-        roll_turn(sess, game, turn_num=game_state.turn_num)
-    else:
-        rset_json(f'turn_ended_by_player_num:{game_id}', turn_ended_by_player_num)
+    game.set_turn_ended_by_player_num(player_num, True, via_player_input=True)
+    game.roll_turn_if_needed(sess)
 
     return jsonify({})
-
-
-def _pause_game_inner(sess, game_id: str) -> None:
-    most_recent_game_state_animation_frame = (
-        sess.query(AnimationFrame)
-        .filter(AnimationFrame.game_id == game_id)
-        .filter(AnimationFrame.player_num == None)
-        .order_by(AnimationFrame.turn_num.desc())
-        .order_by(AnimationFrame.frame_num.desc())
-        .first()
-    )
-
-    game_state = GameState.from_json(most_recent_game_state_animation_frame.game_state)
-
-    game_state.roll_id = None
-    game_state.next_forced_roll_at = None
-
-    most_recent_game_state_animation_frame.game_state = game_state.to_json()
-    
-    sess.commit()
-
-    socketio.emit('mute_timer', {'turn_num': game_state.turn_num}, room=game_id)  # type: ignore
 
 
 @app.route('/api/pause/<game_id>', methods=['POST'])
 @api_endpoint
 def pause_game(sess, game_id):
-    game = sess.query(Game).filter(Game.id == game_id).first()
-
+    game = Game.get(sess, socketio, game_id)
     if not game:
         return jsonify({"error": "Game not found"}), 404
-    
-    _pause_game_inner(sess, game_id)
+
+    game.pause(sess)   
 
     return jsonify({})
 
@@ -747,14 +684,15 @@ def unend_turn(sess, game_id):
     if player_num is None:
         return jsonify({"error": "Username is required"}), 400
     
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
+    
+    if game.timer_status == TimerStatus.OVERTIME and not game.has_player_declined(player_num, game.turn_num):
+        return jsonify({"error": "Can't unend turn after time"}), 400
 
-    set_turn_ended_by_player_num(game_id, player_num, False)
-
-    socketio.emit('turn_end_change', {'player_num': player_num, 'turn_ended': False}, room=game_id)  # type: ignore
+    game.set_turn_ended_by_player_num(player_num, False, via_player_input=True)
 
     return jsonify({})
 
@@ -762,12 +700,12 @@ def unend_turn(sess, game_id):
 @app.route('/api/building_choices/<game_id>/<city_id>', methods=['GET'])
 @api_endpoint
 def get_building_choices(sess, game_id, city_id):
-    game = sess.query(Game).filter(Game.id == game_id).first()
+    game = Game.get(sess, socketio, game_id)
 
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state = get_most_recent_game_state(sess, game_id)
+    game_state = game.get_most_recent_game_state(sess)
 
     city = game_state.cities_by_id.get(city_id)
 

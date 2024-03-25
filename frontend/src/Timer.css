@@ -9,5 +9,9 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    text-align: center;
 }
 
+.time-display.rolling > * {
+    visibility: hidden;
+}

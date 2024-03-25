@@ -263,10 +263,14 @@ const generateUniqueId = () => {
     return Math.random().toString(36).substring(2);
 }
 
-const ChooseCapitalButton = ({playerNum, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital, civsById}) => {
+const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital, civsById}) => {
     const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player?.player_num == playerNum;
-    const content = isMyCity ? "Can't decline to my own city" : myGamePlayer?.decline_this_turn ? "Already declined this turn": `Make ${selectedCity.name} my capital`;
-    const disabled = engineState !== EngineStates.PLAYING || myGamePlayer?.decline_this_turn || isMyCity;
+    const disabledMsg = isMyCity ? "Can't decline to my own city" 
+            : myGamePlayer?.decline_this_turn ? "Already declined this turn"
+            : (isOvertime && myGamePlayer?.failed_decline_this_turn) ? "Can't decline in overtime"
+            : null;
+    const content = disabledMsg ? disabledMsg : `Make ${selectedCity.name} my capital`;
+    const disabled = engineState !== EngineStates.PLAYING || disabledMsg !== null;
     return <Button
         style={{
             backgroundColor: disabled ? "#aaaaaa" : "#ccffaa",
@@ -301,6 +305,10 @@ export default function GamePage() {
     // Ref to keep track of the current engineState
     const engineStateRef = React.useRef(engineState);
 
+    const [timerStatus, setTimerStatus] = useState(null);
+
+    const [overtimeDeclineCivs, setOvertimeDeclineCivs] = useState(null);
+
     const animationFrameLastPlayedRef = React.useRef(0);
 
     const [animationTotalFrames, setAnimationTotalFrames] = useState(null);
@@ -309,7 +317,7 @@ export default function GamePage() {
     const animationsLastStartedAtRef = React.useRef(null);
 
     const [playersInGame, setPlayersInGame] = useState(null);
-    const [turnNum, setTurnNum] = useState(1);
+    const [nextForcedRollAt, setNextForcedRollAt] = useState(null);
 
     const [templates, setTemplates] = useState(null);
     const [volume, setVolume] = useState(100);
@@ -2233,6 +2241,7 @@ export default function GamePage() {
 
         const data = {
             player_num: playerNum,
+            turn_num: gameStateRef.current.turn_num,
             player_input: playerInput,
         }
         fetch(playerApiUrl, {
@@ -2372,7 +2381,6 @@ export default function GamePage() {
         const finalGameState = animationFinalStateRef.current;
         setGameState(finalGameState);
         refreshSelectedCity(finalGameState);
-        setTurnEndedByPlayerNum(finalGameState?.turn_ended_by_player_num || {});
         const {_, __, myCiv} = getMyInfo(finalGameState);
         sciencePopupIfNeeded(myCiv);
     }
@@ -2564,6 +2572,7 @@ export default function GamePage() {
         } else if (declineOptionsView) {
             const data = {
                 player_num: playerNum,
+                turn_num: gameStateRef.current.turn_num,
                 player_input: {
                     coords: selectedCity.hex,
                     move_type: 'choose_decline_option',
@@ -2875,6 +2884,7 @@ export default function GamePage() {
 
             const data = {
                 player_num: playerNum,
+                turn_num: gameStateRef.current.turn_num,
                 player_input: playerInput,
             }
 
@@ -2915,6 +2925,7 @@ export default function GamePage() {
 
         const data = {
             player_num: playerNumRef.current,
+            turn_num: gameStateRef.current.turn_num,
             player_input: playerInput,
         }
 
@@ -2943,6 +2954,7 @@ export default function GamePage() {
 
         const data = {
             player_num: playerNumRef.current,
+            turn_num: gameStateRef.current.turn_num,
             player_input: playerInput,
         }
 
@@ -3068,11 +3080,13 @@ export default function GamePage() {
                         gameState={gameState}
                         gameId={gameId}
                         playerNum={playerNum}
-                        timerMuted={timerMutedOnTurn === turnNum || engineState === EngineStates.GAME_OVER}
+                        timerStatus={timerStatus}
+                        nextForcedRollAt={nextForcedRollAt}
                         turnEndedByPlayerNum={turnEndedByPlayerNum}
                         isHoveredHex={!!hoveredHex}
                         handleClickEndTurn={handleClickEndTurn}
                         handleClickUnendTurn={handleClickUnendTurn}
+                        overtimeUnendTurnDisabled={overtimeDeclineCivs && overtimeDeclineCivs.length > 0 ? !overtimeDeclineCivs.includes(playerNum) : false}
                         triggerAnimations={triggerAnimations}
                         engineState={engineState}
                         animationFrameLastPlayedRef={animationFrameLastPlayedRef}
@@ -3098,7 +3112,7 @@ export default function GamePage() {
                         setTechListDialogOpen={setTechListDialogOpen}
                         setSelectedCity={setSelectedCity}
                         disableUI={engineState !== EngineStates.PLAYING}
-                        turnNum={turnNum}
+                        turnNum={gameState?.turn_num}
                         setDeclineOptionsView={setDeclineOptionsView}
                         declineViewGameState={declineViewGameState}
                         declineOptionsView={declineOptionsView}
@@ -3155,6 +3169,7 @@ export default function GamePage() {
                             (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] == 'starting_location') && 
                             <ChooseCapitalButton 
                                 playerNum={playerNum}
+                                isOvertime={timerStatus === "OVERTIME"}
                                 myGamePlayer={myGamePlayer}
                                 selectedCity={selectedCity}
                                 nonDeclineViewGameState={nonDeclineViewGameState}
@@ -3235,17 +3250,18 @@ export default function GamePage() {
     }
 
     const fetchTurnStartGameState = (playAnimations) => {
+        fetchDeclineViewGameState();
         fetch(`${URL}/api/movie/last_frame/${gameId}?player_num=${playerNum}`)
             .then(response => response.json())
             .then(data => {
                 console.log("Turn started: ", data.game_state.turn_num);
-                setTurnNum(data.game_state.turn_num);
+                fetchTurnTimerStatus(data.game_state.turn_num);
                 setAnimationTotalFrames(data.num_frames);
                 const budgetedAnimationTime = Math.min(30, data.game_state.turn_num) * 1000;
                 // Give 5 seconds for the backend computation
                 const animationTime = Math.max(budgetedAnimationTime - 5000, 5000);
                 const animationDelay = Math.min(MAX_ANIMATION_DELAY, animationTime / data.num_frames)
-                console.log("Attempting to play animation with", data.num_frames,  "frames in", animationTime/1000, "secs; turn has left", Math.floor(data.game_state.next_forced_roll_at - Date.now()/1000), " secs. Playing one frame per", animationDelay, "ms");
+                console.log("Attempting to play animation with", data.num_frames,  "frames in", animationTime/1000, "secs; turn has left", Math.floor(nextForcedRollAt - Date.now()/1000), " secs. Playing one frame per", animationDelay, "ms");
                 setAnimationActiveDelay(animationDelay);
 
                 if (playAnimations) {
@@ -3267,17 +3283,24 @@ export default function GamePage() {
         setDeclinePreemptedDialogOpen(true);
     }
 
+    const fetchTurnTimerStatus = async (turn_num) => {
+        fetch(`${URL}/api/turn_timer_status/${gameId}/${turn_num}`).then(response => response.json()).then(data => {
+            setNextForcedRollAt(data.next_forced_roll_at);
+            setTurnEndedByPlayerNum(data.turn_ended_by_player_num);
+            setTimerStatus(data.status);
+            setOvertimeDeclineCivs(data.overtime_decline_civs);
+        });
+    }
+
     useEffect(() => {
         console.log("Setting up socket");
         socket.emit('join', { room: gameId, username: username });
         fetchGameStatus();
-        fetchDeclineViewGameState();
-        socket.on('update', () => {
+        socket.on('update', (data) => {
           console.log('update received')
           if (gameStateExistsRef.current) {
-            setDeclineOptionsView(false);
-            fetchDeclineViewGameState();
             // Turn has rolled within a game.
+            setDeclineOptionsView(false);
             fetchTurnStartGameState(true);
           }
           else {
@@ -3289,12 +3312,18 @@ export default function GamePage() {
         })
         socket.on('mute_timer', (data) => {
             console.log("mute timer turn ", data.turn_num);
-            setTimerMutedOnTurn(data.turn_num);
+            setTimerStatus("PAUSED");
         })
         socket.on('decline_evicted', (data) => {
             if (data.player_num === playerNum) {
                 receiveDeclineEviction();
             }
+        })
+        socket.on('overtime', (data) => {
+            console.log("overtime", data);
+            // Set engine state to PLAYING, just in case we accidentally got a start_turn_roll state before the decline processed.
+            setEngineState(EngineStates.PLAYING);
+            fetchTurnTimerStatus(data.turn_num);
         })
         socket.on('turn_end_change', (data) => {
             setTurnEndedByPlayerNum({...turnEndedByPlayerNumRef.current, [data.player_num]: data.turn_ended});
@@ -3309,6 +3338,8 @@ export default function GamePage() {
             socket.off('mute_timer');
             socket.off('turn_end_change');
             socket.off('start_turn_roll');
+            socket.off('decline_evicted');
+            socket.off('overtime');
         }
     }, [socket])
 

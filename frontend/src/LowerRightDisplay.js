@@ -20,8 +20,8 @@ const AnimationControlBar = ({animationFrame, animationTotalFrames}) => {
     </div>
 }
 
-const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEndedByPlayerNum, hoveredHex, 
-    handleClickEndTurn, handleClickUnendTurn, 
+const LowerRightDisplay = ({ gameState, gameId, playerNum, timerStatus, nextForcedRollAt, turnEndedByPlayerNum, hoveredHex, 
+    handleClickEndTurn, handleClickUnendTurn, overtimeUnendTurnDisabled,
     triggerAnimations, engineState, animationFrameLastPlayedRef, animationTotalFrames, cancelAnimations }) => {
     const toggleAnimations = () => {
         if (engineState === EngineStates.ANIMATING) {
@@ -30,7 +30,6 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
             triggerAnimations(gameState);
         }
     }
-    
     return <div className="lower-right-display">
         <AnnouncementsDisplay announcements={gameState?.announcements} />
         <div className="end-turn-area">
@@ -39,10 +38,11 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
                     style={{backgroundColor: "#cccc88", fontSize:"2em", height: "120px", padding: "5px"}} 
                     variant="contained"
                     onClick={turnEndedByPlayerNum?.[playerNum] ? handleClickUnendTurn : handleClickEndTurn}
-                    disabled={engineState !== EngineStates.PLAYING}
+                    disabled={engineState !== EngineStates.PLAYING || overtimeUnendTurnDisabled}
                 >
                     {engineState === EngineStates.PLAYING && 
-                        (turnEndedByPlayerNum?.[playerNum] ? "Unend turn" : gameState?.special_mode_by_player_num?.[playerNum] === "choose_decline_option" ? "End turn (mulligan)" : "End turn")
+                        (overtimeUnendTurnDisabled ? <p style={{fontSize: "0.5em"}}>Can't unend turn Decline Overtime</p>
+                        : turnEndedByPlayerNum?.[playerNum] ? "Unend turn" : "End turn")
                     }
                     {engineState === EngineStates.GAME_OVER && "Game Over" }
                     {engineState === EngineStates.ROLLING && <>
@@ -73,7 +73,11 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerMuted, turnEnded
                 gamePlayerByPlayerNum={gameState?.game_player_by_player_num}
                 turnEndedByPlayerNum={turnEndedByPlayerNum}
             />
-            {gameState?.next_forced_roll_at && <Timer nextForcedRollAt={gameState?.next_forced_roll_at} gameId={gameId} disabledText={timerMuted && "Paused"}/>}
+            {nextForcedRollAt && <Timer 
+                nextForcedRollAt={nextForcedRollAt} 
+                gameId={gameId} 
+                disabledText={engineState === EngineStates.GAME_OVER ? "Game Over" : timerStatus === "PAUSED" ? "Paused" : timerStatus == "OVERTIME" ? "Decline Overtime" : ""} 
+                rolling={engineState === EngineStates.ROLLING}/>}
             
         </div>
     </div>

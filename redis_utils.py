@@ -42,8 +42,8 @@ def rdel(key: str) -> None:
     redis.delete(key)
 
 
-def rlock(key: str):
-    return Lock(redis, key, expire=60)
+def rlock(key: str, expire: int = 60) -> Lock:
+    return Lock(redis, key, expire=expire)
 
 class CodeBlockCounter:
     def __init__(self, key: str):

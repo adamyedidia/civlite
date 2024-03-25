@@ -1,7 +1,6 @@
 from math import sqrt, ceil
 from random import random, shuffle
 from typing import TYPE_CHECKING, Optional
-from animation_frame import AnimationFrame
 from civ import Civ
 from settings import UNIT_KILL_REWARD
 from unit_template import UnitTemplate

@@ -4,6 +4,7 @@ flask
 flask-cors
 flask-socketio
 redis
+sqlalchemy-stubs
 python-redis-lock
 pytest
 sqlalchemy-stubs
