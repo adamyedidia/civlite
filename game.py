@@ -226,7 +226,7 @@ class Game(Base):
             sess.query(AnimationFrame)
             .filter(AnimationFrame.game_id == self.id)
             .filter(AnimationFrame.player_num == None)
-            .filter(AnimationFrame.turn_num == self.turn_num - 1)
+            .filter(AnimationFrame.turn_num == self.turn_num)
             .order_by(AnimationFrame.frame_num.desc())
             .first()
         )
