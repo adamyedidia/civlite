@@ -23,7 +23,7 @@ const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
     const bignumCharLen = bignum.length;
     return (
         <div className={`civ-detail-panel ${title}-area`}>
-            <WithTooltip tooltip={iconTooltip}>
+            <WithTooltip tooltip={iconTooltip} alignBottom={title === 'science'}>
                 <div className="icon">
                     <img src={icon}></img>
                     <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>

@@ -17,6 +17,11 @@
     white-space: normal;
   }
 
+  .tooltip.bottom {
+    bottom: auto;
+    top: 100%;
+  }
+
   .tooltip-container {
     position: relative;
   }
