@@ -6,6 +6,7 @@ import { WithTooltip } from './WithTooltip';
 import cityImg from './images/city.png';
 import scienceImg from './images/science.png';
 import tradeHubImg from './images/tradehub.png';
+import greatPersonImg from './images/greatperson.png';
 
 // For images in the public/images directory, use the public URL path
 const flag1Img = `${process.env.PUBLIC_URL}/images/flag.svg`;
@@ -20,7 +21,7 @@ const TaskIcon = ({icon, onClick, tooltip}) => {
 }
 
 
-export const TaskBar = ({myCiv, myCities, myUnits, canFoundCity, setSelectedCity, setFoundingCity, setTechChoiceDialogOpen, techChoiceDialogOpen}) => {
+export const TaskBar = ({myCiv, myCities, myUnits, canFoundCity, setSelectedCity, setFoundingCity, setTechChoiceDialogOpen, techChoiceDialogOpen, setGreatPersonChoiceDialogOpen, greatPersonChoiceDialogOpen}) => {
     const anyUnhappyCities = myCities?.some(city => city.unhappiness > 0 || city.projected_income['unhappiness'] > 0);
     
     // Generate the list of unhappy cities as a JSX element
@@ -41,6 +42,7 @@ return <div className="task-bar">
         />}
         {!myCiv?.target1 && myUnits.length > 0 && <TaskIcon icon={flag1Img} tooltip="Select primary flag" />}
         {!myCiv?.target2 && myUnits.length > 1 && <TaskIcon icon={flag2Img} tooltip="Select secondary flag" />}
+        {myCiv?.great_people_choices.length > 0 && !greatPersonChoiceDialogOpen && <TaskIcon icon={greatPersonImg} tooltip="Select Great Person" onClick={() => {setGreatPersonChoiceDialogOpen(true)}}/>}
     </div>
 }
 

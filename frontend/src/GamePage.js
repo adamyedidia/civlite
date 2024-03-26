@@ -30,6 +30,7 @@ import UpperRightDisplay from './UpperRightDisplay';
 import LowerRightDisplay from './LowerRightDisplay.js';
 import TechListDialog from './TechListDialog';
 import TaskBar from './TaskBar';
+import GreatPerson from './GreatPerson';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
@@ -206,6 +207,35 @@ function GameOverDialog({open, onClose, gameState}) {
     )
 }
 
+function GreatPersonChoiceDialog({open, onClose, greatPersonChoices, handleSelectGreatPerson, setHoveredUnit, setHoveredTech, templates}) {
+    return <div className="tech-choices-container">
+        <DialogTitle>
+            <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
+                Choose Great Person
+            </Typography>
+            <IconButton
+                aria-label="close"
+                onClick={onClose}
+                style={{
+                    position: 'absolute',
+                    right: 8,
+                    top: 8,
+                    color: (theme) => theme.palette.grey[500],
+                }}
+                color="primary"
+            >
+                Close
+            </IconButton>
+        </DialogTitle>
+        <div className="tech-choices-content">
+            {greatPersonChoices.map((person, index) => (
+                <GreatPerson key={index} greatPerson={person} handleSelectGreatPerson={handleSelectGreatPerson} 
+                    setHoveredUnit={setHoveredUnit} setHoveredTech={setHoveredTech} templates={templates}/>
+            ))}
+        </div>
+    </div>
+}
+
 function DeclineFailedDialog({open, onClose}) {
     return (
         <Dialog open={open} onClose={onClose}>
@@ -346,6 +376,7 @@ export default function GamePage() {
     const [selectedCity, setSelectedCity] = useState(null);
 
     const [techChoiceDialogOpen, setTechChoiceDialogOpen] = useState(false);
+    const [greatPersonChoiceDialogOpen, setGreatPersonChoiceDialogOpen] = useState(false);
 
     const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
 
@@ -490,6 +521,7 @@ export default function GamePage() {
                 setFoundingCity(false);
                 setShowFlagArrows(false);
                 setTechChoiceDialogOpen(false);
+                setGreatPersonChoiceDialogOpen(false);
                 setDeclineOptionsView(false);
             }
         };
@@ -2196,6 +2228,7 @@ export default function GamePage() {
             setNonDeclineViewGameState(gameState);
             setGameState(declineViewGameState);
             setTechChoiceDialogOpen(false);
+            setGreatPersonChoiceDialogOpen(false);
         } else {
             // If we are toggling back from the decline view
             setGameState(nonDeclineViewGameState);
@@ -2230,14 +2263,8 @@ export default function GamePage() {
         })
     }
 
-    
-    const handleClickTech = (tech) => {
+    const submitPlayerInput = async (playerInput) => {
         if (engineState !== EngineStates.PLAYING) {return;}
-
-        const playerInput = {
-            'tech_name': tech.name,
-            'move_type': 'choose_tech',
-        }
 
         const data = {
             player_num: playerNum,
@@ -2254,9 +2281,19 @@ export default function GamePage() {
             .then(data => {
                 if (data.game_state) {
                     setGameState(data.game_state);
-                    setTechChoiceDialogOpen(false);
                 }
             });
+    }
+    
+    const handleClickTech = (tech) => {
+        if (engineState !== EngineStates.PLAYING) {return;}
+
+        const playerInput = {
+            'tech_name': tech.name,
+            'move_type': 'choose_tech',
+        }
+
+        submitPlayerInput(playerInput).then(() => setTechChoiceDialogOpen(false));
     }
    
     useEffect(() => {
@@ -2383,6 +2420,7 @@ export default function GamePage() {
         refreshSelectedCity(finalGameState);
         const {_, __, myCiv} = getMyInfo(finalGameState);
         sciencePopupIfNeeded(myCiv);
+        greatPersonPopupIfNeeded(myCiv);
     }
 
     const triggerAnimationsInner = async () => {
@@ -2427,6 +2465,12 @@ export default function GamePage() {
     const cancelAnimations = () => {
         console.log("Manually cancelling animations")
         setEngineState(EngineStates.PLAYING, EngineStates.ANIMATING);
+    }
+
+    const greatPersonPopupIfNeeded = (civ) => {
+        if (civ?.great_people_choices?.length > 0) {
+            setGreatPersonChoiceDialogOpen(true);
+        }
     }
 
     const sciencePopupIfNeeded = (civ) => {
@@ -2594,6 +2638,7 @@ export default function GamePage() {
                         refreshSelectedCity(data.game_state);
                         setDeclineOptionsView(false);
                         sciencePopupIfNeeded(myNewCiv);
+                        greatPersonPopupIfNeeded(myNewCiv);
                     } else if (data.game_state && !success) {
                         setDeclineFailedDialogOpen(true);
                     } else {
@@ -2881,27 +2926,7 @@ export default function GamePage() {
                 'city_id': generateUniqueId(),
                 'coords': `${hex.q},${hex.r},${hex.s}`,
             }
-
-            const data = {
-                player_num: playerNum,
-                turn_num: gameStateRef.current.turn_num,
-                player_input: playerInput,
-            }
-
-            fetch(playerApiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
-                body: JSON.stringify(data),
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.game_state) {
-                        setGameState(data.game_state);
-                        setFoundingCity(false);
-                    }
-                });
+            submitPlayerInput(playerInput).then(() => setFoundingCity(false));
         }
         else {
             setHoveredCity(null);
@@ -2922,27 +2947,7 @@ export default function GamePage() {
             'move_type': `set_civ_${isSecondary ? "secondary" : "primary"}_target`,
             'target_coords': `${hex.q},${hex.r},${hex.s}`,
         }
-
-        const data = {
-            player_num: playerNumRef.current,
-            turn_num: gameStateRef.current.turn_num,
-            player_input: playerInput,
-        }
-
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
+        submitPlayerInput(playerInput);
     }
 
     const removeTarget = (isSecondary) => {
@@ -2951,27 +2956,15 @@ export default function GamePage() {
         const playerInput = {
             'move_type': `remove_civ_${isSecondary ? "secondary" : "primary"}_target`,
         }
+        submitPlayerInput(playerInput);
+    }
 
-        const data = {
-            player_num: playerNumRef.current,
-            turn_num: gameStateRef.current.turn_num,
-            player_input: playerInput,
+    const handleSelectGreatPerson = (greatPerson) => {
+        const playerInput = {
+            'move_type': 'select_great_person',
+            'great_person_name': greatPerson.name,
         }
-
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
+        submitPlayerInput(playerInput).then(() => setGreatPersonChoiceDialogOpen(false));
     }
 
     const totalHexYields = (yields) => {
@@ -3193,7 +3186,12 @@ export default function GamePage() {
                             See end game info
                         </Button>}
                         {engineState === EngineStates.PLAYING && !declineOptionsView && myCiv &&
-                            <TaskBar myCiv={myCiv} myCities={myCities} myUnits={myUnits} canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} setTechChoiceDialogOpen={setTechChoiceDialogOpen} techChoiceDialogOpen={techChoiceDialogOpen}/>
+                            <TaskBar 
+                                myCiv={myCiv} myCities={myCities} myUnits={myUnits} 
+                                canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} 
+                                setTechChoiceDialogOpen={setTechChoiceDialogOpen} techChoiceDialogOpen={techChoiceDialogOpen}
+                                setGreatPersonChoiceDialogOpen={setGreatPersonChoiceDialogOpen} greatPersonChoiceDialogOpen={greatPersonChoiceDialogOpen}
+                            />
                         }
 
                     </div>}
@@ -3207,6 +3205,15 @@ export default function GamePage() {
                     templates={templates}
                     myCiv={myCiv}
                     gameState={gameState}
+                />}
+                {greatPersonChoiceDialogOpen && <GreatPersonChoiceDialog
+                    open={greatPersonChoiceDialogOpen}
+                    onClose={() => setGreatPersonChoiceDialogOpen(false)}
+                    greatPersonChoices={myCiv.great_people_choices}
+                    handleSelectGreatPerson={handleSelectGreatPerson}
+                    setHoveredTech={setHoveredTech}
+                    setHoveredUnit={setHoveredUnit}
+                    templates={templates}
                 />}
                 {gameOverDialogOpen && <GameOverDialog
                     open={gameOverDialogOpen}

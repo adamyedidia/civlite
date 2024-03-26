@@ -1,0 +1,13 @@
+.great-person-card {
+    background-color: #ddd;
+    border: 1px solid #000;
+    border-radius: 10px;
+    padding: 10px;
+    margin: 10px;
+}
+
+.great-person-card:hover {
+    background-color: #eee;
+    cursor: pointer;
+    transform: scale(1.2);
+}
