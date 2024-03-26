@@ -608,8 +608,6 @@ class GameState:
         # only commands from that player's player num get respected
         city_owner_by_city_id: dict[str, int] = {}
 
-        self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
-
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
 
@@ -639,6 +637,8 @@ class GameState:
 
         print("committing changes")
         sess.commit()
+
+        self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
 
         self.add_animation_frame(sess, {
             "type": "StartOfNewTurn",
