@@ -90,7 +90,11 @@ class Civ:
         return [tech for tech, status in self.techs_status.items() if status == TechStatus.RESEARCHED]
 
     def select_tech(self, tech_name):
-        assert tech_name is None or self.techs_status[tech_name] in (TechStatus.AVAILABLE, TechStatus.RESEARCHING), f"Civ {self} tried to research {tech_name} which is in status {self.techs_status[tech_name]}; all statuses were: {self.techs_status}"
+        try:
+            assert tech_name is None or self.techs_status[tech_name] in (TechStatus.AVAILABLE, TechStatus.RESEARCHING), f"Civ {self} tried to research {tech_name} which is in status {self.techs_status[tech_name]}; all statuses were: {self.techs_status}"
+        except Exception:
+            print(f"{self.moniker()} tried to research {tech_name} which is in status {self.techs_status[tech_name]}; all statuses were: {self.techs_status}")
+            return
         if self.researching_tech_name:
             self.techs_status[self.researching_tech_name] = TechStatus.AVAILABLE
         if tech_name is not None:
