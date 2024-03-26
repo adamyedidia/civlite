@@ -113,6 +113,10 @@ class GameState:
         city = self.new_city(civ, hex, city_id)
         self.register_city(city)
 
+        if civ.game_player:
+            civ.game_player.score += 2
+            civ.game_player.score_from_capturing_cities_and_camps += 2
+
         if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
             if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
                 assert city.hex
