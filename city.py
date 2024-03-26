@@ -225,6 +225,8 @@ class City:
             assert self.hex is not None
             game_state.process_decline_option(self.hex.coords, [])
             game_state.make_new_civ_from_the_ashes(self)
+            # AI civs have less vitality.
+            self.civ.vitality *= 0.75
 
     def grow_inner(self, game_state: 'GameState') -> None:
         self.population += 1
