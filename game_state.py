@@ -23,6 +23,7 @@ import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
 from utils import dream_key, staged_moves_key
+from great_person import random_great_people_by_age
 
 from sqlalchemy import func
 
@@ -267,6 +268,9 @@ class GameState:
         game_player.civ_id = civ.id
         game_player.decline_this_turn = True
         self.make_new_civ_from_the_ashes(city)
+        civ.great_people_choices = random_great_people_by_age(age=self.advancement_level, n=3)
+        print(f"Great people choices: {civ.great_people_choices}")
+
         return from_civ_perspectives
 
 
@@ -498,6 +502,13 @@ class GameState:
                 game_player_to_return = game_player
                 self.midturn_update()
 
+            if move['move_type'] == 'select_great_person':
+                game_player: GamePlayer = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ: Civ = self.civs_by_id[game_player.civ_id]
+                civ.select_great_person(self, move['great_person_name'])
+                game_player_to_return = game_player
+
             if move['move_type'] == 'found_city':
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
@@ -631,7 +642,7 @@ class GameState:
                 game_player.score -= MULLIGAN_PENALTY
                 game_player.score_from_survival -= MULLIGAN_PENALTY
 
-        print('ending turn')
+        print(f'GameState ending turn {self.turn_num}')
 
         self.roll_turn(sess)
 
@@ -654,6 +665,8 @@ class GameState:
         return GAME_END_SCORE + EXTRA_GAME_END_SCORE_PER_PLAYER * len(self.game_player_by_player_num)
 
     def roll_turn(self, sess) -> None:
+        print(f"GameState incrementing turn {self.turn_num} -> {self.turn_num + 1}")
+
         self.turn_num += 1
 
         self.barbarians.target1 = self.pick_random_hex()
@@ -803,7 +816,6 @@ class GameState:
             new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player=None)
 
             city = self.new_city(new_civ, hex)
-            city.unhappiness = 40
             # Note that city is NOT registered; i.e. hex.city is not this city, since this is a fake city.
             self.fresh_cities_for_decline[hex.coords] = city
 
@@ -836,7 +848,7 @@ class GameState:
 
         sess.commit()
  
-    def handle_wonder_built(self, sess, civ: Civ, building_template: BuildingTemplate, national: bool = False) -> None:
+    def handle_wonder_built(self, civ: Civ, building_template: BuildingTemplate, national: bool = False) -> None:
         if national:
             if civ.id not in self.national_wonders_built_by_civ_id:
                 self.national_wonders_built_by_civ_id[civ.id] = [building_template.name]
@@ -859,13 +871,6 @@ class GameState:
                         break
 
         if not national:
-            for civ_to_announce in self.civs_by_id.values():
-                self.add_animation_frame_for_civ(sess, {
-                    'type': 'WonderBuilt',
-                    'civ': civ.template.name,
-                    'wonder': building_template.name,
-                }, civ_to_announce)
-            
             self.add_announcement(f'{civ.moniker()} built the {building_template.name}!')
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:
