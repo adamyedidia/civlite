@@ -199,7 +199,7 @@ class GameState:
                 num_needed = target_num - chosen_techs_by_advancement[level]
                 available = [tech for tech in tech_counts_by_adv_level[level] if tech not in chosen_techs_names]
                 available.sort(key=lambda tech: (tech_counts_by_adv_level[level][tech], random.random()), reverse=True)
-                choose = available[:math.ceil(num_needed)]
+                choose = available[:math.floor(num_needed)]
                 print(f"  chose: {choose}")
                 for tech in choose:
                     chosen_techs_names.add(tech)
