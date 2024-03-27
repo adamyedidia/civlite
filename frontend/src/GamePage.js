@@ -740,7 +740,7 @@ export default function GamePage() {
     }, [engineState]);
 
     useEffect(() => {
-        if (engineState !== EngineStates.PLAYING) {
+        if (engineState !== EngineStates.PLAYING && engineState !== EngineStates.GAME_OVER) {
             document.body.style.cursor = 'wait';
         } else {
             document.body.style.cursor = 'default';
