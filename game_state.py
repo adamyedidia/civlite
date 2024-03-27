@@ -947,6 +947,7 @@ class GameState:
             "announcements": self.announcements[:],
             "fresh_cities_for_decline": {coords: city.to_json(include_civ_details=True) for coords, city in self.fresh_cities_for_decline.items()},
             "unhappiness_threshold": self.unhappiness_threshold,
+            "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
         }
     
     def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
@@ -962,6 +963,7 @@ class GameState:
         game_state = GameState(game_id=json["game_id"], hexes=hexes)
         game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}        
         game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs_by_id"].items()}
+        game_state.civ_ids_with_game_player_at_turn_start = json["civ_ids_with_game_player_at_turn_start"]
         # game_state.cities_by_id set from the other entries, to ensure references are all good.
         game_state.barbarians = [civ for civ in game_state.civs_by_id.values() if civ.template.name == 'Barbarians'][0]
         game_state.advancement_level = json["advancement_level"]
