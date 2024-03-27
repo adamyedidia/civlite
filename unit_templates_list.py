@@ -36,6 +36,10 @@ UNITS = {
         "tags": ["ranged"],
         "prereq": "Archery",
         "abilities": [],
+        "great_people_names": {
+            "general_advanced": "Ashoka",
+            "general_horde": "Boudicca",
+        },
     },
     "Spearman": {
         "name": "Spearman",
@@ -52,6 +56,10 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["mounted", 4],
         }],
+        "great_people_names": {
+            "general_normal": "Lysander",
+            "general_horde": "Alexander the Great",
+        },
     },
     "Chariot": {
         "name": "Chariot",
@@ -68,6 +76,9 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["ranged", 5],
         }],
+        "great_people_names": {
+            "general_advanced": "Thutmose III",
+        },
     },
     "Garrison": {
         "name": "Garrison",
@@ -81,6 +92,10 @@ UNITS = {
         "prereq": "Masonry",
         "tags": ["defensive"],
         "abilities": [],
+        "great_people_names": {
+            "general_advanced": "Hector of Troy",
+            "general_horde": "King Theoden",
+        },
     },
     "Catapult": {
         "name": "Catapult",
@@ -113,6 +128,9 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["siege", 6],
         }],
+        "great_people_names": {
+            "general_horde": "Gengis Khan",
+        },
     },
     "Horse Archer": {
         "name": "Horse Archer",
@@ -129,6 +147,9 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["infantry", 8],
         }],
+        "great_people_names": {
+            "general_horde": "Attila the Hun",
+        },
     },
     "Swordsman": {
         "name": "Swordsman",
@@ -142,6 +163,10 @@ UNITS = {
         "tags": ["infantry"],
         "prereq": "Iron Working",
         "abilities": [],
+        "great_people_names": {
+            "general_normal": "Julius Caesar",
+            "general_horde": "Montezuma",
+        },
     },
     "Pikeman": {
         "name": "Pikeman",
@@ -158,6 +183,10 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["mounted", 7],
         }],
+        "great_people_names": {
+            "general_normal": "Frederick Barbarossa",
+            "general_advanced": "Sun Tzu",
+        },
     },
     "Crossbowman": {
         "name": "Crossbowman",
@@ -190,6 +219,10 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["ranged", 8],
         }],
+        "great_people_names": {
+            "general_normal": "William of Orange",
+            "general_horde": "Joan of Arc",
+        },
     },
     "Trebuchet": {
         "name": "Trebuchet",
@@ -219,6 +252,10 @@ UNITS = {
         "tags": ["infantry", "gunpowder"],
         "prereq": "Gunpowder",
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Alexandre Dumas",
+            "general_horde": "George Washington",
+        },
     },
     "Cannon": {
         "name": "Cannon",
@@ -235,6 +272,9 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["defensive", 10],
         }],
+        "great_people_names": {
+            "general_normal": "Napolean Bonaparte",
+        },
     },
     "Militia": {
         "name": "Militia",
@@ -248,6 +288,8 @@ UNITS = {
         "tags": ["defensive"],
         "prereq": "Chivalry",
         "abilities": [],
+        "great_people_names": {
+        },
     },
     "Cavalry": {
         "name": "Cavalry",
@@ -264,6 +306,9 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["siege", 15],
         }],
+        "great_people_names": {
+            "general_advanced": "Sitting Bull",
+        },
     },
     "Rifleman": {
         "name": "Rifleman",
@@ -277,6 +322,10 @@ UNITS = {
         "tags": ["infantry", "gunpowder"],
         "prereq": "Rifling",
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Ulysses S. Grant",
+            "general_normal": "Robert E Lee",
+        },
     },
     "Gatling Gun": {
         "name": "Gatling Gun",
@@ -322,6 +371,11 @@ UNITS = {
         "tags": ["infantry", "gunpowder"],
         "prereq": "Radio",
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Winston Churchill",
+            "general_advanced": "Catherine the Great",
+            "general_normal": "Dwight D. Eisenhower",
+        },
     },
     "Tank": {
         "name": "Tank",
