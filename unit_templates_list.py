@@ -57,6 +57,7 @@ UNITS = {
             "numbers": ["mounted", 4],
         }],
         "great_people_names": {
+            "general_advanced": "Achilles and Patroclus",
             "general_normal": "Lysander",
             "general_horde": "Alexander the Great",
         },
@@ -148,6 +149,7 @@ UNITS = {
             "numbers": ["infantry", 8],
         }],
         "great_people_names": {
+            "engineer": "Hannibal Lecter",
             "general_horde": "Attila the Hun",
         },
     },
@@ -164,6 +166,7 @@ UNITS = {
         "prereq": "Iron Working",
         "abilities": [],
         "great_people_names": {
+            "general_advanced": "Castor and Pollux",
             "general_normal": "Julius Caesar",
             "general_horde": "Montezuma",
         },
@@ -203,6 +206,10 @@ UNITS = {
             "name": "BonusNextTo",
             "numbers": ["siege", 4],
         }],
+        "great_people_names": {
+            "general_advanced": "Henry V",
+            "general_normal": "Joan of Arc",
+        },
     },
     "Knight": {
         "name": "Knight",
@@ -220,8 +227,9 @@ UNITS = {
             "numbers": ["ranged", 8],
         }],
         "great_people_names": {
+            "general_advanced": "Roland and Oliver",
             "general_normal": "William of Orange",
-            "general_horde": "Joan of Arc",
+            "general_horde": "King Arthur",
         },
     },
     "Trebuchet": {
@@ -253,7 +261,7 @@ UNITS = {
         "prereq": "Gunpowder",
         "abilities": [],
         "great_people_names": {
-            "engineer": "Alexandre Dumas",
+            "general_advanced": "Alexandre Dumas",
             "general_horde": "George Washington",
         },
     },
@@ -389,6 +397,10 @@ UNITS = {
         "tags": ["armored"],
         "prereq": "Combined Arms",
         "abilities": [],
+        "great_people_names": {
+            "general_normal": "Erwin Rommel",
+            "general_advanced": "George Patton", 
+        },
     },
     "Machine Gun": {
         "name": "Machine Gun",

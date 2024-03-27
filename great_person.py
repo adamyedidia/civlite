@@ -119,9 +119,9 @@ def _target_value_by_age(age: int) -> int:
     }[age]
 
 merchant_names = {
-    "metal": ["Beowulf", "[ANCIENT METAL MERCHANT]", "Colaeus", "Ned Stark", "[RENAISSANCE METAL MERCHANT]", "Benjamin Franklin", "Otto von Bismark", "[MODERN METAL MERCHANT]", "[INFORMATION METAL MERCHANT]", "[FUTURE METAL MERCHANT]"],
+    "metal": ["Beowulf", "[ANCIENT METAL MERCHANT]", "Colaeus", "Ned Stark", "Catherine de Medici", "Benjamin Franklin", "Otto von Bismark", "Franklin Delano Roosevelt", "Vladimir Putin", "[FUTURE METAL MERCHANT]"],
     "wood": ["Gilgamesh", "[ANCIENT WOOD MERCHANT]", "Marcus Licinius Crassus", "Irene of Athens", "Leonardo da Vinci", "[INDUSTRIAL WOOD MERCHANT]", "Henry Ford", "[MODERN WOOD MERCHANT]", "Steve Jobs", "[FUTURE WOOD MERCHANT]"],
-    "food": ["Moses", "[ANCIENT FOOD MERCHANT]", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "[INDUSTRIAL FOOD MERCHANT]", "[PREMODERN FOOD MERCHANT]", "[MODERN FOOD MERCHANT]", "[INFORMATION FOOD MERCHANT]", "[FUTURE FOOD MERCHANT]"],
+    "food": ["Moses", "[ANCIENT FOOD MERCHANT]", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "[INDUSTRIAL FOOD MERCHANT]", "Queen Victoria", "Gandhi", "[INFORMATION FOOD MERCHANT]", "[FUTURE FOOD MERCHANT]"],
     "science": ["Prometheus", "Confucius", "Archimedes", "Copernicus", "Francis Bacon", "Charles Darwin", "Albert Einstein", "John von Neumann", "[INFORMATION SCIENCE MERCHANT]", "[FUTURE SCIENCE MERCHANT]"],
 }
 # Ibn Fadlan, 
@@ -138,11 +138,11 @@ for tech in TECHS.values():
         u = UnitTemplate.from_json(UNITS[unit])
         great_people_names: dict[str, str] = UNITS[unit].get('great_people_names', {})
         advanced_general_name: str = great_people_names.get("general_advanced", f"[A{level - 1} General: {unit}]")
-        _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, u, int(0.4 * _target_value_by_age(level - 1) / u.metal_cost)))
+        _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, u, round(0.5 * _target_value_by_age(level - 1) / u.metal_cost)))
         normal_general_name: str = great_people_names.get("general_normal", f"[A{level} General: {unit}]")
-        _great_people_by_age[level].append(GreatGeneral(normal_general_name, u, int(0.7 * _target_value_by_age(level) / u.metal_cost)))
+        _great_people_by_age[level].append(GreatGeneral(normal_general_name, u, round(0.8 * _target_value_by_age(level) / u.metal_cost)))
         horde_general_name: str = great_people_names.get("general_horde", f"[A{level + 1} General: {unit}]")
-        _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, u, int(1.0 * _target_value_by_age(level + 1) / u.metal_cost)))
+        _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, u, round(1.1 * _target_value_by_age(level + 1) / u.metal_cost)))
 
         engineer_name = great_people_names.get("engineer", f"[A{level - 1} Engineer: {u.building_name}]")
         _great_people_by_age[level - 1].append(GreatEngineer(engineer_name, u, max(0, 0.5 * _target_value_by_age(level - 1) - u.wood_cost)))
@@ -163,8 +163,19 @@ print(unique_names)
 num_placeholder = len([name for name in unique_names if name.startswith("[")])
 print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} great people")
 
+_great_people_by_age[6].append(GreatGeneral("Ōishi Yoshio", UnitTemplate.from_json(UNITS["Swordsman"]), 47))
+
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
+
+# Set some numbers to their correct values, even if it's not balanced.
+great_people_by_name["King Arthur"].number = 12
+great_people_by_name["Alexandre Dumas"].number = 3
 
 def random_great_people_by_age(age: int, n: int = 1) -> list[GreatPerson]:
     return random.sample(_great_people_by_age[age], n)
+
+for name, person in great_people_by_name.items():
+    if isinstance(person, GreatGeneral) and person.name.startswith("["):
+        print(person.unit_template.name, person.number)
+
 

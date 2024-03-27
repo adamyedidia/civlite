@@ -181,6 +181,7 @@ TECHS = {
         'cost': 100,
         'unlocks_buildings': ['Notre Dame', 'Lumber Farm'],
         'advancement_level': 4,
+        'great_scientist_name': 'Michelangelo',
     },
     "Medicine": {
         'name': 'Medicine',
