@@ -88,6 +88,10 @@ class City:
 
     def is_trade_hub(self):
         return self.civ.trade_hub_id == self.id
+    
+    def is_fake_city(self) -> bool:
+        assert self.hex is not None
+        return self.hex.city != self
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -197,8 +201,8 @@ class City:
         if not fake:
             self.harvest_yields(game_state)
             self.grow(game_state)
-            self.build_units(sess, game_state)
-            self.build_buildings(sess, game_state)
+            self.build_units(game_state)
+            self.build_buildings(game_state)
             self.handle_siege(sess, game_state)
         
         self.handle_unhappiness(game_state)
@@ -218,15 +222,18 @@ class City:
         return result
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:
-        self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num + 0.035 * self.unhappiness
+        if self.is_fake_city():
+            self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num
+        else:
+            self.revolting_starting_vitality = 1.0 + 0.05 * game_state.turn_num + 0.015 * self.unhappiness
 
-        if self.unhappiness > 100:
+        if not self.is_fake_city() and self.unhappiness > 100:
             # Revolt to AI
             assert self.hex is not None
             game_state.process_decline_option(self.hex.coords, [])
             game_state.make_new_civ_from_the_ashes(self)
-            # AI civs have less vitality.
-            self.civ.vitality *= 0.75
+            # Rebel civs have no great person
+            self.civ.great_people_choices = []
 
     def grow_inner(self, game_state: 'GameState') -> None:
         self.population += 1
@@ -359,11 +366,11 @@ class City:
         unit_buildings = [UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building_name]) for building_name in self.civ.available_unit_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
         return [*buildings, *unit_buildings]
 
-    def build_units(self, sess, game_state: 'GameState') -> None:
+    def build_units(self, game_state: 'GameState') -> None:
         if self.infinite_queue_unit:
             while self.metal >= self.infinite_queue_unit.metal_cost:
                 if self.metal >= self.infinite_queue_unit.metal_cost:
-                    if self.build_unit(sess, game_state, self.infinite_queue_unit):
+                    if self.build_unit(game_state, self.infinite_queue_unit):
                         self.metal -= self.infinite_queue_unit.metal_cost
                     else:
                         break
@@ -390,12 +397,12 @@ class City:
             return target2
 
 
-    def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False) -> bool:
+    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False) -> bool:
         if not self.hex:
             return False
 
         if not self.hex.is_occupied(unit.type, self.civ):
-            self.spawn_unit_on_hex(sess, game_state, unit, self.hex)
+            self.spawn_unit_on_hex(game_state, unit, self.hex)
             return True
 
         best_hex = None
@@ -442,7 +449,7 @@ class City:
                 # Try merging friendly units
                 for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
                     if hex.units and hex.units[0].civ.id == self.civ.id:
-                        if hex.units[0].merge_into_neighboring_unit(sess, game_state, always_merge_if_possible=True):
+                        if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
                             num_merges += 1
                     if num_merges >= 2:
                         break
@@ -451,7 +458,7 @@ class City:
                 if num_merges == 0:
                     for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
                         if hex.units and not hex.city:
-                            if hex.units[0].merge_into_neighboring_unit(sess, game_state, always_merge_if_possible=True):
+                            if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
                                 num_merges += 1
                                 break
                         if num_merges >= 2:
@@ -464,12 +471,12 @@ class City:
                             hex.units[0].remove_from_game(game_state)
                             break
 
-                return self.build_unit(sess, game_state, unit, give_up_if_still_impossible=True)
+                return self.build_unit(game_state, unit, give_up_if_still_impossible=True)
 
-        self.spawn_unit_on_hex(sess, game_state, unit, best_hex)
+        self.spawn_unit_on_hex(game_state, unit, best_hex)
         return True
 
-    def spawn_unit_on_hex(self, sess, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex') -> None:
+    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex') -> None:
         if self.hex is None:
             return
         unit = Unit(unit_template, self.civ)
@@ -487,23 +494,16 @@ class City:
                     if ability['name'] == 'NewUnitsGainBonusStrength':
                         unit.strength += ability['numbers'][0]
 
-        if self.hex.coords != unit.hex.coords:
-            game_state.add_animation_frame_for_civ(sess, {
-                "type": "UnitSpawn",
-                "start_coords": self.hex.coords,
-                "end_coords": unit.hex.coords,
-            }, self.civ)
-
     def reinforce_unit(self, unit: Unit) -> None:
         unit.health += 100
 
-    def build_buildings(self, sess, game_state: 'GameState') -> None:
+    def build_buildings(self, game_state: 'GameState') -> None:
         while self.buildings_queue:
             building = self.buildings_queue[0]
             if isinstance(building, BuildingTemplate):
                 if self.wood >= building.cost:
                     self.buildings_queue.pop(0)
-                    self.build_building(sess, game_state, building)
+                    self.build_building(game_state, building)
                     self.wood -= building.cost
                 else:
                     break
@@ -511,7 +511,7 @@ class City:
             elif isinstance(building, UnitTemplate):
                 if self.wood >= building.wood_cost:
                     self.buildings_queue.pop(0)
-                    self.build_building(sess, game_state, building)
+                    self.build_building(game_state, building)
                     self.wood -= building.wood_cost
                 else:
                     break
@@ -519,7 +519,7 @@ class City:
             else:
                 break
 
-    def build_building(self, sess, game_state: 'GameState', building: Union[BuildingTemplate, UnitTemplate]) -> None:
+    def build_building(self, game_state: 'GameState', building: Union[BuildingTemplate, UnitTemplate]) -> None:
         unit_template = building if isinstance(building, UnitTemplate) else None
         building_template = building if isinstance(building, BuildingTemplate) else None
 
@@ -568,7 +568,7 @@ class City:
 
         if new_building.has_ability('GainFreeUnits'):
             for _ in range(new_building.numbers_of_ability('GainFreeUnits')[1]):
-                self.build_unit(sess, game_state, UnitTemplate.from_json(UNITS[new_building.numbers_of_ability('GainFreeUnits')[0]]))
+                self.build_unit(game_state, UnitTemplate.from_json(UNITS[new_building.numbers_of_ability('GainFreeUnits')[0]]))
 
         if new_building.has_ability('EndTheGame'):
             game_state.game_over = True
@@ -578,11 +578,11 @@ class City:
 
         if building_template is not None and building_template.is_wonder:
             assert isinstance(building_template, BuildingTemplate)
-            game_state.handle_wonder_built(sess, self.civ, building_template, national=False)
+            game_state.handle_wonder_built(self.civ, building_template, national=False)
 
         if building_template is not None and building_template.is_national_wonder:
             assert isinstance(building_template, BuildingTemplate)
-            game_state.handle_wonder_built(sess, self.civ, building_template, national=True)
+            game_state.handle_wonder_built(self.civ, building_template, national=True)
 
     def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
         if self.hex is None:

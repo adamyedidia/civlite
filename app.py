@@ -27,7 +27,7 @@ from utils import dream_key, dream_key_from_civ_perspectives, generate_unique_id
 
 from settings import (
     LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, 
-    BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, 
+    BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, 
     NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, 
     SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY
 )
@@ -718,7 +718,6 @@ def get_game_constants(sess):
         'camp_clear_city_power_reward': CAMP_CLEAR_CITY_POWER_REWARD,
         'base_food_cost_of_pop': BASE_FOOD_COST_OF_POP,
         'additional_per_pop_food_cost': ADDITIONAL_PER_POP_FOOD_COST,
-        'fast_vitality_decay_rate': FAST_VITALITY_DECAY_RATE,
         'vitality_decay_rate': VITALITY_DECAY_RATE,
         'map_homogeneity_level': MAP_HOMOGENEITY_LEVEL,
         'num_starting_location_options': NUM_STARTING_LOCATION_OPTIONS,

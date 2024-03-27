@@ -177,6 +177,7 @@ class Game(Base):
                 # or else we'll have a stale version.
                 game_state: GameState = self.get_turn_start_game_state(sess)
 
+                print(f'Game telling GameState to end turn {self.turn_num}, {game_state.turn_num}')
                 game_state.end_turn(sess)
 
                 if self.seconds_per_turn is not None and not self.game_over and self.turn_num < 200:
