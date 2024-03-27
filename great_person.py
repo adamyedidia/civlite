@@ -174,8 +174,9 @@ great_people_by_name["Alexandre Dumas"].number = 3
 def random_great_people_by_age(age: int, n: int = 1) -> list[GreatPerson]:
     return random.sample(_great_people_by_age[age], n)
 
-for name, person in great_people_by_name.items():
-    if isinstance(person, GreatGeneral) and person.name.startswith("["):
-        print(person.unit_template.name, person.number)
+# unnamed great generals
+# for name, person in great_people_by_name.items():
+#     if isinstance(person, GreatGeneral) and person.name.startswith("["):
+#         print(person.unit_template.name, person.number)
 
 

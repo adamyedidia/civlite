@@ -38,7 +38,7 @@ UNITS = {
         "abilities": [],
         "great_people_names": {
             "general_advanced": "Ashoka",
-            "general_horde": "Boudicca",
+            "general_horde": "Robin Hood",
         },
     },
     "Spearman": {
@@ -59,7 +59,7 @@ UNITS = {
         "great_people_names": {
             "general_advanced": "Achilles and Patroclus",
             "general_normal": "Lysander",
-            "general_horde": "Alexander the Great",
+            "general_horde": "Boudicca",
         },
     },
     "Chariot": {
@@ -95,6 +95,7 @@ UNITS = {
         "abilities": [],
         "great_people_names": {
             "general_advanced": "Hector of Troy",
+            "general_normal": "Leonidas",
             "general_horde": "King Theoden",
         },
     },
@@ -130,6 +131,7 @@ UNITS = {
             "numbers": ["siege", 6],
         }],
         "great_people_names": {
+            "general_advanced": "Alexander the Great",
             "general_horde": "Gengis Khan",
         },
     },
@@ -149,7 +151,7 @@ UNITS = {
             "numbers": ["infantry", 8],
         }],
         "great_people_names": {
-            "engineer": "Hannibal Lecter",
+            "engineer": "Hannibal Barca",
             "general_horde": "Attila the Hun",
         },
     },
@@ -166,8 +168,9 @@ UNITS = {
         "prereq": "Iron Working",
         "abilities": [],
         "great_people_names": {
+            "engineer": "Julius Caesar",
             "general_advanced": "Castor and Pollux",
-            "general_normal": "Julius Caesar",
+            "general_normal": "Scipio Africanus",
             "general_horde": "Montezuma",
         },
     },
@@ -227,6 +230,7 @@ UNITS = {
             "numbers": ["ranged", 8],
         }],
         "great_people_names": {
+            "engineer": "Charlemagne",
             "general_advanced": "Roland and Oliver",
             "general_normal": "William of Orange",
             "general_horde": "King Arthur",
@@ -247,6 +251,9 @@ UNITS = {
             "name": "BonusNextTo",
             "numbers": ["infantry", 6],
         }],
+        "great_people_names": {
+            "general_advanced": "Richard the Lionheart",
+        },
     },
     "Musketman": {
         "name": "Musketman",
@@ -282,6 +289,7 @@ UNITS = {
         }],
         "great_people_names": {
             "general_normal": "Napolean Bonaparte",
+            "general_advanced": "Mehmet II",
         },
     },
     "Militia": {
@@ -297,6 +305,9 @@ UNITS = {
         "prereq": "Chivalry",
         "abilities": [],
         "great_people_names": {
+            "general_advanced": "Odo of France",
+            "general_normal": "William Wallace",
+            "general_horde": "El Cid",
         },
     },
     "Cavalry": {
@@ -315,6 +326,7 @@ UNITS = {
             "numbers": ["siege", 15],
         }],
         "great_people_names": {
+            "engineer": "Gustavus Adolphus",
             "general_advanced": "Sitting Bull",
         },
     },
