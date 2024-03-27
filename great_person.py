@@ -88,7 +88,7 @@ class GreatEngineer(GreatPerson):
     def __init__(self, name, unit_template: UnitTemplate, extra_wood: float):
         self.unit_template: UnitTemplate = unit_template
         self.extra_wood: float = extra_wood
-        super().__init__(name, hover_entity_type="unit", hover_entity_name=unit_template.building_name)
+        super().__init__(name, hover_entity_type="unit", hover_entity_name=unit_template.name)
 
     def description(self) -> str:
         desc: str = f"Immediately build a free {self.unit_template.building_name}"
@@ -118,22 +118,50 @@ def _target_value_by_age(age: int) -> int:
         10: 1600,
     }[age]
 
+merchant_names = {
+    "metal": ["Beowulf", "[ANCIENT METAL MERCHANT]", "Colaeus", "Ned Stark", "[RENAISSANCE METAL MERCHANT]", "Benjamin Franklin", "Otto von Bismark", "[MODERN METAL MERCHANT]", "[INFORMATION METAL MERCHANT]", "[FUTURE METAL MERCHANT]"],
+    "wood": ["Gilgamesh", "[ANCIENT WOOD MERCHANT]", "Marcus Licinius Crassus", "Irene of Athens", "Leonardo da Vinci", "[INDUSTRIAL WOOD MERCHANT]", "Henry Ford", "[MODERN WOOD MERCHANT]", "Steve Jobs", "[FUTURE WOOD MERCHANT]"],
+    "food": ["Moses", "[ANCIENT FOOD MERCHANT]", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "[INDUSTRIAL FOOD MERCHANT]", "[PREMODERN FOOD MERCHANT]", "[MODERN FOOD MERCHANT]", "[INFORMATION FOOD MERCHANT]", "[FUTURE FOOD MERCHANT]"],
+    "science": ["Prometheus", "Confucius", "Archimedes", "Copernicus", "Francis Bacon", "Charles Darwin", "Albert Einstein", "John von Neumann", "[INFORMATION SCIENCE MERCHANT]", "[FUTURE SCIENCE MERCHANT]"],
+}
+# Ibn Fadlan, 
 for resource in ["metal", "wood", "food", "science"]:
     for age in range(10):
-        _great_people_by_age[age].append(GreatMerchant(f"A{age} Merchant: {resource}", _target_value_by_age(age), resource))
+        _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], _target_value_by_age(age), resource))
 
 for tech in TECHS.values():
     t = TechTemplate.from_json(tech)
     level = t.advancement_level
-    _great_people_by_age[level - 1].append(GreatScientist(f"A{level - 1} Scientist: {t.name}", t))
+    scientist_name = tech.get("great_scientist_name", f"[A{level - 1} Scientist: {t.name}]")
+    _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t))
     for unit in t.unlocks_units:
         u = UnitTemplate.from_json(UNITS[unit])
-        _great_people_by_age[level - 1].append(GreatGeneral(f"A{level - 1} General: {unit}", u, int(0.4 * _target_value_by_age(level - 1) / u.metal_cost)))
-        _great_people_by_age[level].append(GreatGeneral(f"A{level} General: {unit}", u, int(0.7 * _target_value_by_age(level) / u.metal_cost)))
-        _great_people_by_age[level + 1].append(GreatGeneral(f"A{level + 1} General: {unit}", u, int(1.0 * _target_value_by_age(level + 1) / u.metal_cost)))
+        great_people_names: dict[str, str] = UNITS[unit].get('great_people_names', {})
+        advanced_general_name: str = great_people_names.get("general_advanced", f"[A{level - 1} General: {unit}]")
+        _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, u, int(0.4 * _target_value_by_age(level - 1) / u.metal_cost)))
+        normal_general_name: str = great_people_names.get("general_normal", f"[A{level} General: {unit}]")
+        _great_people_by_age[level].append(GreatGeneral(normal_general_name, u, int(0.7 * _target_value_by_age(level) / u.metal_cost)))
+        horde_general_name: str = great_people_names.get("general_horde", f"[A{level + 1} General: {unit}]")
+        _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, u, int(1.0 * _target_value_by_age(level + 1) / u.metal_cost)))
 
-        _great_people_by_age[level - 1].append(GreatEngineer(f"A{level - 1} Engineer: {unit}", u, max(0, 0.5 * _target_value_by_age(level - 1) - u.wood_cost)))
+        engineer_name = great_people_names.get("engineer", f"[A{level - 1} Engineer: {u.building_name}]")
+        _great_people_by_age[level - 1].append(GreatEngineer(engineer_name, u, max(0, 0.5 * _target_value_by_age(level - 1) - u.wood_cost)))
 
+unique_names = set()
+duplicate_names = set()
+
+for age, great_people in _great_people_by_age.items():
+    for great_person in great_people:
+        if great_person.name in unique_names:
+            duplicate_names.add(great_person.name)
+        unique_names.add(great_person.name)
+
+if duplicate_names:
+    raise ValueError(f"Duplicate great person names found: {duplicate_names}")
+
+print(unique_names)
+num_placeholder = len([name for name in unique_names if name.startswith("[")])
+print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} great people")
 
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 
