@@ -2674,7 +2674,6 @@ export default function GamePage() {
     
         const friendly = isFriendlyCity(city);
         const puppet = city.territory_parent_coords;
-        console.log(city.name, puppet)
     
         // Function to darken color
         const darkenColor = (color) => {
@@ -3081,7 +3080,7 @@ export default function GamePage() {
                         })}
                         {hexagons.map((hex, i) => {
                             if (hex.city && hex.city.territory_parent_coords) {
-                                return <PuppetArrow city={hex.city}/>
+                                return <PuppetArrow key={i} city={hex.city}/>
                             }
                         })}
                         {hexagons.map((hex, i) => {
@@ -3177,6 +3176,7 @@ export default function GamePage() {
                         gameState={gameState}
                         myTerritoryCapitals={myTerritoryCapitals}
                         myCivTemplate={templates.CIVS[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
+                        myCiv={myCiv}
                         declinePreviewMode={!myCiv || selectedCity.civ_id != myCivId}
                         puppet={selectedCity.territory_parent_coords}
                         playerNum={playerNum}

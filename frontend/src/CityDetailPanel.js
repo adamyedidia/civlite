@@ -28,7 +28,7 @@ const PuppetIncomeTooltip = ({projectedIncomePuppets, projectedIncomePuppetsTota
     return (<>
         <b>{projectedIncomePuppetsTotal.toFixed(2)} {title} from puppets:</b>
         <table><tbody>
-            {Object.entries(projectedIncomePuppets).map(([puppetId, income]) => <tr><td>+{income.toFixed(2)}</td><td>{puppetId}</td></tr>)}
+            {Object.entries(projectedIncomePuppets).map(([puppetId, income]) => <tr key={puppetId}><td>+{income.toFixed(2)}</td><td>{puppetId}</td></tr>)}
         </tbody></table>
     </>);
 }

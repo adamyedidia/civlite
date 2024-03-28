@@ -121,7 +121,7 @@ class City:
             self.make_territory_capital(game_state)
         else:
             # Pick the closest one to be my parent.
-            choice: City = min(choices, key=lambda c: (self.hex.sensitive_distance_to(c.hex), -c.capital, -c.population, c.id))  # type: ignore
+            choice: City = min(choices, key=lambda c: (self.hex.distance_to(c.hex), -c.capital, -c.population, c.id))  # type: ignore
             self._remove_income_from_parent(game_state)
             self._territory_parent_id = choice.id
             self._territory_parent_coords = choice.hex.coords  # type: ignore

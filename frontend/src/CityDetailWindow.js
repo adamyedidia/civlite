@@ -63,11 +63,13 @@ const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
     return 9999
 }
 
-const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory}) => {
+const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
     const [otherCitySelected, setOtherCitySelected] = useState(0);
 
     const MAX_TERRITORIES_PER_CIV = 5;
     const roomForNewTerritory = myTerritoryCapitals.length < MAX_TERRITORIES_PER_CIV;
+
+    const enoughCityPower = myCiv.city_power >= 100;
 
     const submitClickIfValid = () => {
         if (roomForNewTerritory) {
@@ -77,28 +79,37 @@ const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory}) => {
         else if (otherCitySelected !== 0) {
             handleMakeTerritory(otherCitySelected);
         } else {
-            document.querySelector('.make-territory-area select').classList.add('flash-select');
+            document.querySelector('.make-territory-select').classList.add('flash-select');
             setTimeout(() => {
-                document.querySelector('.make-territory-area select').classList.remove('flash-select');
+                document.querySelector('.make-territory-select').classList.remove('flash-select');
             }, 1000);
         }
     }
 
     return <div className='make-territory-area'>
+        <WithTooltip tooltip={enoughCityPower ? "Make this city a territory instead of a puppet." : "Not enough City Power."}>
         <Button
             variant="contained"
             style = {{
-                width: '40%',
+                width: '180px',
                 margin: '10px',
+                padding: '20px 50px',
             }}
             onClick={submitClickIfValid}
+            disabled={!enoughCityPower}
         >
             Make Territory
+            <TextOnIcon image={cityImg} style={{marginLeft: '10px', minWidth: '50px', height: '50px', color: 'black'}} offset={20}>
+                -100
+            </TextOnIcon>
         </Button>
+        </WithTooltip>
         {!roomForNewTerritory && <Select
             value={otherCitySelected}
             onChange={(e) => setOtherCitySelected(e.target.value)}
             variant="standard"
+            className="make-territory-select"
+            disabled={!enoughCityPower}
         >
             <MenuItem value={0}>Instead of ... </MenuItem>
             {myTerritoryCapitals.map(city => <MenuItem key={city.id} value={city.id}>{city.name}</MenuItem>)}
@@ -106,7 +117,7 @@ const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory}) => {
     </div>
 }
 
-const CityDetailWindow = ({ gameState, myCivTemplate, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
+const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
     selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
     selectedCityUnitChoices, selectedCity,
     unitTemplatesByBuildingName, templates, descriptions,
@@ -224,7 +235,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myTerritoryCapitals, decli
             <div className="city-detail-columns">
             <div className="city-detail-column">
                 {puppet && 
-                    <MakeTerritory myTerritoryCapitals={myTerritoryCapitals} handleMakeTerritory={handleMakeTerritory}/>                    
+                    <MakeTerritory myCiv={myCiv} myTerritoryCapitals={myTerritoryCapitals} handleMakeTerritory={handleMakeTerritory}/>                    
                 }
                 <CityDetailPanel title="wood" icon={woodImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCityBuildingChoices && canBuild && (<>

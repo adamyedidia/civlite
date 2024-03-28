@@ -493,19 +493,22 @@ class GameState:
                 city_id: str = move['city_id']
                 city: City = self.cities_by_id[city_id]
                 previous_parent: City | None = city.get_territory_parent(self)
-                city.make_territory_capital(self)
+                civ = city.civ
+                if civ.city_power > 100:
+                    civ.city_power -= 100
+                    city.make_territory_capital(self)
 
-                instead_of_city_id: str = move['other_city_id']
-                print(f"{instead_of_city_id=}")
-                if instead_of_city_id is not None:
-                    instead_of_city: City = self.cities_by_id[instead_of_city_id]
-                    print("setting parent")
-                    instead_of_city.set_territory_parent_if_needed(self)
-                    print("orphaning children")
-                    instead_of_city.orphan_territory_children(self, make_new_territory=False)
-                    print(f"{instead_of_city._territory_parent_id=}")
-                if previous_parent is not None and previous_parent.id != instead_of_city_id:
-                    previous_parent.orphan_territory_children(self, make_new_territory=False)
+                    instead_of_city_id: str = move['other_city_id']
+                    print(f"{instead_of_city_id=}")
+                    if instead_of_city_id is not None:
+                        instead_of_city: City = self.cities_by_id[instead_of_city_id]
+                        print("setting parent")
+                        instead_of_city.set_territory_parent_if_needed(self)
+                        print("orphaning children")
+                        instead_of_city.orphan_territory_children(self, make_new_territory=False)
+                        print(f"{instead_of_city._territory_parent_id=}")
+                    if previous_parent is not None and previous_parent.id != instead_of_city_id:
+                        previous_parent.orphan_territory_children(self, make_new_territory=False)
 
                 game_player_to_return = game_player
                 self.midturn_update()

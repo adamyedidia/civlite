@@ -434,9 +434,16 @@
     display: flex;
     align-items: center;
     justify-content: start;
+    width: 304px;
 }
 
-.make-territory-area select.flash-select {
-  animation: flashAnimation 1s infinite;
+.make-territory-select.flash-select {
+  animation: flashAnimation 0.25s infinite;
 }
+
+@keyframes flashAnimation {
+  0%, 100% { background-color: #ffffff; }
+  50% { background-color: #ff0000; }
+}
+
 
