@@ -33,6 +33,7 @@ TECHS = {
         'name': 'The Wheel',
         'cost': 35,
         'unlocks_units': ['Chariot'],
+        'unlocks_buildings': ['Roads'],
         'advancement_level': 1,
     },
     'Mining': {
@@ -70,7 +71,7 @@ TECHS = {
         'name': 'Mathematics',
         'cost': 50,
         'unlocks_units': ['Catapult'],
-        'unlocks_buildings': ['Workshop'],
+        'unlocks_buildings': ['Workshop', 'Magisterium'],
         'advancement_level': 2,
     },
     'Horseback Riding': {
@@ -213,7 +214,7 @@ TECHS = {
         'name': 'Dynamite',
         'cost': 170,
         'unlocks_units': ['Artillery'],
-        'unlocks_buildings': [],
+        'unlocks_buildings': ['Railroads'],
         'advancement_level': 6,
     },
     'Radio': {

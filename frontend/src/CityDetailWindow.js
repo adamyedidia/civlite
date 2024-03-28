@@ -66,8 +66,7 @@ const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
 const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
     const [otherCitySelected, setOtherCitySelected] = useState(0);
 
-    const MAX_TERRITORIES_PER_CIV = 5;
-    const roomForNewTerritory = myTerritoryCapitals.length < MAX_TERRITORIES_PER_CIV;
+    const roomForNewTerritory = myTerritoryCapitals.length < myCiv.max_territories;
 
     const enoughCityPower = myCiv.city_power >= 100;
 

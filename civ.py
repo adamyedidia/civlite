@@ -49,6 +49,7 @@ class Civ:
         self.in_decline = False
         self.initial_advancement_level = 0
         self.trade_hub_id: Optional[str] = None
+        self.max_territories: int = 3
 
     def __eq__(self, other: 'Civ') -> bool:
         # TODO(dfarhi) clean up all remaining instances of (civ1.id == civ2.id)
@@ -149,6 +150,12 @@ class Civ:
             return 0
         return max(my_techs)
 
+    def update_max_territories(self, game_state: 'GameState'):
+        base: int = 2 + self.get_advancement_level() // 2
+        my_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self]
+        bonuses: int = sum([bldg.has_ability('ExtraTerritory') for city in my_cities for bldg in city.buildings])
+        self.max_territories = base + bonuses
+
     def to_json(self) -> dict:
         return {
             "id": self.id,
@@ -172,6 +179,7 @@ class Civ:
             "initial_advancement_level": self.initial_advancement_level,
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
+            "max_territories": self.max_territories,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -347,6 +355,7 @@ class Civ:
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
+        self.update_max_territories(game_state)
 
         if self.researching_tech_name:
             researching_tech = TechTemplate.from_json(TECHS[self.researching_tech_name])
@@ -390,6 +399,7 @@ class Civ:
         civ.in_decline = json["in_decline"]
         civ.initial_advancement_level = json.get("initial_advancement_level", 0)
         civ.trade_hub_id = json.get("trade_hub_id")
+        civ.max_territories = json.get("max_territories", 3)
 
         return civ
 

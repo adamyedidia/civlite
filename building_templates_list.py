@@ -25,6 +25,16 @@ BUILDINGS: dict[str, dict] = {
         }],
         "prereq": "Pottery",
     },
+    "Roads": {
+        "name": "Roads",
+        "type": "economy",
+        "cost": 10,
+        "abilities": [{
+            "name": "ReducePuppetDistancePenalty",
+            "numbers": [0.05],
+        }],
+        "prereq": "The Wheel",
+    },
     "Library": {
         "name": "Library",
         "type": "science",
@@ -102,6 +112,17 @@ BUILDINGS: dict[str, dict] = {
         }],
         "prereq": "Mathematics",
     },
+    "Magisterium": {
+        "name": "Magisterium",
+        "type": "economy",
+        "cost": 20,
+        "abilities": [{
+            "name": "ExtraTerritory",
+            "numbers": [],
+        }],
+        "is_national_wonder": True,
+        "prereq": "Mathematics",
+    },
     "University": {
         "name": "University",
         "type": "science",
@@ -161,7 +182,16 @@ BUILDINGS: dict[str, dict] = {
         "abilities": [],
         "vp_reward": 1,
     },
-
+    "Railroads": {
+        "name": "Railroads",
+        "type": "economy",
+        "cost": 30,
+        "abilities": [{
+            "name": "ReducePuppetDistancePenalty",
+            "numbers": [0.02],
+        }],
+        "prereq": "Dynamite",
+    },
     "Windmill": {
         "name": "Windmill",
         "type": "economy",
@@ -425,6 +455,9 @@ BUILDINGS: dict[str, dict] = {
         "abilities": [{
             "name": "GainCityPower",
             "numbers": [200],
+        }, {
+            "name": "ExtraTerritory",
+            "numbers": [],
         }],
         "is_wonder": True,
         "vp_reward": 5,

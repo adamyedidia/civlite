@@ -6,7 +6,7 @@ from building_templates_list import BUILDINGS
 from tech_templates_list import TECHS
 from civ_template import CivTemplate
 from civ import Civ
-from settings import MAX_TERRITORIES_PER_CIV, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
+from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
 from unit_templates_list import PRODUCTION_BUILDINGS_BY_UNIT_NAME, UNITS, UNITS_BY_BUILDING_NAME
@@ -116,7 +116,7 @@ class City:
         choices: list[City] = [city for city in my_territories if city not in excluded_cities]
         print(f"{my_territories=}")
         print(f"{choices=}")
-        if len(my_territories) < MAX_TERRITORIES_PER_CIV:
+        if len(my_territories) < self.civ.max_territories:
             # Room for another territory capital.
             self.make_territory_capital(game_state)
         else:
@@ -152,6 +152,10 @@ class City:
     def is_trade_hub(self):
         return self.civ.trade_hub_id == self.id
 
+    def puppet_distance_penalty(self) -> float:
+        bldg_factors: list[float] = [bldg.numbers_of_ability('ReducePuppetDistancePenalty')[0] for bldg in self.buildings if bldg.has_ability('ReducePuppetDistancePenalty')]
+        return min([.1] + bldg_factors)
+
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
             self.projected_income = resourcedict()
@@ -178,8 +182,12 @@ class City:
         # If I'm a puppet, give my yields to my parent.
         parent: City | None = self.get_territory_parent(game_state)
         if parent:
-            parent.projected_income_puppets['wood'][self.name] = self.projected_income['wood']
-            parent.projected_income_puppets['metal'][self.name] = self.projected_income['metal']
+            assert self.hex is not None
+            assert parent.hex is not None
+            distance: int = self.hex.distance_to(parent.hex)
+            distance_penalty: float = parent.puppet_distance_penalty() * distance
+            parent.projected_income_puppets['wood'][self.name] = self.projected_income['wood'] * (1 - distance_penalty)
+            parent.projected_income_puppets['metal'][self.name] = self.projected_income['metal'] * (1 - distance_penalty)
             parent.adjust_projected_yields(game_state)
         else:
             for key, puppets_dict in self.projected_income_puppets.items():
