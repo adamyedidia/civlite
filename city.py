@@ -136,7 +136,11 @@ class City:
     def get_territory_parent(self, game_state: 'GameState') -> Optional['City']:
         if self._territory_parent_id is None:
             return None
-        return game_state.cities_by_id[self._territory_parent_id]
+        elif self._territory_parent_id in game_state.cities_by_id:
+            return game_state.cities_by_id[self._territory_parent_id]
+        else:
+            # This can happen if the parent isn't visible to the viewing civ.
+            return None
 
     def midturn_update(self, game_state: 'GameState') -> None:
         """
