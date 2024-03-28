@@ -114,8 +114,6 @@ class City:
     def set_territory_parent_if_needed(self, game_state: 'GameState', excluded_cities: list['City'] = []) -> None:
         my_territories: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self.civ and city.is_territory_capital and city != self]
         choices: list[City] = [city for city in my_territories if city not in excluded_cities]
-        print(f"{my_territories=}")
-        print(f"{choices=}")
         if len(my_territories) < self.civ.max_territories:
             # Room for another territory capital.
             self.make_territory_capital(game_state)
