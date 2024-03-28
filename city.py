@@ -237,8 +237,9 @@ class City:
         if not fake:
             self.harvest_yields(game_state)
             self.grow(game_state)
-            self.build_units(sess, game_state)
-            self.build_buildings(sess, game_state)
+            if self.is_territory_capital:
+                self.build_units(sess, game_state)
+                self.build_buildings(sess, game_state)
             self.handle_siege(sess, game_state)
         
         self.handle_unhappiness(game_state)

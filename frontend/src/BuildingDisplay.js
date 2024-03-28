@@ -12,7 +12,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, hideCost, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
+export const BriefBuildingDisplay = ({ buildingName, hideCost, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
     const building = unitTemplatesByBuildingName?.[buildingName] || templates.BUILDINGS[buildingName];
 
     const description = descriptions?.[buildingName];
@@ -25,7 +25,7 @@ export const BriefBuildingDisplay = ({ buildingName, hideCost, style, templates,
 
     return (
         <div 
-            className={`brief-building-card ${building?.is_wonder ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : unitTemplatesByBuildingName?.[buildingName] ? 'military' : 'economic'} ${disabledMsg && 'disabled'}`} 
+            className={`brief-building-card ${building?.is_wonder ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : unitTemplatesByBuildingName?.[buildingName] ? 'military' : 'economic'} ${disabledMsg && 'disabled'} ${clickable ? 'clickable' : ''}`} 
             onClick={onClick}
             onMouseEnter={() => setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => setHoveredBuilding(null)} // clear on mouse leave

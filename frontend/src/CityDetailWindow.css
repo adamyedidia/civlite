@@ -207,11 +207,14 @@
 }
 
 .unit-choice {
-  cursor: pointer; /* Change cursor to indicate clickable */
   border-radius: 10px;
 }
 
-.unit-choice:hover {
+.unit-choice.enabled {
+  cursor: pointer; /* Change cursor to indicate clickable */
+}
+
+.unit-choice.enabled:hover {
   background-color: #ffffff; /* Light grey background on hover */
   transform: scale(1.05); /* Slightly increase size to indicate selection */
   box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */

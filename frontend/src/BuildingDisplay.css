@@ -17,7 +17,6 @@
     padding: 5px;
     margin: 5px;
     border-radius: 5px;
-    cursor: pointer;
     max-width: 20vw; /* Adjust as needed */
     display: flex; /* Display content in a line */
     justify-content: space-between; /* Distribute space evenly between the elements */
@@ -30,7 +29,11 @@
     text-decoration: line-through;
 }
 
-.brief-building-card:hover {
+.brief-building-card.clickable {
+    cursor: pointer;
+}
+
+.brief-building-card.clickable:hover {
     border: 2px solid black; /* Thicker black border on hover */
 }
 

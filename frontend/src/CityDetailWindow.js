@@ -22,10 +22,11 @@ import { TextOnIcon } from './TextOnIcon.js';
 import ProgressBar from './ProgressBar.js';
 import { WithTooltip } from './WithTooltip.js';
 
-const UnitQueueOption = ({unitName, isCurrentIQUnit, templates, setHoveredUnit, handleSetInfiniteQueue}) => {
-    return <WithTooltip tooltip="&#x1F5B1; Toggle infinite queue.">
-    <div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''}`}
+const UnitQueueOption = ({unitName, isCurrentIQUnit, canBuild, templates, setHoveredUnit, handleSetInfiniteQueue}) => {
+    return <WithTooltip tooltip={canBuild ? "&#x1F5B1; Toggle infinite queue." : "Cannot build units here."}>
+    <div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''} ${canBuild ? 'enabled' : 'disabled'}`}
         onClick={(event) => {
+            if (!canBuild) return;
             // click to toggle infinite queue
             if (isCurrentIQUnit) {
                 handleSetInfiniteQueue("")
@@ -60,13 +61,14 @@ const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
     return 9999
 }
 
-const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
+const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
     selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
     selectedCityUnitChoices, selectedCity,
     unitTemplatesByBuildingName, templates, descriptions,
     setHoveredUnit, setHoveredBuilding, setSelectedCity
      }) => {
 
+    const canBuild = !declinePreviewMode && !puppet;
     const [isBuildingListExpanded, setIsBuildingListExpanded] = useState(declinePreviewMode);
 
 
@@ -99,19 +101,19 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
     }
 
     const handleClickBuildingChoice = (buildingName) => {
-        if (declinePreviewMode) return;
+        if (!canBuild) return;
         setHoveredBuilding(null);
         submitPlayerInput('choose_building', {'building_name': (buildingName),});
     }
 
     const handleCancelBuilding = (buildingName) => {
-        if (declinePreviewMode) return;
+        if (!canBuild) return;
         setHoveredBuilding(null);
         submitPlayerInput('cancel_building', {'building_name': (buildingName),});
     }
 
     const handleSetInfiniteQueue = (unitName) => {
-        if (declinePreviewMode) return;
+        if (!canBuild) return;
         submitPlayerInput('select_infinite_queue', {'unit_name': (unitName),});
     }
 
@@ -171,37 +173,41 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
             <div className="city-detail-columns">
             <div className="city-detail-column">
                 <CityDetailPanel title="wood" icon={woodImg} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
-                    {selectedCityBuildingChoices && !declinePreviewMode && (<>
+                    {selectedCityBuildingChoices && canBuild && (<>
                         <div className="building-choices-container">
                             <BriefBuildingDisplayTitle title="Building Choices" />
                             {selectedCityBuildingChoices.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
+                                <BriefBuildingDisplay key={index} buildingName={buildingName} clickable={true}unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
                             ))}
                         </div>
                         <div className="building-choices-placeholder"/>
                     </>)}
-                    {selectedCityBuildingQueue && !declinePreviewMode &&  (
+                    {selectedCityBuildingQueue && canBuild &&  (
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCityBuildingQueue.map((buildingName, index) => (
                                 <div key={index} className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                    <BriefBuildingDisplay buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
+                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
                                 </div>
                             ))}
                         </div>
                     )}               
                     {selectedCityBuildings && (
                         <div>
-                            <button 
+                            {canBuild ? <button 
                                 className="collapse-expand-button" 
                                 onClick={() => setIsBuildingListExpanded(!isBuildingListExpanded)} 
                             >
                                 <BriefBuildingDisplayTitle title={`${isBuildingListExpanded ? '▼' : '▶'} Existing buildings`} />
-                            </button>
-                            {isBuildingListExpanded && (
+                            </button> 
+                            : 
+                                <BriefBuildingDisplayTitle title="Existing buildings" />
+                            }
+
+                            {(isBuildingListExpanded || !canBuild) && (
                                 <div className="existing-buildings-container">
                                     {selectedCityBuildings.map((buildingName, index) => (
-                                        <BriefBuildingDisplay key={index} buildingName={buildingName} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
+                                        <BriefBuildingDisplay key={index} buildingName={buildingName} clickable={false} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
                                     ))}
                                 </div>
                             )}
@@ -290,11 +296,13 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, player
                     {selectedCityUnitChoices && (
                         <div className="unit-choices-container">
                             {selectedCityUnitChoices.map((unitName, index) => (
-                                <UnitQueueOption key={index} unitName={unitName} isCurrentIQUnit={!declinePreviewMode && selectedCity.infinite_queue_unit === unitName} templates={templates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue}/>
+                                <UnitQueueOption key={index} unitName={unitName} canBuild={canBuild}
+                                    isCurrentIQUnit={canBuild && selectedCity.infinite_queue_unit === unitName} 
+                                    templates={templates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue}/>
                             ))}
                         </div>
                     )}
-                    {!declinePreviewMode && <div>
+                    {canBuild && <div>
                         <h2> Producing This Turn </h2>
                         <div className="unit-queue-container">
                             {Array.from({ length: unitQueueNumber }).map((_, index) => (

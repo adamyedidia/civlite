@@ -3177,6 +3177,7 @@ export default function GamePage() {
                         gameState={gameState}
                         myCivTemplate={templates.CIVS[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
                         declinePreviewMode={!myCiv || selectedCity.civ_id != myCivId}
+                        puppet={selectedCity.territory_parent_coords}
                         playerNum={playerNum}
                         playerApiUrl={playerApiUrl}
                         setGameState={setGameState}
