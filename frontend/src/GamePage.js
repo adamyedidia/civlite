@@ -2511,7 +2511,6 @@ export default function GamePage() {
         const svgElement = document.querySelector('svg.grid');
 
         if (!destRef || !myRef || !svgElement) {return;}
-        console.log(svgElement)
     
         /////////////////////////////////
         // Some GPT4 magic I don't understand

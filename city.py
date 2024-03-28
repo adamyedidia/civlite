@@ -27,7 +27,7 @@ def resourcedict() -> Dict[str, float]:
         "wood": 0.0,
         "metal": 0.0,
         "science": 0.0,
-        "city_power": 0.0,
+        "city-power": 0.0,
         "unhappiness": 0.0,
     }
 
@@ -46,6 +46,7 @@ class City:
         self.food = 0.0
         self.metal = 0.0
         self.wood = 0.0
+        self.food_demand = 0
         self.focus: str = 'food'
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
@@ -61,6 +62,7 @@ class City:
         self.projected_income = resourcedict()
         self.projected_income_base = resourcedict()  # income without focus
         self.projected_income_focus = resourcedict()  # income from focus
+        self.projected_income_puppets: dict[str, dict[str, float]] = {'wood': {}, 'metal': {}}
         self.terrains_dict = {}
 
         # Revolt stuff
@@ -89,12 +91,20 @@ class City:
         if len(children) == 0:
             return
         new_territory_capital: City = max(children, key=lambda c: (c.population, c.id))
-        new_territory_capital.make_territory_capital()
+        new_territory_capital.make_territory_capital(game_state)
         for child in children:
             if child != new_territory_capital:
                 child.set_territory_parent_if_needed(game_state, [new_territory_capital])
 
-    def make_territory_capital(self) -> None:
+    def _remove_income_from_parent(self, game_state: 'GameState') -> None:
+        parent: City | None = self.get_territory_parent(game_state)
+        if parent:
+            for resource, data in parent.projected_income_puppets.items():
+                if self.name in data:
+                    del data[self.name]
+
+    def make_territory_capital(self, game_state: 'GameState') -> None:
+        self._remove_income_from_parent(game_state)
         self._territory_parent_id = None
         self._territory_parent_coords = None
 
@@ -103,16 +113,20 @@ class City:
         MAX_TERRITORIES_PER_CIV = 2  # TODO move to settings.py
         if len(choices) < MAX_TERRITORIES_PER_CIV:
             # Room for another territory capital.
-            self.make_territory_capital()
+            self.make_territory_capital(game_state)
         else:
             # Pick the closest one to be my parent.
-            choice: City = min(choices, key=lambda c: (self.hex.sensitive_distance_to(c.hex), -c.capital, -c.population, c.id))
+            choice: City = min(choices, key=lambda c: (self.hex.sensitive_distance_to(c.hex), -c.capital, -c.population, c.id))  # type: ignore
+            self._remove_income_from_parent(game_state)
             self._territory_parent_id = choice.id
-            self._territory_parent_coords = choice.hex.coords
+            self._territory_parent_coords = choice.hex.coords  # type: ignore
 
     @property
     def is_territory_capital(self) -> bool:
         return self._territory_parent_id is None
+    
+    def get_puppets(self, game_state: 'GameState') -> list['City']:
+        return [city for city in game_state.cities_by_id.values() if city.get_territory_parent(game_state) == self]
 
     def get_territory_parent(self, game_state: 'GameState') -> Optional['City']:
         if self._territory_parent_id is None:
@@ -136,6 +150,7 @@ class City:
             self.projected_income_focus = resourcedict()
         self.projected_income_base = self._get_projected_yields_without_focus(game_state)
         self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
+        self.food_demand: int = self._calculate_food_demand(game_state)
 
         self.projected_income = self.projected_income_base.copy()
         self.projected_income[self.focus] += self.projected_income_focus[self.focus]
@@ -150,6 +165,16 @@ class City:
                 2 * (self.unhappiness + self.projected_income['unhappiness']))
             self.projected_income["unhappiness"] -= 0.5 * city_power_to_consume
             self.projected_income['city-power'] -= city_power_to_consume
+
+        # If I'm a puppet, give my yields to my parent.
+        parent: City | None = self.get_territory_parent(game_state)
+        if parent:
+            parent.projected_income_puppets['wood'][self.name] = self.projected_income['wood']
+            parent.projected_income_puppets['metal'][self.name] = self.projected_income['metal']
+            parent.adjust_projected_yields(game_state)
+        else:
+            for key, puppets_dict in self.projected_income_puppets.items():
+                self.projected_income[key] += sum(puppet_income for puppet_income in puppets_dict.values())
 
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
@@ -203,12 +228,14 @@ class City:
 
     def harvest_yields(self, game_state: 'GameState') -> None:
         self.adjust_projected_yields(game_state)  # TODO(dfarhi) this probably shouldn't be neessary since it should be called whenever teh state changes?
-        self.wood += self.projected_income["wood"]
-        self.metal += self.projected_income["metal"]
         self.food += self.projected_income["food"]
         self.civ.science += self.projected_income["science"]
         self.civ.city_power += self.projected_income["food"]
         self.unhappiness += self.projected_income['unhappiness']
+
+        if self.is_territory_capital:
+            self.wood += self.projected_income["wood"]
+            self.metal += self.projected_income["metal"]
 
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
@@ -246,12 +273,17 @@ class City:
         self.handle_cleanup()
         self.midturn_update(game_state)
 
-    @property
-    def food_demand(self) -> int:
+    def _calculate_food_demand(self, game_state: 'GameState') -> int:
         if self.capital:
             result = int(0.5 * self.population)
         else:
             result = 2 * self.population
+
+        if self.is_territory_capital:
+            result -= 2 * len(self.get_puppets(game_state))
+        else:
+            result += 2
+
         for building in self.buildings:
             for ability in building.template.abilities:
                 if ability.name == 'DecreaseFoodDemand':
@@ -723,7 +755,7 @@ class City:
         civ = self.civ
         self.ever_controlled_by_civ_ids[self.civ.id] = True
         self.capital = True
-        self.make_territory_capital()
+        self.make_territory_capital(game_state)
     
         self.buildings_queue = []
 
@@ -909,6 +941,7 @@ class City:
             "projected_income": self.projected_income,
             "projected_income_base": self.projected_income_base,
             "projected_income_focus": self.projected_income_focus,
+            "projected_income_puppets": self.projected_income_puppets,
             "growth_cost": self.growth_cost(),
             "terrains_dict": self.terrains_dict,
 
