@@ -55,6 +55,8 @@ class City:
         self.available_buildings: list[str] = []
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, int]]] = {}
         self.capital = False
+        self._territory_parent_id: Optional[str] = None
+        self._territory_parent_coords: Optional[str] = None
         self.available_units: list[str] = []
         self.projected_income = resourcedict()
         self.projected_income_base = resourcedict()  # income without focus
@@ -78,6 +80,44 @@ class City:
 
     def building_is_in_queue(self, building_name: str) -> bool:
         return any([(building.building_name if hasattr(building, 'building_name') else building.name) == building_name for building in self.buildings_queue])  # type: ignore
+
+    def orphan_territory_children(self, game_state: 'GameState'):
+        """
+        Call before changing ownership of a city to clear any puppets who have it as parent.
+        """
+        children: list[City] = [city for city in game_state.cities_by_id.values() if city.get_territory_parent(game_state) == self]
+        if len(children) == 0:
+            return
+        new_territory_capital: City = max(children, key=lambda c: (c.population, c.id))
+        new_territory_capital.make_territory_capital()
+        for child in children:
+            if child != new_territory_capital:
+                child.set_territory_parent_if_needed(game_state, [new_territory_capital])
+
+    def make_territory_capital(self) -> None:
+        self._territory_parent_id = None
+        self._territory_parent_coords = None
+
+    def set_territory_parent_if_needed(self, game_state: 'GameState', excluded_cities: list['City'] = []) -> None:
+        choices: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self.civ and city.is_territory_capital and city != self and city not in excluded_cities]
+        MAX_TERRITORIES_PER_CIV = 2  # TODO move to settings.py
+        if len(choices) < MAX_TERRITORIES_PER_CIV:
+            # Room for another territory capital.
+            self.make_territory_capital()
+        else:
+            # Pick the closest one to be my parent.
+            choice: City = min(choices, key=lambda c: (self.hex.sensitive_distance_to(c.hex), -c.capital, -c.population, c.id))
+            self._territory_parent_id = choice.id
+            self._territory_parent_coords = choice.hex.coords
+
+    @property
+    def is_territory_capital(self) -> bool:
+        return self._territory_parent_id is None
+
+    def get_territory_parent(self, game_state: 'GameState') -> Optional['City']:
+        if self._territory_parent_id is None:
+            return None
+        return game_state.cities_by_id[self._territory_parent_id]
 
     def midturn_update(self, game_state: 'GameState') -> None:
         """
@@ -613,8 +653,10 @@ class City:
         self.unhappiness = 0
         self.wood /= 2
         self.metal /= 2
-
+        
+        self.orphan_territory_children(game_state)
         self.civ = civ
+        self.set_territory_parent_if_needed(game_state)
 
         for building in self.buildings:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
@@ -680,6 +722,7 @@ class City:
         civ = self.civ
         self.ever_controlled_by_civ_ids[self.civ.id] = True
         self.capital = True
+        self.make_territory_capital()
     
         self.buildings_queue = []
 
@@ -868,6 +911,9 @@ class City:
             "growth_cost": self.growth_cost(),
             "terrains_dict": self.terrains_dict,
 
+            "territory_parent_id": self._territory_parent_id,
+            "territory_parent_coords": self._territory_parent_coords,
+
             "revolting_starting_vitality": self.revolting_starting_vitality,
             "unhappiness": self.unhappiness,
             "civ_to_revolt_into": self.civ_to_revolt_into.to_json() if self.civ_to_revolt_into else None,
@@ -909,6 +955,8 @@ class City:
         city.unhappiness = json["unhappiness"]
         city.is_decline_view_option = json["is_decline_view_option"]
         city.revolt_unit_count = json["revolt_unit_count"]
+        city._territory_parent_id = json["territory_parent_id"]
+        city._territory_parent_coords = json["territory_parent_coords"]
 
         city.handle_cleanup()
 

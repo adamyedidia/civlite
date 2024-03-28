@@ -2435,35 +2435,44 @@ export default function GamePage() {
         }
     }
 
-    const FlagArrow = ({hex}) => {
-        const unit = hex.units[0]
-        const destCoords = unit.closest_target
-        if (!destCoords) {return;}
-        const fromHexClientRef = hexRefs?.current?.[`${hex.q},${hex.r},${hex.s}`]?.current?.getBoundingClientRect();
-        const toHexClientRef = hexRefs?.current?.[destCoords]?.current?.getBoundingClientRect();
+    const LineOnHexes = ({from, to, jitterAmnt, className, color}) => {
+        const fromHexRef = hexRefs?.current[from].current;
+        const toHexRef = hexRefs?.current[to].current ;
 
-        const dx = toHexClientRef.left - fromHexClientRef.left;
-        const dy = toHexClientRef.top - fromHexClientRef.top;
+        if (!fromHexRef || !toHexRef) {return;}
+        const fromHexClientRect = fromHexRef.getBoundingClientRect();
+        const toHexClientRect = toHexRef.getBoundingClientRect();
+
+        const dx = toHexClientRect.left - fromHexClientRect.left;
+        const dy = toHexClientRect.top - fromHexClientRect.top;
         const angleRads = Math.atan2(dy, dx);
-        const jitterAmnt = 20 * (Math.sin(hex.q * 13 + hex.r * 23 + hex.s * 31));
         const jitteredFrom = {
-            left: fromHexClientRef.left + jitterAmnt * Math.sin(angleRads),
-            top: fromHexClientRef.top - jitterAmnt * Math.cos(angleRads),
+            left: fromHexClientRect.left + jitterAmnt * Math.sin(angleRads),
+            top: fromHexClientRect.top - jitterAmnt * Math.cos(angleRads),
         }
-        const Jittereddx = toHexClientRef.left - jitteredFrom.left;
-        const Jittereddy = toHexClientRef.top - jitteredFrom.top;
+        const Jittereddx = toHexClientRect.left - jitteredFrom.left;
+        const Jittereddy = toHexClientRect.top - jitteredFrom.top;
         const JitteredAngleDegs = Math.atan2(Jittereddy, Jittereddx) * (180 / Math.PI);
 
         const distance = Math.sqrt(Jittereddx * Jittereddx + Jittereddy * Jittereddy);
-        return <div className='flag-arrow' style={{
-            position: 'absolute', // Make sure it's set to absolute
+        return <div className={`map-line ${className}`} style={{
             left: `${jitteredFrom.left + window.scrollX - 2}px`,
             top: `${jitteredFrom.top + window.scrollY - 2}px`,
             width: `${distance}px`, // Set the length of the arrow
             transform: `rotate(${JitteredAngleDegs}deg)`,
             transformOrigin: "0 50%",
+            backgroundColor: color,
         }}>
         </div>
+
+    }
+
+    const FlagArrow = ({hex}) => {
+        const unit = hex.units[0]
+        const destCoords = unit.closest_target
+        if (!destCoords) {return;}
+        const jitterAmnt = 20 * (Math.sin(hex.q * 13 + hex.r * 23 + hex.s * 31));
+        return <LineOnHexes from={`${hex.q},${hex.r},${hex.s}`} to={destCoords} jitterAmnt={jitterAmnt} className='flag-arrow' color='#111c'/>
     }
 
     const FlagArrows = ({hexagons, myCiv, civsById}) => {
@@ -2477,6 +2486,58 @@ export default function GamePage() {
                 })}
             </div>
         );
+    }
+
+    const PuppetArrows = ({hexagons}) => {
+        if (!hexagons) {return;}
+        return (
+            <div className="puppet-arrows-container">
+                {hexagons.map((hex, index) => {
+                    if (!hex.city) {return;}
+                    if (!hex.city.territory_parent_coords) {return;}
+                    const civ = civsById[hex.city.civ_id];
+                    return <LineOnHexes key={index} from={`${hex.q},${hex.r},${hex.s}`} to={hex.city.territory_parent_coords} jitterAmnt={0} color={templates.CIVS[civ.name].secondary_color} className='puppet-arrow'/>
+                })}
+            </div>
+        );
+    }
+
+    const PuppetArrow = ({city}) => {
+        // Note this lives in an svg.
+        const destinationCoords = city.territory_parent_coords;
+        const myCoords = city.hex;
+        const destRef = hexRefs?.current[destinationCoords].current;
+        const myRef = hexRefs?.current[myCoords].current;
+        const svgElement = document.querySelector('svg.grid');
+
+        if (!destRef || !myRef || !svgElement) {return;}
+        console.log(svgElement)
+    
+        /////////////////////////////////
+        // Some GPT4 magic I don't understand
+        function screenToSVG(x, y, svgEl) {
+            let pt = svgEl.createSVGPoint();
+            pt.x = x;
+            pt.y = y;
+            return pt.matrixTransform(svgEl.getScreenCTM().inverse());
+        }
+        // Get the bounding rectangle of the reference in screen coordinates
+        const myRect = myRef.getBoundingClientRect();
+        const destRect = destRef.getBoundingClientRect();
+        // Calculate the center position in screen coordinates
+        const myCenterX = myRect.left + myRect.width / 2;
+        const myCenterY = myRect.top + myRect.height / 2;
+        const destCenterX = destRect.left + destRect.width / 2;
+        const destCenterY = destRect.top + destRect.height / 2;
+        // Convert screen coordinates to SVG coordinates
+        const mySVGPoint = screenToSVG(myCenterX, myCenterY, svgElement);
+        const destSVGPoint = screenToSVG(destCenterX, destCenterY, svgElement);
+        /////////////////////////////////
+
+        const civ = civsById[city.civ_id]
+        const civTemplate = templates.CIVS[civ.name]
+        return <line x1={mySVGPoint.x} y1={mySVGPoint.y} x2={destSVGPoint.x} y2={destSVGPoint.y} 
+            stroke={civTemplate.secondary_color} strokeWidth=".5"/>
     }
 
     // Event handler for keydown event for the flag arrows
@@ -2612,6 +2673,8 @@ export default function GamePage() {
         const secondaryColor = civTemplate?.secondary_color;
     
         const friendly = isFriendlyCity(city);
+        const puppet = city.territory_parent_coords;
+        console.log(city.name, puppet)
     
         // Function to darken color
         const darkenColor = (color) => {
@@ -2653,7 +2716,7 @@ export default function GamePage() {
 
 
         const cityBoxCanvas = {'width': 8, 'height': 4};
-        const cityBoxPanel = {'width': 6, 'height': 2};
+        const cityBoxPanel = {'width': (puppet ? 5 : 6), 'height': 2};
         const cityCircleRadius = 0.75;
 
         const cityBoxPanelBottomY = cityBoxCanvas.height / 2 + cityBoxPanel.height / 2
@@ -2669,7 +2732,7 @@ export default function GamePage() {
                 }
                 <svg width={cityBoxCanvas.width} height={cityBoxCanvas.height} viewBox={`0 0 ${cityBoxCanvas.width} ${cityBoxCanvas.height}`} x={-cityBoxCanvas.width / 2} y={-3.5} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} style={{...(friendly ? {cursor : 'pointer'} : {})}}>
                     {/* Background rectangle */}
-                    <rect width={cityBoxPanel.width} height={cityBoxPanel.height} x={(cityBoxCanvas.width - cityBoxPanel.width) / 2} y={(cityBoxCanvas.width - cityBoxPanel.width) / 2} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.2} />
+                    <rect width={cityBoxPanel.width} height={cityBoxPanel.height} x={(cityBoxCanvas.width - cityBoxPanel.width) / 2} y={(cityBoxCanvas.height - cityBoxPanel.height) / 2} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.2} {...(puppet ? {rx: "1", ry: "1"} : {})}/>
                     {/* Pointer triangle. make the fill and the stroke separately so the fill can cover the border of the main box without the stroke looking dumb */}
                     <path d={`M3.3,${cityBoxPanelBottomY-0.12} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY-0.12}`} style={{opacity: 1.0, fill: finalPrimaryColor, stroke: "none", strokeWidth: 0.2}} />
                     <path d={`M3.3,${cityBoxPanelBottomY} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY}`} style={{strokeOpacity: 1.0, stroke: finalSecondaryColor, strokeWidth: 0.2}} />
@@ -2684,7 +2747,7 @@ export default function GamePage() {
                         {city.population}
                     </text>              
 
-                    {friendly &&
+                    {friendly && puppet === null &&
                         <>
                             {/* Wood */}
                             <circle cx="1.7" cy={cityCirclesY} r={cityCircleRadius} fill={colors.wood} stroke={finalSecondaryColor} strokeWidth="0.1"/>
@@ -2996,66 +3059,58 @@ export default function GamePage() {
                     <Layout size={{ x: 3, y: 3 }}>
                         {hexagons.map((hex, i) => {
                             return (
-                                // <div 
-                                //     onContextMenu={(e) => {
-                                //         e.preventDefault(); // Prevent the browser's context menu from showing up
-                                //         handleRightClickHex(hex); // Call your right-click handler
-                                //     }}
-                                // >
-                                    <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
-                                            cellStyle={foundingCity ? 
-                                                    hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
-                                                    : 
-                                                    (hex.yields && totalHexYields(hex.yields) > 0) ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
-                                            onClick={(e) => handleClickHex(hex, e)} 
-                                            onMouseOver={() => handleMouseOverHex(hex)}
-                                            onMouseLeave={() => handleMouseLeaveHex(hex)}
-                                            // ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
-                                        >
-                                        {/* <div 
-                                            ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]} 
-                                            style={{
-                                                position: 'absolute',
-                                                top: '50%',
-                                                left: '50%',
-                                                transform: 'translate(-50%, -50%)',
-                                                width: '100px',
-                                                height: '100px',
-                                                zIndex: '10000',
-                                                backgroundColor: 'red',
-                                                // visibility: 'hidden',
-                                            }}
-                                        /> */}
-                                        <circle 
-                                            cx="0" 
-                                            cy="0" 
-                                            r="0.01" 
-                                            fill="none" 
-                                            stroke="black" 
-                                            strokeWidth="0.2" 
-                                            ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
-                                            style={{visibility: 'hidden'}}
-                                        />
-                                        {hex.yields ? <YieldImages yields={hex.yields} /> : null}
-                                        {hex.city && <City 
-                                            city={hex.city}
-                                            isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
-                                            isSelected={hex?.city?.id === selectedCity?.id}  
-                                            isUnitInHex={hex?.units?.length > 0}
-                                            everControlled={hex?.city?.ever_controlled_by_civ_ids[myCivId]}
-                                        />}
-                                        {hex.camp && <Camp
-                                            camp={hex.camp}
-                                            isUnitInHex={hex?.units?.length > 0}
-                                        />}
-                                        {hex?.units?.length > 0 && <Unit
-                                            unit={hex.units[0]}
-                                            isCityInHex={hex?.city || hex?.camp}
-                                        />}
-                                        {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
-                                        {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
-                                    </Hexagon>
-                                // </div>
+                                <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
+                                        cellStyle={foundingCity ? 
+                                                hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
+                                                : 
+                                                (hex.yields && totalHexYields(hex.yields) > 0) ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
+                                    >
+                                    <circle 
+                                        cx="0" 
+                                        cy="0" 
+                                        r="0.01" 
+                                        fill="none" 
+                                        stroke="black" 
+                                        strokeWidth="0.2" 
+                                        ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
+                                        style={{visibility: 'hidden'}}
+                                    />
+                                    {hex.yields ? <YieldImages yields={hex.yields} /> : null}
+                                </Hexagon>
+                            );
+                        })}
+                        {hexagons.map((hex, i) => {
+                            if (hex.city && hex.city.territory_parent_coords) {
+                                return <PuppetArrow city={hex.city}/>
+                            }
+                        })}
+                        {hexagons.map((hex, i) => {
+                            return (
+                                <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} cellStyle={{
+                                    fillOpacity: 0,
+                                    strokeOpacity: 0,
+                                    }}
+                                    onClick={(e) => handleClickHex(hex, e)} 
+                                    onMouseOver={() => handleMouseOverHex(hex)}
+                                    onMouseLeave={() => handleMouseLeaveHex(hex)}>
+                                    {hex.city && <City 
+                                        city={hex.city}
+                                        isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
+                                        isSelected={hex?.city?.id === selectedCity?.id}  
+                                        isUnitInHex={hex?.units?.length > 0}
+                                        everControlled={hex?.city?.ever_controlled_by_civ_ids[myCivId]}
+                                    />}
+                                    {hex.camp && <Camp
+                                        camp={hex.camp}
+                                        isUnitInHex={hex?.units?.length > 0}
+                                    />}
+                                    {hex?.units?.length > 0 && <Unit
+                                        unit={hex.units[0]}
+                                        isCityInHex={hex?.city || hex?.camp}
+                                    />}
+                                    {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
+                                    {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
+                                </Hexagon>
                             );
                         })}
                     </Layout>         

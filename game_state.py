@@ -112,6 +112,7 @@ class GameState:
         civ.city_power -= 100
         city = self.new_city(civ, hex, city_id)
         self.register_city(city)
+        city.set_territory_parent_if_needed(game_state=self)
 
         if civ.game_player:
             civ.game_player.score += 2
@@ -280,6 +281,7 @@ class GameState:
             # This is not a fresh city , it's a pre-existing one.
             print(f"Declining to existing city at {coords}")
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
+            hex.city.orphan_territory_children(self)
             hex.city.civ = Civ(hex.city.civ_to_revolt_into, game_player=None)
         else:
             # This is a fake city, now it is becoming a real city.
