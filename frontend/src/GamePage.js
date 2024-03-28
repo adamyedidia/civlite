@@ -2489,20 +2489,6 @@ export default function GamePage() {
         );
     }
 
-    const PuppetArrows = ({hexagons}) => {
-        if (!hexagons) {return;}
-        return (
-            <div className="puppet-arrows-container">
-                {hexagons.map((hex, index) => {
-                    if (!hex.city) {return;}
-                    if (!hex.city.territory_parent_coords) {return;}
-                    const civ = civsById[hex.city.civ_id];
-                    return <LineOnHexes key={index} from={`${hex.q},${hex.r},${hex.s}`} to={hex.city.territory_parent_coords} jitterAmnt={0} color={templates.CIVS[civ.name].secondary_color} className='puppet-arrow'/>
-                })}
-            </div>
-        );
-    }
-
     const PuppetArrow = ({city}) => {
         // Note this lives in an svg.
         const destinationCoords = city.territory_parent_coords;
@@ -2537,7 +2523,8 @@ export default function GamePage() {
         const civ = civsById[city.civ_id]
         const civTemplate = templates.CIVS[civ.name]
         return <line x1={mySVGPoint.x} y1={mySVGPoint.y} x2={destSVGPoint.x} y2={destSVGPoint.y} 
-            stroke={civTemplate.secondary_color} strokeWidth=".5"/>
+            stroke={civTemplate.secondary_color} strokeWidth=".5" strokeOpacity={0.9}
+            />
     }
 
     // Event handler for keydown event for the flag arrows
