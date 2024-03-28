@@ -430,3 +430,13 @@
   background-color: #ffffff;
 }
 
+.make-territory-area {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+}
+
+.make-territory-area select.flash-select {
+  animation: flashAnimation 1s infinite;
+}
+

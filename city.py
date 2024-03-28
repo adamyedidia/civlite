@@ -6,7 +6,7 @@ from building_templates_list import BUILDINGS
 from tech_templates_list import TECHS
 from civ_template import CivTemplate
 from civ import Civ
-from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
+from settings import MAX_TERRITORIES_PER_CIV, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
 from unit_templates_list import PRODUCTION_BUILDINGS_BY_UNIT_NAME, UNITS, UNITS_BY_BUILDING_NAME
@@ -83,18 +83,21 @@ class City:
     def building_is_in_queue(self, building_name: str) -> bool:
         return any([(building.building_name if hasattr(building, 'building_name') else building.name) == building_name for building in self.buildings_queue])  # type: ignore
 
-    def orphan_territory_children(self, game_state: 'GameState'):
+    def orphan_territory_children(self, game_state: 'GameState', make_new_territory=True):
         """
         Call before changing ownership of a city to clear any puppets who have it as parent.
         """
         children: list[City] = [city for city in game_state.cities_by_id.values() if city.get_territory_parent(game_state) == self]
         if len(children) == 0:
             return
-        new_territory_capital: City = max(children, key=lambda c: (c.population, c.id))
-        new_territory_capital.make_territory_capital(game_state)
+        if make_new_territory:
+            new_territory_capital: City | None = max(children, key=lambda c: (c.population, c.id))
+            new_territory_capital.make_territory_capital(game_state)
+        else:
+            new_territory_capital = None
         for child in children:
             if child != new_territory_capital:
-                child.set_territory_parent_if_needed(game_state, [new_territory_capital])
+                child.set_territory_parent_if_needed(game_state)
 
     def _remove_income_from_parent(self, game_state: 'GameState') -> None:
         parent: City | None = self.get_territory_parent(game_state)
@@ -109,9 +112,11 @@ class City:
         self._territory_parent_coords = None
 
     def set_territory_parent_if_needed(self, game_state: 'GameState', excluded_cities: list['City'] = []) -> None:
-        choices: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self.civ and city.is_territory_capital and city != self and city not in excluded_cities]
-        MAX_TERRITORIES_PER_CIV = 2  # TODO move to settings.py
-        if len(choices) < MAX_TERRITORIES_PER_CIV:
+        my_territories: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self.civ and city.is_territory_capital and city != self]
+        choices: list[City] = [city for city in my_territories if city not in excluded_cities]
+        print(f"{my_territories=}")
+        print(f"{choices=}")
+        if len(my_territories) < MAX_TERRITORIES_PER_CIV:
             # Room for another territory capital.
             self.make_territory_capital(game_state)
         else:

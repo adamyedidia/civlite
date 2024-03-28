@@ -390,6 +390,7 @@ export default function GamePage() {
     const civsById = gameState?.civs_by_id;
 
     const myCities = Object.values(mainGameState?.cities_by_id || {}).filter(city => civsById?.[city.civ_id]?.game_player?.player_num === myGamePlayer?.player_num);
+    const myTerritoryCapitals = myCities.filter(city => city.territory_parent_coords === null);
     const myUnits = Object.values(mainGameState?.hexes || {})
         .filter(hex => hex.units?.length > 0 && civsById?.[hex.units[0].civ_id]?.game_player?.player_num === myGamePlayer?.player_num)
         .map(hex => hex.units[0])
@@ -3174,6 +3175,7 @@ export default function GamePage() {
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
+                        myTerritoryCapitals={myTerritoryCapitals}
                         myCivTemplate={templates.CIVS[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
                         declinePreviewMode={!myCiv || selectedCity.civ_id != myCivId}
                         puppet={selectedCity.territory_parent_coords}

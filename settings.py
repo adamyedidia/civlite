@@ -39,5 +39,7 @@ SURVIVAL_BONUS = 25
 
 MULLIGAN_PENALTY = 5
 
+MAX_TERRITORIES_PER_CIV = 5
+
 if os.path.exists('local_settings.py'):
     from local_settings import *

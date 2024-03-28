@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import './CityDetailWindow.css';
 
+import { Button, Select, MenuItem } from '@mui/material';
+
 import { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
 import { IconUnitDisplay } from './UnitDisplay';
 import foodImg from './images/food.png';
@@ -61,7 +63,50 @@ const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
     return 9999
 }
 
-const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
+const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory}) => {
+    const [otherCitySelected, setOtherCitySelected] = useState(0);
+
+    const MAX_TERRITORIES_PER_CIV = 5;
+    const roomForNewTerritory = myTerritoryCapitals.length < MAX_TERRITORIES_PER_CIV;
+
+    const submitClickIfValid = () => {
+        if (roomForNewTerritory) {
+            handleMakeTerritory(null);
+            return
+        }
+        else if (otherCitySelected !== 0) {
+            handleMakeTerritory(otherCitySelected);
+        } else {
+            document.querySelector('.make-territory-area select').classList.add('flash-select');
+            setTimeout(() => {
+                document.querySelector('.make-territory-area select').classList.remove('flash-select');
+            }, 1000);
+        }
+    }
+
+    return <div className='make-territory-area'>
+        <Button
+            variant="contained"
+            style = {{
+                width: '40%',
+                margin: '10px',
+            }}
+            onClick={submitClickIfValid}
+        >
+            Make Territory
+        </Button>
+        {!roomForNewTerritory && <Select
+            value={otherCitySelected}
+            onChange={(e) => setOtherCitySelected(e.target.value)}
+            variant="standard"
+        >
+            <MenuItem value={0}>Instead of ... </MenuItem>
+            {myTerritoryCapitals.map(city => <MenuItem key={city.id} value={city.id}>{city.name}</MenuItem>)}
+        </Select>}
+    </div>
+}
+
+const CityDetailWindow = ({ gameState, myCivTemplate, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
     selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
     selectedCityUnitChoices, selectedCity,
     unitTemplatesByBuildingName, templates, descriptions,
@@ -117,6 +162,11 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, puppet
         submitPlayerInput('select_infinite_queue', {'unit_name': (unitName),});
     }
 
+    const handleMakeTerritory = (otherCityId) => {
+        if (declinePreviewMode) return;
+        submitPlayerInput('make_territory', {'other_city_id': otherCityId});
+    }
+
     const handleClickFocus = (focus) => {
         if (declinePreviewMode) return;
         submitPlayerInput('choose_focus', {'focus': focus,});
@@ -157,6 +207,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, puppet
     const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / templates.UNITS[selectedCity.infinite_queue_unit].metal_cost) : 0;
     const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => templates.BUILDINGS[item] ? templates.BUILDINGS[item].cost : unitTemplatesByBuildingName[item].wood_cost);
 
+
     return (
         <div className="city-detail-window" 
             style={{borderColor: myCivTemplate?.secondary_color}}>
@@ -172,6 +223,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, declinePreviewMode, puppet
             </div>
             <div className="city-detail-columns">
             <div className="city-detail-column">
+                {puppet && 
+                    <MakeTerritory myTerritoryCapitals={myTerritoryCapitals} handleMakeTerritory={handleMakeTerritory}/>                    
+                }
                 <CityDetailPanel title="wood" icon={woodImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCityBuildingChoices && canBuild && (<>
                         <div className="building-choices-container">
