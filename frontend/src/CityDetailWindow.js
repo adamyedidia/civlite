@@ -98,7 +98,7 @@ const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
             disabled={!enoughCityPower}
         >
             Make Territory
-            <TextOnIcon image={cityImg} style={{marginLeft: '10px', minWidth: '50px', height: '50px', color: 'black'}} offset={20}>
+            <TextOnIcon image={cityImg} style={{marginLeft: '10px', minWidth: '50px', height: '50px', color: 'black', opacity: enoughCityPower ? 1.0 : 0.3}} offset={20}>
                 -100
             </TextOnIcon>
         </Button>
