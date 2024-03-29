@@ -177,9 +177,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         submitPlayerInput('make_territory', {'other_city_id': otherCityId});
     }
 
-    const handleClickFocus = (focus) => {
+    const handleClickFocus = (focus, doubleClick) => {
         if (declinePreviewMode) return;
-        submitPlayerInput('choose_focus', {'focus': focus,});
+        submitPlayerInput('choose_focus', {'focus': focus, 'with_puppets': doubleClick});
     }
 
     const handleClickTradeHub = () => {

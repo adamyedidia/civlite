@@ -481,10 +481,15 @@ class GameState:
                 self.midturn_update()
 
             if move['move_type'] == 'choose_focus':
+                print(f"{move=}")
                 game_player = self.game_player_by_player_num[player_num]
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
                 city.focus = move['focus']
+                if move.get('with_puppets'):
+                    for puppet in city.get_puppets(self):
+                        puppet.focus = move['focus']
+                        
                 game_player_to_return = game_player
                 self.midturn_update()
 

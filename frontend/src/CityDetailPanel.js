@@ -11,13 +11,32 @@ const roundValue = (value) => {
     return value < 10 ? value.toFixed(1) : Math.round(value);
 };
 
-const FocusSelectionOption = ({ focus, amount, onClick, isSelected }) => {
+const FocusSelectionOption = ({ focus, amount, onClick, onDoubleClick, hasPuppets, isSelected }) => {
+    let clickTimeout = null;
+    const handleClick = () => {
+        if (clickTimeout !== null) {
+            clearTimeout(clickTimeout);
+            clickTimeout = null;
+            onDoubleClick();
+        } else {
+            clickTimeout = setTimeout(() => {
+                onClick();
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+            }, 300); // 300 ms delay to distinguish between single and double click
+        }
+    };
+    const tooltip = <>
+        {isSelected ? <p>{`+${amount.toFixed(2)} ${focus} from focus`}</p> : <p>Click to focus</p>}
+        {hasPuppets && <p>dbl click = include puppets</p>}
+    </>
+
     return (
         <div
             className={`focus-selection-option ${focus} ${isSelected ? 'selected' : ''}`}
-            onClick={onClick}
+            onClick={hasPuppets ? handleClick : onClick}
         >
-            <TextOnIcon image={workerImg} tooltip={isSelected ? `+${amount.toFixed(2)} ${focus} from city focus` : "Click to focus"}>
+            <TextOnIcon image={workerImg} tooltip={tooltip}>
                 {amount.toFixed(1)}
             </TextOnIcon>
         </div>
@@ -49,6 +68,7 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
 
     const storedStyle = hideStored ? { visibility: 'hidden' } : {};
     const projectedIncomePuppets = selectedCity?.projected_income_puppets?.[title];
+    const hasPuppetsEvenIfNoIncome = Object.keys(selectedCity?.projected_income_puppets?.["wood"] || {}).length > 0;
     const hasPuppets = projectedIncomePuppets && Object.keys(projectedIncomePuppets).length > 0;
     const projectedIncomePuppetsTotal = hasPuppets ? Object.values(projectedIncomePuppets).reduce((total, puppetIncome) => total + puppetIncome, 0) : null;
     const projectedIncomePuppetsTooltip = hasPuppets ? <PuppetIncomeTooltip title={title} projectedIncomePuppets={projectedIncomePuppets} projectedIncomePuppetsTotal={projectedIncomePuppetsTotal} /> : null;
@@ -70,7 +90,9 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
                     {!noFocus && (
                         <>
                             +
-                            <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} amount={projected_income_focus} onClick={() => handleClickFocus(title)} />
+                            <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} amount={projected_income_focus} 
+                                hasPuppets={hasPuppetsEvenIfNoIncome}
+                                onClick={() => handleClickFocus(title)} onDoubleClick={() => handleClickFocus(title, true)} />
                         </>
                     )}
                 </div>
