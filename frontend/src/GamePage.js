@@ -852,7 +852,7 @@ export default function GamePage() {
 
         try {
             let audio = new Audio(gunpowderRangedAttackSound);
-            audio.volume = 0.12 * volumeRef.current / 100;
+            audio.volume = 0.09 * volumeRef.current / 100;
             audio.play();
         } catch (error) {
             console.error('Error playing sound:', error);
