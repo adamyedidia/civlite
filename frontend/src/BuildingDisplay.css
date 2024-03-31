@@ -76,10 +76,6 @@
     margin-top: 10px;
 }
 
-.brief-building-card .building-name {
-    margin-right: 15px; /* Adjust as needed */
-}
-
 .brief-building-card.wonder {
     background-color: #b66dc0;
 }
