@@ -231,6 +231,9 @@ h2.tech-name {
 .decline-option-row:hover .revolt-cities-detail {
     display: flex;
     align-items: center;
+    justify-content: left;
+    flex-wrap: wrap;
+    gap: 3px;
 }
 
 .revolt-cities-detail img {

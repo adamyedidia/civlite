@@ -4,12 +4,14 @@ TECHS = {
         'cost': 25,
         'unlocks_units': ['Archer'],
         'advancement_level': 1,
+        'great_scientist_name': 'Artemis',
     },
     'Bronze Working': {
         'name': 'Bronze Working',
         'cost': 25,
         'unlocks_units': ['Spearman'],
         'advancement_level': 1,
+        'great_scientist_name': 'Hephaestus',
     },
     'Pottery': {
         'name': 'Pottery',
@@ -22,6 +24,7 @@ TECHS = {
         'cost': 20,
         'unlocks_buildings': ['Hanging Gardens'],
         'advancement_level': 1,
+        'great_scientist_name': 'Hammurabi',
     },
     'Calendar': {
         'name': 'Calendar',
@@ -33,6 +36,7 @@ TECHS = {
         'name': 'The Wheel',
         'cost': 35,
         'unlocks_units': ['Chariot'],
+        'unlocks_buildings': ['Roads'],
         'advancement_level': 1,
     },
     'Mining': {
@@ -58,6 +62,7 @@ TECHS = {
         'cost': 30,
         'unlocks_buildings': ['Library', 'Great Library'],
         'advancement_level': 1,
+        'great_scientist_name': 'Socrates',
     },
     'Masonry': {
         'name': 'Masonry',
@@ -70,8 +75,9 @@ TECHS = {
         'name': 'Mathematics',
         'cost': 50,
         'unlocks_units': ['Catapult'],
-        'unlocks_buildings': ['Workshop'],
+        'unlocks_buildings': ['Workshop', 'Magisterium'],
         'advancement_level': 2,
+        "great_scientist_name": "Euclid",
     },
     'Horseback Riding': {
         'name': 'Horseback Riding',
@@ -85,6 +91,7 @@ TECHS = {
         'unlocks_units': ['Swordsman'],
         'unlocks_buildings': ['Colossus'],
         'advancement_level': 2,
+        'great_scientist_name': 'Ashurbanipal',
     },
     'Currency': {
         'name': 'Currency',
@@ -103,12 +110,14 @@ TECHS = {
         'cost': 50,
         'unlocks_buildings': ['Aqueduct', 'Colosseum'],
         'advancement_level': 2,
+        'great_scientist_name': 'Emperor Vespasian',
     },
     'Education': {
         'name': 'Education',
         'cost': 55,
         'unlocks_buildings': ['University', 'National College'],
         'advancement_level': 3,
+        'great_scientist_name': 'Robert of Sorbon',
     },
     'Machinery': {
         'name': 'Machinery',
@@ -123,6 +132,7 @@ TECHS = {
         'unlocks_buildings': ['Chichen Itza'],
         'unlocks_units': ['Pikeman'],
         'advancement_level': 3,
+        'great_scientist_name': 'Emperor Wen of Sui',
     },
     'Chivalry': {
         'name': 'Chivalry',
@@ -130,6 +140,7 @@ TECHS = {
         'unlocks_units': ['Knight', 'Militia'],
         'unlocks_buildings': [],
         'advancement_level': 3,
+        'great_scientist_name': 'Uther Pendragon',
     },
     'Compass': {
         'name': 'Compass',
@@ -137,6 +148,7 @@ TECHS = {
         'unlocks_units': ['Crossbowman'],
         'unlocks_buildings': ['Observatory', 'Great Lighthouse'],
         'advancement_level': 3,
+        'great_scientist_name': 'Galileo Galilei',
     },
     'Physics': {
         'name': 'Physics',
@@ -144,12 +156,14 @@ TECHS = {
         'unlocks_buildings': ['Windmill'],
         'unlocks_units': ['Trebuchet'],
         'advancement_level': 3,
+        'great_scientist_name': 'Isaac Newton',
     },
     'Printing Press': {
         'name': 'Printing Press',
         'cost': 75,
         'unlocks_buildings': ['Forbidden Palace', 'Paper Maker'],
         'advancement_level': 4,
+        'great_scientist_name': 'Johannes Gutenberg',
     },
     'Gunpowder': {
         'name': 'Gunpowder',
@@ -175,18 +189,21 @@ TECHS = {
         'cost': 100,
         'unlocks_buildings': ['Notre Dame', 'Lumber Farm'],
         'advancement_level': 4,
+        'great_scientist_name': 'Michelangelo',
     },
     "Medicine": {
         'name': 'Medicine',
         'cost': 110,
         'unlocks_buildings': ['Apothecary', 'Zoo'],
         'advancement_level': 5,
+        'great_scientist_name': 'Louis Pasteur',
     },
     'Economics': {
         'name': 'Economics',
         'cost': 120,
         'unlocks_buildings': ['Caravansery', 'Porcelain Tower'],
         'advancement_level': 4,
+        'great_scientist_name': 'Adam Smith',
     },
     'Military Science': {
         'name': 'Military Science',
@@ -208,13 +225,15 @@ TECHS = {
         'unlocks_buildings': ['Factory'],
         'unlocks_units': ['Gatling Gun'],
         'advancement_level': 5,
+        'great_scientist_name': 'James Watt',
     },
     'Dynamite': {
         'name': 'Dynamite',
         'cost': 170,
         'unlocks_units': ['Artillery'],
-        'unlocks_buildings': [],
+        'unlocks_buildings': ['Railroads'],
         'advancement_level': 6,
+        'great_scientist_name': 'Alfred Nobel',
     },
     'Radio': {
         'name': 'Radio',
@@ -241,6 +260,7 @@ TECHS = {
         'cost': 450,
         'unlocks_buildings': ['Industrial Farm', 'Fast Food Chains'],
         'advancement_level': 7,
+        'great_scientist_name': 'Norman Borlaug',
     },
     'Rocketry': {
         'name': 'Rocketry',
@@ -248,12 +268,14 @@ TECHS = {
         'unlocks_units': ['Rocket Launcher'],
         'unlocks_buildings': ['Apollo Program'],
         'advancement_level': 8,
+        'great_scientist_name': 'Marie Curie',
     },
     'Computers': {
         'name': 'Computers',
         'cost': 600,
         'unlocks_buildings': ['Internet'],
         'advancement_level': 8,
+        'great_scientist_name': 'Alan Turing',
     },
     'Nanotechnology': {
         'name': 'Nanotechnology',

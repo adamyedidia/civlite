@@ -30,6 +30,7 @@ import UpperRightDisplay from './UpperRightDisplay';
 import LowerRightDisplay from './LowerRightDisplay.js';
 import TechListDialog from './TechListDialog';
 import TaskBar from './TaskBar';
+import GreatPerson from './GreatPerson';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
@@ -206,6 +207,35 @@ function GameOverDialog({open, onClose, gameState}) {
     )
 }
 
+function GreatPersonChoiceDialog({open, onClose, greatPersonChoices, handleSelectGreatPerson, setHoveredUnit, setHoveredTech, templates}) {
+    return <div className="tech-choices-container">
+        <DialogTitle>
+            <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
+                Choose Great Person
+            </Typography>
+            <IconButton
+                aria-label="close"
+                onClick={onClose}
+                style={{
+                    position: 'absolute',
+                    right: 8,
+                    top: 8,
+                    color: (theme) => theme.palette.grey[500],
+                }}
+                color="primary"
+            >
+                Close
+            </IconButton>
+        </DialogTitle>
+        <div className="tech-choices-content">
+            {greatPersonChoices.map((person, index) => (
+                <GreatPerson key={index} greatPerson={person} handleSelectGreatPerson={handleSelectGreatPerson} 
+                    setHoveredUnit={setHoveredUnit} setHoveredTech={setHoveredTech} templates={templates}/>
+            ))}
+        </div>
+    </div>
+}
+
 function DeclineFailedDialog({open, onClose}) {
     return (
         <Dialog open={open} onClose={onClose}>
@@ -346,6 +376,7 @@ export default function GamePage() {
     const [selectedCity, setSelectedCity] = useState(null);
 
     const [techChoiceDialogOpen, setTechChoiceDialogOpen] = useState(false);
+    const [greatPersonChoiceDialogOpen, setGreatPersonChoiceDialogOpen] = useState(false);
 
     const [lastSetPrimaryTarget, setLastSetPrimaryTarget] = useState(false);
 
@@ -390,6 +421,7 @@ export default function GamePage() {
     const civsById = gameState?.civs_by_id;
 
     const myCities = Object.values(mainGameState?.cities_by_id || {}).filter(city => civsById?.[city.civ_id]?.game_player?.player_num === myGamePlayer?.player_num);
+    const myTerritoryCapitals = myCities.filter(city => city.territory_parent_coords === null);
     const myUnits = Object.values(mainGameState?.hexes || {})
         .filter(hex => hex.units?.length > 0 && civsById?.[hex.units[0].civ_id]?.game_player?.player_num === myGamePlayer?.player_num)
         .map(hex => hex.units[0])
@@ -490,6 +522,7 @@ export default function GamePage() {
                 setFoundingCity(false);
                 setShowFlagArrows(false);
                 setTechChoiceDialogOpen(false);
+                setGreatPersonChoiceDialogOpen(false);
                 setDeclineOptionsView(false);
             }
         };
@@ -708,7 +741,7 @@ export default function GamePage() {
     }, [engineState]);
 
     useEffect(() => {
-        if (engineState !== EngineStates.PLAYING) {
+        if (engineState !== EngineStates.PLAYING && engineState !== EngineStates.GAME_OVER) {
             document.body.style.cursor = 'wait';
         } else {
             document.body.style.cursor = 'default';
@@ -2196,6 +2229,7 @@ export default function GamePage() {
             setNonDeclineViewGameState(gameState);
             setGameState(declineViewGameState);
             setTechChoiceDialogOpen(false);
+            setGreatPersonChoiceDialogOpen(false);
         } else {
             // If we are toggling back from the decline view
             setGameState(nonDeclineViewGameState);
@@ -2230,14 +2264,8 @@ export default function GamePage() {
         })
     }
 
-    
-    const handleClickTech = (tech) => {
+    const submitPlayerInput = async (playerInput) => {
         if (engineState !== EngineStates.PLAYING) {return;}
-
-        const playerInput = {
-            'tech_name': tech.name,
-            'move_type': 'choose_tech',
-        }
 
         const data = {
             player_num: playerNum,
@@ -2254,9 +2282,19 @@ export default function GamePage() {
             .then(data => {
                 if (data.game_state) {
                     setGameState(data.game_state);
-                    setTechChoiceDialogOpen(false);
                 }
             });
+    }
+    
+    const handleClickTech = (tech) => {
+        if (engineState !== EngineStates.PLAYING) {return;}
+
+        const playerInput = {
+            'tech_name': tech.name,
+            'move_type': 'choose_tech',
+        }
+
+        submitPlayerInput(playerInput).then(() => setTechChoiceDialogOpen(false));
     }
    
     useEffect(() => {
@@ -2383,6 +2421,7 @@ export default function GamePage() {
         refreshSelectedCity(finalGameState);
         const {_, __, myCiv} = getMyInfo(finalGameState);
         sciencePopupIfNeeded(myCiv);
+        greatPersonPopupIfNeeded(myCiv);
     }
 
     const triggerAnimationsInner = async () => {
@@ -2429,41 +2468,56 @@ export default function GamePage() {
         setEngineState(EngineStates.PLAYING, EngineStates.ANIMATING);
     }
 
+    const greatPersonPopupIfNeeded = (civ) => {
+        if (civ?.great_people_choices?.length > 0) {
+            setGreatPersonChoiceDialogOpen(true);
+        }
+    }
+
     const sciencePopupIfNeeded = (civ) => {
         if (civ?.researching_tech_name === null) {
             setTechChoiceDialogOpen(true);
         }
     }
 
-    const FlagArrow = ({hex}) => {
-        const unit = hex.units[0]
-        const destCoords = unit.closest_target
-        if (!destCoords) {return;}
-        const fromHexClientRef = hexRefs?.current?.[`${hex.q},${hex.r},${hex.s}`]?.current?.getBoundingClientRect();
-        const toHexClientRef = hexRefs?.current?.[destCoords]?.current?.getBoundingClientRect();
+    const LineOnHexes = ({from, to, jitterAmnt, className, color}) => {
+        const fromHexRef = hexRefs?.current[from].current;
+        const toHexRef = hexRefs?.current[to].current ;
 
-        const dx = toHexClientRef.left - fromHexClientRef.left;
-        const dy = toHexClientRef.top - fromHexClientRef.top;
+        if (!fromHexRef || !toHexRef) {return;}
+        const fromHexClientRect = fromHexRef.getBoundingClientRect();
+        const toHexClientRect = toHexRef.getBoundingClientRect();
+
+        const dx = toHexClientRect.left - fromHexClientRect.left;
+        const dy = toHexClientRect.top - fromHexClientRect.top;
         const angleRads = Math.atan2(dy, dx);
-        const jitterAmnt = 20 * (Math.sin(hex.q * 13 + hex.r * 23 + hex.s * 31));
         const jitteredFrom = {
-            left: fromHexClientRef.left + jitterAmnt * Math.sin(angleRads),
-            top: fromHexClientRef.top - jitterAmnt * Math.cos(angleRads),
+            left: fromHexClientRect.left + jitterAmnt * Math.sin(angleRads),
+            top: fromHexClientRect.top - jitterAmnt * Math.cos(angleRads),
         }
-        const Jittereddx = toHexClientRef.left - jitteredFrom.left;
-        const Jittereddy = toHexClientRef.top - jitteredFrom.top;
+        const Jittereddx = toHexClientRect.left - jitteredFrom.left;
+        const Jittereddy = toHexClientRect.top - jitteredFrom.top;
         const JitteredAngleDegs = Math.atan2(Jittereddy, Jittereddx) * (180 / Math.PI);
 
         const distance = Math.sqrt(Jittereddx * Jittereddx + Jittereddy * Jittereddy);
-        return <div className='flag-arrow' style={{
-            position: 'absolute', // Make sure it's set to absolute
+        return <div className={`map-line ${className}`} style={{
             left: `${jitteredFrom.left + window.scrollX - 2}px`,
             top: `${jitteredFrom.top + window.scrollY - 2}px`,
             width: `${distance}px`, // Set the length of the arrow
             transform: `rotate(${JitteredAngleDegs}deg)`,
             transformOrigin: "0 50%",
+            backgroundColor: color,
         }}>
         </div>
+
+    }
+
+    const FlagArrow = ({hex}) => {
+        const unit = hex.units[0]
+        const destCoords = unit.closest_target
+        if (!destCoords) {return;}
+        const jitterAmnt = 20 * (Math.sin(hex.q * 13 + hex.r * 23 + hex.s * 31));
+        return <LineOnHexes from={`${hex.q},${hex.r},${hex.s}`} to={destCoords} jitterAmnt={jitterAmnt} className='flag-arrow' color='#111c'/>
     }
 
     const FlagArrows = ({hexagons, myCiv, civsById}) => {
@@ -2477,6 +2531,44 @@ export default function GamePage() {
                 })}
             </div>
         );
+    }
+
+    const PuppetArrow = ({city}) => {
+        // Note this lives in an svg.
+        const destinationCoords = city.territory_parent_coords;
+        const myCoords = city.hex;
+        const destRef = hexRefs?.current[destinationCoords].current;
+        const myRef = hexRefs?.current[myCoords].current;
+        const svgElement = document.querySelector('svg.grid');
+
+        if (!destRef || !myRef || !svgElement) {return;}
+    
+        /////////////////////////////////
+        // Some GPT4 magic I don't understand
+        function screenToSVG(x, y, svgEl) {
+            let pt = svgEl.createSVGPoint();
+            pt.x = x;
+            pt.y = y;
+            return pt.matrixTransform(svgEl.getScreenCTM().inverse());
+        }
+        // Get the bounding rectangle of the reference in screen coordinates
+        const myRect = myRef.getBoundingClientRect();
+        const destRect = destRef.getBoundingClientRect();
+        // Calculate the center position in screen coordinates
+        const myCenterX = myRect.left + myRect.width / 2;
+        const myCenterY = myRect.top + myRect.height / 2;
+        const destCenterX = destRect.left + destRect.width / 2;
+        const destCenterY = destRect.top + destRect.height / 2;
+        // Convert screen coordinates to SVG coordinates
+        const mySVGPoint = screenToSVG(myCenterX, myCenterY, svgElement);
+        const destSVGPoint = screenToSVG(destCenterX, destCenterY, svgElement);
+        /////////////////////////////////
+
+        const civ = civsById[city.civ_id]
+        const civTemplate = templates.CIVS[civ.name]
+        return <line x1={mySVGPoint.x} y1={mySVGPoint.y} x2={destSVGPoint.x} y2={destSVGPoint.y} 
+            stroke={civTemplate.secondary_color} strokeWidth=".5" strokeOpacity={0.9}
+            />
     }
 
     // Event handler for keydown event for the flag arrows
@@ -2594,6 +2686,7 @@ export default function GamePage() {
                         refreshSelectedCity(data.game_state);
                         setDeclineOptionsView(false);
                         sciencePopupIfNeeded(myNewCiv);
+                        greatPersonPopupIfNeeded(myNewCiv);
                     } else if (data.game_state && !success) {
                         setDeclineFailedDialogOpen(true);
                     } else {
@@ -2612,6 +2705,7 @@ export default function GamePage() {
         const secondaryColor = civTemplate?.secondary_color;
     
         const friendly = isFriendlyCity(city);
+        const puppet = city.territory_parent_coords;
     
         // Function to darken color
         const darkenColor = (color) => {
@@ -2653,7 +2747,7 @@ export default function GamePage() {
 
 
         const cityBoxCanvas = {'width': 8, 'height': 4};
-        const cityBoxPanel = {'width': 6, 'height': 2};
+        const cityBoxPanel = {'width': (puppet ? 5 : 6), 'height': 2};
         const cityCircleRadius = 0.75;
 
         const cityBoxPanelBottomY = cityBoxCanvas.height / 2 + cityBoxPanel.height / 2
@@ -2669,7 +2763,7 @@ export default function GamePage() {
                 }
                 <svg width={cityBoxCanvas.width} height={cityBoxCanvas.height} viewBox={`0 0 ${cityBoxCanvas.width} ${cityBoxCanvas.height}`} x={-cityBoxCanvas.width / 2} y={-3.5} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} style={{...(friendly ? {cursor : 'pointer'} : {})}}>
                     {/* Background rectangle */}
-                    <rect width={cityBoxPanel.width} height={cityBoxPanel.height} x={(cityBoxCanvas.width - cityBoxPanel.width) / 2} y={(cityBoxCanvas.width - cityBoxPanel.width) / 2} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.2} />
+                    <rect width={cityBoxPanel.width} height={cityBoxPanel.height} x={(cityBoxCanvas.width - cityBoxPanel.width) / 2} y={(cityBoxCanvas.height - cityBoxPanel.height) / 2} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.2} {...(puppet ? {rx: "1", ry: "1"} : {})}/>
                     {/* Pointer triangle. make the fill and the stroke separately so the fill can cover the border of the main box without the stroke looking dumb */}
                     <path d={`M3.3,${cityBoxPanelBottomY-0.12} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY-0.12}`} style={{opacity: 1.0, fill: finalPrimaryColor, stroke: "none", strokeWidth: 0.2}} />
                     <path d={`M3.3,${cityBoxPanelBottomY} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY}`} style={{strokeOpacity: 1.0, stroke: finalSecondaryColor, strokeWidth: 0.2}} />
@@ -2684,7 +2778,7 @@ export default function GamePage() {
                         {city.population}
                     </text>              
 
-                    {friendly &&
+                    {friendly && puppet === null &&
                         <>
                             {/* Wood */}
                             <circle cx="1.7" cy={cityCirclesY} r={cityCircleRadius} fill={colors.wood} stroke={finalSecondaryColor} strokeWidth="0.1"/>
@@ -2881,27 +2975,7 @@ export default function GamePage() {
                 'city_id': generateUniqueId(),
                 'coords': `${hex.q},${hex.r},${hex.s}`,
             }
-
-            const data = {
-                player_num: playerNum,
-                turn_num: gameStateRef.current.turn_num,
-                player_input: playerInput,
-            }
-
-            fetch(playerApiUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-
-                body: JSON.stringify(data),
-            }).then(response => response.json())
-                .then(data => {
-                    if (data.game_state) {
-                        setGameState(data.game_state);
-                        setFoundingCity(false);
-                    }
-                });
+            submitPlayerInput(playerInput).then(() => setFoundingCity(false));
         }
         else {
             setHoveredCity(null);
@@ -2922,27 +2996,7 @@ export default function GamePage() {
             'move_type': `set_civ_${isSecondary ? "secondary" : "primary"}_target`,
             'target_coords': `${hex.q},${hex.r},${hex.s}`,
         }
-
-        const data = {
-            player_num: playerNumRef.current,
-            turn_num: gameStateRef.current.turn_num,
-            player_input: playerInput,
-        }
-
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
+        submitPlayerInput(playerInput);
     }
 
     const removeTarget = (isSecondary) => {
@@ -2951,27 +3005,15 @@ export default function GamePage() {
         const playerInput = {
             'move_type': `remove_civ_${isSecondary ? "secondary" : "primary"}_target`,
         }
+        submitPlayerInput(playerInput);
+    }
 
-        const data = {
-            player_num: playerNumRef.current,
-            turn_num: gameStateRef.current.turn_num,
-            player_input: playerInput,
+    const handleSelectGreatPerson = (greatPerson) => {
+        const playerInput = {
+            'move_type': 'select_great_person',
+            'great_person_name': greatPerson.name,
         }
-
-        fetch(playerApiUrl, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-
-            body: JSON.stringify(data),
-        }).then(response => response.json())
-            .then(data => {
-                if (data.game_state) {
-                    setGameState(data.game_state);
-                    refreshSelectedCity(data.game_state);
-                }
-            });
+        submitPlayerInput(playerInput).then(() => setGreatPersonChoiceDialogOpen(false));
     }
 
     const totalHexYields = (yields) => {
@@ -2996,66 +3038,58 @@ export default function GamePage() {
                     <Layout size={{ x: 3, y: 3 }}>
                         {hexagons.map((hex, i) => {
                             return (
-                                // <div 
-                                //     onContextMenu={(e) => {
-                                //         e.preventDefault(); // Prevent the browser's context menu from showing up
-                                //         handleRightClickHex(hex); // Call your right-click handler
-                                //     }}
-                                // >
-                                    <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
-                                            cellStyle={foundingCity ? 
-                                                    hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
-                                                    : 
-                                                    (hex.yields && totalHexYields(hex.yields) > 0) ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
-                                            onClick={(e) => handleClickHex(hex, e)} 
-                                            onMouseOver={() => handleMouseOverHex(hex)}
-                                            onMouseLeave={() => handleMouseLeaveHex(hex)}
-                                            // ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
-                                        >
-                                        {/* <div 
-                                            ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]} 
-                                            style={{
-                                                position: 'absolute',
-                                                top: '50%',
-                                                left: '50%',
-                                                transform: 'translate(-50%, -50%)',
-                                                width: '100px',
-                                                height: '100px',
-                                                zIndex: '10000',
-                                                backgroundColor: 'red',
-                                                // visibility: 'hidden',
-                                            }}
-                                        /> */}
-                                        <circle 
-                                            cx="0" 
-                                            cy="0" 
-                                            r="0.01" 
-                                            fill="none" 
-                                            stroke="black" 
-                                            strokeWidth="0.2" 
-                                            ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
-                                            style={{visibility: 'hidden'}}
-                                        />
-                                        {hex.yields ? <YieldImages yields={hex.yields} /> : null}
-                                        {hex.city && <City 
-                                            city={hex.city}
-                                            isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
-                                            isSelected={hex?.city?.id === selectedCity?.id}  
-                                            isUnitInHex={hex?.units?.length > 0}
-                                            everControlled={hex?.city?.ever_controlled_by_civ_ids[myCivId]}
-                                        />}
-                                        {hex.camp && <Camp
-                                            camp={hex.camp}
-                                            isUnitInHex={hex?.units?.length > 0}
-                                        />}
-                                        {hex?.units?.length > 0 && <Unit
-                                            unit={hex.units[0]}
-                                            isCityInHex={hex?.city || hex?.camp}
-                                        />}
-                                        {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
-                                        {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
-                                    </Hexagon>
-                                // </div>
+                                <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
+                                        cellStyle={foundingCity ? 
+                                                hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
+                                                : 
+                                                (hex.yields && totalHexYields(hex.yields) > 0) ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
+                                    >
+                                    <circle 
+                                        cx="0" 
+                                        cy="0" 
+                                        r="0.01" 
+                                        fill="none" 
+                                        stroke="black" 
+                                        strokeWidth="0.2" 
+                                        ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
+                                        style={{visibility: 'hidden'}}
+                                    />
+                                    {hex.yields ? <YieldImages yields={hex.yields} /> : null}
+                                </Hexagon>
+                            );
+                        })}
+                        {hexagons.map((hex, i) => {
+                            if (hex.city && hex.city.territory_parent_coords) {
+                                return <PuppetArrow key={i} city={hex.city}/>
+                            }
+                        })}
+                        {hexagons.map((hex, i) => {
+                            return (
+                                <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} cellStyle={{
+                                    fillOpacity: 0,
+                                    strokeOpacity: 0,
+                                    }}
+                                    onClick={(e) => handleClickHex(hex, e)} 
+                                    onMouseOver={() => handleMouseOverHex(hex)}
+                                    onMouseLeave={() => handleMouseLeaveHex(hex)}>
+                                    {hex.city && <City 
+                                        city={hex.city}
+                                        isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
+                                        isSelected={hex?.city?.id === selectedCity?.id}  
+                                        isUnitInHex={hex?.units?.length > 0}
+                                        everControlled={hex?.city?.ever_controlled_by_civ_ids[myCivId]}
+                                    />}
+                                    {hex.camp && <Camp
+                                        camp={hex.camp}
+                                        isUnitInHex={hex?.units?.length > 0}
+                                    />}
+                                    {hex?.units?.length > 0 && <Unit
+                                        unit={hex.units[0]}
+                                        isCityInHex={hex?.city || hex?.camp}
+                                    />}
+                                    {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
+                                    {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
+                                </Hexagon>
                             );
                         })}
                     </Layout>         
@@ -3120,8 +3154,11 @@ export default function GamePage() {
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
+                        myTerritoryCapitals={myTerritoryCapitals}
                         myCivTemplate={templates.CIVS[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
+                        myCiv={myCiv}
                         declinePreviewMode={!myCiv || selectedCity.civ_id != myCivId}
+                        puppet={selectedCity.territory_parent_coords}
                         playerNum={playerNum}
                         playerApiUrl={playerApiUrl}
                         setGameState={setGameState}
@@ -3193,7 +3230,12 @@ export default function GamePage() {
                             See end game info
                         </Button>}
                         {engineState === EngineStates.PLAYING && !declineOptionsView && myCiv &&
-                            <TaskBar myCiv={myCiv} myCities={myCities} myUnits={myUnits} canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} setTechChoiceDialogOpen={setTechChoiceDialogOpen} techChoiceDialogOpen={techChoiceDialogOpen}/>
+                            <TaskBar 
+                                myCiv={myCiv} myCities={myCities} myUnits={myUnits} 
+                                canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} 
+                                setTechChoiceDialogOpen={setTechChoiceDialogOpen} techChoiceDialogOpen={techChoiceDialogOpen}
+                                setGreatPersonChoiceDialogOpen={setGreatPersonChoiceDialogOpen} greatPersonChoiceDialogOpen={greatPersonChoiceDialogOpen}
+                            />
                         }
 
                     </div>}
@@ -3207,6 +3249,15 @@ export default function GamePage() {
                     templates={templates}
                     myCiv={myCiv}
                     gameState={gameState}
+                />}
+                {greatPersonChoiceDialogOpen && <GreatPersonChoiceDialog
+                    open={greatPersonChoiceDialogOpen}
+                    onClose={() => setGreatPersonChoiceDialogOpen(false)}
+                    greatPersonChoices={myCiv.great_people_choices}
+                    handleSelectGreatPerson={handleSelectGreatPerson}
+                    setHoveredTech={setHoveredTech}
+                    setHoveredUnit={setHoveredUnit}
+                    templates={templates}
                 />}
                 {gameOverDialogOpen && <GameOverDialog
                     open={gameOverDialogOpen}

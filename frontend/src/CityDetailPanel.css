@@ -1,0 +1,21 @@
+.puppet-income {
+    border: 0.3px solid black;
+    border-radius: 25px;
+    width: 40px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.puppet-income-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 50px;
+    position: absolute;
+    right: 0;
+    top: 0;
+    z-index: 2;
+}

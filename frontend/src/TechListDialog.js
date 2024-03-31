@@ -57,7 +57,8 @@ const TechCard = ({tech, gameState, templates, myCiv, setHoveredTech, handleClic
                 {tech.unlocks_buildings.map((buildingName, index) => {
                     return <BriefBuildingDisplay 
                         key={index} 
-                        buildingName={buildingName} 
+                        buildingName={buildingName}
+                        clickable={false}
                         hideCost={true} 
                         templates={templates} 
                         setHoveredBuilding={()=>null}

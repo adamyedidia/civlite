@@ -125,7 +125,6 @@ def generate_decline_locations(hexes: dict[str, Hex], n: int, existing_decline_l
     num_attempts = 0
 
     while len(decline_locations) < n and num_attempts < 1000:
-        print(num_attempts, n, len(decline_locations))
         decline_location = random.choice(list(hexes.values()))
 
         if is_valid_decline_location(decline_location, hexes, existing_decline_locations + decline_locations):

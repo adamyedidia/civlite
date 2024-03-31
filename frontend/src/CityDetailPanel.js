@@ -1,26 +1,56 @@
 import React from 'react';
+import "./CityDetailPanel.css";
 import crateImg from './images/crate.png';
 import hexesImg from './images/hexes.png';
 import workerImg from "./images/worker.png";
 
+import { WithTooltip } from './WithTooltip';
 import { TextOnIcon } from './TextOnIcon';
 
 const roundValue = (value) => {
     return value < 10 ? value.toFixed(1) : Math.round(value);
 };
 
-const FocusSelectionOption = ({ focus, amount, onClick, isSelected }) => {
+const FocusSelectionOption = ({ focus, amount, onClick, onDoubleClick, hasPuppets, isSelected }) => {
+    let clickTimeout = null;
+    const handleClick = () => {
+        if (clickTimeout !== null) {
+            clearTimeout(clickTimeout);
+            clickTimeout = null;
+            onDoubleClick();
+        } else {
+            clickTimeout = setTimeout(() => {
+                onClick();
+                clearTimeout(clickTimeout);
+                clickTimeout = null;
+            }, 300); // 300 ms delay to distinguish between single and double click
+        }
+    };
+    const tooltip = <>
+        {isSelected ? <p>{`+${amount.toFixed(2)} ${focus} from focus`}</p> : <p>Click to focus</p>}
+        {hasPuppets && <p>dbl click = include puppets</p>}
+    </>
+
     return (
         <div
             className={`focus-selection-option ${focus} ${isSelected ? 'selected' : ''}`}
-            onClick={onClick}
+            onClick={hasPuppets ? handleClick : onClick}
         >
-            <TextOnIcon image={workerImg} tooltip={isSelected ? `+${amount.toFixed(2)} ${focus} from city focus` : "Click to focus"}>
+            <TextOnIcon image={workerImg} tooltip={tooltip}>
                 {amount.toFixed(1)}
             </TextOnIcon>
         </div>
     );
 };
+
+const PuppetIncomeTooltip = ({projectedIncomePuppets, projectedIncomePuppetsTotal, title}) => {
+    return (<>
+        <b>{projectedIncomePuppetsTotal.toFixed(2)} {title} from puppets:</b>
+        <table><tbody>
+            {Object.entries(projectedIncomePuppets).map(([puppetId, income]) => <tr key={puppetId}><td>+{income.toFixed(2)}</td><td>{puppetId}</td></tr>)}
+        </tbody></table>
+    </>);
+}
 
 export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity, 
    total_tooltip, handleClickFocus, children }) => {
@@ -37,7 +67,11 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
     const totalAmountTooltip = `${projected_total_rounded_2} ${title} ${total_tooltip}`;
 
     const storedStyle = hideStored ? { visibility: 'hidden' } : {};
-
+    const projectedIncomePuppets = selectedCity?.projected_income_puppets?.[title];
+    const hasPuppetsEvenIfNoIncome = Object.keys(selectedCity?.projected_income_puppets?.["wood"] || {}).length > 0;
+    const hasPuppets = projectedIncomePuppets && Object.keys(projectedIncomePuppets).length > 0;
+    const projectedIncomePuppetsTotal = hasPuppets ? Object.values(projectedIncomePuppets).reduce((total, puppetIncome) => total + puppetIncome, 0) : null;
+    const projectedIncomePuppetsTooltip = hasPuppets ? <PuppetIncomeTooltip title={title} projectedIncomePuppets={projectedIncomePuppets} projectedIncomePuppetsTotal={projectedIncomePuppetsTotal} /> : null;
     return (
         <div className={`city-detail-panel ${title}-area`}>
             <div className="panel-header">
@@ -56,12 +90,22 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
                     {!noFocus && (
                         <>
                             +
-                            <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} amount={projected_income_focus} onClick={() => handleClickFocus(title)} />
+                            <FocusSelectionOption focus={title} isSelected={selectedCity?.focus === title} amount={projected_income_focus} 
+                                hasPuppets={hasPuppetsEvenIfNoIncome}
+                                onClick={() => handleClickFocus(title)} onDoubleClick={() => handleClickFocus(title, true)} />
                         </>
                     )}
                 </div>
             </div>
             <div className="panel-content">
+                {hasPuppets && (<div className="puppet-income-container panel-banner">
+                    <div>+</div>
+                    <WithTooltip tooltip={projectedIncomePuppetsTooltip} alignBottom={true}> 
+                        <div className="puppet-income">
+                            {roundValue(projectedIncomePuppetsTotal)} 
+                        </div>
+                    </WithTooltip>
+                </div>)}
                 {children}
             </div>
         </div>

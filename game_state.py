@@ -23,6 +23,7 @@ import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
 from utils import dream_key, staged_moves_key
+from great_person import random_great_people_by_age
 
 from sqlalchemy import func
 
@@ -112,6 +113,7 @@ class GameState:
         civ.city_power -= 100
         city = self.new_city(civ, hex, city_id)
         self.register_city(city)
+        city.set_territory_parent_if_needed(game_state=self)
 
         if civ.game_player:
             civ.game_player.score += 2
@@ -267,6 +269,9 @@ class GameState:
         game_player.civ_id = civ.id
         game_player.decline_this_turn = True
         self.make_new_civ_from_the_ashes(city)
+        civ.great_people_choices = random_great_people_by_age(age=self.advancement_level, n=3)
+        print(f"Great people choices: {civ.great_people_choices}")
+
         return from_civ_perspectives
 
 
@@ -280,6 +285,7 @@ class GameState:
             # This is not a fresh city , it's a pre-existing one.
             print(f"Declining to existing city at {coords}")
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
+            hex.city.orphan_territory_children(self)
             hex.city.civ = Civ(hex.city.civ_to_revolt_into, game_player=None)
         else:
             # This is a fake city, now it is becoming a real city.
@@ -479,10 +485,40 @@ class GameState:
                 self.midturn_update()
 
             if move['move_type'] == 'choose_focus':
+                print(f"{move=}")
                 game_player = self.game_player_by_player_num[player_num]
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
                 city.focus = move['focus']
+                if move.get('with_puppets'):
+                    for puppet in city.get_puppets(self):
+                        puppet.focus = move['focus']
+                        
+                game_player_to_return = game_player
+                self.midturn_update()
+
+            if move['move_type'] == 'make_territory':
+                game_player = self.game_player_by_player_num[player_num]
+                city_id: str = move['city_id']
+                city: City = self.cities_by_id[city_id]
+                previous_parent: City | None = city.get_territory_parent(self)
+                civ = city.civ
+                if civ.city_power > 100:
+                    civ.city_power -= 100
+                    city.make_territory_capital(self)
+
+                    instead_of_city_id: str = move['other_city_id']
+                    print(f"{instead_of_city_id=}")
+                    if instead_of_city_id is not None:
+                        instead_of_city: City = self.cities_by_id[instead_of_city_id]
+                        print("setting parent")
+                        instead_of_city.set_territory_parent_if_needed(self)
+                        print("orphaning children")
+                        instead_of_city.orphan_territory_children(self, make_new_territory=False)
+                        print(f"{instead_of_city._territory_parent_id=}")
+                    if previous_parent is not None and previous_parent.id != instead_of_city_id:
+                        previous_parent.orphan_territory_children(self, make_new_territory=False)
+
                 game_player_to_return = game_player
                 self.midturn_update()
 
@@ -497,6 +533,13 @@ class GameState:
                     civ.trade_hub_id = city_id
                 game_player_to_return = game_player
                 self.midturn_update()
+
+            if move['move_type'] == 'select_great_person':
+                game_player: GamePlayer = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ: Civ = self.civs_by_id[game_player.civ_id]
+                civ.select_great_person(self, move['great_person_name'])
+                game_player_to_return = game_player
 
             if move['move_type'] == 'found_city':
                 game_player = self.game_player_by_player_num[player_num]
@@ -631,7 +674,7 @@ class GameState:
                 game_player.score -= MULLIGAN_PENALTY
                 game_player.score_from_survival -= MULLIGAN_PENALTY
 
-        print('ending turn')
+        print(f'GameState ending turn {self.turn_num}')
 
         self.roll_turn(sess)
 
@@ -654,6 +697,8 @@ class GameState:
         return GAME_END_SCORE + EXTRA_GAME_END_SCORE_PER_PLAYER * len(self.game_player_by_player_num)
 
     def roll_turn(self, sess) -> None:
+        print(f"GameState incrementing turn {self.turn_num} -> {self.turn_num + 1}")
+
         self.turn_num += 1
 
         self.barbarians.target1 = self.pick_random_hex()
@@ -803,7 +848,6 @@ class GameState:
             new_civ = Civ(CivTemplate.from_json(CIVS[civ_name]), game_player=None)
 
             city = self.new_city(new_civ, hex)
-            city.unhappiness = 40
             # Note that city is NOT registered; i.e. hex.city is not this city, since this is a fake city.
             self.fresh_cities_for_decline[hex.coords] = city
 
@@ -836,7 +880,7 @@ class GameState:
 
         sess.commit()
  
-    def handle_wonder_built(self, sess, civ: Civ, building_template: BuildingTemplate, national: bool = False) -> None:
+    def handle_wonder_built(self, civ: Civ, building_template: BuildingTemplate, national: bool = False) -> None:
         if national:
             if civ.id not in self.national_wonders_built_by_civ_id:
                 self.national_wonders_built_by_civ_id[civ.id] = [building_template.name]
@@ -859,13 +903,6 @@ class GameState:
                         break
 
         if not national:
-            for civ_to_announce in self.civs_by_id.values():
-                self.add_animation_frame_for_civ(sess, {
-                    'type': 'WonderBuilt',
-                    'civ': civ.template.name,
-                    'wonder': building_template.name,
-                }, civ_to_announce)
-            
             self.add_announcement(f'{civ.moniker()} built the {building_template.name}!')
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:

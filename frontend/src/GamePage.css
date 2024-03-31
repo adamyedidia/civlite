@@ -122,11 +122,15 @@ body {
   left:0;
 }
 
-.flag-arrow {
-  position: 'absolute';
+.map-line {
+  position: absolute;
   height: 3px; /* This is really the width of the arrow, due to how the rotation is defined */
-  background-color: #111c;
 }
+
+.flag-arrow {
+  background-color: ;
+}
+
 .flag-arrow::after {
   content: '';
   position: absolute;
@@ -137,3 +141,8 @@ body {
   border-style: solid;
   border-color: transparent transparent transparent #111c;
 }
+
+.puppet-arrow {
+  height: 6px;
+}
+

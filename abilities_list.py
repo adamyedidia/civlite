@@ -89,6 +89,16 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Decrease food demand by {x}.",
         numbers=[x],
     ),
+    "ExtraTerritory": lambda: Ability(
+        name="ExtraTerritory",
+        description=f"+1 maximum territories.",
+        numbers=[],
+    ),
+    "ReducePuppetDistancePenalty": lambda x: Ability(
+        name="ReducePuppetDistancePenalty",
+        description=f"Reduce travel distance cost for puppet cities to {'{:.0%}'.format(x)} per hex.",
+        numbers=[x],
+    ),
     "NewUnitsGainBonusStrength": lambda x: Ability(
         name="UnitsHaveExtraStrength",
         description=f"New units you build get +{x} extra strength.",
