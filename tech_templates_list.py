@@ -90,6 +90,7 @@ TECHS = {
         'unlocks_units': ['Swordsman'],
         'unlocks_buildings': ['Colossus'],
         'advancement_level': 2,
+        'great_scientist_name': 'Ashurbanipal',
     },
     'Currency': {
         'name': 'Currency',
@@ -108,6 +109,7 @@ TECHS = {
         'cost': 50,
         'unlocks_buildings': ['Aqueduct', 'Colosseum'],
         'advancement_level': 2,
+        'great_scientist_name': 'Emperor Vespasian',
     },
     'Education': {
         'name': 'Education',

@@ -479,6 +479,10 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["armored", 30],
         }],
+        "great_people_names": {
+            "general_normal": "Jayne Cobb",
+            "general_advanced": "Rocket Raccoon",
+        }
     },
     "Giant Death Robot": {
         "name": "Giant Death Robot",
@@ -492,6 +496,11 @@ UNITS = {
         "tags": ["armored"],
         "prereq": "Megarobotics",
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Tony Stark",
+            "general_advanced": "Optimus Prime",
+            "general_normal": "Amuro Ray",
+        },
     },
     "Nanoswarm": {
         "name": "Nanoswarm",
