@@ -220,7 +220,7 @@ class City:
     def handle_unhappiness(self, game_state: 'GameState') -> None:
         self.revolting_starting_vitality = 1.0 + 0.1 * game_state.turn_num + 0.035 * self.unhappiness
 
-        if self.unhappiness > 100:
+        if not self.is_fake_city() and self.unhappiness > 100 and self.civ_to_revolt_into is not None:
             # Revolt to AI
             assert self.hex is not None
             game_state.process_decline_option(self.hex.coords, [])
