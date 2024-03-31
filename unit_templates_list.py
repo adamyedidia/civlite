@@ -389,6 +389,9 @@ UNITS = {
             "name": "BonusNextTo",
             "numbers": ["infantry", 15],
         }],
+        "great_people_names": {
+            "general_advanced": "Oliver Cromwell",
+        },
     },
     "Infantry": {
         "name": "Infantry",
