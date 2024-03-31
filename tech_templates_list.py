@@ -4,12 +4,14 @@ TECHS = {
         'cost': 25,
         'unlocks_units': ['Archer'],
         'advancement_level': 1,
+        'great_scientist_name': 'Artemis',
     },
     'Bronze Working': {
         'name': 'Bronze Working',
         'cost': 25,
         'unlocks_units': ['Spearman'],
         'advancement_level': 1,
+        'great_scientist_name': 'Hephaestus',
     },
     'Pottery': {
         'name': 'Pottery',
@@ -112,6 +114,7 @@ TECHS = {
         'cost': 55,
         'unlocks_buildings': ['University', 'National College'],
         'advancement_level': 3,
+        'great_scientist_name': 'Robert of Sorbon',
     },
     'Machinery': {
         'name': 'Machinery',
@@ -126,6 +129,7 @@ TECHS = {
         'unlocks_buildings': ['Chichen Itza'],
         'unlocks_units': ['Pikeman'],
         'advancement_level': 3,
+        'great_scientist_name': 'Emperor Wen of Sui',
     },
     'Chivalry': {
         'name': 'Chivalry',
@@ -133,6 +137,7 @@ TECHS = {
         'unlocks_units': ['Knight', 'Militia'],
         'unlocks_buildings': [],
         'advancement_level': 3,
+        'great_scientist_name': 'Uther Pendragon',
     },
     'Compass': {
         'name': 'Compass',

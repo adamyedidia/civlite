@@ -120,7 +120,7 @@ def _target_value_by_age(age: int) -> int:
 
 merchant_names = {
     "metal": ["Beowulf", "[ANCIENT METAL MERCHANT]", "Colaeus", "Ned Stark", "Catherine de Medici", "Benjamin Franklin", "Otto von Bismark", "Franklin Delano Roosevelt", "Vladimir Putin", "[FUTURE METAL MERCHANT]"],
-    "wood": ["Gilgamesh", "[ANCIENT WOOD MERCHANT]", "Marcus Licinius Crassus", "Irene of Athens", "Leonardo da Vinci", "[INDUSTRIAL WOOD MERCHANT]", "Henry Ford", "[MODERN WOOD MERCHANT]", "Steve Jobs", "[FUTURE WOOD MERCHANT]"],
+    "wood": ["Gilgamesh", "[ANCIENT WOOD MERCHANT]", "Marcus Licinius Crassus", "Tyrion Lannister", "Leonardo da Vinci", "[INDUSTRIAL WOOD MERCHANT]", "Henry Ford", "[MODERN WOOD MERCHANT]", "Steve Jobs", "[FUTURE WOOD MERCHANT]"],
     "food": ["Moses", "[ANCIENT FOOD MERCHANT]", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "[INDUSTRIAL FOOD MERCHANT]", "Queen Victoria", "Gandhi", "[INFORMATION FOOD MERCHANT]", "[FUTURE FOOD MERCHANT]"],
     "science": ["Prometheus", "Confucius", "Archimedes", "Copernicus", "Francis Bacon", "Charles Darwin", "Albert Einstein", "John von Neumann", "[INFORMATION SCIENCE MERCHANT]", "[FUTURE SCIENCE MERCHANT]"],
 }
@@ -174,9 +174,22 @@ great_people_by_name["Alexandre Dumas"].number = 3
 def random_great_people_by_age(age: int, n: int = 1) -> list[GreatPerson]:
     return random.sample(_great_people_by_age[age], n)
 
-# unnamed great generals
-# for name, person in great_people_by_name.items():
-#     if isinstance(person, GreatGeneral) and person.name.startswith("["):
-#         print(person.unit_template.name, person.number)
+# unnamed great people
+for age, people in _great_people_by_age.items():
+    print(f"======= Age {age} =======")
+    for person in people:
+        if person.name.startswith("["):
+            if isinstance(person, GreatGeneral):
+                print(person.number, person.unit_template.name)
+            elif isinstance(person, GreatMerchant):
+                print(person.amount, person.resource)
+            elif isinstance(person, GreatScientist):
+                print(person.tech_template.name)
+            elif isinstance(person, GreatEngineer):
+                print(f"{person.unit_template.building_name} ({person.unit_template.name})")
+            else:
+                print(person.name)
+        
+    
 
 

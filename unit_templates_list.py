@@ -37,7 +37,9 @@ UNITS = {
         "prereq": "Archery",
         "abilities": [],
         "great_people_names": {
-            "general_advanced": "Ashoka",
+            "engineer": "Ashoka",
+            "general_advanced": "Hippolyta",
+            "general_normal": "Legolas",
             "general_horde": "Robin Hood",
         },
     },
@@ -94,6 +96,7 @@ UNITS = {
         "tags": ["defensive"],
         "abilities": [],
         "great_people_names": {
+            "engineer": "Bran the Builder",
             "general_advanced": "Hector of Troy",
             "general_normal": "Leonidas",
             "general_horde": "King Theoden",
@@ -151,7 +154,8 @@ UNITS = {
             "numbers": ["infantry", 8],
         }],
         "great_people_names": {
-            "engineer": "Hannibal Barca",
+            "general_normal": "Hannibal Barca",
+            "general_advanced": "Tomyris",
             "general_horde": "Attila the Hun",
         },
     },
@@ -171,7 +175,7 @@ UNITS = {
             "engineer": "Julius Caesar",
             "general_advanced": "Castor and Pollux",
             "general_normal": "Scipio Africanus",
-            "general_horde": "Montezuma",
+            "general_horde": "Aragorn",
         },
     },
     "Pikeman": {
@@ -192,6 +196,7 @@ UNITS = {
         "great_people_names": {
             "general_normal": "Frederick Barbarossa",
             "general_advanced": "Sun Tzu",
+            "general_horde": "Montezuma",
         },
     },
     "Crossbowman": {
@@ -269,6 +274,7 @@ UNITS = {
         "abilities": [],
         "great_people_names": {
             "general_advanced": "Alexandre Dumas",
+            "general_normal": "Hernan Cortes",
             "general_horde": "George Washington",
         },
     },
@@ -288,7 +294,8 @@ UNITS = {
             "numbers": ["defensive", 10],
         }],
         "great_people_names": {
-            "general_normal": "Napolean Bonaparte",
+            "general_horde": "Napolean Bonaparte",
+            "general_normal": "Jack Sparrow",
             "general_advanced": "Mehmet II",
         },
     },
@@ -344,7 +351,8 @@ UNITS = {
         "abilities": [],
         "great_people_names": {
             "engineer": "Ulysses S. Grant",
-            "general_normal": "Robert E Lee",
+            "general_advanced": "Robert E Lee",  # Issue: the civil war is generally taken to ahve been after the napoleonic wars.
+            "general_normal": "Duke of Wellington",
         },
     },
     "Gatling Gun": {
@@ -362,6 +370,9 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["infantry", 15],
         }],
+        "great_people_names": {
+            "engineer": "Richard Gatling",
+        },
     },
     "Artillery": {
         "name": "Artillery",
@@ -445,6 +456,10 @@ UNITS = {
             "name": "Splash",
             "numbers": [0.6],
         }],
+        "great_people_names": {
+            "engineer": "Robert Oppenheimer",  # Issue: Tocket Launcher isn't really the same as Atomic Bomb
+            "general_advanced": "Douglas MacArthur",  # Issue: Tocket Launcher isn't really the same as Atomic Bomb
+        },
     },
     "Bazooka": {
         "name": "Bazooka",
