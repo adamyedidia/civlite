@@ -180,7 +180,7 @@ class Civ:
             "initial_advancement_level": self.initial_advancement_level,
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
-            "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices]
+            "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],
             "max_territories": self.max_territories,
         }
 
