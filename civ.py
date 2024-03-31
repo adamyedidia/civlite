@@ -7,7 +7,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ_templates_list import ANCIENT_CIVS, CIVS
 from game_player import GamePlayer
-from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD
+from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD
 from tech_template import TechTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
@@ -322,8 +322,8 @@ class Civ:
                 if status == TechStatus.DISCARDED:
                     self.techs_status[tech_name] = TechStatus.UNAVAILABLE
             if self.game_player is not None:
-                self.game_player.score_from_researching_techs += 15
-                self.game_player.score += 15
+                self.game_player.score_from_researching_techs += RENAISSANCE_VP_REWARD
+                self.game_player.score += RENAISSANCE_VP_REWARD
                 self.game_player.renaissances += 1
         else:
             self.science -= tech.cost
