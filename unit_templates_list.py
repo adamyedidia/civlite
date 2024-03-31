@@ -36,6 +36,12 @@ UNITS = {
         "tags": ["ranged"],
         "prereq": "Archery",
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Ashoka",
+            "general_advanced": "Hippolyta",
+            "general_normal": "Legolas",
+            "general_horde": "Robin Hood",
+        },
     },
     "Spearman": {
         "name": "Spearman",
@@ -52,6 +58,11 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["mounted", 4],
         }],
+        "great_people_names": {
+            "general_advanced": "Achilles and Patroclus",
+            "general_normal": "Lysander",
+            "general_horde": "Boudicca",
+        },
     },
     "Chariot": {
         "name": "Chariot",
@@ -68,6 +79,9 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["ranged", 5],
         }],
+        "great_people_names": {
+            "general_advanced": "Thutmose III",
+        },
     },
     "Garrison": {
         "name": "Garrison",
@@ -81,6 +95,12 @@ UNITS = {
         "prereq": "Masonry",
         "tags": ["defensive"],
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Bran the Builder",
+            "general_advanced": "Hector of Troy",
+            "general_normal": "Leonidas",
+            "general_horde": "King Theoden",
+        },
     },
     "Catapult": {
         "name": "Catapult",
@@ -113,6 +133,10 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["siege", 6],
         }],
+        "great_people_names": {
+            "general_advanced": "Alexander the Great",
+            "general_horde": "Gengis Khan",
+        },
     },
     "Horse Archer": {
         "name": "Horse Archer",
@@ -129,6 +153,11 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["infantry", 8],
         }],
+        "great_people_names": {
+            "general_normal": "Hannibal Barca",
+            "general_advanced": "Tomyris",
+            "general_horde": "Attila the Hun",
+        },
     },
     "Swordsman": {
         "name": "Swordsman",
@@ -142,6 +171,12 @@ UNITS = {
         "tags": ["infantry"],
         "prereq": "Iron Working",
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Julius Caesar",
+            "general_advanced": "Castor and Pollux",
+            "general_normal": "Scipio Africanus",
+            "general_horde": "Aragorn",
+        },
     },
     "Pikeman": {
         "name": "Pikeman",
@@ -158,6 +193,11 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["mounted", 7],
         }],
+        "great_people_names": {
+            "general_normal": "Frederick Barbarossa",
+            "general_advanced": "Sun Tzu",
+            "general_horde": "Montezuma",
+        },
     },
     "Crossbowman": {
         "name": "Crossbowman",
@@ -174,6 +214,10 @@ UNITS = {
             "name": "BonusNextTo",
             "numbers": ["siege", 4],
         }],
+        "great_people_names": {
+            "general_advanced": "Henry V",
+            "general_normal": "Joan of Arc",
+        },
     },
     "Knight": {
         "name": "Knight",
@@ -190,6 +234,12 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["ranged", 8],
         }],
+        "great_people_names": {
+            "engineer": "Charlemagne",
+            "general_advanced": "Roland and Oliver",
+            "general_normal": "William of Orange",
+            "general_horde": "King Arthur",
+        },
     },
     "Trebuchet": {
         "name": "Trebuchet",
@@ -206,6 +256,9 @@ UNITS = {
             "name": "BonusNextTo",
             "numbers": ["infantry", 6],
         }],
+        "great_people_names": {
+            "general_advanced": "Richard the Lionheart",
+        },
     },
     "Musketman": {
         "name": "Musketman",
@@ -219,6 +272,11 @@ UNITS = {
         "tags": ["infantry", "gunpowder"],
         "prereq": "Gunpowder",
         "abilities": [],
+        "great_people_names": {
+            "general_advanced": "Alexandre Dumas",
+            "general_normal": "Hernan Cortes",
+            "general_horde": "George Washington",
+        },
     },
     "Cannon": {
         "name": "Cannon",
@@ -235,6 +293,11 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["defensive", 10],
         }],
+        "great_people_names": {
+            "general_horde": "Napolean Bonaparte",
+            "general_normal": "Jack Sparrow",
+            "general_advanced": "Mehmet II",
+        },
     },
     "Militia": {
         "name": "Militia",
@@ -248,6 +311,11 @@ UNITS = {
         "tags": ["defensive"],
         "prereq": "Chivalry",
         "abilities": [],
+        "great_people_names": {
+            "general_advanced": "Odo of France",
+            "general_normal": "William Wallace",
+            "general_horde": "El Cid",
+        },
     },
     "Cavalry": {
         "name": "Cavalry",
@@ -264,6 +332,10 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["siege", 15],
         }],
+        "great_people_names": {
+            "engineer": "Gustavus Adolphus",
+            "general_advanced": "Sitting Bull",
+        },
     },
     "Rifleman": {
         "name": "Rifleman",
@@ -277,6 +349,11 @@ UNITS = {
         "tags": ["infantry", "gunpowder"],
         "prereq": "Rifling",
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Ulysses S. Grant",
+            "general_advanced": "Robert E Lee",  # Issue: the civil war is generally taken to ahve been after the napoleonic wars.
+            "general_normal": "Duke of Wellington",
+        },
     },
     "Gatling Gun": {
         "name": "Gatling Gun",
@@ -293,6 +370,9 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["infantry", 15],
         }],
+        "great_people_names": {
+            "engineer": "Richard Gatling",
+        },
     },
     "Artillery": {
         "name": "Artillery",
@@ -309,6 +389,9 @@ UNITS = {
             "name": "BonusNextTo",
             "numbers": ["infantry", 15],
         }],
+        "great_people_names": {
+            "general_advanced": "Oliver Cromwell",
+        },
     },
     "Infantry": {
         "name": "Infantry",
@@ -322,6 +405,11 @@ UNITS = {
         "tags": ["infantry", "gunpowder"],
         "prereq": "Radio",
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Winston Churchill",
+            "general_advanced": "Catherine the Great",
+            "general_normal": "Dwight D. Eisenhower",
+        },
     },
     "Tank": {
         "name": "Tank",
@@ -335,6 +423,10 @@ UNITS = {
         "tags": ["armored"],
         "prereq": "Combined Arms",
         "abilities": [],
+        "great_people_names": {
+            "general_normal": "Erwin Rommel",
+            "general_advanced": "George Patton", 
+        },
     },
     "Machine Gun": {
         "name": "Machine Gun",
@@ -367,6 +459,10 @@ UNITS = {
             "name": "Splash",
             "numbers": [0.6],
         }],
+        "great_people_names": {
+            "engineer": "Robert Oppenheimer",  # Issue: Tocket Launcher isn't really the same as Atomic Bomb
+            "general_advanced": "Douglas MacArthur",  # Issue: Tocket Launcher isn't really the same as Atomic Bomb
+        },
     },
     "Bazooka": {
         "name": "Bazooka",
@@ -383,6 +479,10 @@ UNITS = {
             "name": "BonusAgainst",
             "numbers": ["armored", 30],
         }],
+        "great_people_names": {
+            "general_normal": "Jayne Cobb",
+            "general_advanced": "Rocket Raccoon",
+        }
     },
     "Giant Death Robot": {
         "name": "Giant Death Robot",
@@ -396,6 +496,11 @@ UNITS = {
         "tags": ["armored"],
         "prereq": "Megarobotics",
         "abilities": [],
+        "great_people_names": {
+            "engineer": "Tony Stark",
+            "general_advanced": "Optimus Prime",
+            "general_normal": "Amuro Ray",
+        },
     },
     "Nanoswarm": {
         "name": "Nanoswarm",

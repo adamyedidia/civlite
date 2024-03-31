@@ -141,10 +141,11 @@ class Unit:
                         self.update_nearby_hexes_visibility(game_state)
                         coord_strs.append(neighboring_hex.coords)
 
-                        game_state.add_animation_frame(sess, {
-                            "type": "UnitMovement",
-                            "coords": coord_strs,
-                        }, hexes_must_be_visible=[starting_hex, neighboring_hex], no_commit=True)
+                        if sess is not None:
+                            game_state.add_animation_frame(sess, {
+                                "type": "UnitMovement",
+                                "coords": coord_strs,
+                            }, hexes_must_be_visible=[starting_hex, neighboring_hex], no_commit=True)
 
                         return True
                     

@@ -3,11 +3,11 @@ from enum import Enum
 from typing import TYPE_CHECKING, Optional, Dict
 from collections import defaultdict
 from building_templates_list import BUILDINGS
-
+from great_person import GreatPerson, great_people_by_name
 from civ_template import CivTemplate
 from civ_templates_list import ANCIENT_CIVS, CIVS
 from game_player import GamePlayer
-from settings import FAST_VITALITY_DECAY_RATE, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD
+from settings import NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD
 from tech_template import TechTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
@@ -49,6 +49,7 @@ class Civ:
         self.in_decline = False
         self.initial_advancement_level = 0
         self.trade_hub_id: Optional[str] = None
+        self.great_people_choices: list[GreatPerson] = []
         self.max_territories: int = 3
 
     def __eq__(self, other: 'Civ') -> bool:
@@ -179,6 +180,7 @@ class Civ:
             "initial_advancement_level": self.initial_advancement_level,
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
+            "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices]
             "max_territories": self.max_territories,
         }
 
@@ -264,6 +266,9 @@ class Civ:
         if self.game_player and not self.in_decline and (decline_coords := self.bot_decide_decline(game_state)):
             game_state.execute_decline(decline_coords, self.game_player)
 
+        if  len(self.great_people_choices) > 0:
+            self.select_great_person(game_state, self.great_people_choices[0].name)
+
         if random.random() < 0.2 or self.target1 is None or self.target2 is None:
             enemy_cities = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             possible_target_hexes = [*[city.hex for city in enemy_cities if city.hex], *[camp.hex for camp in game_state.camps if camp.hex]]
@@ -316,6 +321,10 @@ class Civ:
             return base_cost
         return base_cost * (1 + self.game_player.renaissances)
 
+    def gain_tech(self, game_state: 'GameState', tech: TechTemplate) -> None:
+        self.techs_status[tech.name] = TechStatus.RESEARCHED
+        self.fill_out_available_buildings(game_state)
+
     def complete_research(self, tech: TechTemplate, game_state: 'GameState'):
 
         for tech_name, status in self.techs_status.items():
@@ -330,12 +339,12 @@ class Civ:
                 if status == TechStatus.DISCARDED:
                     self.techs_status[tech_name] = TechStatus.UNAVAILABLE
             if self.game_player is not None:
-                self.game_player.score_from_researching_techs += 15
-                self.game_player.score += 15
+                self.game_player.score_from_researching_techs += RENAISSANCE_VP_REWARD
+                self.game_player.score += RENAISSANCE_VP_REWARD
                 self.game_player.renaissances += 1
         else:
             self.science -= tech.cost
-            self.techs_status[tech.name] = TechStatus.RESEARCHED
+            self.gain_tech(game_state, tech)
 
         # Never discard renaissance
         self.techs_status['Renaissance'] = TechStatus.UNAVAILABLE
@@ -368,16 +377,23 @@ class Civ:
                     "tech": researching_tech.name,
                 }, self)
 
-        if self.vitality > 1:
-            self.vitality = max(self.vitality * FAST_VITALITY_DECAY_RATE, VITALITY_DECAY_RATE)
-        else:
-            self.vitality *= VITALITY_DECAY_RATE
+        self.vitality *= VITALITY_DECAY_RATE
 
         self.city_power += BASE_CITY_POWER_INCOME * self.vitality
 
     def update_game_player(self, game_player_by_player_num: dict[int, GamePlayer]) -> None:
         if self.game_player is not None:
             self.game_player = game_player_by_player_num[self.game_player.player_num]
+
+    def capital_city(self, game_state) -> 'City':
+        return next(city for city in game_state.cities_by_id.values() if city.civ == self and city.capital)
+
+    def select_great_person(self, game_state, great_person_name):
+        assert self.great_people_choices is not None
+        assert great_person_name in [great_person.name for great_person in self.great_people_choices]
+        great_person: GreatPerson = great_people_by_name[great_person_name]
+        great_person.apply(city=self.capital_city(game_state), game_state=game_state)
+        self.great_people_choices = []
 
     @staticmethod
     def from_json(json: dict) -> "Civ":
@@ -399,6 +415,7 @@ class Civ:
         civ.in_decline = json["in_decline"]
         civ.initial_advancement_level = json.get("initial_advancement_level", 0)
         civ.trade_hub_id = json.get("trade_hub_id")
+        civ.great_people_choices = [GreatPerson.from_json(great_person_json) for great_person_json in json.get("great_people_choices", [])]
         civ.max_territories = json.get("max_territories", 3)
 
         return civ
