@@ -35,7 +35,7 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
             </div>
             {tech.name == "Renaissance" && <>
                 <p>Re-enable all discarded technologies</p>
-                <p>Gain 15 VPs</p>
+                <p>Gain 25 VPs</p>
             </>
             }
         </div>
