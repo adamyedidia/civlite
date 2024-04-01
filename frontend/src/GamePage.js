@@ -2611,8 +2611,12 @@ export default function GamePage() {
         if (declineOptionsView) {
             return city?.is_decline_view_option;
         }
+        if (engineState === EngineStates.GAME_OVER) {
+            return true;
+        }
         if (playerNum !== null && playerNum !== undefined) {
             return civsByIdRef.current?.[city.civ_id]?.game_player?.player_num === playerNum
+
         }
         return false;
     }
@@ -2628,7 +2632,7 @@ export default function GamePage() {
     };
 
     const handleClickCity = (city) => {
-        if (engineState !== EngineStates.PLAYING) {return;}
+        if (engineState !== EngineStates.PLAYING && engineState !== EngineStates.GAME_OVER) {return;}
         if (city.id === selectedCity?.id) {
             setSelectedCity(null);
         }
