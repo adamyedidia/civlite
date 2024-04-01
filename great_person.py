@@ -25,8 +25,10 @@ class GreatPerson(abc.ABC):
 
     @abc.abstractmethod
     def apply(self, game_state, city: City):
-        # TODO remove sess?
         raise NotImplementedError()
+    
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self.name}>"
     
     def to_json(self):
         return {
@@ -164,10 +166,10 @@ _great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", UnitTemplate.from_j
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 
 # Set some numbers to their correct values, even if it's not balanced.
-great_people_by_name["King Arthur"].number = 12  # Should be 11
-great_people_by_name["Alexandre Dumas"].number = 3  # Should be 4
-great_people_by_name["Achilles and Patroclus"].number = 2  # Should be 3.2
-great_people_by_name["Roland and Oliver"].number = 2  # Should be 2.7
+great_people_by_name["King Arthur"].number = 12  # Should be 11  #type: ignore
+great_people_by_name["Alexandre Dumas"].number = 3  # Should be 4  #type: ignore
+great_people_by_name["Achilles and Patroclus"].number = 2  # Should be 3.2  #type: ignore
+great_people_by_name["Roland and Oliver"].number = 2  # Should be 2.7  #type: ignore
 
 def random_great_people_by_age(age: int, n: int = 1) -> list[GreatPerson]:
     return random.sample(_great_people_by_age[age], n)
