@@ -64,6 +64,7 @@ class City:
         self.projected_income_focus = resourcedict()  # income from focus
         self.projected_income_puppets: dict[str, dict[str, float]] = {'wood': {}, 'metal': {}}
         self.terrains_dict = {}
+        self.founded_turn: int | None = None
 
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
@@ -292,11 +293,15 @@ class City:
         self.handle_cleanup()
         self.midturn_update(game_state)
 
+    def age(self, game_state) -> int:
+        assert self.founded_turn is not None, "Can't get age of a fake city."
+        return game_state.turn_num - self.founded_turn
+
     def _calculate_food_demand(self, game_state: 'GameState') -> int:
+        if self.founded_turn is None: return 0  # Not sure why we're even calculating this.
+        result = 1.0 * self.age(game_state)
         if self.capital:
-            result = int(0.5 * self.population)
-        else:
-            result = 2 * self.population
+            result *= 0.25
 
         if self.is_territory_capital:
             result -= 2 * len(self.get_puppets(game_state))
@@ -307,6 +312,7 @@ class City:
             for ability in building.template.abilities:
                 if ability.name == 'DecreaseFoodDemand':
                     result -= ability.numbers[0]
+        result = max(result, 0)
         return result
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:
@@ -969,6 +975,7 @@ class City:
             "is_decline_view_option": self.is_decline_view_option,
             "food_demand": self.food_demand,
             "revolt_unit_count": self.revolt_unit_count,
+            "founded_turn": self.founded_turn,
 
             "is_trade_hub": self.is_trade_hub(),
         }
@@ -1006,6 +1013,7 @@ class City:
         city.revolt_unit_count = json["revolt_unit_count"]
         city._territory_parent_id = json["territory_parent_id"]
         city._territory_parent_coords = json["territory_parent_coords"]
+        city.founded_turn = json["founded_turn"]
 
         city.handle_cleanup()
 

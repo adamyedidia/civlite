@@ -387,7 +387,7 @@ class Civ:
 
     def select_great_person(self, game_state, great_person_name):
         assert self.great_people_choices is not None
-        assert great_person_name in [great_person.name for great_person in self.great_people_choices]
+        assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
         great_person: GreatPerson = great_people_by_name[great_person_name]
         great_person.apply(city=self.capital_city(game_state), game_state=game_state)
         game_state.add_announcement(f"{great_person.name} will lead {self.moniker()} to glory.")
