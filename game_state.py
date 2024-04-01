@@ -22,7 +22,7 @@ from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
-from utils import dream_key, staged_moves_key
+from utils import dream_key, staged_moves_key, deterministic_hash
 from great_person import random_great_people_by_age
 
 from sqlalchemy import func
@@ -100,6 +100,7 @@ class GameState:
 
     def register_city(self, city):
         city.hex.city = city
+        city.founded_turn = self.turn_num
         self.cities_by_id[city.id] = city
 
     def new_city(self, civ: Civ, hex: Hex, city_id: Optional[str] = None) -> City:
@@ -162,7 +163,7 @@ class GameState:
         print("Calculating starting techs!")
         assert city.hex is not None
         # Make this function deterministic across staging and rolling
-        random.seed(hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
+        random.seed(deterministic_hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
         chosen_techs_names = set()
         chosen_techs_by_advancement = defaultdict(int)
 
@@ -254,7 +255,7 @@ class GameState:
 
         from_civ_perspectives = []
         city: City = self.process_decline_option(coords, from_civ_perspectives)
-        
+
         # Remove it from the set of choices
         if coords in self.fresh_cities_for_decline:
             self.fresh_cities_for_decline.pop(coords)
@@ -339,12 +340,11 @@ class GameState:
         game_state_to_store_json: Optional[dict] = None
         should_stage_moves = True
         decline_eviction_player: Optional[int] = None
-        
-        # This has to be deterministic to allow speculative and non-speculative calls to agree
-        seed_value = hash(f"{self.game_id} {player_num} {self.turn_num}")
-        random.seed(seed_value)
 
         for move_index, move in enumerate(moves):
+            # This has to be deterministic to allow speculative and non-speculative calls to agree
+            seed_value = deterministic_hash(f"{self.game_id} {player_num} {self.turn_num}")
+            random.seed(seed_value)
             if ((city_id := move.get('city_id')) is not None 
                     and (city_owner := (city_owner_by_city_id or {}).get(city_id)) is not None 
                     and city_owner != player_num):
