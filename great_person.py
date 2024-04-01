@@ -119,9 +119,9 @@ def _target_value_by_age(age: int) -> int:
     }[age]
 
 merchant_names = {
-    "metal": ["Beowulf", "[ANCIENT METAL MERCHANT]", "Colaeus", "Ned Stark", "Catherine de Medici", "Benjamin Franklin", "Otto von Bismark", "Franklin Delano Roosevelt", "Vladimir Putin", "Nick Fury"],
-    "wood": ["Gilgamesh", "[ANCIENT WOOD MERCHANT]", "Marcus Licinius Crassus", "Tyrion Lannister", "Leonardo da Vinci", "Gustave Eiffel", "Henry Ford", "[MODERN WOOD MERCHANT]", "Steve Jobs", "[FUTURE WOOD MERCHANT]"],
-    "food": ["Moses", "[ANCIENT FOOD MERCHANT]", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "[INDUSTRIAL FOOD MERCHANT]", "Queen Victoria", "Gandhi", "[INFORMATION FOOD MERCHANT]", "[FUTURE FOOD MERCHANT]"],
+    "metal": ["Beowulf", "Darius I", "Colaeus", "Ned Stark", "Catherine de Medici", "Benjamin Franklin", "Otto von Bismark", "Franklin Delano Roosevelt", "Vladimir Putin", "Nick Fury"],
+    "wood": ["Gilgamesh", "Nebuchadnezzar II", "Marcus Licinius Crassus", "Tyrion Lannister", "Leonardo da Vinci", "Gustave Eiffel", "Henry Ford", "[MODERN WOOD MERCHANT]", "Steve Jobs", "[FUTURE WOOD MERCHANT]"],
+    "food": ["Moses", "Siddhartha", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "[INDUSTRIAL FOOD MERCHANT]", "Queen Victoria", "Gandhi", "[INFORMATION FOOD MERCHANT]", "[FUTURE FOOD MERCHANT]"],
     "science": ["Prometheus", "Confucius", "Archimedes", "Copernicus", "Francis Bacon", "Charles Darwin", "Albert Einstein", "John von Neumann", "[INFORMATION SCIENCE MERCHANT]", "[FUTURE SCIENCE MERCHANT]"],
 }
 # Ibn Fadlan, 
@@ -159,13 +159,15 @@ for age, great_people in _great_people_by_age.items():
 if duplicate_names:
     raise ValueError(f"Duplicate great person names found: {duplicate_names}")
 
-_great_people_by_age[6].append(GreatGeneral("Ōishi Yoshio", UnitTemplate.from_json(UNITS["Swordsman"]), 47))
+_great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", UnitTemplate.from_json(UNITS["Swordsman"]), 47))
 
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 
 # Set some numbers to their correct values, even if it's not balanced.
-great_people_by_name["King Arthur"].number = 12
-great_people_by_name["Alexandre Dumas"].number = 3
+great_people_by_name["King Arthur"].number = 12  # Should be 11
+great_people_by_name["Alexandre Dumas"].number = 3  # Should be 4
+great_people_by_name["Achilles and Patroclus"].number = 2  # Should be 3.2
+great_people_by_name["Roland and Oliver"].number = 2  # Should be 2.7
 
 def random_great_people_by_age(age: int, n: int = 1) -> list[GreatPerson]:
     return random.sample(_great_people_by_age[age], n)

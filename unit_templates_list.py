@@ -81,6 +81,7 @@ UNITS = {
         }],
         "great_people_names": {
             "general_advanced": "Thutmose III",
+            "general_normal": "Ramesses II",
         },
     },
     "Garrison": {
@@ -134,7 +135,9 @@ UNITS = {
             "numbers": ["siege", 6],
         }],
         "great_people_names": {
+            "engineer": "King Solomon",
             "general_advanced": "Alexander the Great",
+            "general_normal": "The Nazgul",  # Because there's 9 of them
             "general_horde": "Gengis Khan",
         },
     },
@@ -173,7 +176,7 @@ UNITS = {
         "abilities": [],
         "great_people_names": {
             "engineer": "Julius Caesar",
-            "general_advanced": "Castor and Pollux",
+            "general_advanced": "The Horatii",
             "general_normal": "Scipio Africanus",
             "general_horde": "Aragorn",
         },
@@ -194,6 +197,7 @@ UNITS = {
             "numbers": ["mounted", 7],
         }],
         "great_people_names": {
+            "engineer": "Shaka Zulu",
             "general_normal": "Frederick Barbarossa",
             "general_advanced": "Sun Tzu",
             "general_horde": "Montezuma",
@@ -257,7 +261,9 @@ UNITS = {
             "numbers": ["infantry", 6],
         }],
         "great_people_names": {
+            "engineer": "Saladin",
             "general_advanced": "Richard the Lionheart",
+            "general_horde": "Tokugawa Ieyasu",
         },
     },
     "Musketman": {

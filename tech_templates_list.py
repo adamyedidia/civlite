@@ -84,6 +84,7 @@ TECHS = {
         'cost': 50,
         'unlocks_units': ['Horseman', 'Horse Archer'],
         'advancement_level': 2,
+        'great_scientist_name': 'Xenophon',
     },
     'Iron Working': {
         'name': 'Iron Working',
@@ -98,12 +99,14 @@ TECHS = {
         'cost': 40,
         'unlocks_buildings': ['Petra', 'Bazaar'],
         'advancement_level': 2,
+        'great_scientist_name': 'Alyattes of Lydia',
     },
     'Engineering': {
         'name': 'Engineering',
         'cost': 45,
         'unlocks_buildings': ['Timberworks',  'Statue of Zeus'],
         'advancement_level': 2,
+        'great_scientist_name': 'Qin Shi Huang',  # This is the great wall guy. If we add a Great Wall, we should put it here or move him to it.
     },
     'Construction': {
         'name': 'Construction',
