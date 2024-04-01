@@ -275,12 +275,8 @@ def _launch_game_inner(sess, game: Game) -> None:
             for civ_options_tup in civ_options_tups:
                 civ, starting_location = civ_options_tup
                 starting_civs_for_players[player_num].append(civ)
-                starting_city_name = generate_random_city_name(game_state)
-                starting_city = City(civ, name=starting_city_name)
-                starting_location.city = starting_city
-                starting_city.hex = starting_location
-                starting_city.populate_terrains_dict(game_state)
-                game_state.cities_by_id[starting_city.id] = starting_city
+                starting_city = game_state.new_city(civ, starting_location)
+                game_state.register_city(starting_city)
                 game_state.civs_by_id[civ.id] = civ
                 civ.vitality = STARTING_CIV_VITALITY
 
@@ -410,8 +406,41 @@ def get_movie_frame(sess, game_id, frame_num):
         'data': animation_frame.data,
     })
 
+@app.route('/api/reset_game/', methods=['POST'])
+@api_endpoint
+def reset_game(sess):
+    data = request.json
+    print(f"reset_game {data}")
+    if not data:
+        print("no data")
+        return jsonify({"error": "Invalid data"}), 400
+
+
+    game_id = data.get('game_id')
+    turn_num = int(data.get('turn_num'))
+
+    if not game_id or not turn_num:
+        print("no game id or turn num")
+        return jsonify({"error": "Game ID and turn number are required"}), 400
+
+
+    game = Game.get(sess, socketio, game_id)
+    print(game)
+    game.reset_to_turn(turn_num, sess)
+    return jsonify({"success": True})
+
+
+
+
+
+
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
 
 @app.route('/api/movie/last_frame/<game_id>', methods=['GET'])
+
+
 @api_endpoint
 def get_most_recent_state(sess, game_id):
     player_num = request.args.get('player_num')
