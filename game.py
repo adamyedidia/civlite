@@ -13,7 +13,7 @@ from game_state import GameState
 from civ import Civ
 from animation_frame import AnimationFrame
 from utils import moves_processing_key, staged_moves_key
-from redis_utils import rset, rget, rdel, await_empty_counter, rlock, rget_json, rset_json
+from redis_utils import rset, rget, rdel, await_empty_counter, rlock, rget_json, rset_json, rkeys
 
 
 class TimerStatus(PyEnum):
@@ -223,11 +223,15 @@ class Game(Base):
                 self.set_turn_ended_by_player_num(player_num, False, broadcast=False)
 
     def reset_to_turn(self, turn_num: int, sess):
-        for turn in range(turn_num, self.turn_num):
+        for turn in range(turn_num, self.turn_num + 1):
             rdel(self._turn_over_key(turn))
             for player_num in range(len(self.players)):
                 rdel(staged_moves_key(self.id, player_num, turn))
                 rdel(self._staged_game_state_key(player_num, turn))
+            decline_claimed_keys_pattern = f"decline-claimed-{self.id}-{turn}-*"
+            for key in rkeys(decline_claimed_keys_pattern):
+                rdel(key)
+
         self.turn_num = turn_num
         self.next_forced_roll_at = None
 

@@ -45,7 +45,13 @@ def rdel(key: str) -> None:
 def rlock(key: str, expire: int = 60) -> Lock:
     return Lock(redis, key, expire=expire)
 
+
+def rkeys(pattern: str) -> list[str]:
+    return redis.keys(pattern)
+
+
 class CodeBlockCounter:
+
     def __init__(self, key: str):
         self.key = key
         self.lock = rlock(f"lock:{key}")
