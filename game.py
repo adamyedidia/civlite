@@ -213,7 +213,8 @@ class Game(Base):
 
             finally:
                 lock.release()
-            print(f"Another thread is already rolling turn {self.turn_num} for game {self.game_id}.")
+        else:
+            print(f"Another thread is already rolling turn {self.turn_num} for game {self.id}.")
 
 
     def start_turn(self) -> None:
