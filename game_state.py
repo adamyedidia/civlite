@@ -270,7 +270,7 @@ class GameState:
         game_player.decline_this_turn = True
         self.make_new_civ_from_the_ashes(city)
         civ.great_people_choices = random_great_people_by_age(age=self.advancement_level, n=3)
-        print(f"Great people choices: {civ.great_people_choices}")
+        print(f"New civ {civ} great people choices: {civ.great_people_choices}")
 
         return from_civ_perspectives
 
@@ -663,11 +663,20 @@ class GameState:
             staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
             self.update_from_player_moves(player_num, staged_moves, city_owner_by_city_id=city_owner_by_city_id)
 
-        civs = list(self.civs_by_id.values())[:]
+        civs: list[Civ] = list(self.civs_by_id.values())
 
         for civ in civs:
-            if (not civ.game_player or civ.game_player.is_bot) and not civ.template.name == 'Barbarians':
-                civ.bot_move(self)
+            game_player: GamePlayer | None = civ.game_player
+            if (game_player is None or game_player.is_bot) and not civ.template.name == 'Barbarians':
+                # decline if they want to
+                if game_player and not civ.in_decline and (decline_coords := civ.bot_decide_decline(self)):
+                    self.execute_decline(decline_coords, game_player)
+                    new_civ_id = game_player.civ_id
+                    assert new_civ_id is not None
+                    assert new_civ_id != civ.id, f"Bot player {game_player.player_num} is trying to decline but somehow failed? {civ.id=} {new_civ_id=}"
+                    self.civs_by_id[new_civ_id].bot_move(self)
+                else:
+                    civ.bot_move(self)
 
         for player_num, game_player in self.game_player_by_player_num.items():
             if game_player.civ_id is None:

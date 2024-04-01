@@ -255,7 +255,7 @@ class Civ:
             return None
         best_option_yields, best_option = max((yields, coords) for coords, yields in option_total_yields.items())
         print(f"{self.moniker()} deciding whether to revolt. My yields are: {my_total_yields}; options have: {option_total_yields}")
-        if best_option_yields <= my_total_yields * 2:
+        if best_option_yields <= my_total_yields * 1.5:
             print(f"{self.moniker()} deciding not to decline because I have {my_total_yields} and the best option has {best_option_yields}")
             return None
 
@@ -263,9 +263,6 @@ class Civ:
         return best_option
 
     def bot_move(self, game_state: 'GameState') -> None:
-        if self.game_player and not self.in_decline and (decline_coords := self.bot_decide_decline(game_state)):
-            game_state.execute_decline(decline_coords, self.game_player)
-
         if  len(self.great_people_choices) > 0:
             self.select_great_person(game_state, self.great_people_choices[0].name)
 
