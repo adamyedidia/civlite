@@ -97,7 +97,7 @@ class City:
             new_territory_capital = None
         for child in children:
             if child != new_territory_capital:
-                child.set_territory_parent_if_needed(game_state)
+                child.set_territory_parent_if_needed(game_state, excluded_cities=[self])
 
     def _remove_income_from_parent(self, game_state: 'GameState') -> None:
         parent: City | None = self.get_territory_parent(game_state)
