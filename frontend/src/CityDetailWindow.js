@@ -207,7 +207,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
 
     const foodDemanded = selectedCity.food_demand;
     const incomeExceedsDemand = projectedIncome['food'] >= foodDemanded;
-    const happinessIcon = (incomeExceedsDemand && selectedCity.unhappiness == 0) ? happyImg : (!incomeExceedsDemand && selectedCity.unhappiness == 0) ? neutralImg : sadImg;
+    const happinessIcon = (incomeExceedsDemand && selectedCity.unhappiness === 0) ? happyImg : (!incomeExceedsDemand && selectedCity.unhappiness === 0) ? neutralImg : sadImg;
     const unhappinessBarsMaxWidth = 180;
     const unhappinessBarsWidthPerUnit = Math.min(10, unhappinessBarsMaxWidth/foodDemanded, unhappinessBarsMaxWidth/projectedIncome['food']);
     const numPuppets = Object.keys(selectedCity?.projected_income_puppets?.["wood"] || {}).length;
