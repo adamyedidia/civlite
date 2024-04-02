@@ -432,12 +432,9 @@ class City:
                             total_pseudoyields -= 0.5 * unhappiness_saved
 
                     if ability.name == "ReducePuppetDistancePenalty":
-                        print(building_template)
-
                         is_economic_building = True
                         yields = sum(sum(puppets_incomes.values()) for puppets_incomes in self.projected_income_puppets.values())
-                        print(f"====== {yields=}")
-                        total_yields += yields * (self.puppet_distance_penalty() - ability.numbers[0])
+                        total_yields += round(yields * (self.puppet_distance_penalty() - ability.numbers[0]), ndigits=1)
 
                 if is_economic_building:
                     self.available_buildings_to_descriptions[building_template.name] = {
