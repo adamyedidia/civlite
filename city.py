@@ -166,7 +166,7 @@ class City:
             self.projected_income_focus = resourcedict()
         self.projected_income_base = self._get_projected_yields_without_focus(game_state)
         self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
-        self.food_demand: int = self._calculate_food_demand(game_state)
+        self.food_demand: float = self._calculate_food_demand(game_state)
 
         self.projected_income = self.projected_income_base.copy()
         self.projected_income[self.focus] += self.projected_income_focus[self.focus]
@@ -297,9 +297,9 @@ class City:
         assert self.founded_turn is not None, "Can't get age of a fake city."
         return game_state.turn_num - self.founded_turn
 
-    def _calculate_food_demand(self, game_state: 'GameState') -> int:
+    def _calculate_food_demand(self, game_state: 'GameState') -> float:
         if self.founded_turn is None: return 0  # Not sure why we're even calculating this.
-        result = 1.0 * self.age(game_state)
+        result: float = 1.5 * self.age(game_state)
         if self.capital:
             result *= 0.25
 
