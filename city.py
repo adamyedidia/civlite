@@ -120,7 +120,7 @@ class City:
             self.make_territory_capital(game_state)
         else:
             # Pick the closest one to be my parent.
-            choice: City = min(choices, key=lambda c: (self.hex.distance_to(c.hex), -c.capital, -c.population, c.id))  # type: ignore
+            choice: City = min(choices, key=lambda c: (self.hex.distance_to(c.hex), c.capital, -c.population, c.id))  # type: ignore
             self._remove_income_from_parent(game_state)
             self._territory_parent_id = choice.id
             self._territory_parent_coords = choice.hex.coords  # type: ignore
@@ -299,7 +299,7 @@ class City:
 
     def _calculate_food_demand(self, game_state: 'GameState') -> float:
         if self.founded_turn is None: return 0  # Not sure why we're even calculating this.
-        result: float = 1.5 * self.age(game_state)
+        result: float = 1.0 * self.age(game_state)
         if self.capital:
             result *= 0.25
 
