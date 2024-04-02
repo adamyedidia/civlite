@@ -802,6 +802,8 @@ class GameState:
         revolt_choices: list[tuple[float, str, City]] = cities_to_revolt[:needed_revolt_choices]
         if len(revolt_choices) > 0:
             self.unhappiness_threshold = revolt_choices[-1][0]
+        else:
+            self.unhappiness_threshold = 0
         print(f"revolt choices: {[city.name for _, _, city in revolt_choices]}; threshold: {self.unhappiness_threshold}")
         revolt_ids = set(id for _, id, _ in revolt_choices)
         for _, _, city in revolt_choices:
