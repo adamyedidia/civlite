@@ -2167,7 +2167,7 @@ export default function GamePage() {
             if (typeOrder1 !== typeOrder2) {
                 return typeOrder1 - typeOrder2;
             } else {
-                return description1?.value - description2?.value;
+                return description2?.value - description1?.value;
             }
         });
     }
