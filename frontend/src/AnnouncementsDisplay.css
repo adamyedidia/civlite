@@ -12,19 +12,19 @@
     flex-direction: column-reverse;
 }
 
-.civ {
+.announcements-display .civ {
     font-weight: bold;
 }
 
-.wonder {
+.announcements-display .wonder {
     font-weight: bold;
     color: purple;
 }
 
-.city {
+.announcements-display .city {
     font-weight: bold;
 }
 
-.current-turn {
+.announcements-display .current-turn {
     font-weight: bold;
 }
