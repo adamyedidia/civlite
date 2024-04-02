@@ -212,7 +212,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const unhappinessBarsWidthPerUnit = Math.min(10, unhappinessBarsMaxWidth/foodDemanded, unhappinessBarsMaxWidth/projectedIncome['food']);
     const numPuppets = Object.keys(selectedCity?.projected_income_puppets?.["wood"] || {}).length;
     const foodDemandTooltip = <><p>Food Demand {foodDemanded}:</p> <ul> 
-        <li>{1.5 * (gameState.turn_num - selectedCity.founded_turn)} from age (1.5/turn since founding turn {selectedCity.founded_turn})</li> 
+        <li>{(gameState.turn_num - selectedCity.founded_turn)} from age (1/turn since founding turn {selectedCity.founded_turn})</li> 
         {selectedCity.capital ? <li>Capital's age food demand reduced by 75%</li> : ""}
         {selectedCity.territory_parent_coords ? <li>+2 in puppet city</li> : ""}
         {numPuppets > 0 ? <li>-{2 * numPuppets} from puppets (-2/puppet) </li> : ""}
