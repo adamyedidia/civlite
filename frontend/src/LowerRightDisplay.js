@@ -31,7 +31,7 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerStatus, nextForc
         }
     }
     return <div className="lower-right-display">
-        <AnnouncementsDisplay announcements={gameState?.announcements} />
+        <AnnouncementsDisplay announcements={gameState?.announcements} turn_num={gameState?.turn_num}/>
         <div className="end-turn-area">
             <div className="turn-roll-buttons">
                 {gameState?.special_mode_by_player_num?.[playerNum] !== 'starting_location' && <Button

@@ -342,6 +342,7 @@ class Civ:
 
         if tech.name == "Renaissance":
             print(f"Renaissance for civ {self.moniker()}")
+            game_state.add_announcement(f"The <civ id={self.id}>{self.moniker()}</civ> have completed a Renaissance.")
             cost: int = self.renaissance_cost()
             self.science -= cost
             for tech_name, status in self.techs_status.items():
@@ -402,7 +403,7 @@ class Civ:
         assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
         great_person: GreatPerson = great_people_by_name[great_person_name]
         great_person.apply(city=self.capital_city(game_state), game_state=game_state)
-        game_state.add_announcement(f"{great_person.name} will lead {self.moniker()} to glory.")
+        game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
         self.great_people_choices = []
 
     @staticmethod

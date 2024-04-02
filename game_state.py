@@ -148,7 +148,7 @@ class GameState:
         self.midturn_update()     
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
-        self.add_announcement(f'The {civ.moniker()} have entered decline!')                
+        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have entered decline!')                
         civ.game_player = None
         civ.in_decline = True
         game_player.civ_id = None
@@ -230,7 +230,7 @@ class GameState:
         city.refresh_available_units()
         self.midturn_update()
 
-        self.add_announcement(f'The {civ.moniker()} have been founded in {city.name}!')        
+        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
 
     def decline_priority(self, first_player_num: int, new_player_num: int) -> bool:
         """
@@ -912,7 +912,7 @@ class GameState:
                         break
 
         if not national:
-            self.add_announcement(f'{civ.moniker()} built the {building_template.name}!')
+            self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={building_template.name}>{building_template.name}<wonder>!')
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:
         if data['type'] not in ['UnitAttack', 'UnitMovement', 'StartOfNewTurn']:
