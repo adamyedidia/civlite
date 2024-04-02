@@ -394,6 +394,10 @@ class City:
                 total_yields = 0
                 total_pseudoyields = 0
                 is_economic_building = False
+                if building_template.vp_reward is not None:
+                    total_yields += building_template.vp_reward
+                    # AIs count points as worth 3 resources
+                    total_pseudoyields += building_template.vp_reward * 2
                 for ability in building_template.abilities:
                     if ability.name == 'IncreaseYieldsForTerrain':
                         is_economic_building = True
