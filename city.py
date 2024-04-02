@@ -904,34 +904,39 @@ class City:
         else:
             print(f"  no buildings available")
 
-        
-        plausible_focuses = {"food", "wood", "metal", "science"}
-        if self.growth_cost() >= 30:
-            # At some point it's time to use our pop
-            plausible_focuses.remove('food')
-        if self.civ.researching_tech_name is None:
-            plausible_focuses.remove('science')
-        if self.wood >= 150:
-            plausible_focuses.remove('wood')
-            
-        max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
-        focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
-        if len(focuses_with_best_yields) == 1:
-            self.focus = focuses_with_best_yields[0]
-        elif len(self.buildings_queue) > 0 and isinstance(self.buildings_queue[0], BuildingTemplate) and self.buildings_queue[0].is_national_wonder:
-            self.focus = 'wood'
-        elif self.population < 3 and 'food' in focuses_with_best_yields:
+        if self.civ_to_revolt_into is not None or self.unhappiness + self.projected_income['unhappiness'] > game_state.unhappiness_threshold:
             self.focus = 'food'
-        elif self.infinite_queue_unit is not None and 'metal' in focuses_with_best_yields:
-            self.focus = 'metal'
-        elif len(self.buildings_queue) > 0 and 'wood' in focuses_with_best_yields:
-            self.focus = 'wood'
-        elif 'science' in focuses_with_best_yields:
-            self.focus = 'science'
+            print(f"  chose focus: {self.focus} to prevent revolt")
         else:
-            self.focus = random.choice(list(focuses_with_best_yields))
+            production_city: City = self if self.is_territory_capital else self.get_territory_parent(game_state)
 
-        print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
+            plausible_focuses = {"food", "wood", "metal", "science"}
+            if self.growth_cost() >= 30:
+                # At some point it's time to use our pop
+                plausible_focuses.remove('food')
+            if self.civ.researching_tech_name is None:
+                plausible_focuses.remove('science')
+            if production_city.wood >= 150:
+                plausible_focuses.remove('wood')
+                
+            max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
+            focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
+            if len(focuses_with_best_yields) == 1:
+                self.focus = focuses_with_best_yields[0]
+            elif len(production_city.buildings_queue) > 0 and isinstance(production_city.buildings_queue[0], BuildingTemplate) and production_city.buildings_queue[0].is_national_wonder:
+                self.focus = 'wood'
+            elif self.population < 3 and 'food' in focuses_with_best_yields:
+                self.focus = 'food'
+            elif production_city.infinite_queue_unit is not None and 'metal' in focuses_with_best_yields:
+                self.focus = 'metal'
+            elif len(production_city.buildings_queue) > 0 and 'wood' in focuses_with_best_yields:
+                self.focus = 'wood'
+            elif 'science' in focuses_with_best_yields:
+                self.focus = 'science'
+            else:
+                self.focus = random.choice(list(focuses_with_best_yields))
+
+            print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
         
 
     def to_json(self, include_civ_details: bool = False) -> dict:

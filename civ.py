@@ -266,6 +266,19 @@ class Civ:
         if  len(self.great_people_choices) > 0:
             self.select_great_person(game_state, self.great_people_choices[0].name)
 
+        my_cities = [city for city in game_state.cities_by_id.values() if city.civ == self]
+
+        # Choose trade hub:
+        unhappy_cities = [city for city in my_cities if city.unhappiness + city.projected_income["unhappiness"] > 0]
+        def trade_hub_priority(city: 'City'):
+            income = sum(city.projected_income[x] for x in ['wood', 'metal', 'science'])
+            on_leaderboard = city.civ_to_revolt_into is not None
+            unhappiness = city.unhappiness + city.projected_income["unhappiness"]
+            close_to_leaderboard = unhappiness >= game_state.unhappiness_threshold
+            return on_leaderboard, close_to_leaderboard, income
+        if len(unhappy_cities) > 0:
+            self.trade_hub_id = max(unhappy_cities, key=trade_hub_priority).id
+
         if random.random() < 0.2 or self.target1 is None or self.target2 is None:
             enemy_cities = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             possible_target_hexes = [*[city.hex for city in enemy_cities if city.hex], *[camp.hex for camp in game_state.camps if camp.hex]]
@@ -306,9 +319,8 @@ class Civ:
                     game_state.found_city_for_civ(self, hex, generate_unique_id())
                     break
 
-        for city in game_state.cities_by_id.values():
-            if city.civ.id == self.id:
-                city.bot_move(game_state)
+        for city in my_cities:
+            city.bot_move(game_state)
 
     def renaissance_cost(self):
         base_cost = 100 * self.get_advancement_level()
