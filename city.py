@@ -415,6 +415,30 @@ class City:
                         effective_income_bonus = self.projected_income_base['food'] * (effective_income_multiplier - 1)
                         total_pseudoyields += int(effective_income_bonus / self.civ.vitality)
 
+                    if ability.name == "DecreaseFoodDemand":
+                        is_economic_building = True
+                        unhappiness_saved = min(ability.numbers[0], self.food_demand)
+                        total_yields += unhappiness_saved  # Display the raw number to humans
+
+                        # Decide how much AI cares
+                        if self.civ_to_revolt_into is not None:
+                            # Count the unhappiness as full resources
+                            pass
+                        elif self.unhappiness == 0 and self.projected_income["unhappiness"] == 0:
+                            # This ability is pretty useless if there's no unhappiness, cancel out its yields
+                            total_pseudoyields -= unhappiness_saved
+                        else:
+                            # Count the unhappiness as half resources
+                            total_pseudoyields -= 0.5 * unhappiness_saved
+
+                    if ability.name == "ReducePuppetDistancePenalty":
+                        print(building_template)
+
+                        is_economic_building = True
+                        yields = sum(sum(puppets_incomes.values()) for puppets_incomes in self.projected_income_puppets.values())
+                        print(f"====== {yields=}")
+                        total_yields += yields * (self.puppet_distance_penalty() - ability.numbers[0])
+
                 if is_economic_building:
                     self.available_buildings_to_descriptions[building_template.name] = {
                         "type": "yield",
