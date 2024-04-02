@@ -31,6 +31,7 @@ import LowerRightDisplay from './LowerRightDisplay.js';
 import TechListDialog from './TechListDialog';
 import TaskBar from './TaskBar';
 import GreatPerson from './GreatPerson';
+import { romanNumeral } from './TechListDialog';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
@@ -3192,6 +3193,9 @@ export default function GamePage() {
                         {!hoveredBuilding && !hoveredUnit && !hoveredTech && <div className='turn-num-card'>
                             <Typography variant="h4">
                                 Turn {gameState?.turn_num}
+                            </Typography>
+                            <Typography variant="h5">
+                                Age {romanNumeral(gameState.advancement_level)}
                             </Typography>
                         </div>}
                     </div>
