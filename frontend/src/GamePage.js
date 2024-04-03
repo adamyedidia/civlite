@@ -225,7 +225,7 @@ function GreatPersonChoiceDialog({open, onClose, greatPersonChoices, handleSelec
                 }}
                 color="primary"
             >
-                Close
+                Minimize
             </IconButton>
         </DialogTitle>
         <div className="tech-choices-content">
@@ -2663,7 +2663,6 @@ export default function GamePage() {
                         const myNewCiv = data.game_state.civs_by_id?.[data.game_state.game_player_by_player_num[playerNum].civ_id];
                         setGameState(data.game_state);
                         refreshSelectedCity(data.game_state);    
-                        sciencePopupIfNeeded(myNewCiv);        
                     }
                 });
         } else if (declineOptionsView) {
@@ -2690,8 +2689,7 @@ export default function GamePage() {
                         setNonDeclineViewGameState(data.game_state);  // Clear the old cached non-decline game state.
                         refreshSelectedCity(data.game_state);
                         setDeclineOptionsView(false);
-                        sciencePopupIfNeeded(myNewCiv);
-                        greatPersonPopupIfNeeded(myNewCiv);
+                        setTechListDialogOpen(true);
                     } else if (data.game_state && !success) {
                         setDeclineFailedDialogOpen(true);
                     } else {
@@ -3489,7 +3487,7 @@ export default function GamePage() {
                             }}
                             color="primary"
                         >
-                            Close
+                            Minimize
                         </IconButton>
                     </DialogTitle>
                     <div className="tech-choices-content">
