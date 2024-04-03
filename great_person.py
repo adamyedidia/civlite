@@ -79,15 +79,17 @@ class GreatMerchant(GreatPerson):
             city.civ.science += self.amount
 
 class GreatScientist(GreatPerson):
-    def __init__(self, name, tech_template: TechTemplate):
+    def __init__(self, name, tech_template: TechTemplate, extra_science: int):
         self.tech_template: TechTemplate = tech_template
+        self.extra_science: int = extra_science
         super().__init__(name, hover_entity_type="tech", hover_entity_name=tech_template.name)
 
     def description(self) -> str:
-        return f"Immediately learn {self.tech_template.name}"
+        return f"Immediately learn {self.tech_template.name} and gain {int(self.extra_science)} science."
 
     def apply(self, game_state, city: City):
         city.civ.gain_tech(game_state, self.tech_template)
+        city.civ.science += self.extra_science
 
 class GreatEngineer(GreatPerson):
     def __init__(self, name, unit_template: UnitTemplate, extra_wood: float):
@@ -136,9 +138,11 @@ for resource in ["metal", "wood", "food", "science"]:
 
 for tech in TECHS.values():
     t = TechTemplate.from_json(tech)
+    if t.name == "Renaissance":
+        continue
     level = t.advancement_level
     scientist_name = tech.get("great_scientist_name", f"[A{level - 1} Scientist: {t.name}]")
-    _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t))
+    _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t, extra_science=0.75 * _target_value_by_age(level - 1) - t.cost))
     for unit in t.unlocks_units:
         u = UnitTemplate.from_json(UNITS[unit])
         great_people_names: dict[str, str] = UNITS[unit].get('great_people_names', {})
