@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Optional, Union
 from building import Building
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
-from tech_templates_list import TECHS
 from civ_template import CivTemplate
 from civ import Civ
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD

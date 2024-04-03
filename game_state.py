@@ -172,7 +172,7 @@ class GameState:
             prereq = building.template.prereq
             if prereq is not None:
                 chosen_techs_names.add(prereq)
-                chosen_techs_by_advancement[TECHS[prereq]['advancement_level']] += 1
+                chosen_techs_by_advancement[TECHS[prereq].advancement_level] += 1
 
         print(f"Starting with prereqs for buildings: {chosen_techs_names}")
 
@@ -186,7 +186,7 @@ class GameState:
         tech_counts_by_adv_level = defaultdict(dict)
         for tech_name, tech in TECHS.items():
             num = len([civ for civ in civs_to_compare_to if civ.has_tech(tech_name)])
-            lvl = tech['advancement_level']
+            lvl = tech.advancement_level
             tech_counts_by_adv_level[lvl][tech_name] = num
 
         excess_techs = 0

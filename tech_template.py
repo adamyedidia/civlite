@@ -1,16 +1,14 @@
 from typing import List
 
 class TechTemplate:
-    def __init__(self, name: str, cost: int, advancement_level: int, unlocks_units: List[str], unlocks_buildings: List[str]):
+    def __init__(self, name: str, cost: int, advancement_level: int, unlocks_units: List[str] = [], unlocks_buildings: List[str] = []):
 
         self.name = name
-
         self.cost = cost
-
         self.advancement_level = advancement_level
         self.unlocks_units = unlocks_units
         self.unlocks_buildings = unlocks_buildings
-
+        
     def __repr__(self):
         return f"<TechTemplate {self.name}>"
 

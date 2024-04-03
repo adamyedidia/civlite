@@ -131,17 +131,60 @@ merchant_names = {
     "food": ["Moses", "Siddhartha", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "[INDUSTRIAL FOOD MERCHANT]", "Queen Victoria", "Gandhi", "[INFORMATION FOOD MERCHANT]", "[FUTURE FOOD MERCHANT]"],
     "science": ["Prometheus", "Confucius", "Archimedes", "Copernicus", "Francis Bacon", "Charles Darwin", "Albert Einstein", "John von Neumann", "[INFORMATION SCIENCE MERCHANT]", "[FUTURE SCIENCE MERCHANT]"],
 }
+
+scientist_names = {
+    'Archery': 'Artemis',
+    'Bronze Working': 'Hephaestus',
+    # 'Pottery': 'TODO',
+    'Code of Laws': 'Hammurabi',
+    # 'Calendar': 'TODO',
+    # 'The Wheel': 'TODO',
+    # 'Mining': 'TODO',
+    # 'Forestry': 'TODO',
+    # 'Irrigation': 'TODO',
+    'Writing': 'Socrates',
+    # 'Masonry': 'TODO',
+    'Mathematics': "Euclid",
+    'Horseback Riding': 'Xenophon',
+    'Iron Working': 'Ashurbanipal',
+    'Currency': 'Alyattes of Lydia',
+    'Engineering': 'Qin Shi Huang',  # This is the great wall guy. If we add a Great Wall, we should put it here or move him to it.
+    'Construction': 'Emperor Vespasian',
+    'Education': 'Robert of Sorbon',
+    # 'Machinery': 'TODO',
+    'Civil Service': 'Emperor Wen of Sui',
+    'Chivalry': 'Uther Pendragon',
+    'Compass': 'Galileo Galilei',
+    'Physics': 'Isaac Newton',
+    'Printing Press': 'Johannes Gutenberg',
+    # 'Gunpowder': 'TODO',
+    # 'Metallurgy': 'TODO',
+    'Architecture': 'Michelangelo',
+    "Medicine": 'Louis Pasteur',
+    'Economics': 'Adam Smith',
+    # 'Military Science': 'TODO',
+    # 'Rifling': 'TODO',
+    'Industrialization': 'James Watt',
+    'Dynamite': 'Alfred Nobel',
+    # 'Radio': 'TODO',
+    # 'Combined Arms': 'TODO',
+    # 'Ballistics': 'TODO',
+    'Mechanized Agriculture': 'Norman Borlaug',
+    'Rocketry': 'Marie Curie',
+    'Computers': 'Alan Turing',
+    # 'Nanotechnology': 'TODO',
+    # 'Megarobotics': 'TODO',
+}
 # Ibn Fadlan, 
 for resource in ["metal", "wood", "food", "science"]:
     for age in range(10):
         _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], _target_value_by_age(age), resource))
 
-for tech in TECHS.values():
-    t = TechTemplate.from_json(tech)
+for t in TECHS.values():
     if t.name == "Renaissance":
         continue
     level = t.advancement_level
-    scientist_name = tech.get("great_scientist_name", f"[A{level - 1} Scientist: {t.name}]")
+    scientist_name = scientist_names.get(t.name, f"[A{level - 1} Scientist: {t.name}]")
     _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t, extra_science=0.75 * _target_value_by_age(level - 1) - t.cost))
     for unit in t.unlocks_units:
         u = UnitTemplate.from_json(UNITS[unit])

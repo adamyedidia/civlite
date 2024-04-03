@@ -24,7 +24,7 @@ class UnitTemplate:
     def advancement_level(self):
         if self.prereq is None:
             return 0
-        return TECHS[self.prereq]['advancement_level']
+        return TECHS[self.prereq].advancement_level
 
     def has_tag(self, tag: str) -> bool:
         return tag in self.tags

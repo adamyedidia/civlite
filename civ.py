@@ -121,17 +121,17 @@ class Civ:
             if (prereq := UNITS[special_unit_name].get('prereq')):
                 characteristic_tech = TECHS[prereq]
 
-                if characteristic_tech['advancement_level'] <= max_advancement_level and self.techs_status[characteristic_tech['name']] == TechStatus.UNAVAILABLE:
+                if characteristic_tech.advancement_level <= max_advancement_level and self.techs_status[characteristic_tech.name] == TechStatus.UNAVAILABLE:
                     characteristic_tech_offered = True
-                    self.techs_status[characteristic_tech['name']] = TechStatus.AVAILABLE
+                    self.techs_status[characteristic_tech.name] = TechStatus.AVAILABLE
 
 
 
         num_techs_to_offer = 2 if characteristic_tech_offered else 3
 
-        techs_to_sample_from = [TechTemplate.from_json(tech) for tech in TECHS.values() 
-                                if (tech['advancement_level'] <= max_advancement_level 
-                                    and self.techs_status[tech['name']] == TechStatus.UNAVAILABLE)]
+        techs_to_sample_from = [tech for tech in TECHS.values() 
+                                if (tech.advancement_level <= max_advancement_level 
+                                    and self.techs_status[tech.name] == TechStatus.UNAVAILABLE)]
 
         if len(techs_to_sample_from) < num_techs_to_offer:
             techs_to_offer = techs_to_sample_from
@@ -146,7 +146,7 @@ class Civ:
             self.techs_status['Renaissance'] = TechStatus.AVAILABLE
 
     def get_advancement_level(self) -> int:
-        my_techs = [tech['advancement_level'] for tech_name, tech in TECHS.items() if self.has_tech(tech_name)]
+        my_techs = [tech.advancement_level for tech_name, tech in TECHS.items() if self.has_tech(tech_name)]
         if len(my_techs) == 0:
             return 0
         return max(my_techs)
@@ -166,7 +166,7 @@ class Civ:
             "techs_status": {tech: status.value for tech, status in self.techs_status.items()},
             "num_researched_techs": len(self.researched_techs),
             "researching_tech_name": self.researching_tech_name,
-            "current_tech_choices": [TECHS[tech_name] for tech_name, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)],
+            "current_tech_choices": [TECHS[tech_name].to_json() for tech_name, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)],
             "vitality": self.vitality,
             "city_power": self.city_power,
             "available_buildings": self.available_buildings,
@@ -194,7 +194,7 @@ class Civ:
             str(unit.get("building_name")) for unit in UNITS.values() 
             if (((not unit.get('prereq')) or self.has_tech(unit.get("prereq"))) and 
                 unit.get("building_name") and
-                (TECHS[unit['prereq']]['advancement_level'] if unit.get('prereq') else 0) >= self.initial_advancement_level - 1)
+                (TECHS[unit['prereq']].advancement_level if unit.get('prereq') else 0) >= self.initial_advancement_level - 1)
             ]
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
@@ -377,7 +377,7 @@ class Civ:
         self.update_max_territories(game_state)
 
         if self.researching_tech_name:
-            researching_tech = TechTemplate.from_json(TECHS[self.researching_tech_name])
+            researching_tech = TECHS[self.researching_tech_name]
             cost = self.renaissance_cost() if researching_tech.name == "Renaissance" else researching_tech.cost
             if researching_tech and cost <= self.science:
                 self.complete_research(researching_tech, game_state)
