@@ -286,8 +286,8 @@ class GameState:
             # This is not a fresh city , it's a pre-existing one.
             print(f"Declining to existing city at {coords}")
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
-            hex.city.orphan_territory_children(self)
             hex.city.civ = Civ(hex.city.civ_to_revolt_into, game_player=None)
+            hex.city.orphan_territory_children(self)
         else:
             # This is a fake city, now it is becoming a real city.
             print(f"Declining to fresh city at {coords}")
@@ -511,9 +511,7 @@ class GameState:
                     print(f"{instead_of_city_id=}")
                     if instead_of_city_id is not None:
                         instead_of_city: City = self.cities_by_id[instead_of_city_id]
-                        print("setting parent")
                         instead_of_city.set_territory_parent_if_needed(self)
-                        print("orphaning children")
                         instead_of_city.orphan_territory_children(self, make_new_territory=False)
                         print(f"{instead_of_city._territory_parent_id=}")
                     if previous_parent is not None and previous_parent.id != instead_of_city_id:
@@ -603,19 +601,11 @@ class GameState:
         return (None, self.to_json(), self.to_json(), should_stage_moves, decline_eviction_player)
 
     def sync_advancement_level(self) -> None:
-        tech_levels = [0]
-
-        for civ in self.civs_by_id.values():
-            for tech in civ.researched_techs:
-                tech_levels.append(TECHS[tech]['advancement_level'])
-        
-        max_advancement_level = 0
-
-        for tech_level in range(max(tech_levels) + 1):
-            if len([tech for tech in tech_levels if tech >= tech_level]) >= len(self.civs_by_id) / 2:
-                max_advancement_level = tech_level
-
-        self.advancement_level = max_advancement_level
+        # Population-wieghted average civ advancement level.
+        weighted_levels = [(c.population, c.civ.get_advancement_level()) for c in self.cities_by_id.values()]
+        total_population = sum(level[0] for level in weighted_levels)
+        weighted_average = sum(level[0] / total_population * level[1] for level in weighted_levels)
+        self.advancement_level = math.ceil(weighted_average)
 
     def refresh_visibility_by_civ(self, short_sighted: bool = False) -> None:
         for hex in self.hexes.values():

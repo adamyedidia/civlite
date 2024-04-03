@@ -98,7 +98,7 @@ class City:
             new_territory_capital = None
         for child in children:
             if child != new_territory_capital:
-                child.set_territory_parent_if_needed(game_state, excluded_cities=[self])
+                child.set_territory_parent_if_needed(game_state)
 
     def _remove_income_from_parent(self, game_state: 'GameState') -> None:
         parent: City | None = self.get_territory_parent(game_state)
@@ -112,9 +112,9 @@ class City:
         self._territory_parent_id = None
         self._territory_parent_coords = None
 
-    def set_territory_parent_if_needed(self, game_state: 'GameState', excluded_cities: list['City'] = []) -> None:
+    def set_territory_parent_if_needed(self, game_state: 'GameState') -> None:
         my_territories: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self.civ and city.is_territory_capital and city != self]
-        choices: list[City] = [city for city in my_territories if city not in excluded_cities]
+        choices: list[City] = [city for city in my_territories]
         if len(my_territories) < self.civ.max_territories:
             # Room for another territory capital.
             self.make_territory_capital(game_state)
@@ -733,8 +733,8 @@ class City:
         self.wood /= 2
         self.metal /= 2
         
-        self.orphan_territory_children(game_state)
         self.civ = civ
+        self.orphan_territory_children(game_state)
         self.set_territory_parent_if_needed(game_state)
 
         for building in self.buildings:
