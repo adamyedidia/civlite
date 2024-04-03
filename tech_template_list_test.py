@@ -11,7 +11,7 @@ from building_template import BuildingTemplate
 
 class TestConsistency:
     def test_tech_names_consistency(self):
-        for name, tech in TECHS.items():
+        for name, tech_template in TECHS.items():
             assert tech_template.name == name, f"key and name mismatch: {name} != {tech_template.name}"
 
     def test_unit_names_consistency(self):
