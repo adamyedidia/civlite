@@ -895,8 +895,12 @@ class City:
         available_units = {unit_name: unit for unit_name, unit in available_units.items() if unit.movement > 0}
         highest_level = max([effective_advancement_level(unit) for unit in available_units.values()])
         highest_tier_units = [unit for unit in available_units.values() if effective_advancement_level(unit) == highest_level]
-        self.infinite_queue_unit = random.choice(highest_tier_units)
-        print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units.values()]})")
+        if highest_level < self.civ.get_advancement_level() - 2 and not self.hex.is_threatened_city(game_state):
+            self.infinite_queue_unit = None
+            print(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
+        else:
+            self.infinite_queue_unit = random.choice(highest_tier_units)
+            print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units.values()]})")
 
         available_buildings = self.get_available_buildings()
         economic_buildings = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
@@ -910,9 +914,12 @@ class City:
                 ))
         else:
             best_military_building = None
-        if best_military_building is not None and effective_advancement_level(best_military_building) > effective_advancement_level(self.infinite_queue_unit):
+        if best_military_building is not None and (self.infinite_queue_unit is None or effective_advancement_level(best_military_building) > effective_advancement_level(self.infinite_queue_unit)):
             self.buildings_queue = [best_military_building]
             print(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building)}): {self.buildings_queue}")
+            if self.infinite_queue_unit is not None and not self.hex.is_threatened_city(game_state):
+                print(f"  not building units to wait for new military building.")
+                self.infinite_queue_unit = None
         elif highest_level == 0 and 'Slinger' not in self.available_units and self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2:
             # switch from warrior to slinger
             self.buildings_queue = [UnitTemplate.from_json(UNITS['Slinger'])]
