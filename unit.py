@@ -375,11 +375,12 @@ class Unit:
             neighboring_hex_distance_to_target = 10000
             if sensitive:
                 neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(self.destination)
-
+                # IF moving sensitive, use <= to prefer moving over staying still.
                 is_better_distance = neighboring_hex_sensitive_distance_to_target <= best_distance
             else:
                 neighboring_hex_distance_to_target = neighboring_hex.distance_to(self.destination)
-                is_better_distance = neighboring_hex_distance_to_target <= best_distance
+                # If it's the first try at moving, use < to prefer staying still (maybe a better spot will open up)
+                is_better_distance = neighboring_hex_distance_to_target < best_distance
 
             if is_better_distance and not neighboring_hex.is_occupied(self.template.type, self.civ):
                 best_hex = neighboring_hex
