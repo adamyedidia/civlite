@@ -1,5 +1,5 @@
 import secrets
-
+import hashlib
 
 def coords_tuple(coords_str: str) -> tuple[int, int, int]:
     coords = coords_str.split(",")
@@ -41,3 +41,8 @@ def dream_key_from_civ_perspectives(game_id: str, player_num: int, turn_num: int
 def moves_processing_key(game_id: str, turn_num: int) -> str:
     return f'moves_processing:{game_id}:{turn_num}'
 
+def deterministic_hash(value: str) -> int:
+    # Use SHA-256 hash function from hashlib and return an integer
+    hash_object = hashlib.sha256(value.encode())
+    # Convert the hash to a hexadecimal string, then to an integer
+    return int(hash_object.hexdigest(), 16)

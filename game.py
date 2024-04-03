@@ -13,7 +13,7 @@ from game_state import GameState
 from civ import Civ
 from animation_frame import AnimationFrame
 from utils import moves_processing_key, staged_moves_key
-from redis_utils import rset, rget, await_empty_counter, rlock, rget_json, rset_json
+from redis_utils import rset, rget, rdel, await_empty_counter, rlock, rget_json, rset_json, rkeys
 
 
 class TimerStatus(PyEnum):
@@ -54,6 +54,9 @@ class Game(Base):
     def roll_turn_lock_key(self, turn_num):
         return f"roll_turn_lock:{self.id}:{turn_num}"
     
+    def _turn_over_key(self, turn_num):
+        return f"turn_over_key:{self.id}:{turn_num}"
+    
     def accepting_moves(self, turn_num) -> bool:
         """
         Check if this game is accepting client moves.
@@ -63,13 +66,15 @@ class Game(Base):
             # Wrong turn number
             print(f"Game {self.id} is not accepting moves for turn_num {turn_num} because we're on turn_num {self.turn_num}")
             return False
-
-        lock_key = self.roll_turn_lock_key(turn_num)
-        if rlock(lock_key).locked():
-            # Turn is already rolling
-            print(f"Game {self.id} is not accepting moves because turn {turn_num} is already rolling")
+        
+        lock = rlock(self.roll_turn_lock_key(turn_num), expire=60 * 60)
+        if lock.locked():
+            print(f"Game {self.id} is not accepting moves because turn {turn_num} is already rolling or over")
             return False
-
+        if rget(self._turn_over_key(turn_num)) == "true":
+            # Done rolling
+            print(f"Game {self.id} is not accepting moves because turn {turn_num} is already over")
+            return False
         return True
     
     def turn_ended_by_player_key(self, player_num):
@@ -162,7 +167,12 @@ class Game(Base):
         lock = rlock(self.roll_turn_lock_key(self.turn_num), expire=60 * 60)
         if lock.acquire(blocking=False):
             try:
+                if rget(self._turn_over_key(self.turn_num)) == "true":
+                    print(f"not rolling game {self.id} turn {self.turn_num} because it has already rolled.")
+                    return
+
                 self.broadcast('start_turn_roll')
+
 
                 # Wait till all active threads have finished, up to 5s
                 await_empty_counter(moves_processing_key(self.id, self.turn_num), 5, 0.1)
@@ -190,6 +200,7 @@ class Game(Base):
                         args=[sess, self.socketio, self.id, self.turn_num + 1]).start()
                 else:
                     self.next_forced_roll_at = None
+                rset(self._turn_over_key(self.turn_num), "true", ex=7 * 60 * 60)
 
                 self.turn_num = self.turn_num + 1
                 if game_state.game_over:
@@ -199,20 +210,39 @@ class Game(Base):
                 sess.commit()
                 print(f"Game {self.id} finished rolling turn, starting turn {self.turn_num}")
                 self.start_turn()
-            except Exception as e:
-                # Note we only relesae the lock if there's an exception
-                # Otherwise we just hold the lock forever
-                # Since we only ever want to roll turn once.
+
+            finally:
                 lock.release()
-                raise e
         else:
-            print(f"Another thread is already rolling turn {self.turn_num} for game {self.game_id}.")
+            print(f"Another thread is already rolling turn {self.turn_num} for game {self.id}.")
+
 
     def start_turn(self) -> None:
         self.broadcast('update')
         for player_num, player in enumerate(self.players):
             if not player.is_bot:
                 self.set_turn_ended_by_player_num(player_num, False, broadcast=False)
+
+    def reset_to_turn(self, turn_num: int, sess):
+        for turn in range(turn_num, self.turn_num + 1):
+            rdel(self._turn_over_key(turn))
+            for player_num in range(len(self.players)):
+                rdel(staged_moves_key(self.id, player_num, turn))
+                rdel(self._staged_game_state_key(player_num, turn))
+            decline_claimed_keys_pattern = f"decline-claimed-{self.id}-{turn}-*"
+            for key in rkeys(decline_claimed_keys_pattern):
+                rdel(key)
+
+        self.turn_num = turn_num
+        self.next_forced_roll_at = None
+
+
+        # Now we need to remove all later animation frames from the database
+
+        sess.query(AnimationFrame).filter(AnimationFrame.game_id == self.id).filter(AnimationFrame.turn_num > turn_num).delete()
+        sess.commit()
+
+
 
     def has_player_declined(self, player_num, turn_num, count_preempted=True) -> bool:
         staged_moves = rget_json(staged_moves_key(self.id, player_num, turn_num)) or []

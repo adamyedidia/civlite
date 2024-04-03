@@ -42,6 +42,9 @@ class GreatPerson(abc.ABC):
     def from_json(json) -> "GreatPerson":
         return great_people_by_name[json["name"]]
 
+    def __repr__(self) -> str:
+        return f"<Great Person {self.name}>"
+
 class GreatGeneral(GreatPerson):
     def __init__(self, name, unit_template: UnitTemplate, number: int):
         self.unit_template: UnitTemplate = unit_template

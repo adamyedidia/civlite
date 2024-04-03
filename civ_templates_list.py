@@ -208,6 +208,7 @@ BARBARIAN_CIV = {
         "abilities": [],
         "primary_color": "#FF0000",
         "secondary_color": "#666666",
+        "advancement_level": 0
     },
 }
 ANCIENT_CIVS = {

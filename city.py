@@ -64,6 +64,7 @@ class City:
         self.projected_income_focus = resourcedict()  # income from focus
         self.projected_income_puppets: dict[str, dict[str, float]] = {'wood': {}, 'metal': {}}
         self.terrains_dict = {}
+        self.founded_turn: int | None = None
 
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
@@ -97,7 +98,7 @@ class City:
             new_territory_capital = None
         for child in children:
             if child != new_territory_capital:
-                child.set_territory_parent_if_needed(game_state, excluded_cities=[self])
+                child.set_territory_parent_if_needed(game_state)
 
     def _remove_income_from_parent(self, game_state: 'GameState') -> None:
         parent: City | None = self.get_territory_parent(game_state)
@@ -111,15 +112,15 @@ class City:
         self._territory_parent_id = None
         self._territory_parent_coords = None
 
-    def set_territory_parent_if_needed(self, game_state: 'GameState', excluded_cities: list['City'] = []) -> None:
+    def set_territory_parent_if_needed(self, game_state: 'GameState') -> None:
         my_territories: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self.civ and city.is_territory_capital and city != self]
-        choices: list[City] = [city for city in my_territories if city not in excluded_cities]
+        choices: list[City] = [city for city in my_territories]
         if len(my_territories) < self.civ.max_territories:
             # Room for another territory capital.
             self.make_territory_capital(game_state)
         else:
             # Pick the closest one to be my parent.
-            choice: City = min(choices, key=lambda c: (self.hex.distance_to(c.hex), -c.capital, -c.population, c.id))  # type: ignore
+            choice: City = min(choices, key=lambda c: (self.hex.distance_to(c.hex), c.capital, -c.population, c.id))  # type: ignore
             self._remove_income_from_parent(game_state)
             self._territory_parent_id = choice.id
             self._territory_parent_coords = choice.hex.coords  # type: ignore
@@ -165,7 +166,7 @@ class City:
             self.projected_income_focus = resourcedict()
         self.projected_income_base = self._get_projected_yields_without_focus(game_state)
         self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
-        self.food_demand: int = self._calculate_food_demand(game_state)
+        self.food_demand: float = self._calculate_food_demand(game_state)
 
         self.projected_income = self.projected_income_base.copy()
         self.projected_income[self.focus] += self.projected_income_focus[self.focus]
@@ -292,11 +293,15 @@ class City:
         self.handle_cleanup()
         self.midturn_update(game_state)
 
-    def _calculate_food_demand(self, game_state: 'GameState') -> int:
+    def age(self, game_state) -> int:
+        assert self.founded_turn is not None, "Can't get age of a fake city."
+        return game_state.turn_num - self.founded_turn
+
+    def _calculate_food_demand(self, game_state: 'GameState') -> float:
+        if self.founded_turn is None: return 0  # Not sure why we're even calculating this.
+        result: float = 1.0 * self.age(game_state)
         if self.capital:
-            result = int(0.5 * self.population)
-        else:
-            result = 2 * self.population
+            result *= 0.25
 
         if self.is_territory_capital:
             result -= 2 * len(self.get_puppets(game_state))
@@ -307,6 +312,7 @@ class City:
             for ability in building.template.abilities:
                 if ability.name == 'DecreaseFoodDemand':
                     result -= ability.numbers[0]
+        result = max(result, 0)
         return result
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:
@@ -388,6 +394,10 @@ class City:
                 total_yields = 0
                 total_pseudoyields = 0
                 is_economic_building = False
+                if building_template.vp_reward is not None:
+                    total_yields += building_template.vp_reward
+                    # AIs count points as worth 3 resources
+                    total_pseudoyields += building_template.vp_reward * 2
                 for ability in building_template.abilities:
                     if ability.name == 'IncreaseYieldsForTerrain':
                         is_economic_building = True
@@ -408,6 +418,27 @@ class City:
                         effective_income_multiplier = 1 / ratio
                         effective_income_bonus = self.projected_income_base['food'] * (effective_income_multiplier - 1)
                         total_pseudoyields += int(effective_income_bonus / self.civ.vitality)
+
+                    if ability.name == "DecreaseFoodDemand":
+                        is_economic_building = True
+                        unhappiness_saved = min(ability.numbers[0], self.food_demand)
+                        total_yields += unhappiness_saved  # Display the raw number to humans
+
+                        # Decide how much AI cares
+                        if self.civ_to_revolt_into is not None:
+                            # Count the unhappiness as full resources
+                            pass
+                        elif self.unhappiness == 0 and self.projected_income["unhappiness"] == 0:
+                            # This ability is pretty useless if there's no unhappiness, cancel out its yields
+                            total_pseudoyields -= unhappiness_saved
+                        else:
+                            # Count the unhappiness as half resources
+                            total_pseudoyields -= 0.5 * unhappiness_saved
+
+                    if ability.name == "ReducePuppetDistancePenalty":
+                        is_economic_building = True
+                        yields = sum(sum(puppets_incomes.values()) for puppets_incomes in self.projected_income_puppets.values())
+                        total_yields += round(yields * (self.puppet_distance_penalty() - ability.numbers[0]), ndigits=1)
 
                 if is_economic_building:
                     self.available_buildings_to_descriptions[building_template.name] = {
@@ -702,8 +733,8 @@ class City:
         self.wood /= 2
         self.metal /= 2
         
-        self.orphan_territory_children(game_state)
         self.civ = civ
+        self.orphan_territory_children(game_state)
         self.set_territory_parent_if_needed(game_state)
 
         for building in self.buildings:
@@ -898,34 +929,39 @@ class City:
         else:
             print(f"  no buildings available")
 
-        
-        plausible_focuses = {"food", "wood", "metal", "science"}
-        if self.growth_cost() >= 30:
-            # At some point it's time to use our pop
-            plausible_focuses.remove('food')
-        if self.civ.researching_tech_name is None:
-            plausible_focuses.remove('science')
-        if self.wood >= 150:
-            plausible_focuses.remove('wood')
-            
-        max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
-        focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
-        if len(focuses_with_best_yields) == 1:
-            self.focus = focuses_with_best_yields[0]
-        elif len(self.buildings_queue) > 0 and isinstance(self.buildings_queue[0], BuildingTemplate) and self.buildings_queue[0].is_national_wonder:
-            self.focus = 'wood'
-        elif self.population < 3 and 'food' in focuses_with_best_yields:
+        if self.civ_to_revolt_into is not None or self.unhappiness + self.projected_income['unhappiness'] > game_state.unhappiness_threshold:
             self.focus = 'food'
-        elif self.infinite_queue_unit is not None and 'metal' in focuses_with_best_yields:
-            self.focus = 'metal'
-        elif len(self.buildings_queue) > 0 and 'wood' in focuses_with_best_yields:
-            self.focus = 'wood'
-        elif 'science' in focuses_with_best_yields:
-            self.focus = 'science'
+            print(f"  chose focus: {self.focus} to prevent revolt")
         else:
-            self.focus = random.choice(list(focuses_with_best_yields))
+            production_city: City = self if self.is_territory_capital else self.get_territory_parent(game_state)
 
-        print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
+            plausible_focuses = {"food", "wood", "metal", "science"}
+            if self.growth_cost() >= 30:
+                # At some point it's time to use our pop
+                plausible_focuses.remove('food')
+            if self.civ.researching_tech_name is None:
+                plausible_focuses.remove('science')
+            if production_city.wood >= 150:
+                plausible_focuses.remove('wood')
+                
+            max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
+            focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
+            if len(focuses_with_best_yields) == 1:
+                self.focus = focuses_with_best_yields[0]
+            elif len(production_city.buildings_queue) > 0 and isinstance(production_city.buildings_queue[0], BuildingTemplate) and production_city.buildings_queue[0].is_national_wonder:
+                self.focus = 'wood'
+            elif self.population < 3 and 'food' in focuses_with_best_yields:
+                self.focus = 'food'
+            elif production_city.infinite_queue_unit is not None and 'metal' in focuses_with_best_yields:
+                self.focus = 'metal'
+            elif len(production_city.buildings_queue) > 0 and 'wood' in focuses_with_best_yields:
+                self.focus = 'wood'
+            elif 'science' in focuses_with_best_yields:
+                self.focus = 'science'
+            else:
+                self.focus = random.choice(list(focuses_with_best_yields))
+
+            print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
         
 
     def to_json(self, include_civ_details: bool = False) -> dict:
@@ -969,6 +1005,7 @@ class City:
             "is_decline_view_option": self.is_decline_view_option,
             "food_demand": self.food_demand,
             "revolt_unit_count": self.revolt_unit_count,
+            "founded_turn": self.founded_turn,
 
             "is_trade_hub": self.is_trade_hub(),
         }
@@ -1006,6 +1043,7 @@ class City:
         city.revolt_unit_count = json["revolt_unit_count"]
         city._territory_parent_id = json["territory_parent_id"]
         city._territory_parent_coords = json["territory_parent_coords"]
+        city.founded_turn = json["founded_turn"]
 
         city.handle_cleanup()
 

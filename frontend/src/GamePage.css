@@ -108,8 +108,8 @@ body {
   border-radius: 5px;
   background-color: #ffffff;
   max-width: 20vw; /* Adjust as needed */
-  display: flex; /* Display content in a line */
-  justify-content: space-between; /* Distribute space evenly between the elements */
+  display: flex;
+  flex-direction: column;
   align-items: center; /* Align items vertically in the center */
   font-size: 1.2em; /* Smaller font size */
   font-weight: bold; /* Make the text bold */

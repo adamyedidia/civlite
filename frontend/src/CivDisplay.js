@@ -1,12 +1,14 @@
 import React from 'react';
 import './CivDisplay.css'; // Assuming you have a separate CSS file for styling
+import { romanNumeral } from './TechListDialog';
 
 class CivDisplay extends React.Component {
+
     render() {
         const { civ, templates } = this.props
 
         const { vitality, name } = civ;
-        const { abilities, primary_color, secondary_color } = templates.CIVS[name];
+        const { abilities, primary_color, secondary_color, advancement_level } = templates.CIVS[name];
 
         const hoveredGamePlayerDisplay = this.props?.hoveredGamePlayer ? ` (${this.props.hoveredGamePlayer})` : '';
 
@@ -16,6 +18,7 @@ class CivDisplay extends React.Component {
             <div className="civ-card" style={{ borderColor: secondary_color }}>
                 <div className="civ-card-inner" style={{ backgroundColor: primary_color }}>
                     <h2>{`${name} ${hoveredGamePlayerDisplay}`}</h2>
+                    <h4>{`Age ${romanNumeral(advancement_level)} civilization`}</h4>
                     {vitalityDisplay && <h4>{vitalityDisplay}</h4>}
                     <ul>
                         {abilities.map((ability, index) => (

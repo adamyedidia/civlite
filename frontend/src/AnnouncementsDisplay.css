@@ -11,3 +11,20 @@
     display: flex;
     flex-direction: column-reverse;
 }
+
+.announcements-display .civ {
+    font-weight: bold;
+}
+
+.announcements-display .wonder {
+    font-weight: bold;
+    color: purple;
+}
+
+.announcements-display .city {
+    font-weight: bold;
+}
+
+.announcements-display .current-turn {
+    font-weight: bold;
+}

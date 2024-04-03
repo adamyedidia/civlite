@@ -22,7 +22,7 @@ from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTemplate
-from utils import dream_key, staged_moves_key
+from utils import dream_key, staged_moves_key, deterministic_hash
 from great_person import random_great_people_by_age
 
 from sqlalchemy import func
@@ -100,6 +100,7 @@ class GameState:
 
     def register_city(self, city):
         city.hex.city = city
+        city.founded_turn = self.turn_num
         self.cities_by_id[city.id] = city
 
     def new_city(self, civ: Civ, hex: Hex, city_id: Optional[str] = None) -> City:
@@ -147,7 +148,7 @@ class GameState:
         self.midturn_update()     
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
-        self.add_announcement(f'The {civ.moniker()} have entered decline!')                
+        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have entered decline!')                
         civ.game_player = None
         civ.in_decline = True
         game_player.civ_id = None
@@ -162,7 +163,7 @@ class GameState:
         print("Calculating starting techs!")
         assert city.hex is not None
         # Make this function deterministic across staging and rolling
-        random.seed(hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
+        random.seed(deterministic_hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
         chosen_techs_names = set()
         chosen_techs_by_advancement = defaultdict(int)
 
@@ -229,7 +230,7 @@ class GameState:
         city.refresh_available_units()
         self.midturn_update()
 
-        self.add_announcement(f'The {civ.moniker()} have been founded in {city.name}!')        
+        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
 
     def decline_priority(self, first_player_num: int, new_player_num: int) -> bool:
         """
@@ -254,7 +255,7 @@ class GameState:
 
         from_civ_perspectives = []
         city: City = self.process_decline_option(coords, from_civ_perspectives)
-        
+
         # Remove it from the set of choices
         if coords in self.fresh_cities_for_decline:
             self.fresh_cities_for_decline.pop(coords)
@@ -285,15 +286,15 @@ class GameState:
             # This is not a fresh city , it's a pre-existing one.
             print(f"Declining to existing city at {coords}")
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
-            hex.city.orphan_territory_children(self)
             hex.city.civ = Civ(hex.city.civ_to_revolt_into, game_player=None)
+            hex.city.orphan_territory_children(self)
         else:
             # This is a fake city, now it is becoming a real city.
             print(f"Declining to fresh city at {coords}")
             self.register_city(self.fresh_cities_for_decline[coords])
         assert hex.city is not None, "Failed to register city!"
         hex.city.capitalize(self)
-        hex.city.population = max(hex.city.population, self.turn_num // 7)
+        hex.city.population = max(hex.city.population, self.advancement_level + 1)
         hex.city.wood = hex.city.metal = hex.city.unhappiness = 0
         hex.city.civ_to_revolt_into = None
         hex.city.buildings = [b for b in hex.city.buildings if not b.is_national_wonder]
@@ -339,12 +340,11 @@ class GameState:
         game_state_to_store_json: Optional[dict] = None
         should_stage_moves = True
         decline_eviction_player: Optional[int] = None
-        
-        # This has to be deterministic to allow speculative and non-speculative calls to agree
-        seed_value = hash(f"{self.game_id} {player_num} {self.turn_num}")
-        random.seed(seed_value)
 
         for move_index, move in enumerate(moves):
+            # This has to be deterministic to allow speculative and non-speculative calls to agree
+            seed_value = deterministic_hash(f"{self.game_id} {player_num} {self.turn_num}")
+            random.seed(seed_value)
             if ((city_id := move.get('city_id')) is not None 
                     and (city_owner := (city_owner_by_city_id or {}).get(city_id)) is not None 
                     and city_owner != player_num):
@@ -511,9 +511,7 @@ class GameState:
                     print(f"{instead_of_city_id=}")
                     if instead_of_city_id is not None:
                         instead_of_city: City = self.cities_by_id[instead_of_city_id]
-                        print("setting parent")
                         instead_of_city.set_territory_parent_if_needed(self)
-                        print("orphaning children")
                         instead_of_city.orphan_territory_children(self, make_new_territory=False)
                         print(f"{instead_of_city._territory_parent_id=}")
                     if previous_parent is not None and previous_parent.id != instead_of_city_id:
@@ -603,19 +601,11 @@ class GameState:
         return (None, self.to_json(), self.to_json(), should_stage_moves, decline_eviction_player)
 
     def sync_advancement_level(self) -> None:
-        tech_levels = [0]
-
-        for civ in self.civs_by_id.values():
-            for tech in civ.researched_techs:
-                tech_levels.append(TECHS[tech]['advancement_level'])
-        
-        max_advancement_level = 0
-
-        for tech_level in range(max(tech_levels) + 1):
-            if len([tech for tech in tech_levels if tech >= tech_level]) >= len(self.civs_by_id) / 2:
-                max_advancement_level = tech_level
-
-        self.advancement_level = max_advancement_level
+        # Population-wieghted average civ advancement level.
+        weighted_levels = [(c.population, c.civ.get_advancement_level()) for c in self.cities_by_id.values()]
+        total_population = sum(level[0] for level in weighted_levels)
+        weighted_average = sum(level[0] / total_population * level[1] for level in weighted_levels)
+        self.advancement_level = math.ceil(weighted_average)
 
     def refresh_visibility_by_civ(self, short_sighted: bool = False) -> None:
         for hex in self.hexes.values():
@@ -802,6 +792,8 @@ class GameState:
         revolt_choices: list[tuple[float, str, City]] = cities_to_revolt[:needed_revolt_choices]
         if len(revolt_choices) > 0:
             self.unhappiness_threshold = revolt_choices[-1][0]
+        else:
+            self.unhappiness_threshold = 0
         print(f"revolt choices: {[city.name for _, _, city in revolt_choices]}; threshold: {self.unhappiness_threshold}")
         revolt_ids = set(id for _, id, _ in revolt_choices)
         for _, _, city in revolt_choices:
@@ -912,7 +904,7 @@ class GameState:
                         break
 
         if not national:
-            self.add_announcement(f'{civ.moniker()} built the {building_template.name}!')
+            self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={building_template.name}>{building_template.name}<wonder>!')
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:
         if data['type'] not in ['UnitAttack', 'UnitMovement', 'StartOfNewTurn']:

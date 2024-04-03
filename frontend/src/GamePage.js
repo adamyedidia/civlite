@@ -31,6 +31,7 @@ import LowerRightDisplay from './LowerRightDisplay.js';
 import TechListDialog from './TechListDialog';
 import TaskBar from './TaskBar';
 import GreatPerson from './GreatPerson';
+import { romanNumeral } from './TechListDialog';
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
@@ -2167,7 +2168,7 @@ export default function GamePage() {
             if (typeOrder1 !== typeOrder2) {
                 return typeOrder1 - typeOrder2;
             } else {
-                return description1?.value - description2?.value;
+                return description2?.value - description1?.value;
             }
         });
     }
@@ -2611,8 +2612,12 @@ export default function GamePage() {
         if (declineOptionsView) {
             return city?.is_decline_view_option;
         }
+        if (engineState === EngineStates.GAME_OVER) {
+            return true;
+        }
         if (playerNum !== null && playerNum !== undefined) {
             return civsByIdRef.current?.[city.civ_id]?.game_player?.player_num === playerNum
+
         }
         return false;
     }
@@ -2628,7 +2633,7 @@ export default function GamePage() {
     };
 
     const handleClickCity = (city) => {
-        if (engineState !== EngineStates.PLAYING) {return;}
+        if (engineState !== EngineStates.PLAYING && engineState !== EngineStates.GAME_OVER) {return;}
         if (city.id === selectedCity?.id) {
             setSelectedCity(null);
         }
@@ -3188,6 +3193,9 @@ export default function GamePage() {
                         {!hoveredBuilding && !hoveredUnit && !hoveredTech && <div className='turn-num-card'>
                             <Typography variant="h4">
                                 Turn {gameState?.turn_num}
+                            </Typography>
+                            <Typography variant="h5">
+                                Age {romanNumeral(gameState.advancement_level)}
                             </Typography>
                         </div>}
                     </div>
