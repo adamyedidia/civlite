@@ -159,22 +159,24 @@ class GameState:
                     other_civ.game_player.score += SURVIVAL_BONUS
                     other_civ.game_player.score_from_survival += SURVIVAL_BONUS
 
-    def choose_techs_for_new_civ(self, city: City):
+    def choose_techs_for_new_civ(self, city: City) -> set[TechTemplate]:
         print("Calculating starting techs!")
         assert city.hex is not None
         # Make this function deterministic across staging and rolling
         random.seed(deterministic_hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
-        chosen_techs_names = set()
+        chosen_techs: set[TechTemplate] = set()
         chosen_techs_by_advancement = defaultdict(int)
 
         # Start with prereqs for the buildings we have
         for building in city.buildings:
             prereq = building.template.prereq
             if prereq is not None:
-                chosen_techs_names.add(prereq)
-                chosen_techs_by_advancement[TECHS[prereq].advancement_level] += 1
+                prereq_tech = TECHS.by_name(prereq)
+                chosen_techs.add(prereq_tech)
+                chosen_techs_by_advancement[prereq_tech.advancement_level] += 1
 
-        print(f"Starting with prereqs for buildings: {chosen_techs_names}")
+
+        print(f"Starting with prereqs for buildings: {chosen_techs}")
 
         # Calculate mean tech amount at each level
         civs_to_compare_to: list[Civ] = [civ for civ in self.civs_by_id.values() if civ.id in self.civ_ids_with_game_player_at_turn_start and civ != city.civ]
@@ -183,15 +185,15 @@ class GameState:
 
         print(f"  Comparing to civs: {civs_to_compare_to}")
         # Make a dict of {tech: num civs that know it} for each level
-        tech_counts_by_adv_level = defaultdict(dict)
-        for tech_name, tech in TECHS.items():
-            num = len([civ for civ in civs_to_compare_to if civ.has_tech(tech_name)])
+        tech_counts_by_adv_level = defaultdict(dict[TechTemplate, int])
+        for tech in TECHS.all():
+            num = len([civ for civ in civs_to_compare_to if civ.has_tech(tech)])
             lvl = tech.advancement_level
-            tech_counts_by_adv_level[lvl][tech_name] = num
+            tech_counts_by_adv_level[lvl][tech] = num
 
         excess_techs = 0
         for level in sorted(list(tech_counts_by_adv_level.keys()), reverse=True):
-            tech_counts = tech_counts_by_adv_level[level]
+            tech_counts: dict[TechTemplate, int] = tech_counts_by_adv_level[level]
             total = sum(tech_counts.values())
             target_num = total / len(civs_to_compare_to) - excess_techs
             print(f"Level {level}; excess {excess_techs}; target: {target_num}")
@@ -200,15 +202,15 @@ class GameState:
                 continue
             else:
                 num_needed = target_num - chosen_techs_by_advancement[level]
-                available = [tech for tech in tech_counts_by_adv_level[level] if tech not in chosen_techs_names]
+                available = [tech for tech in tech_counts_by_adv_level[level] if tech not in chosen_techs]
                 available.sort(key=lambda tech: (tech_counts_by_adv_level[level][tech], random.random()), reverse=True)
                 choose = available[:math.floor(num_needed)]
                 print(f"  chose: {choose}")
                 for tech in choose:
-                    chosen_techs_names.add(tech)
+                    chosen_techs.add(tech)
                 excess_techs = len(choose) - num_needed
 
-        return chosen_techs_names
+        return chosen_techs
         
 
     def make_new_civ_from_the_ashes(self, city: City) -> None:
@@ -387,10 +389,11 @@ class GameState:
 
             if move['move_type'] == 'choose_tech':
                 tech_name = move['tech_name']
+                tech = TECHS.by_name(tech_name)
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
                 civ = self.civs_by_id[game_player.civ_id]
-                civ.select_tech(tech_name)
+                civ.select_tech(tech)
                 game_player_to_return = game_player
 
             if move['move_type'] == 'choose_building':

@@ -11,8 +11,8 @@ from building_template import BuildingTemplate
 
 class TestConsistency:
     def test_tech_names_consistency(self):
-        for name, tech_template in TECHS.items():
-            assert tech_template.name == name, f"key and name mismatch: {name} != {tech_template.name}"
+        for tech_template in TECHS:
+            assert tech_template.name == tech_template.value.name, f"key and name mismatch: {tech_template.value.name} != {tech_template.name}"
 
     def test_unit_names_consistency(self):
         for name, json in UNITS.items():
@@ -31,7 +31,7 @@ class TestConsistency:
 
     def test_units_tech_consistency(self):
         found_units = set()
-        for tech_template in TECHS.values():
+        for tech_template in TECHS.all():
             for unit_name in tech_template.unlocks_units:
                 assert unit_name in UNITS, f"Tech {tech_template.name} unlocks unit {unit_name} which does not exist"
                 assert unit_name not in found_units, f"Tech {tech_template.name} unlocks unit {unit_name} which is already unlocked by another tech"
@@ -43,7 +43,7 @@ class TestConsistency:
 
     def test_bldgs_tech_consistency(self):
         found_bldgs = set()
-        for tech_template in TECHS.values():
+        for tech_template in TECHS.all():
             for bldg_name in tech_template.unlocks_buildings:
                 assert bldg_name in BUILDINGS, f"Tech {tech_template.name} unlocks building {bldg_name} which does not exist"
                 assert bldg_name not in found_bldgs, f"Tech {tech_template.name} unlocks building {bldg_name} which is already unlocked by another tech"

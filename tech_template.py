@@ -13,7 +13,12 @@ class TechTemplate:
         return f"<TechTemplate {self.name}>"
 
     def __eq__(self, __value: object) -> bool:
+        if not isinstance(__value, TechTemplate):
+            return False
         return self.name == __value.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
 
     def to_json(self) -> dict:
         return {

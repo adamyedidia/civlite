@@ -42,8 +42,6 @@ class GreatPerson(abc.ABC):
     def from_json(json) -> "GreatPerson":
         return great_people_by_name[json["name"]]
 
-    def __repr__(self) -> str:
-        return f"<Great Person {self.name}>"
 
 class GreatGeneral(GreatPerson):
     def __init__(self, name, unit_template: UnitTemplate, number: int):
@@ -79,9 +77,9 @@ class GreatMerchant(GreatPerson):
             city.civ.science += self.amount
 
 class GreatScientist(GreatPerson):
-    def __init__(self, name, tech_template: TechTemplate, extra_science: int):
+    def __init__(self, name, tech_template: TechTemplate, extra_science: float):
         self.tech_template: TechTemplate = tech_template
-        self.extra_science: int = extra_science
+        self.extra_science: float = extra_science
         super().__init__(name, hover_entity_type="tech", hover_entity_name=tech_template.name)
 
     def description(self) -> str:
@@ -180,8 +178,8 @@ for resource in ["metal", "wood", "food", "science"]:
     for age in range(10):
         _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], _target_value_by_age(age), resource))
 
-for t in TECHS.values():
-    if t.name == "Renaissance":
+for t in TECHS.all():
+    if t == TECHS.RENAISSANCE.value:
         continue
     level = t.advancement_level
     scientist_name = scientist_names.get(t.name, f"[A{level - 1} Scientist: {t.name}]")

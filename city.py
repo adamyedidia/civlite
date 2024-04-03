@@ -945,7 +945,7 @@ class City:
             if self.growth_cost() >= 30:
                 # At some point it's time to use our pop
                 plausible_focuses.remove('food')
-            if self.civ.researching_tech_name is None:
+            if self.civ.researching_tech is None:
                 plausible_focuses.remove('science')
             if production_city.wood >= 150:
                 plausible_focuses.remove('wood')

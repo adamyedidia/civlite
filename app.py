@@ -423,24 +423,14 @@ def reset_game(sess):
         print("no game id or turn num")
         return jsonify({"error": "Game ID and turn number are required"}), 400
 
-
     game = Game.get(sess, socketio, game_id)
-    print(game)
-    game.reset_to_turn(turn_num, sess)
-    return jsonify({"success": True})
-
-
-
-
-
-
-
     if not game:
         return jsonify({"error": "Game not found"}), 404
 
+    game.reset_to_turn(turn_num, sess)
+    return jsonify({"success": True})
+
 @app.route('/api/movie/last_frame/<game_id>', methods=['GET'])
-
-
 @api_endpoint
 def get_most_recent_state(sess, game_id):
     player_num = request.args.get('player_num')
@@ -768,7 +758,7 @@ def get_all_templates(sess):
     return jsonify({
         'CIVS': {civ_template['name']: CivTemplate.from_json(civ_template).to_json() for civ_template in CIVS.values()},
         'UNITS': {unit_template['name']: UnitTemplate.from_json(unit_template).to_json() for unit_template in UNITS.values()},
-        'TECHS': {tech.name: {**tech.to_json()} for tech in TECHS.values()},
+        'TECHS': {tech.name: {**tech.to_json()} for tech in TECHS.all()},
         'BUILDINGS': {building_template['name']: BuildingTemplate.from_json(building_template).to_json() for building_template in BUILDINGS.values()},
     })
 
