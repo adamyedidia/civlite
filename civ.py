@@ -159,7 +159,7 @@ class Civ:
             "techs_status": {tech.name: status.value for tech, status in self.techs_status.items()},
             "num_researched_techs": len(self.researched_techs),
             "researching_tech_name": self.researching_tech.name if self.researching_tech is not None else None,
-            "current_tech_choices": [tech.to_json() for tech, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)],
+            "current_tech_choices": [tech.name for tech, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)],
             "vitality": self.vitality,
             "city_power": self.city_power,
             "available_buildings": self.available_buildings,

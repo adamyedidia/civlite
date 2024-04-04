@@ -3491,9 +3491,11 @@ export default function GamePage() {
                         </IconButton>
                     </DialogTitle>
                     <div className="tech-choices-content">
-                        {techChoices.map((tech, index) => (
-                            <TechDisplay key={index} tech={tech} civ={myCiv} templates={templates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(tech)} />
-                        ))}
+                        {techChoices.map((tech, index) => {
+                            const techTemplate = templates.TECHS[tech];
+                            return <TechDisplay key={index} tech={techTemplate} civ={myCiv} templates={templates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(techTemplate)} />
+                        })}
+
                     </div>
                 </div>
             )}

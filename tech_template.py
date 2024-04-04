@@ -31,10 +31,4 @@ class TechTemplate:
     
     @staticmethod
     def from_json(json: dict) -> "TechTemplate":
-        return TechTemplate(
-            name=json["name"],
-            cost=json["cost"],
-            advancement_level=json["advancement_level"],
-            unlocks_units=json.get("unlocks_units", []),
-            unlocks_buildings=json.get("unlocks_buildings", []),
-        )
+        raise ValueError("Don't get Templates from json, just look them up by name in TECHS.")
