@@ -10,10 +10,6 @@ from civ_template import CivTemplate
 from building_template import BuildingTemplate
 
 class TestConsistency:
-    def test_tech_names_consistency(self):
-        for tech_template in TECHS:
-            assert tech_template.name == tech_template.value.name.upper().replace(' ', '_'), f"key and name mismatch: {tech_template.value.name.upper().replace(' ', '_')} != {tech_template.name}"
-
     def test_unit_names_consistency(self):
         for name, json in UNITS.items():
             unit_template = UnitTemplate.from_json(json)

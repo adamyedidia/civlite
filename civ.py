@@ -92,7 +92,7 @@ class Civ:
         return [tech for tech, status in self.techs_status.items() if status == TechStatus.RESEARCHED]
 
     def select_tech(self, tech: TechTemplate | None):
-        assert tech is None or self.techs_status[tech] in (TechStatus.AVAILABLE, TechStatus.RESEARCHING), f"Civ {self} tried to research {tech_name} which is in status {self.techs_status[tech]}; all statuses were: {self.techs_status}"
+        assert tech is None or self.techs_status[tech] in (TechStatus.AVAILABLE, TechStatus.RESEARCHING), f"Civ {self} tried to research {tech.name} which is in status {self.techs_status[tech]}; all statuses were: {self.techs_status}"
         if self.researching_tech:
             self.techs_status[self.researching_tech] = TechStatus.AVAILABLE
         if tech is not None:
@@ -136,7 +136,7 @@ class Civ:
             self.techs_status[choice] = TechStatus.AVAILABLE
         if len(techs_to_offer) < num_techs_to_offer and self.game_player is not None:
             # We've teched to too many things, time for a Renaissance
-            self.techs_status[TECHS.RENAISSANCE.value] = TechStatus.AVAILABLE
+            self.techs_status[TECHS.RENAISSANCE] = TechStatus.AVAILABLE
 
     def get_advancement_level(self) -> int:
         my_techs = [tech.advancement_level for tech in TECHS.all() if self.has_tech(tech)]
@@ -331,10 +331,10 @@ class Civ:
     def complete_research(self, tech: TechTemplate, game_state: 'GameState'):
 
         for other_tech, status in self.techs_status.items():
-            if status == TechStatus.AVAILABLE and other_tech != TECHS.RENAISSANCE.value and other_tech.name != tech.name:
+            if status == TechStatus.AVAILABLE and other_tech != TECHS.RENAISSANCE and other_tech.name != tech.name:
                 self.techs_status[other_tech] = TechStatus.DISCARDED
 
-        if tech == TECHS.RENAISSANCE.value:
+        if tech == TECHS.RENAISSANCE:
             print(f"Renaissance for civ {self.moniker()}")
             game_state.add_announcement(f"The <civ id={self.id}>{self.moniker()}</civ> have completed a Renaissance.")
             cost: int = self.renaissance_cost()
@@ -351,7 +351,7 @@ class Civ:
             self.gain_tech(game_state, tech)
 
         # Never discard renaissance
-        self.techs_status[TECHS.RENAISSANCE.value] = TechStatus.UNAVAILABLE
+        self.techs_status[TECHS.RENAISSANCE] = TechStatus.UNAVAILABLE
 
         self.get_new_tech_choices()
 
@@ -372,7 +372,7 @@ class Civ:
 
         if self.researching_tech:
             researching_tech = self.researching_tech
-            cost = self.renaissance_cost() if researching_tech == TECHS.RENAISSANCE.value else researching_tech.cost
+            cost = self.renaissance_cost() if researching_tech == TECHS.RENAISSANCE else researching_tech.cost
             if researching_tech and cost <= self.science:
                 self.complete_research(researching_tech, game_state)
 

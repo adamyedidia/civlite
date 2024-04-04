@@ -1,8 +1,8 @@
+from typing import Generator
+
 from tech_template import TechTemplate
 
-from enum import Enum
-
-class TECHS(Enum):
+class TECHS():
     ARCHERY = TechTemplate(
         name= 'Archery',
         cost= 25,
@@ -274,13 +274,15 @@ class TECHS(Enum):
         advancement_level=9,
     )
 
-    @staticmethod
-    def all() -> list[TechTemplate]:
-        return [tech.value for tech in TECHS]
+    @classmethod
+    def all(cls) -> Generator[TechTemplate, None, None]:
+        for attr in dir(cls):
+            if isinstance(getattr(cls, attr), TechTemplate):
+                yield getattr(cls, attr)
 
-    @staticmethod
-    def by_name(name: str) -> TechTemplate:
-        for tech in TECHS:
-            if tech.value.name == name:
-                return tech.value
+    @classmethod
+    def by_name(cls, name: str) -> TechTemplate:
+        for tech in cls.all():
+            if tech.name == name:
+                return tech
         raise ValueError(f'No tech with name {name}')

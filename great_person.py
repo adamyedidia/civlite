@@ -179,7 +179,7 @@ for resource in ["metal", "wood", "food", "science"]:
         _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], _target_value_by_age(age), resource))
 
 for t in TECHS.all():
-    if t == TECHS.RENAISSANCE.value:
+    if t == TECHS.RENAISSANCE:
         continue
     level = t.advancement_level
     scientist_name = scientist_names.get(t.name, f"[A{level - 1} Scientist: {t.name}]")
