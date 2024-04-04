@@ -42,8 +42,6 @@ class GreatPerson(abc.ABC):
     def from_json(json) -> "GreatPerson":
         return great_people_by_name[json["name"]]
 
-    def __repr__(self) -> str:
-        return f"<Great Person {self.name}>"
 
 class GreatGeneral(GreatPerson):
     def __init__(self, name, unit_template: UnitTemplate, number: int):
@@ -79,9 +77,9 @@ class GreatMerchant(GreatPerson):
             city.civ.science += self.amount
 
 class GreatScientist(GreatPerson):
-    def __init__(self, name, tech_template: TechTemplate, extra_science: int):
+    def __init__(self, name, tech_template: TechTemplate, extra_science: float):
         self.tech_template: TechTemplate = tech_template
-        self.extra_science: int = extra_science
+        self.extra_science: float = extra_science
         super().__init__(name, hover_entity_type="tech", hover_entity_name=tech_template.name)
 
     def description(self) -> str:
@@ -131,26 +129,68 @@ merchant_names = {
     "food": ["Moses", "Siddhartha", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "[INDUSTRIAL FOOD MERCHANT]", "Queen Victoria", "Gandhi", "[INFORMATION FOOD MERCHANT]", "[FUTURE FOOD MERCHANT]"],
     "science": ["Prometheus", "Confucius", "Archimedes", "Copernicus", "Francis Bacon", "Charles Darwin", "Albert Einstein", "John von Neumann", "[INFORMATION SCIENCE MERCHANT]", "[FUTURE SCIENCE MERCHANT]"],
 }
+
+scientist_names = {
+    'Archery': 'Artemis',
+    'Bronze Working': 'Hephaestus',
+    # 'Pottery': 'TODO',
+    'Code of Laws': 'Hammurabi',
+    # 'Calendar': 'TODO',
+    # 'The Wheel': 'TODO',
+    # 'Mining': 'TODO',
+    # 'Forestry': 'TODO',
+    # 'Irrigation': 'TODO',
+    'Writing': 'Socrates',
+    # 'Masonry': 'TODO',
+    'Mathematics': "Euclid",
+    'Horseback Riding': 'Xenophon',
+    'Iron Working': 'Ashurbanipal',
+    'Currency': 'Alyattes of Lydia',
+    'Engineering': 'Qin Shi Huang',  # This is the great wall guy. If we add a Great Wall, we should put it here or move him to it.
+    'Construction': 'Emperor Vespasian',
+    'Education': 'Robert of Sorbon',
+    # 'Machinery': 'TODO',
+    'Civil Service': 'Emperor Wen of Sui',
+    'Chivalry': 'Uther Pendragon',
+    'Compass': 'Galileo Galilei',
+    'Physics': 'Isaac Newton',
+    'Printing Press': 'Johannes Gutenberg',
+    # 'Gunpowder': 'TODO',
+    # 'Metallurgy': 'TODO',
+    'Architecture': 'Michelangelo',
+    "Medicine": 'Louis Pasteur',
+    'Economics': 'Adam Smith',
+    # 'Military Science': 'TODO',
+    # 'Rifling': 'TODO',
+    'Industrialization': 'James Watt',
+    'Dynamite': 'Alfred Nobel',
+    # 'Radio': 'TODO',
+    # 'Combined Arms': 'TODO',
+    # 'Ballistics': 'TODO',
+    'Mechanized Agriculture': 'Norman Borlaug',
+    'Rocketry': 'Marie Curie',
+    'Computers': 'Alan Turing',
+    # 'Nanotechnology': 'TODO',
+    # 'Megarobotics': 'TODO',
+}
 # Ibn Fadlan, 
 for resource in ["metal", "wood", "food", "science"]:
     for age in range(10):
         _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], _target_value_by_age(age), resource))
 
-for tech in TECHS.values():
-    t = TechTemplate.from_json(tech)
-    if t.name == "Renaissance":
+for t in TECHS.all():
+    if t == TECHS.RENAISSANCE:
         continue
     level = t.advancement_level
-    scientist_name = tech.get("great_scientist_name", f"[A{level - 1} Scientist: {t.name}]")
+    scientist_name = scientist_names.get(t.name, f"[A{level - 1} Scientist: {t.name}]")
     _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t, extra_science=0.75 * _target_value_by_age(level - 1) - t.cost))
-    for unit in t.unlocks_units:
-        u = UnitTemplate.from_json(UNITS[unit])
-        great_people_names: dict[str, str] = UNITS[unit].get('great_people_names', {})
-        advanced_general_name: str = great_people_names.get("general_advanced", f"[A{level - 1} General: {unit}]")
+    for u in t.unlocks_units:
+        great_people_names: dict[str, str] = u.great_people_names
+        advanced_general_name: str = great_people_names.get("general_advanced", f"[A{level - 1} General: {u.name}]")
         _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, u, round(0.5 * _target_value_by_age(level - 1) / u.metal_cost)))
-        normal_general_name: str = great_people_names.get("general_normal", f"[A{level} General: {unit}]")
+        normal_general_name: str = great_people_names.get("general_normal", f"[A{level} General: {u.name}]")
         _great_people_by_age[level].append(GreatGeneral(normal_general_name, u, round(0.8 * _target_value_by_age(level) / u.metal_cost)))
-        horde_general_name: str = great_people_names.get("general_horde", f"[A{level + 1} General: {unit}]")
+        horde_general_name: str = great_people_names.get("general_horde", f"[A{level + 1} General: {u.name}]")
         _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, u, round(1.1 * _target_value_by_age(level + 1) / u.metal_cost)))
 
         engineer_name = great_people_names.get("engineer", f"[A{level - 1} Engineer: {u.building_name}]")
@@ -168,7 +208,7 @@ for age, great_people in _great_people_by_age.items():
 if duplicate_names:
     raise ValueError(f"Duplicate great person names found: {duplicate_names}")
 
-_great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", UnitTemplate.from_json(UNITS["Swordsman"]), 47))
+_great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", UNITS.SWORDSMAN, 47))
 
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 

@@ -138,10 +138,10 @@ class GameState:
                     setattr(hex.yields, numbers[0], new_value)
     
         for wonder in self.wonders_built_to_civ_id:
-            if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
+            if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
                 for ability in abilities:
-                    if ability["name"] == "IncreasePopulationOfNewCities":
-                        for _ in range(ability["numbers"][0]):
+                    if ability.name == "IncreasePopulationOfNewCities":
+                        for _ in range(ability.numbers[0]):
                             city.grow_inner(self)
 
         self.refresh_foundability_by_civ()
@@ -159,22 +159,22 @@ class GameState:
                     other_civ.game_player.score += SURVIVAL_BONUS
                     other_civ.game_player.score_from_survival += SURVIVAL_BONUS
 
-    def choose_techs_for_new_civ(self, city: City):
+    def choose_techs_for_new_civ(self, city: City) -> set[TechTemplate]:
         print("Calculating starting techs!")
         assert city.hex is not None
         # Make this function deterministic across staging and rolling
         random.seed(deterministic_hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
-        chosen_techs_names = set()
+        chosen_techs: set[TechTemplate] = set()
         chosen_techs_by_advancement = defaultdict(int)
 
         # Start with prereqs for the buildings we have
         for building in city.buildings:
             prereq = building.template.prereq
             if prereq is not None:
-                chosen_techs_names.add(prereq)
-                chosen_techs_by_advancement[TECHS[prereq]['advancement_level']] += 1
+                chosen_techs.add(prereq)
+                chosen_techs_by_advancement[prereq.advancement_level] += 1
 
-        print(f"Starting with prereqs for buildings: {chosen_techs_names}")
+        print(f"Starting with prereqs for buildings: {chosen_techs}")
 
         # Calculate mean tech amount at each level
         civs_to_compare_to: list[Civ] = [civ for civ in self.civs_by_id.values() if civ.id in self.civ_ids_with_game_player_at_turn_start and civ != city.civ]
@@ -183,15 +183,15 @@ class GameState:
 
         print(f"  Comparing to civs: {civs_to_compare_to}")
         # Make a dict of {tech: num civs that know it} for each level
-        tech_counts_by_adv_level = defaultdict(dict)
-        for tech_name, tech in TECHS.items():
-            num = len([civ for civ in civs_to_compare_to if civ.has_tech(tech_name)])
-            lvl = tech['advancement_level']
-            tech_counts_by_adv_level[lvl][tech_name] = num
+        tech_counts_by_adv_level = defaultdict(dict[TechTemplate, int])
+        for tech in TECHS.all():
+            num = len([civ for civ in civs_to_compare_to if civ.has_tech(tech)])
+            lvl = tech.advancement_level
+            tech_counts_by_adv_level[lvl][tech] = num
 
         excess_techs = 0
         for level in sorted(list(tech_counts_by_adv_level.keys()), reverse=True):
-            tech_counts = tech_counts_by_adv_level[level]
+            tech_counts: dict[TechTemplate, int] = tech_counts_by_adv_level[level]
             total = sum(tech_counts.values())
             target_num = total / len(civs_to_compare_to) - excess_techs
             print(f"Level {level}; excess {excess_techs}; target: {target_num}")
@@ -200,15 +200,15 @@ class GameState:
                 continue
             else:
                 num_needed = target_num - chosen_techs_by_advancement[level]
-                available = [tech for tech in tech_counts_by_adv_level[level] if tech not in chosen_techs_names]
+                available = [tech for tech in tech_counts_by_adv_level[level] if tech not in chosen_techs]
                 available.sort(key=lambda tech: (tech_counts_by_adv_level[level][tech], random.random()), reverse=True)
                 choose = available[:math.floor(num_needed)]
                 print(f"  chose: {choose}")
                 for tech in choose:
-                    chosen_techs_names.add(tech)
+                    chosen_techs.add(tech)
                 excess_techs = len(choose) - num_needed
 
-        return chosen_techs_names
+        return chosen_techs
         
 
     def make_new_civ_from_the_ashes(self, city: City) -> None:
@@ -345,7 +345,7 @@ class GameState:
             # This has to be deterministic to allow speculative and non-speculative calls to agree
             seed_value = deterministic_hash(f"{self.game_id} {player_num} {self.turn_num}")
             random.seed(seed_value)
-            if ((city_id := move.get('city_id')) is not None 
+            if ('city_id' in move and (city_id := move['city_id']) is not None 
                     and (city_owner := (city_owner_by_city_id or {}).get(city_id)) is not None 
                     and city_owner != player_num):
                 continue
@@ -354,7 +354,7 @@ class GameState:
                 self.special_mode_by_player_num[player_num] = None
 
                 for city in self.cities_by_id.values():
-                    if (game_player := city.civ.game_player) and game_player.player_num == player_num:
+                    if city.civ.game_player is not None and (game_player := city.civ.game_player) and game_player.player_num == player_num:
                         if city.id == city_id:
                             game_player.decline_this_turn = True
                             game_player_to_return = game_player
@@ -387,10 +387,11 @@ class GameState:
 
             if move['move_type'] == 'choose_tech':
                 tech_name = move['tech_name']
+                tech = TECHS.by_name(tech_name)
                 game_player = self.game_player_by_player_num[player_num]
                 assert game_player.civ_id
                 civ = self.civs_by_id[game_player.civ_id]
-                civ.select_tech(tech_name)
+                civ.select_tech(tech)
                 game_player_to_return = game_player
 
             if move['move_type'] == 'choose_building':
@@ -403,9 +404,9 @@ class GameState:
 
 
                 if building_name in UNITS_BY_BUILDING_NAME:
-                    building = UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building_name])
+                    building = UNITS_BY_BUILDING_NAME[building_name]
                 else:
-                    building = BuildingTemplate.from_json(BUILDINGS[building_name])
+                    building = BUILDINGS.by_name(building_name)
                 city.buildings_queue.append(building)
                 game_player_to_return = game_player
 
@@ -439,7 +440,7 @@ class GameState:
                 if unit_name == "":
                     unit = None
                 else:
-                    unit = UnitTemplate.from_json(UNITS[unit_name])
+                    unit = UNITS.by_name(unit_name)
 
                 city.infinite_queue_unit = unit
                 self.midturn_update()

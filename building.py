@@ -52,11 +52,11 @@ class Building:
         unit_name = json.get('unit_name')
         if unit_name is not None:
             return Building(
-                unit_template=UnitTemplate.from_json(UNITS[unit_name]),
+                unit_template=UNITS.by_name(unit_name),
                 building_template=None,
             )
         
         return Building(
             unit_template=None,
-            building_template=BuildingTemplate.from_json(BUILDINGS[json['name']]),
+            building_template=BUILDINGS.by_name(json['name']),
         )

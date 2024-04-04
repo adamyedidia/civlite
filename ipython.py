@@ -6,7 +6,6 @@ from civ import Civ
 from civ_template import CivTemplate
 from game_player import GamePlayer
 from tech_template import TechTemplate
-from tech import Tech
 from unit_template import UnitTemplate
 from unit import Unit
 from hex import Hex
@@ -29,7 +28,6 @@ def main():
         "CivTemplate": CivTemplate,
         "GamePlayer": GamePlayer,
         "TechTemplate": TechTemplate,
-        "Tech": Tech,
         "UnitTemplate": UnitTemplate,
         "Unit": Unit,
         "Hex": Hex,

@@ -3,7 +3,7 @@ from random import random, shuffle
 from typing import TYPE_CHECKING, Optional
 from civ import Civ
 from settings import UNIT_KILL_REWARD
-from unit_template import UnitTemplate
+from unit_template import UnitTemplate, UnitTag
 from unit_templates_list import UNITS
 from utils import generate_unique_id
 
@@ -215,17 +215,16 @@ class Unit:
         bonus_strength = 0
 
         if self.has_ability('BonusNextTo') and self.hex is not None:
-            unit_type = self.numbers_of_ability('BonusNextTo')[0]
-            
+            unit_type: str = self.numbers_of_ability('BonusNextTo')[0]
             for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
                 for unit in neighboring_hex.units:
-                    if unit.template.has_tag(unit_type):
+                    if unit.template.has_tag_by_name(unit_type):
                         bonus_strength += self.numbers_of_ability('BonusNextTo')[1]
                         break
 
         if self.has_ability('BonusAgainst'):
-            unit_type = self.numbers_of_ability('BonusAgainst')[0]
-            if enemy.template.has_tag(unit_type):
+            unit_type: str = self.numbers_of_ability('BonusAgainst')[0]
+            if enemy.template.has_tag_by_name(unit_type):
                 bonus_strength += self.numbers_of_ability('BonusAgainst')[1]
 
         return bonus_strength
@@ -271,7 +270,7 @@ class Unit:
                     if unit.civ.id != self.civ.id:
                         self.punch(game_state, unit, self.numbers_of_ability('Splash')[0])
 
-        if self.template.has_tag('ranged'):
+        if self.template.has_tag(UnitTag.RANGED):
             # target.target = self.hex
             pass
         else:
@@ -279,9 +278,9 @@ class Unit:
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
-            "attack_type": ("melee" if not self.template.has_tag('ranged') else "ranged") 
-                            if not self.template.has_tag('gunpowder') and not self.template.has_tag('armored') and not self.template.name == 'Nanoswarm' 
-                            else ("gunpowder_melee" if not self.template.has_tag('ranged') else "gunpowder_ranged"),
+            "attack_type": ("melee" if not self.template.has_tag(UnitTag.RANGED) else "ranged") 
+                            if not self.template.has_tag(UnitTag.GUNPOWDER) and not self.template.has_tag(UnitTag.ARMORED) and not self.template == UNITS.NANOSWARM 
+                            else ("gunpowder_melee" if not self.template.has_tag(UnitTag.RANGED) else "gunpowder_ranged"),
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
         }, hexes_must_be_visible=[self_hex, target_hex], no_commit=True)
@@ -433,7 +432,7 @@ class Unit:
     @staticmethod
     def from_json(json: dict,) -> "Unit":
         unit = Unit(
-            template=UnitTemplate.from_json(UNITS[json["name"]]),
+            template=UNITS.by_name(json["name"]),
             civ=None,  # type: ignore
         )
         unit.id = json["id"]
