@@ -138,10 +138,10 @@ class GameState:
                     setattr(hex.yields, numbers[0], new_value)
     
         for wonder in self.wonders_built_to_civ_id:
-            if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
+            if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
                 for ability in abilities:
-                    if ability["name"] == "IncreasePopulationOfNewCities":
-                        for _ in range(ability["numbers"][0]):
+                    if ability.name == "IncreasePopulationOfNewCities":
+                        for _ in range(ability.numbers[0]):
                             city.grow_inner(self)
 
         self.refresh_foundability_by_civ()
@@ -406,7 +406,7 @@ class GameState:
                 if building_name in UNITS_BY_BUILDING_NAME:
                     building = UNITS_BY_BUILDING_NAME[building_name]
                 else:
-                    building = BuildingTemplate.from_json(BUILDINGS[building_name])
+                    building = BUILDINGS.by_name(building_name)
                 city.buildings_queue.append(building)
                 game_player_to_return = game_player
 

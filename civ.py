@@ -2,7 +2,6 @@ import random
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Dict
 from collections import defaultdict
-from building_templates_list import BUILDINGS
 from great_person import GreatPerson, great_people_by_name
 from civ_template import CivTemplate
 from civ_templates_list import ANCIENT_CIVS, CIVS
@@ -176,10 +175,10 @@ class Civ:
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
-        self.available_buildings = [building["name"] for building in BUILDINGS.values() if (
-            (not building.get('prereq')) or self.has_tech(TECHS.by_name(building.get("prereq")))
-            and (not building.get('is_wonder') or not game_state.wonders_built_to_civ_id.get(building['name']))
-            and (not building.get('is_national_wonder') or not building['name'] in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
+        self.available_buildings = [building.name for building in BUILDINGS.all() if (
+            (building.prereq is None or self.has_tech(building.prereq))
+            and (not building.is_wonder or not game_state.wonders_built_to_civ_id.get(building.name))
+            and (not building.is_national_wonder or not building.name in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
         self.available_unit_buildings: list[str] = [
             unit.building_name for unit in UNITS.all() 
@@ -359,11 +358,11 @@ class Civ:
             self.game_player.score_from_researching_techs += TECH_VP_REWARD
 
             for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS.by_name(wonder).abilities):
                     for ability in abilities:
-                        if ability["name"] == "ExtraVpsForTechs":
-                            self.game_player.score += ability["numbers"][0]    
-                            self.game_player.score_from_abilities += ability["numbers"][0]
+                        if ability.name == "ExtraVpsForTechs":
+                            self.game_player.score += ability.numbers[0]    
+                            self.game_player.score_from_abilities += ability.numbers[0]
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)

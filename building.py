@@ -58,5 +58,5 @@ class Building:
         
         return Building(
             unit_template=None,
-            building_template=BuildingTemplate.from_json(BUILDINGS[json['name']]),
+            building_template=BUILDINGS.by_name(json['name']),
         )

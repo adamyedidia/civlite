@@ -57,7 +57,7 @@ class City:
         self.capital = False
         self._territory_parent_id: Optional[str] = None
         self._territory_parent_coords: Optional[str] = None
-        self.available_units: list[str] = []
+        self.available_units: list[UnitTemplate] = []
         self.projected_income = resourcedict()
         self.projected_income_base = resourcedict()  # income without focus
         self.projected_income_focus = resourcedict()  # income from focus
@@ -333,11 +333,11 @@ class City:
 
         if self.civ.game_player:
             for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
                     for ability in abilities:
-                        if ability["name"] == "ExtraVpsForCityGrowth":
-                            self.civ.game_player.score += ability["numbers"][0]    
-                            self.civ.game_player.score_from_abilities += ability["numbers"][0]
+                        if ability.name == "ExtraVpsForCityGrowth":
+                            self.civ.game_player.score += ability.numbers[0]    
+                            self.civ.game_player.score_from_abilities += ability.numbers[0]
 
 
     def grow(self, game_state: 'GameState') -> None:
@@ -467,7 +467,8 @@ class City:
 
 
     def refresh_available_units(self) -> None:
-        self.available_units = [unit.name for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
+        self.available_units = [unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
+        self.available_units.sort(key=lambda unit: (unit.advancement_level(), unit.metal_cost, unit.name))
 
     def has_production_building_for_unit(self, unit: UnitTemplate) -> bool:
         return self.has_building(unit.building_name)
@@ -481,7 +482,7 @@ class City:
         if not self.civ:
             return []
         building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
-        buildings = [BuildingTemplate.from_json(BUILDINGS[building_name]) for building_name in self.available_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
+        buildings = [BUILDINGS.by_name(building_name) for building_name in self.available_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
         unit_buildings = [UNITS_BY_BUILDING_NAME[building_name] for building_name in self.civ.available_unit_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
         return [*buildings, *unit_buildings]
 
@@ -609,9 +610,9 @@ class City:
 
         for wonder in game_state.wonders_built_to_civ_id:
             if game_state.wonders_built_to_civ_id[wonder] == self.civ.id:
-                for ability in BUILDINGS[wonder]["abilities"]:
-                    if ability['name'] == 'NewUnitsGainBonusStrength':
-                        unit.strength += ability['numbers'][0]
+                for ability in BUILDINGS.by_name(wonder).abilities:
+                    if ability.name == 'NewUnitsGainBonusStrength':
+                        unit.strength += ability.numbers[0]
 
     def reinforce_unit(self, unit: Unit) -> None:
         unit.health += 100
@@ -769,11 +770,11 @@ class City:
                         setattr(hex.yields, numbers[0], new_value)                
 
             for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS[wonder]["abilities"]):
+                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
                     for ability in abilities:
-                        if ability["name"] == "ExtraVpsForCityCapture":
-                            civ.game_player.score += ability["numbers"][0]
-                            civ.game_player.score_from_abilities += ability["numbers"][0]
+                        if ability.name == "ExtraVpsForCityCapture":
+                            civ.game_player.score += ability.numbers[0]
+                            civ.game_player.score_from_abilities += ability.numbers[0]
 
         self.under_siege_by_civ = None
 
@@ -893,17 +894,16 @@ class City:
         print(f"Planning Ai move for city {self.name}")
         self.midturn_update(game_state)
 
-        available_units = {unit_name : UNITS.by_name(unit_name) for unit_name in self.available_units}
         # Don't build stationary units
-        available_units = {unit_name: unit for unit_name, unit in available_units.items() if unit.movement > 0}
-        highest_level = max([effective_advancement_level(unit) for unit in available_units.values()])
-        highest_tier_units = [unit for unit in available_units.values() if effective_advancement_level(unit) == highest_level]
+        available_units = [unit for unit in self.available_units if unit.movement > 0]
+        highest_level = max([effective_advancement_level(unit) for unit in available_units])
+        highest_tier_units = [unit for unit in available_units if effective_advancement_level(unit) == highest_level]
         if highest_level < self.civ.get_advancement_level() - 2 and not self.is_threatened_city(game_state):
             self.infinite_queue_unit = None
             print(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
         else:
             self.infinite_queue_unit = random.choice(highest_tier_units)
-            print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units.values()]})")
+            print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units]})")
 
         available_buildings = self.get_available_buildings()
         economic_buildings = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
@@ -923,7 +923,7 @@ class City:
             if self.infinite_queue_unit is not None and not self.is_threatened_city(game_state):
                 print(f"  not building units to wait for new military building.")
                 self.infinite_queue_unit = None
-        elif highest_level == 0 and 'Slinger' not in self.available_units and self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2:
+        elif highest_level == 0 and UNITS.SLINGER not in self.available_units and self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2:
             # switch from warrior to slinger
             self.buildings_queue = [UNITS.SLINGER]
             print(f"  building slingers because of all the wood.")
@@ -975,8 +975,6 @@ class City:
         
 
     def to_json(self, include_civ_details: bool = False) -> dict:
-               
-
         return {
             "id": self.id,
             "civ_id": self.civ.id,
@@ -998,7 +996,7 @@ class City:
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
             "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
             "capital": self.capital,
-            "available_units": self.available_units,
+            "available_units": [u.name for u in self.available_units],
             "projected_income": self.projected_income,
             "projected_income_base": self.projected_income_base,
             "projected_income_focus": self.projected_income_focus,
@@ -1036,10 +1034,10 @@ class City:
         city.wood = json["wood"]
         city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
         city.capital = json["capital"]
-        city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BuildingTemplate.from_json(BUILDINGS[building]) for building in json["buildings_queue"]]
+        city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BUILDINGS.by_name(building) for building in json["buildings_queue"]]
         city.available_buildings = json["available_buildings"][:]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
-        city.available_units = json["available_units"][:]
+        city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
         city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UNITS.by_name(json["infinite_queue_unit"])
         city.focus = json["focus"]
         city.projected_income = json["projected_income"]

@@ -40,7 +40,7 @@ class TestConsistency:
                 found_bldgs.add(bldg_name)
                 assert BUILDINGS[bldg_name]['prereq'] == tech_template.name, f"Building {bldg_name} is unlocked by tech {BUILDINGS[bldg_name]['prereq']} but should be unlocked by {tech_template.name}"
 
-        for bldg_name in BUILDINGS:
+        for bldg_name in BUILDINGS.all():
             assert bldg_name in found_bldgs, f"Building {bldg_name} is not unlocked by any tech. It think it should be unlocked by {BUILDINGS[bldg_name].get('prereq')}"
 
     def test_civ_special_units_consistency(self):
