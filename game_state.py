@@ -171,10 +171,8 @@ class GameState:
         for building in city.buildings:
             prereq = building.template.prereq
             if prereq is not None:
-                prereq_tech = TECHS.by_name(prereq)
-                chosen_techs.add(prereq_tech)
-                chosen_techs_by_advancement[prereq_tech.advancement_level] += 1
-
+                chosen_techs.add(prereq)
+                chosen_techs_by_advancement[prereq.advancement_level] += 1
 
         print(f"Starting with prereqs for buildings: {chosen_techs}")
 

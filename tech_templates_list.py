@@ -1,18 +1,16 @@
-from template_list import TemplateList
+from typing import Generator
 from tech_template import TechTemplate
 
-class TECHS(TemplateList):
+class TECHS():
     item_type = TechTemplate
     ARCHERY = TechTemplate(
         name= 'Archery',
         cost= 25,
-        unlocks_units= ['Archer'],
         advancement_level= 1,
     )
     BRONZE_WORKING = TechTemplate(
         name= 'Bronze Working',
         cost= 25,
-        unlocks_units= ['Spearman'],
         advancement_level= 1,
     )
     POTTERY = TechTemplate(
@@ -36,7 +34,6 @@ class TECHS(TemplateList):
     THE_WHEEL = TechTemplate(
         name='The Wheel',
         cost=35,
-        unlocks_units=['Chariot'],
         unlocks_buildings=['Roads'],
         advancement_level=1,
     )
@@ -67,27 +64,23 @@ class TECHS(TemplateList):
     MASONRY = TechTemplate(
         name='Masonry',
         cost=30,
-        unlocks_units=['Garrison'],
         unlocks_buildings=['Pyramids'],
         advancement_level=1,
     )
     MATHEMATICS = TechTemplate(
         name='Mathematics',
         cost=50,
-        unlocks_units=['Catapult'],
         unlocks_buildings=['Workshop', 'Magisterium'],
         advancement_level=2,
     )
     HORSEBACK_RIDING = TechTemplate(
         name='Horseback Riding',
         cost=50,
-        unlocks_units=['Horseman', 'Horse Archer'],
         advancement_level=2,
     )
     IRON_WORKING = TechTemplate(
         name='Iron Working',
         cost=45,
-        unlocks_units=['Swordsman'],
         unlocks_buildings=['Colossus'],
         advancement_level=2,
     )
@@ -118,7 +111,6 @@ class TECHS(TemplateList):
     MACHINERY = TechTemplate(
         name='Machinery',
         cost=60,
-        unlocks_units=[],
         unlocks_buildings=['Ironworks'],
         advancement_level=3,
     )
@@ -126,20 +118,17 @@ class TECHS(TemplateList):
         name='Civil Service',
         cost=60,
         unlocks_buildings=['Chichen Itza'],
-        unlocks_units=['Pikeman'],
         advancement_level=3,
     )
     CHIVALRY = TechTemplate(
         name='Chivalry',
         cost=65,
-        unlocks_units=['Knight', 'Militia'],
         unlocks_buildings=[],
         advancement_level=3,
     )
     COMPASS = TechTemplate(
         name='Compass',
         cost=70,
-        unlocks_units=['Crossbowman'],
         unlocks_buildings=['Observatory', 'Great Lighthouse'],
         advancement_level=3,
     )
@@ -147,7 +136,6 @@ class TECHS(TemplateList):
         name='Physics',
         cost=70,
         unlocks_buildings=['Windmill'],
-        unlocks_units=['Trebuchet'],
         advancement_level=3,
     )
     PRINTING_PRESS = TechTemplate(
@@ -159,7 +147,6 @@ class TECHS(TemplateList):
     GUNPOWDER = TechTemplate(
         name='Gunpowder',
         cost=90,
-        unlocks_units=['Musketman'],
         unlocks_buildings=['Himeji Castle'],
         advancement_level=4,
     )
@@ -171,7 +158,6 @@ class TECHS(TemplateList):
     METALLURGY = TechTemplate(
         name='Metallurgy',
         cost=95,
-        unlocks_units=['Cannon'],
         unlocks_buildings=['Forge'],
         advancement_level=4,
     )
@@ -196,14 +182,12 @@ class TECHS(TemplateList):
     MILITARY_SCIENCE = TechTemplate(
         name='Military Science',
         cost=130,
-        unlocks_units=['Cavalry'],
         unlocks_buildings=['Brandenburg Gate'],
         advancement_level=5,
     )
     RIFLING = TechTemplate(
         name='Rifling',
         cost=140,
-        unlocks_units=['Rifleman'],
         unlocks_buildings=['Outpost'],
         advancement_level=5,
     )
@@ -211,34 +195,29 @@ class TECHS(TemplateList):
         name='Industrialization',
         cost=150,
         unlocks_buildings=['Factory'],
-        unlocks_units=['Gatling Gun'],
         advancement_level=5,
     )
     DYNAMITE = TechTemplate(
         name='Dynamite',
         cost=170,
-        unlocks_units=['Artillery'],
         unlocks_buildings=['Railroads'],
         advancement_level=6,
     )
     RADIO = TechTemplate(
         name='Radio',
         cost=250,
-        unlocks_units=['Infantry'],
         unlocks_buildings=['Stadium', 'Statue of Liberty'],
         advancement_level=6,
     )
     COMBINED_ARMS = TechTemplate(
         name='Combined Arms',
         cost=300,
-        unlocks_units=['Tank'],
         unlocks_buildings=['Kremlin'],
         advancement_level=7,
     )
     BALLISTICS = TechTemplate(
         name='Ballistics',
         cost=400,
-        unlocks_units=['Machine Gun', 'Bazooka'],
         advancement_level=7,
     )
     MECHANIZED_AGRICULTURE = TechTemplate(
@@ -250,7 +229,6 @@ class TECHS(TemplateList):
     ROCKETRY = TechTemplate(
         name='Rocketry',
         cost=500,
-        unlocks_units=['Rocket Launcher'],
         unlocks_buildings=['Apollo Program'],
         advancement_level=8,
     )
@@ -263,14 +241,26 @@ class TECHS(TemplateList):
     NANOTECHNOLOGY = TechTemplate(
         name='Nanotechnology',
         cost=750,
-        unlocks_units=['Nanoswarm'],
         advancement_level=9,
     )     
     MEGAROBOTICS = TechTemplate(
         name='Megarobotics',
         cost=1000,
-        unlocks_units=['Giant Death Robot'],
         unlocks_buildings=['AGI'],
         advancement_level=9,
     )
 
+    # all & by_name are copy-pasted methods to all template lists.
+    # I wasn't able to set up a base class system for this
+    # That handled the dynamic type properly.
+    @classmethod
+    def all(cls) -> Generator[TechTemplate, None, None]:
+        for attr in dir(cls):
+            if isinstance(getattr(cls, attr), TechTemplate):
+                yield getattr(cls, attr)
+    @classmethod
+    def by_name(cls, name: str) -> TechTemplate:
+        for item in cls.all():
+            if item.name == name:
+                return item
+        raise KeyError(f'No item with name {name}')

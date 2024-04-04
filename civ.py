@@ -112,11 +112,9 @@ class Civ:
         characteristic_tech_offered = False
 
         if self.has_ability('IncreasedStrengthForUnit'):
-            special_unit_name = self.numbers_of_ability('IncreasedStrengthForUnit')[0]
+            special_unit = UNITS.by_name(self.numbers_of_ability('IncreasedStrengthForUnit')[0])
 
-            if (prereq := UNITS.by_name(special_unit_name).prereq):
-                characteristic_tech = TECHS.by_name(prereq)
-
+            if (characteristic_tech := special_unit.prereq):
                 if characteristic_tech.advancement_level <= max_advancement_level and self.techs_status[characteristic_tech] == TechStatus.UNAVAILABLE:
                     characteristic_tech_offered = True
                     self.techs_status[characteristic_tech] = TechStatus.AVAILABLE
@@ -185,7 +183,7 @@ class Civ:
         )]
         self.available_unit_buildings: list[str] = [
             unit.building_name for unit in UNITS.all() 
-            if ((unit.prereq is None or self.has_tech(TECHS.by_name(unit.prereq))) and 
+            if ((unit.prereq is None or self.has_tech(unit.prereq)) and 
                 unit.building_name is not None and
                 unit.advancement_level() >= self.initial_advancement_level - 1)
             ]
@@ -291,9 +289,7 @@ class Civ:
             if self.has_ability('IncreasedStrengthForUnit'):
                 special_unit_name = self.numbers_of_ability('IncreasedStrengthForUnit')[0]
                 special_unit = UNITS.by_name(special_unit_name)
-                if special_unit.prereq:
-                    special_tech = TECHS.by_name(special_unit.prereq)
-
+                special_tech = special_unit.prereq
 
             available_techs: list[TechTemplate] = [tech for tech, status in self.techs_status.items() if status == TechStatus.AVAILABLE]
 

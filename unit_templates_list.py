@@ -1,8 +1,8 @@
-from template_list import TemplateList
+from typing import Generator
 from unit_template import UnitTemplate
+from tech_templates_list import TECHS
 
-class UNITS(TemplateList):
-    item_type = UnitTemplate
+class UNITS():
     WARRIOR = UnitTemplate(
         name="Warrior",
         building_name="Warrior Hut",
@@ -39,7 +39,7 @@ class UNITS(TemplateList):
         movement=1,
         range=2,
         tags=["ranged"],
-        prereq="Archery",
+        prereq=TECHS.ARCHERY,
         abilities=[],
         great_people_names={
             "engineer": "Ashoka",
@@ -58,7 +58,7 @@ class UNITS(TemplateList):
         movement=1,
         range=1,
         tags=["infantry"],
-        prereq="Bronze Working",
+        prereq=TECHS.BRONZE_WORKING,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["mounted", 4],
@@ -78,7 +78,7 @@ class UNITS(TemplateList):
         strength=10,
         movement=1,
         range=1,
-        prereq="The Wheel",
+        prereq=TECHS.THE_WHEEL,
         tags=["mounted"],
         abilities=[{
             "name": "BonusAgainst",
@@ -98,7 +98,7 @@ class UNITS(TemplateList):
         strength=12,
         movement=0,
         range=1,
-        prereq="Masonry",
+        prereq=TECHS.MASONRY,
         tags=["defensive"],
         abilities=[],
         great_people_names={
@@ -118,7 +118,7 @@ class UNITS(TemplateList):
         movement=1,
         range=2,
         tags=["ranged", "siege"],
-        prereq="Mathematics",
+        prereq=TECHS.MATHEMATICS,
         abilities=[{
             "name": "BonusNextTo",
             "numbers": ["infantry", 4],
@@ -134,7 +134,7 @@ class UNITS(TemplateList):
         movement=2,
         range=1,
         tags=["mounted"],
-        prereq="Horseback Riding",
+        prereq=TECHS.HORSEBACK_RIDING,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["siege", 6],
@@ -156,7 +156,7 @@ class UNITS(TemplateList):
         movement=2,
         range=1,
         tags=["ranged", "mounted"],
-        prereq="Horseback Riding",
+        prereq=TECHS.HORSEBACK_RIDING,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["infantry", 8],
@@ -177,7 +177,7 @@ class UNITS(TemplateList):
         movement=1,
         range=1,
         tags=["infantry"],
-        prereq="Iron Working",
+        prereq=TECHS.IRON_WORKING,
         abilities=[],
         great_people_names={
             "engineer": "Julius Caesar",
@@ -196,7 +196,7 @@ class UNITS(TemplateList):
         movement=1,
         range=1,
         tags=["infantry"],
-        prereq="Civil Service",
+        prereq=TECHS.CIVIL_SERVICE,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["mounted", 7],
@@ -218,7 +218,7 @@ class UNITS(TemplateList):
         movement=1,
         range=2,
         tags=["ranged"],
-        prereq="Compass",
+        prereq=TECHS.COMPASS,
         abilities=[{
             "name": "BonusNextTo",
             "numbers": ["siege", 4],
@@ -238,7 +238,7 @@ class UNITS(TemplateList):
         movement=2,
         range=1,
         tags=["mounted"],
-        prereq="Chivalry",
+        prereq=TECHS.CHIVALRY,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["ranged", 8],
@@ -260,7 +260,7 @@ class UNITS(TemplateList):
         movement=1,
         range=2,
         tags=["siege"],
-        prereq="Physics",
+        prereq=TECHS.PHYSICS,
         abilities=[{
             "name": "BonusNextTo",
             "numbers": ["infantry", 6],
@@ -281,7 +281,7 @@ class UNITS(TemplateList):
         movement=1,
         range=1,
         tags=["infantry", "gunpowder"],
-        prereq="Gunpowder",
+        prereq=TECHS.GUNPOWDER,
         abilities=[],
         great_people_names={
             "general_advanced": "Alexandre Dumas",
@@ -299,7 +299,7 @@ class UNITS(TemplateList):
         movement=1,
         range=2,
         tags=["ranged", "siege", "gunpowder"],
-        prereq="Metallurgy",
+        prereq=TECHS.METALLURGY,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["defensive", 10],
@@ -320,7 +320,7 @@ class UNITS(TemplateList):
         movement=0,
         range=1,
         tags=["defensive"],
-        prereq="Chivalry",
+        prereq=TECHS.CHIVALRY,
         abilities=[],
         great_people_names={
             "general_advanced": "Odo of France",
@@ -338,7 +338,7 @@ class UNITS(TemplateList):
         movement=2,
         range=1,
         tags=["mounted"],
-        prereq="Military Science",
+        prereq=TECHS.MILITARY_SCIENCE,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["siege", 15],
@@ -358,7 +358,7 @@ class UNITS(TemplateList):
         movement=1,
         range=1,
         tags=["infantry", "gunpowder"],
-        prereq="Rifling",
+        prereq=TECHS.RIFLING,
         abilities=[],
         great_people_names={
             "engineer": "Ulysses S. Grant",
@@ -376,7 +376,7 @@ class UNITS(TemplateList):
         movement=1,
         range=1,
         tags=["ranged", "gunpowder"],
-        prereq="Industrialization",
+        prereq=TECHS.INDUSTRIALIZATION,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["infantry", 15],
@@ -395,7 +395,7 @@ class UNITS(TemplateList):
         movement=1,
         range=3,
         tags=["ranged", "siege", "gunpowder"],
-        prereq="Dynamite",
+        prereq=TECHS.DYNAMITE,
         abilities=[{
             "name": "BonusNextTo",
             "numbers": ["infantry", 15],
@@ -414,7 +414,7 @@ class UNITS(TemplateList):
         movement=1,
         range=1,
         tags=["infantry", "gunpowder"],
-        prereq="Radio",
+        prereq=TECHS.RADIO,
         abilities=[],
         great_people_names={
             "engineer": "Winston Churchill",
@@ -432,7 +432,7 @@ class UNITS(TemplateList):
         movement=2,
         range=1,
         tags=["armored"],
-        prereq="Combined Arms",
+        prereq=TECHS.COMBINED_ARMS,
         abilities=[],
         great_people_names={
             "general_normal": "Erwin Rommel",
@@ -449,7 +449,7 @@ class UNITS(TemplateList):
         movement=1,
         range=1,
         tags=["ranged", "gunpowder"],
-        prereq="Ballistics",
+        prereq=TECHS.BALLISTICS,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["infantry", 20],
@@ -465,7 +465,7 @@ class UNITS(TemplateList):
         movement=1,
         range=3,
         tags=["ranged", "siege", "gunpowder"],
-        prereq="Rocketry",
+        prereq=TECHS.ROCKETRY,
         abilities=[{
             "name": "Splash",
             "numbers": [0.6],
@@ -485,7 +485,7 @@ class UNITS(TemplateList):
         movement=1,
         range=2,
         tags=["infantry", "gunpowder"],
-        prereq="Ballistics",
+        prereq=TECHS.BALLISTICS,
         abilities=[{
             "name": "BonusAgainst",
             "numbers": ["armored", 30],
@@ -505,7 +505,7 @@ class UNITS(TemplateList):
         movement=3,
         range=1,
         tags=["armored"],
-        prereq="Megarobotics",
+        prereq=TECHS.MEGAROBOTICS,
         abilities=[],
         great_people_names={
             "engineer": "Tony Stark",
@@ -523,12 +523,27 @@ class UNITS(TemplateList):
         movement=1,
         range=1,
         tags=[],
-        prereq="Nanotechnology",
+        prereq=TECHS.NANOTECHNOLOGY,
         abilities=[{
             "name": "ConvertKills",
             "numbers": [],
         }],
     )
+
+    # all & by_name are copy-pasted methods to all template lists.
+    # I wasn't able to set up a base class system for this
+    # That handled the dynamic type properly.
+    @classmethod
+    def all(cls) -> Generator[UnitTemplate, None, None]:
+        for attr in dir(cls):
+            if isinstance(getattr(cls, attr), UnitTemplate):
+                yield getattr(cls, attr)
+    @classmethod
+    def by_name(cls, name: str) -> UnitTemplate:
+        for item in cls.all():
+            if item.name == name:
+                return item
+        raise KeyError(f'No item with name {name}')
 
 UNITS_BY_BUILDING_NAME = {
     unit.building_name: unit for unit in UNITS.all() if unit.building_name is not None

@@ -23,15 +23,10 @@ class TestConsistency:
     def test_units_tech_consistency(self):
         found_units = set()
         for tech_template in TECHS.all():
-            for unit_name in tech_template.unlocks_units:
-                try:
-                    unit = UNITS.by_name(unit_name)
-                except KeyError:
-                    raise ValueError(f"Tech {tech_template.name} unlocks unit {unit_name} which does not exist")
-
-                assert unit not in found_units, f"Tech {tech_template.name} unlocks unit {unit_name} which is already unlocked by another tech"
+            for unit in tech_template.unlocks_units:
+                assert unit not in found_units, f"Tech {tech_template.name} unlocks unit {unit.name} which is already unlocked by another tech"
                 found_units.add(unit)
-                assert unit.prereq == tech_template.name, f"Unit {unit_name} is unlocked by tech {unit.prereq} but should be unlocked by {tech_template.name}"
+                assert unit.prereq == tech_template, f"Unit {unit.name} is unlocked by tech {unit.prereq} but should be unlocked by {tech_template.name}"
 
         for unit in UNITS.all():
             assert unit in [UNITS.WARRIOR, UNITS.SLINGER] or unit in found_units, f"Unit {unit.name} is not unlocked by any tech"

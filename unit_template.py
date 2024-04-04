@@ -3,9 +3,10 @@ from typing import Union, Optional
 from ability import Ability
 from abilities_list import ABILITIES, UNIT_ABILITIES
 from tech_templates_list import TECHS
+from tech_template import TechTemplate
 
 class UnitTemplate:
-    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[dict[str, Union[str, list]]], type: str, prereq: Optional[str], great_people_names: dict[str, str] = {}) -> None:
+    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[dict[str, Union[str, list]]], type: str, prereq: Optional[TechTemplate], great_people_names: dict[str, str] = {}) -> None:
         self.name = name
         self.building_name = building_name
         self.metal_cost = metal_cost
@@ -17,8 +18,12 @@ class UnitTemplate:
         # TODO clean this up, define the Abilities directly.
         self.abilities: list[Ability] = [UNIT_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
         self.type = type
-        self.prereq = prereq
+        self.prereq: TechTemplate | None = prereq
+        if prereq:
+            prereq.unlocks_units.append(self)
         self.great_people_names = great_people_names
+
+
 
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"
@@ -26,7 +31,7 @@ class UnitTemplate:
     def advancement_level(self):
         if self.prereq is None:
             return 0
-        return TECHS.by_name(self.prereq).advancement_level
+        return self.prereq.advancement_level
 
     def has_tag(self, tag: str) -> bool:
         return tag in self.tags
@@ -43,8 +48,9 @@ class UnitTemplate:
             "range": self.range,
             "abilities": [ability.to_json() for ability in self.abilities],
             "type": self.type,
-            "prereq": self.prereq,
+            "prereq": self.prereq.name if self.prereq else None,
         }
+
     
     @staticmethod
     def from_json(json: dict) -> "UnitTemplate":

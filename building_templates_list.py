@@ -1,6 +1,5 @@
 from typing import Any
 
-
 BUILDINGS: dict[str, dict] = {
     "Lumber Mill": {
         "name": "Lumber Mill",

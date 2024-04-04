@@ -1,12 +1,13 @@
-from typing import List
+from typing import List, TYPE_CHECKING
+if TYPE_CHECKING:
+    from unit_template import UnitTemplate
 
 class TechTemplate:
-    def __init__(self, name: str, cost: int, advancement_level: int, unlocks_units: List[str] = [], unlocks_buildings: List[str] = []):
-
+    def __init__(self, name: str, cost: int, advancement_level: int, unlocks_buildings: List[str] = []):
         self.name = name
         self.cost = cost
         self.advancement_level = advancement_level
-        self.unlocks_units = unlocks_units
+        self.unlocks_units: list['UnitTemplate'] = []
         self.unlocks_buildings = unlocks_buildings
         
     def __repr__(self):
@@ -25,7 +26,7 @@ class TechTemplate:
             "name": self.name,
             "cost": self.cost,
             "advancement_level": self.advancement_level,
-            "unlocks_units": self.unlocks_units,
+            "unlocks_units": [u.name for u in self.unlocks_units],
             "unlocks_buildings": self.unlocks_buildings,
         }
     
