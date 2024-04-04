@@ -15,4 +15,4 @@ class TemplateList(Generic[T]):
         for item in cls.all():
             if item.name == name:  #type: ignore
                 return item
-        raise ValueError(f'No item with name {name}')
+        raise KeyError(f'No item with name {name}')

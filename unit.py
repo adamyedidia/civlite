@@ -433,7 +433,7 @@ class Unit:
     @staticmethod
     def from_json(json: dict,) -> "Unit":
         unit = Unit(
-            template=UnitTemplate.from_json(UNITS[json["name"]]),
+            template=UNITS.by_name(json["name"]),
             civ=None,  # type: ignore
         )
         unit.id = json["id"]

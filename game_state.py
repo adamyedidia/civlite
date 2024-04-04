@@ -406,7 +406,7 @@ class GameState:
 
 
                 if building_name in UNITS_BY_BUILDING_NAME:
-                    building = UnitTemplate.from_json(UNITS_BY_BUILDING_NAME[building_name])
+                    building = UNITS_BY_BUILDING_NAME[building_name]
                 else:
                     building = BuildingTemplate.from_json(BUILDINGS[building_name])
                 city.buildings_queue.append(building)
@@ -442,7 +442,7 @@ class GameState:
                 if unit_name == "":
                     unit = None
                 else:
-                    unit = UnitTemplate.from_json(UNITS[unit_name])
+                    unit = UNITS.by_name(unit_name)
 
                 city.infinite_queue_unit = unit
                 self.midturn_update()

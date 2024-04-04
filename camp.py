@@ -16,14 +16,13 @@ if TYPE_CHECKING:
     from hex import Hex
     from game_state import GameState
 
-UNITS_BY_AGE = defaultdict(set)
-for name, unit_dict in UNITS.items():
-    unit = UnitTemplate.from_json(unit_dict)
-    UNITS_BY_AGE[unit.advancement_level()].add(name)
+UNITS_BY_AGE: dict[int, set[UnitTemplate]] = defaultdict(set)
+for unit in UNITS.all():
+    UNITS_BY_AGE[unit.advancement_level()].add(unit)
 
-def random_unit_by_age(advancement_level):
+def random_unit_by_age(advancement_level) -> UnitTemplate:
     if advancement_level <= 0:
-        return "Warrior"
+        return UNITS.WARRIOR
     if len(UNITS_BY_AGE[advancement_level]) > 0:
         return random.choice(list(UNITS_BY_AGE[advancement_level]))
     else:
@@ -40,7 +39,7 @@ class Camp:
         self.civ: Civ = civ
         self.civ_id: str = civ.id if civ else None  # type: ignore
         self.target: Optional['Hex'] = None
-        self.unit: UnitTemplate = UnitTemplate.from_json(UNITS[random_unit_by_age(advancement_level)])
+        self.unit: UnitTemplate = random_unit_by_age(advancement_level)
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
@@ -186,5 +185,7 @@ class Camp:
         camp.id = json["id"]
         camp.civ_id = json["civ_id"]
         camp.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
-        camp.unit = UnitTemplate.from_json(UNITS[json["unit"]])
+        camp.unit = UNITS.by_name(json["unit"])
         return camp
+
+

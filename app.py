@@ -757,7 +757,7 @@ def get_game_constants(sess):
 def get_all_templates(sess):
     return jsonify({
         'CIVS': {civ_template['name']: CivTemplate.from_json(civ_template).to_json() for civ_template in CIVS.values()},
-        'UNITS': {unit_template['name']: UnitTemplate.from_json(unit_template).to_json() for unit_template in UNITS.values()},
+        'UNITS': {unit_template.name: unit_template.to_json() for unit_template in UNITS.all()},
         'TECHS': {tech.name: tech.to_json() for tech in TECHS.all()},
         'BUILDINGS': {building_template['name']: BuildingTemplate.from_json(building_template).to_json() for building_template in BUILDINGS.values()},
     })

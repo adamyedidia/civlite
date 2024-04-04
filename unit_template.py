@@ -5,7 +5,7 @@ from abilities_list import ABILITIES, UNIT_ABILITIES
 from tech_templates_list import TECHS
 
 class UnitTemplate:
-    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[list[Union[str, list]]], type: str, prereq: Optional[str]) -> None:
+    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[str], movement: int, range: int, abilities: list[dict[str, Union[str, list]]], type: str, prereq: Optional[str], great_people_names: dict[str, str] = {}) -> None:
         self.name = name
         self.building_name = building_name
         self.metal_cost = metal_cost
@@ -14,9 +14,11 @@ class UnitTemplate:
         self.tags = tags
         self.movement = movement
         self.range = range
-        self.abilities: list[Ability] = [UNIT_ABILITIES[ability[0]](*ability[1]) for ability in abilities]  # type: ignore
+        # TODO clean this up, define the Abilities directly.
+        self.abilities: list[Ability] = [UNIT_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
         self.type = type
         self.prereq = prereq
+        self.great_people_names = great_people_names
 
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"
@@ -46,17 +48,4 @@ class UnitTemplate:
     
     @staticmethod
     def from_json(json: dict) -> "UnitTemplate":
-        return UnitTemplate(
-            name=json["name"],
-            building_name=json["building_name"],
-            metal_cost=json["metal_cost"],
-            wood_cost=json["wood_cost"],
-            strength=json["strength"],
-            tags=json["tags"],
-            movement=json["movement"],
-            range=json["range"],
-            abilities=[[ability["name"], ability["numbers"]] for ability in json["abilities"]],
-            type=json["type"],
-            prereq=json.get("prereq"),
-        )
-
+        raise ValueError("Don't get Templates from json, just look them up by name in UNITS.")

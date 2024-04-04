@@ -114,7 +114,7 @@ class Civ:
         if self.has_ability('IncreasedStrengthForUnit'):
             special_unit_name = self.numbers_of_ability('IncreasedStrengthForUnit')[0]
 
-            if (prereq := UNITS[special_unit_name].get('prereq')):
+            if (prereq := UNITS.by_name(special_unit_name).prereq):
                 characteristic_tech = TECHS.by_name(prereq)
 
                 if characteristic_tech.advancement_level <= max_advancement_level and self.techs_status[characteristic_tech] == TechStatus.UNAVAILABLE:
@@ -184,11 +184,12 @@ class Civ:
             and (not building.get('is_national_wonder') or not building['name'] in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
         self.available_unit_buildings: list[str] = [
-            str(unit.get("building_name")) for unit in UNITS.values() 
-            if (((not unit.get('prereq')) or self.has_tech(TECHS.by_name(unit.get('prereq')))) and 
-                unit.get("building_name") and
-                (TECHS.by_name(unit['prereq']).advancement_level if unit.get('prereq') else 0) >= self.initial_advancement_level - 1)
+            unit.building_name for unit in UNITS.all() 
+            if ((unit.prereq is None or self.has_tech(TECHS.by_name(unit.prereq))) and 
+                unit.building_name is not None and
+                unit.advancement_level() >= self.initial_advancement_level - 1)
             ]
+
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
         """
@@ -289,8 +290,10 @@ class Civ:
             special_tech = None
             if self.has_ability('IncreasedStrengthForUnit'):
                 special_unit_name = self.numbers_of_ability('IncreasedStrengthForUnit')[0]
-                if 'prereq' in UNITS[special_unit_name]:
-                    special_tech = TECHS.by_name(UNITS[special_unit_name]['prereq'])
+                special_unit = UNITS.by_name(special_unit_name)
+                if special_unit.prereq:
+                    special_tech = TECHS.by_name(special_unit.prereq)
+
 
             available_techs: list[TechTemplate] = [tech for tech, status in self.techs_status.items() if status == TechStatus.AVAILABLE]
 

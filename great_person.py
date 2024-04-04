@@ -185,8 +185,8 @@ for t in TECHS.all():
     scientist_name = scientist_names.get(t.name, f"[A{level - 1} Scientist: {t.name}]")
     _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t, extra_science=0.75 * _target_value_by_age(level - 1) - t.cost))
     for unit in t.unlocks_units:
-        u = UnitTemplate.from_json(UNITS[unit])
-        great_people_names: dict[str, str] = UNITS[unit].get('great_people_names', {})
+        u = UNITS.by_name(unit)
+        great_people_names: dict[str, str] = u.great_people_names
         advanced_general_name: str = great_people_names.get("general_advanced", f"[A{level - 1} General: {unit}]")
         _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, u, round(0.5 * _target_value_by_age(level - 1) / u.metal_cost)))
         normal_general_name: str = great_people_names.get("general_normal", f"[A{level} General: {unit}]")
@@ -209,7 +209,7 @@ for age, great_people in _great_people_by_age.items():
 if duplicate_names:
     raise ValueError(f"Duplicate great person names found: {duplicate_names}")
 
-_great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", UnitTemplate.from_json(UNITS["Swordsman"]), 47))
+_great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", UNITS.SWORDSMAN, 47))
 
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 
