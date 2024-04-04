@@ -1,6 +1,4 @@
 from typing import Optional
-from civ_template import CivTemplate
-
 
 class GamePlayer:
     def __init__(self, player_num: int, username: str, is_bot: bool = False):

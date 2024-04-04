@@ -53,7 +53,7 @@ class City:
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
         self.buildings: list[Building] = [Building(UNITS.WARRIOR, building_template=None)]
         self.available_buildings: list[str] = []
-        self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, int]]] = {}
+        self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, float, int]]] = {}
         self.capital = False
         self._territory_parent_id: Optional[str] = None
         self._territory_parent_coords: Optional[str] = None
@@ -390,8 +390,8 @@ class City:
             unit_template = template if isinstance(template, UnitTemplate) else None
 
             if building_template is not None:
-                total_yields = 0
-                total_pseudoyields = 0
+                total_yields: float = 0
+                total_pseudoyields: float = 0
                 is_economic_building = False
                 if building_template.vp_reward is not None:
                     total_yields += building_template.vp_reward
@@ -401,15 +401,15 @@ class City:
                     if ability.name == 'IncreaseYieldsForTerrain':
                         is_economic_building = True
                         terrain = ability.numbers[2]
-                        total_yields += ability.numbers[1] * (self.terrains_dict.get(terrain) or 0)
+                        total_yields += int(ability.numbers[1] * (self.terrains_dict.get(terrain) or 0))
 
                     if ability.name == 'IncreaseYieldsInCity':
                         is_economic_building = True
-                        total_yields += ability.numbers[1]
+                        total_yields += int(ability.numbers[1])
 
                     if ability.name == 'IncreaseYieldsPerPopulation':
                         is_economic_building = True
-                        total_yields += ability.numbers[1] * self.population
+                        total_yields += int(ability.numbers[1] * self.population)
 
                     if ability.name == "CityGrowthCostReduction":
                         is_economic_building = True
@@ -420,7 +420,7 @@ class City:
 
                     if ability.name == "DecreaseFoodDemand":
                         is_economic_building = True
-                        unhappiness_saved = min(ability.numbers[0], self.food_demand)
+                        unhappiness_saved: float = min(ability.numbers[0], self.food_demand)
                         total_yields += unhappiness_saved  # Display the raw number to humans
 
                         # Decide how much AI cares
@@ -943,7 +943,8 @@ class City:
             self.focus = 'food'
             print(f"  chose focus: {self.focus} to prevent revolt")
         else:
-            production_city: City = self if self.is_territory_capital else self.get_territory_parent(game_state)
+            parent = self.get_territory_parent(game_state)
+            production_city: City = self if parent is None else parent
 
             plausible_focuses = {"food", "wood", "metal", "science"}
             if self.growth_cost() >= 30:

@@ -406,7 +406,7 @@ class Civ:
         )
         civ.id = json["id"]
         civ.science = json["science"]
-        civ.techs_status = {TECHS.by_name(tech): TechStatus(status) for tech, status in json["techs_status"].items()}
+        civ.techs_status = {tech: TechStatus(json["techs_status"][tech]) for tech in TECHS.all()}
         civ.vitality = json["vitality"]
         civ.city_power = json["city_power"]
         civ.available_buildings = json["available_buildings"][:]

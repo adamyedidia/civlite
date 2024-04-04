@@ -12,7 +12,7 @@ class BuildingTemplate:
         self.abilities: list[Ability] = [BUILDING_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
         self.is_wonder = is_wonder
         self.is_national_wonder = is_national_wonder
-        self.vp_reward = vp_reward
+        self.vp_reward: int | None = vp_reward
         self.prereq: TechTemplate | None = prereq
         if prereq:
             prereq.unlocks_buildings.append(self)

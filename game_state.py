@@ -345,7 +345,7 @@ class GameState:
             # This has to be deterministic to allow speculative and non-speculative calls to agree
             seed_value = deterministic_hash(f"{self.game_id} {player_num} {self.turn_num}")
             random.seed(seed_value)
-            if ((city_id := move.get('city_id')) is not None 
+            if ('city_id' in move and (city_id := move['city_id']) is not None 
                     and (city_owner := (city_owner_by_city_id or {}).get(city_id)) is not None 
                     and city_owner != player_num):
                 continue
@@ -354,7 +354,7 @@ class GameState:
                 self.special_mode_by_player_num[player_num] = None
 
                 for city in self.cities_by_id.values():
-                    if (game_player := city.civ.game_player) and game_player.player_num == player_num:
+                    if city.civ.game_player is not None and (game_player := city.civ.game_player) and game_player.player_num == player_num:
                         if city.id == city_id:
                             game_player.decline_this_turn = True
                             game_player_to_return = game_player
