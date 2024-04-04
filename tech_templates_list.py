@@ -1,8 +1,8 @@
-from typing import Generator
-
+from template_list import TemplateList
 from tech_template import TechTemplate
 
-class TECHS():
+class TECHS(TemplateList):
+    item_type = TechTemplate
     ARCHERY = TechTemplate(
         name= 'Archery',
         cost= 25,
@@ -274,15 +274,3 @@ class TECHS():
         advancement_level=9,
     )
 
-    @classmethod
-    def all(cls) -> Generator[TechTemplate, None, None]:
-        for attr in dir(cls):
-            if isinstance(getattr(cls, attr), TechTemplate):
-                yield getattr(cls, attr)
-
-    @classmethod
-    def by_name(cls, name: str) -> TechTemplate:
-        for tech in cls.all():
-            if tech.name == name:
-                return tech
-        raise ValueError(f'No tech with name {name}')
