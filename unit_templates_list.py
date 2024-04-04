@@ -1,5 +1,5 @@
 from typing import Generator
-from unit_template import UnitTemplate
+from unit_template import UnitTemplate, UnitTag
 from tech_templates_list import TECHS
 
 class UNITS():
@@ -12,7 +12,7 @@ class UNITS():
         strength=6,
         movement=1,
         range=1,
-        tags=["infantry"],
+        tags=[UnitTag.INFANTRY],
         abilities=[],
         prereq=None,
     )
@@ -25,7 +25,7 @@ class UNITS():
         strength=5,
         movement=1,
         range=1,
-        tags=["ranged"],
+        tags=[UnitTag.RANGED],
         prereq=None,
         abilities=[],
     )    
@@ -38,7 +38,7 @@ class UNITS():
         strength=7,
         movement=1,
         range=2,
-        tags=["ranged"],
+        tags=[UnitTag.RANGED],
         prereq=TECHS.ARCHERY,
         abilities=[],
         great_people_names={
@@ -57,11 +57,11 @@ class UNITS():
         strength=8,
         movement=1,
         range=1,
-        tags=["infantry"],
+        tags=[UnitTag.INFANTRY],
         prereq=TECHS.BRONZE_WORKING,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["mounted", 4],
+            "numbers": [UnitTag.MOUNTED.value, 4],
         }],
         great_people_names={
             "general_advanced": "Achilles and Patroclus",
@@ -79,10 +79,10 @@ class UNITS():
         movement=1,
         range=1,
         prereq=TECHS.THE_WHEEL,
-        tags=["mounted"],
+        tags=[UnitTag.MOUNTED],
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["ranged", 5],
+            "numbers": [UnitTag.RANGED.value, 5],
         }],
         great_people_names={
             "general_advanced": "Thutmose III",
@@ -99,7 +99,7 @@ class UNITS():
         movement=0,
         range=1,
         prereq=TECHS.MASONRY,
-        tags=["defensive"],
+        tags=[UnitTag.DEFENSIVE],
         abilities=[],
         great_people_names={
             "engineer": "Bran the Builder",
@@ -117,11 +117,11 @@ class UNITS():
         strength=10,
         movement=1,
         range=2,
-        tags=["ranged", "siege"],
+        tags=[UnitTag.SIEGE, UnitTag.RANGED],
         prereq=TECHS.MATHEMATICS,
         abilities=[{
             "name": "BonusNextTo",
-            "numbers": ["infantry", 4],
+            "numbers": [UnitTag.INFANTRY.value, 4],
         }],
     )
     HORSEMAN = UnitTemplate(
@@ -133,11 +133,11 @@ class UNITS():
         strength=12,
         movement=2,
         range=1,
-        tags=["mounted"],
+        tags=[UnitTag.MOUNTED],
         prereq=TECHS.HORSEBACK_RIDING,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["siege", 6],
+            "numbers": [UnitTag.SIEGE.value, 6],
         }],
         great_people_names={
             "engineer": "King Solomon",
@@ -155,11 +155,11 @@ class UNITS():
         strength=10,
         movement=2,
         range=1,
-        tags=["ranged", "mounted"],
+        tags=[UnitTag.RANGED, UnitTag.MOUNTED],
         prereq=TECHS.HORSEBACK_RIDING,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["infantry", 8],
+            "numbers": [UnitTag.INFANTRY.value, 8],
         }],
         great_people_names={
             "general_normal": "Hannibal Barca",
@@ -176,7 +176,7 @@ class UNITS():
         strength=16,
         movement=1,
         range=1,
-        tags=["infantry"],
+        tags=[UnitTag.INFANTRY],
         prereq=TECHS.IRON_WORKING,
         abilities=[],
         great_people_names={
@@ -195,11 +195,11 @@ class UNITS():
         strength=14,
         movement=1,
         range=1,
-        tags=["infantry"],
+        tags=[UnitTag.INFANTRY],
         prereq=TECHS.CIVIL_SERVICE,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["mounted", 7],
+            "numbers": [UnitTag.MOUNTED.value, 7],
         }],
         great_people_names={
             "engineer": "Shaka Zulu",
@@ -217,11 +217,11 @@ class UNITS():
         strength=13,
         movement=1,
         range=2,
-        tags=["ranged"],
+        tags=[UnitTag.RANGED],
         prereq=TECHS.COMPASS,
         abilities=[{
             "name": "BonusNextTo",
-            "numbers": ["siege", 4],
+            "numbers": [UnitTag.SIEGE.value, 4],
         }],
         great_people_names={
             "general_advanced": "Henry V",
@@ -237,11 +237,11 @@ class UNITS():
         strength=16,
         movement=2,
         range=1,
-        tags=["mounted"],
+        tags=[UnitTag.MOUNTED],
         prereq=TECHS.CHIVALRY,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["ranged", 8],
+            "numbers": [UnitTag.RANGED.value, 8],
         }],
         great_people_names={
             "engineer": "Charlemagne",
@@ -259,11 +259,11 @@ class UNITS():
         strength=14,
         movement=1,
         range=2,
-        tags=["siege"],
+        tags=[UnitTag.SIEGE],
         prereq=TECHS.PHYSICS,
         abilities=[{
             "name": "BonusNextTo",
-            "numbers": ["infantry", 6],
+            "numbers": [UnitTag.INFANTRY.value, 6],
         }],
         great_people_names={
             "engineer": "Saladin",
@@ -280,7 +280,7 @@ class UNITS():
         strength=20,
         movement=1,
         range=1,
-        tags=["infantry", "gunpowder"],
+        tags=[UnitTag.INFANTRY, UnitTag.GUNPOWDER],
         prereq=TECHS.GUNPOWDER,
         abilities=[],
         great_people_names={
@@ -298,11 +298,11 @@ class UNITS():
         strength=24,
         movement=1,
         range=2,
-        tags=["ranged", "siege", "gunpowder"],
+        tags=[UnitTag.RANGED, UnitTag.SIEGE, UnitTag.GUNPOWDER],
         prereq=TECHS.METALLURGY,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["defensive", 10],
+            "numbers": [UnitTag.DEFENSIVE.value, 10],
         }],
         great_people_names={
             "general_horde": "Napolean Bonaparte",
@@ -319,7 +319,7 @@ class UNITS():
         strength=20,
         movement=0,
         range=1,
-        tags=["defensive"],
+        tags=[UnitTag.DEFENSIVE],
         prereq=TECHS.CHIVALRY,
         abilities=[],
         great_people_names={
@@ -337,11 +337,11 @@ class UNITS():
         strength=25,
         movement=2,
         range=1,
-        tags=["mounted"],
+        tags=[UnitTag.MOUNTED],
         prereq=TECHS.MILITARY_SCIENCE,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["siege", 15],
+            "numbers": [UnitTag.SIEGE.value, 15],
         }],
         great_people_names={
             "engineer": "Gustavus Adolphus",
@@ -357,7 +357,7 @@ class UNITS():
         strength=30,
         movement=1,
         range=1,
-        tags=["infantry", "gunpowder"],
+        tags=[UnitTag.INFANTRY, UnitTag.GUNPOWDER],
         prereq=TECHS.RIFLING,
         abilities=[],
         great_people_names={
@@ -375,11 +375,11 @@ class UNITS():
         strength=25,
         movement=1,
         range=1,
-        tags=["ranged", "gunpowder"],
+        tags=[UnitTag.RANGED, UnitTag.GUNPOWDER],
         prereq=TECHS.INDUSTRIALIZATION,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["infantry", 15],
+            "numbers": [UnitTag.INFANTRY.value, 15],
         }],
         great_people_names={
             "engineer": "Richard Gatling",
@@ -394,11 +394,11 @@ class UNITS():
         strength=30,
         movement=1,
         range=3,
-        tags=["ranged", "siege", "gunpowder"],
+        tags=[UnitTag.RANGED, UnitTag.SIEGE, UnitTag.GUNPOWDER],
         prereq=TECHS.DYNAMITE,
         abilities=[{
             "name": "BonusNextTo",
-            "numbers": ["infantry", 15],
+            "numbers": [UnitTag.INFANTRY.value, 15],
         }],
         great_people_names={
             "general_advanced": "Oliver Cromwell",
@@ -413,7 +413,7 @@ class UNITS():
         strength=45,
         movement=1,
         range=1,
-        tags=["infantry", "gunpowder"],
+        tags=[UnitTag.INFANTRY, UnitTag.GUNPOWDER],
         prereq=TECHS.RADIO,
         abilities=[],
         great_people_names={
@@ -431,7 +431,7 @@ class UNITS():
         strength=60,
         movement=2,
         range=1,
-        tags=["armored"],
+        tags=[UnitTag.ARMORED],
         prereq=TECHS.COMBINED_ARMS,
         abilities=[],
         great_people_names={
@@ -448,11 +448,11 @@ class UNITS():
         strength=40,
         movement=1,
         range=1,
-        tags=["ranged", "gunpowder"],
+        tags=[UnitTag.RANGED, UnitTag.GUNPOWDER],
         prereq=TECHS.BALLISTICS,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["infantry", 20],
+            "numbers": [UnitTag.INFANTRY.value, 20],
         }],
     )
     ROCKET_LAUNCHER = UnitTemplate(
@@ -464,7 +464,7 @@ class UNITS():
         strength=50,
         movement=1,
         range=3,
-        tags=["ranged", "siege", "gunpowder"],
+        tags=[UnitTag.RANGED, UnitTag.SIEGE, UnitTag.GUNPOWDER],
         prereq=TECHS.ROCKETRY,
         abilities=[{
             "name": "Splash",
@@ -484,11 +484,11 @@ class UNITS():
         strength=45,
         movement=1,
         range=2,
-        tags=["infantry", "gunpowder"],
+        tags=[UnitTag.INFANTRY, UnitTag.GUNPOWDER],
         prereq=TECHS.BALLISTICS,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": ["armored", 30],
+            "numbers": [UnitTag.ARMORED.value, 30],
         }],
         great_people_names={
             "general_normal": "Jayne Cobb",
@@ -504,7 +504,7 @@ class UNITS():
         strength=100,
         movement=3,
         range=1,
-        tags=["armored"],
+        tags=[UnitTag.ARMORED],
         prereq=TECHS.MEGAROBOTICS,
         abilities=[],
         great_people_names={
