@@ -14,7 +14,8 @@ class BuildingTemplate:
         self.is_national_wonder = is_national_wonder
         self.vp_reward = vp_reward
         self.prereq: TechTemplate | None = prereq
-
+        if prereq:
+            prereq.unlocks_buildings.append(self)
 
     def __repr__(self):
         return f"<BuildingTemplate {self.name})>"

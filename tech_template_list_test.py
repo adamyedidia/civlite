@@ -15,11 +15,6 @@ class TestConsistency:
             civ_template = CivTemplate.from_json(json)
             assert civ_template.name == name, f"key and name mismatch: {name} != {civ_template.name}"
 
-    def test_building_name_consistency(self):
-        for name, json in BUILDINGS.items():
-            building_template = BuildingTemplate.from_json(json)
-            assert building_template.name == name, f"key and name mismatch: {name} != {building_template.name}"
-
     def test_units_tech_consistency(self):
         found_units = set()
         for tech_template in TECHS.all():
@@ -34,14 +29,13 @@ class TestConsistency:
     def test_bldgs_tech_consistency(self):
         found_bldgs = set()
         for tech_template in TECHS.all():
-            for bldg_name in tech_template.unlocks_buildings:
-                assert bldg_name in BUILDINGS, f"Tech {tech_template.name} unlocks building {bldg_name} which does not exist"
-                assert bldg_name not in found_bldgs, f"Tech {tech_template.name} unlocks building {bldg_name} which is already unlocked by another tech"
-                found_bldgs.add(bldg_name)
-                assert BUILDINGS[bldg_name]['prereq'] == tech_template.name, f"Building {bldg_name} is unlocked by tech {BUILDINGS[bldg_name]['prereq']} but should be unlocked by {tech_template.name}"
+            for bldg in tech_template.unlocks_buildings:
+                assert bldg not in found_bldgs, f"Tech {tech_template.name} unlocks building {bldg} which is already unlocked by another tech"
+                found_bldgs.add(bldg)
+                assert bldg.prereq == tech_template, f"Building {bldg} is unlocked by tech {bldg.prereq} but should be unlocked by {tech_template.name}"
 
-        for bldg_name in BUILDINGS.all():
-            assert bldg_name in found_bldgs, f"Building {bldg_name} is not unlocked by any tech. It think it should be unlocked by {BUILDINGS[bldg_name].get('prereq')}"
+        for bldg in BUILDINGS.all():
+            assert bldg in found_bldgs, f"Building {bldg} is not unlocked by any tech. It think it should be unlocked by {bldg.prereq}"
 
     def test_civ_special_units_consistency(self):
         for name, json in CIVS.items():
