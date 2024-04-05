@@ -1,782 +1,594 @@
-# color_pairs = [
-#     ('#FF0000', '#00FF00'),
-#     ('#FF0000', '#0000FF'),
-#     ('#FF0000', '#FFFF00'),
-#     ('#FF0000', '#FF00FF'),
-#     ('#FF0000', '#00FFFF'),
-#     ('#FF0000', '#000000'),
-#     ('#FF0000', '#FFFFFF'),
-#     ('#FF0000', '#FFA500'),
-#     ('#FF0000', '#800080'),
-#     ('#00FF00', '#0000FF'),
-#     ('#00FF00', '#FFFF00'),
-#     ('#00FF00', '#FF00FF'),
-#     ('#00FF00', '#00FFFF'),
-#     ('#00FF00', '#000000'),
-#     ('#00FF00', '#FFFFFF'),
-#     ('#00FF00', '#FFA500'),
-#     ('#00FF00', '#800080'),
-#     ('#0000FF', '#FFFF00'),
-#     ('#0000FF', '#FF00FF'),
-#     ('#0000FF', '#00FFFF'),
-#     ('#0000FF', '#000000'),
-#     ('#0000FF', '#FFFFFF'),
-#     ('#0000FF', '#FFA500'),
-#     ('#0000FF', '#800080'),
-#     ('#FFFF00', '#FF00FF'),
-#     ('#FFFF00', '#00FFFF'),
-#     ('#FFFF00', '#000000'),
-#     ('#FFFF00', '#FFFFFF'),
-#     ('#FFFF00', '#FFA500'),
-#     ('#FFFF00', '#800080'),
-#     ('#FF00FF', '#00FFFF'),
-#     ('#FF00FF', '#000000'),
-#     ('#FF00FF', '#FFFFFF'),
-#     ('#FF00FF', '#FFA500'),
-#     ('#FF00FF', '#800080'),
-#     ('#00FFFF', '#000000'),
-#     ('#00FFFF', '#FFFFFF'),
-#     ('#00FFFF', '#FFA500'),
-#     ('#00FFFF', '#800080'),
-#     ('#000000', '#FFFFFF'),
-#     ('#000000', '#FFA500'),
-#     ('#000000', '#800080'),
-#     ('#FFFFFF', '#FFA500'),
-#     ('#FFFFFF', '#800080'),
-#     ('#FFA500', '#800080'),
-# ]
+from typing import Generator
+from civ_template import CivTemplate
 
-color_pairs = [
-    ('#FFFF44', '#FF8800'),
-    ('#AAAAAA', '#FFC0CB'),
-    ('#6666FF', '#FF8800'),
-    ('#44FFFF', '#FF44FF'),
-    ('#FF4444', '#6666FF'),
-    ('#87CEEB', '#CF9FFF'),
-    ('#6666FF', '#FF4444'),
-    ('#FF8800', '#FFC0CB'),
-    ('#44FFFF', '#88FF44'),
-    ('#6666FF', '#88FF44'),
-    ('#FFC0CB', '#FF4444'),
-    ('#44AA44', '#FF44FF'),
-    ('#87CEEB', '#FFFF44'),
-    ('#CF9FFF', '#FFFF44'),
-    ('#FF44FF', '#44FFFF'),
-    ('#88FF44', '#FF8800'),
-    ('#6666FF', '#FF44FF'),
-    ('#FF4444', '#FFC0CB'),
-    ('#44AA44', '#FF8800'),
-    ('#44AA44', '#AAAAAA'),
-    ('#FF8800', '#44AA44'),
-    ('#FFFF44', '#88FF44'),
-    ('#87CEEB', '#44AA44'),
-    ('#FF44FF', '#FFFF44'),
-    ('#CF9FFF', '#FF4444'),
-    ('#88FF44', '#FFFF44'),
-    ('#AAAAAA', '#CF9FFF'),
-    ('#FFFF44', '#AAAAAA'),
-    ('#6666FF', '#87CEEB'),
-    ('#FF44FF', '#AAAAAA'),
-    ('#FFC0CB', '#FF44FF'),
-    ('#FFC0CB', '#CF9FFF'),
-    ('#FFFF44', '#6666FF'),
-    ('#FF4444', '#FF8800'),
-    ('#44AA44', '#FFFF44'),
-    ('#44FFFF', '#AAAAAA'),
-    ('#FF44FF', '#CF9FFF'),
-    ('#FF44FF', '#44AA44'),
-    ('#FF4444', '#44FFFF'),
-    ('#88FF44', '#87CEEB'),
-    ('#AAAAAA', '#44AA44'),
-    ('#44AA44', '#44FFFF'),
-    ('#FFC0CB', '#44FFFF'),
-    ('#CF9FFF', '#6666FF'),
-    ('#FF4444', '#CF9FFF'),
-    ('#FFFF44', '#87CEEB'),
-    ('#CF9FFF', '#FFC0CB'),
-    ('#FFFF44', '#44FFFF'),
-    ('#AAAAAA', '#FF8800'),
-    ('#87CEEB', '#44FFFF'),
-    ('#AAAAAA', '#FF4444'),
-    ('#88FF44', '#FF4444'),
-    ('#FFC0CB', '#FF8800'),
-    ('#CF9FFF', '#88FF44'),
-    ('#CF9FFF', '#FF44FF'),
-    ('#87CEEB', '#6666FF'),
-    ('#87CEEB', '#AAAAAA'),
-    ('#6666FF', '#AAAAAA'),
-    ('#FFFF44', '#FFC0CB'),
-    ('#CF9FFF', '#FF8800'),
-    ('#FF4444', '#FFFF44'),
-    ('#AAAAAA', '#6666FF'),
-    ('#FFC0CB', '#AAAAAA'),
-    ('#FF44FF', '#FF4444'),
-    ('#44AA44', '#6666FF'),
-    ('#FFC0CB', '#6666FF'),
-    ('#88FF44', '#44AA44'),
-    ('#FF44FF', '#FFC0CB'),
-    ('#44FFFF', '#CF9FFF'),
-    ('#CF9FFF', '#44FFFF'),
-    ('#44AA44', '#FFC0CB'),
-    ('#44AA44', '#88FF44'),
-    ('#FFFF44', '#CF9FFF'),
-    ('#88FF44', '#FFC0CB'),
-    ('#FF4444', '#88FF44'),
-    ('#FF8800', '#CF9FFF'),
-    ('#FF8800', '#AAAAAA'),
-    ('#AAAAAA', '#87CEEB'),
-    ('#88FF44', '#FF44FF'),
-    ('#87CEEB', '#88FF44'),
-    ('#6666FF', '#CF9FFF'),
-    ('#FF8800', '#FFFF44'),
-    ('#44FFFF', '#FF8800'),
-    ('#6666FF', '#FFFF44'),
-    ('#FFC0CB', '#87CEEB'),
-    ('#FF4444', '#FF44FF'),
-    ('#88FF44', '#AAAAAA'),
-    ('#FF8800', '#44FFFF'),
-    ('#FFFF44', '#FF4444'),
-    ('#87CEEB', '#FFC0CB'),
-    ('#FF8800', '#FF4444'),
-    ('#FF8800', '#88FF44'),
-    ('#FF44FF', '#FF8800'),
-    ('#87CEEB', '#FF4444'),
-    ('#6666FF', '#44FFFF'),
-    ('#AAAAAA', '#FFFF44'),
-    ('#88FF44', '#6666FF'),
-    ('#44AA44', '#FF4444'),
-    ('#FF44FF', '#88FF44'),
-    ('#CF9FFF', '#AAAAAA'),
-    ('#44FFFF', '#44AA44'),
-    ('#CF9FFF', '#44AA44'),
-    ('#FF8800', '#87CEEB'),
-    ('#FFFF44', '#FF44FF'),
-    ('#FF4444', '#87CEEB'),
-    ('#FF8800', '#FF44FF'),
-    ('#FFC0CB', '#44AA44'),
-    ('#FFC0CB', '#FFFF44'),
-    ('#CF9FFF', '#87CEEB'),
-    ('#44FFFF', '#6666FF'),
-    ('#6666FF', '#44AA44'),
-    ('#FF8800', '#6666FF'),
-    ('#88FF44', '#CF9FFF'),
-    ('#FF4444', '#44AA44'),
-    ('#FF44FF', '#6666FF'),
-    ('#87CEEB', '#FF8800'),
-    ('#6666FF', '#FFC0CB'),
-    ('#FF44FF', '#87CEEB'),
-    ('#44FFFF', '#FFC0CB'),
-    ('#AAAAAA', '#88FF44'),
-    ('#44FFFF', '#FFFF44'),
-    ('#44AA44', '#87CEEB'),
-    ('#FFFF44', '#44AA44'),
-    ('#AAAAAA', '#FF44FF'),
-    ('#44AA44', '#CF9FFF'),
-    ('#88FF44', '#44FFFF'),
-    ('#44FFFF', '#87CEEB'),
-    ('#FF4444', '#AAAAAA'),
-    ('#FFC0CB', '#88FF44'),
-    ('#44FFFF', '#FF4444'),
-    ('#87CEEB', '#FF44FF'),
-    ('#AAAAAA', '#44FFFF'),
-]
+def player_civs(min_advancement_level=0, max_advancement_level=9) -> Generator[CivTemplate, None, None]:
+    for civ_template in CIVS.all():
+        if civ_template != CIVS.BARBARIAN and min_advancement_level <= civ_template.advancement_level <= max_advancement_level:
+            yield civ_template
 
-# color_pairs = [('#00FF00', '#FFFFFF'), ('#000000', '#FFFFFF'), ('#0000FF', '#FFFFFF'), ('#FFFFFF', '#FFA500'), ('#FF0000', '#00FF00'), ('#000000', '#800080'), ('#FF0000', '#00FFFF'), ('#00FF00', '#0000FF'), ('#000000', '#FFA500'), ('#00FFFF', '#800080'), ('#FFFFFF', '#800080'), ('#FF00FF', '#FFFFFF'), ('#0000FF', '#800080'), ('#FF0000', '#000000'), ('#00FF00', '#00FFFF'), ('#FF0000', '#FF00FF'), ('#00FFFF', '#FFFFFF'), ('#FF00FF', '#FFA500'), ('#0000FF', '#000000'), ('#0000FF', '#00FFFF'), ('#00FFFF', '#000000'), ('#FF0000', '#0000FF'), ('#FF0000', '#FFFF00'), ('#00FF00', '#800080'), ('#FFFF00', '#FF00FF'), ('#FF00FF', '#000000'), ('#00FFFF', '#FFA500'), ('#FFFF00', '#000000'), ('#FFFF00', '#800080'), ('#FF0000', '#FFFFFF'), ('#00FF00', '#FFA500'), ('#0000FF', '#FFFF00'), ('#00FF00', '#FFFF00'), ('#FF0000', '#800080'), ('#00FF00', '#FF00FF'), ('#FFFF00', '#FFA500'), ('#FFFF00', '#00FFFF'), ('#FF00FF', '#00FFFF'), ('#FF0000', '#FFA500'), ('#0000FF', '#FFA500'), ('#00FF00', '#000000'), ('#FF00FF', '#800080'), ('#FFFF00', '#FFFFFF'), ('#FFA500', '#800080'), ('#0000FF', '#FF00FF')]
+class CIVS():
+       # all & by_name are copy-pasted methods to all template lists.
+    # I wasn't able to set up a base class system for this
+    # That handled the dynamic type properly.
+    @classmethod
+    def all(cls) -> Generator[CivTemplate, None, None]:
+        for attr in dir(cls):
+            if isinstance(getattr(cls, attr), CivTemplate):
+                yield getattr(cls, attr)
+    @classmethod
+    def by_name(cls, name: str) -> CivTemplate:
+        for item in cls.all():
+            if item.name == name:
+                return item
+        raise KeyError(f'No item with name {name}')
 
+    BARBARIAN = CivTemplate(
+        name="Barbarians",
+        abilities=[],
+        colors=("#FF0000", "#666666",),
+        advancement_level=0,
+    )
 
-# CIVS = {
-#     "France": {
-#         "name": "France",
-#         "color": "#0000ff",
-#         "abilities": []
-#     },
-#     "England": {
-#         "name": "England",
-#         "color": "#ff0000",
-#         "abilities": []
-#     },
-#     "China": {
-#         "name": "China",
-#         "color": "#ffff00",
-#         "abilities": []
-#     }
-# }
-
-BARBARIAN_CIV = {
-    "Barbarians": {
-        "name": "Barbarians",
-        "abilities": [],
-        "primary_color": "#FF0000",
-        "secondary_color": "#666666",
-        "advancement_level": 0
-    },
-}
-ANCIENT_CIVS = {
-    "Pueblo": {
-        "name": "Pueblo",
-        "abilities": [{
+    PUEBLO = CivTemplate(
+        name="Pueblo",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["wood", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Egypt": {
-        "name": "Egypt",
-        "abilities": [{
+        advancement_level=0,
+    )
+    EGPYT = CivTemplate(
+        name="Egypt",
+        abilities=[{
             "name": "ExtraVpsPerWonder",
             "numbers": [5]
         }],
-        "advancement_level": 0,
-    },
-    "Mycenaeans": {
-        "name": "Mycenaeans",
-        "abilities": [{
+        advancement_level=0,
+    )
+    MYCENAEANS = CivTemplate(
+        name="Mycenaeans",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["metal", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Harrapans": {
-        "name": "Harrapans",
-        "abilities": [{
+        advancement_level=0,
+    )
+    HARRAPANS = CivTemplate(
+        name="Harrapans",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["food", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Shang": {
-        "name": "Shang",
-        "abilities": [{
+        advancement_level=0,
+    )
+    SHANG = CivTemplate(
+        name="Shang",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["science", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Sumer": {
-        "name": "Sumer",
-        "abilities": [{
+        advancement_level=0,
+    )
+    SUMER = CivTemplate(
+        name="Sumer",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["wood", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Indus": {
-        "name": "Indus",
-        "abilities": [{
+        advancement_level=0,
+    )
+    INDUS = CivTemplate(
+        name="Indus",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["food", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Minoans": {
-        "name": "Minoans",
-        "abilities": [{
+        advancement_level=0,
+    )
+    MINOANS = CivTemplate(
+        name="Minoans",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["metal", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Babylon": {
-        "name": "Babylon",
-        "abilities": [{
+        advancement_level=0,
+    )
+    BABYLON = CivTemplate(
+        name="Babylon",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["science", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Hittites": {
-        "name": "Hittites",
-        "abilities": [{
+        advancement_level=0,
+    )
+    HITTITES = CivTemplate(
+        name="Hittites",
+        abilities=[{
             "name": "IncreaseYieldsForTerrainNextToSecondCity",
             "numbers": ["wood", "forest", 1]
         }],
-        "advancement_level": 0,
-    },
-    "Phoenicia": {
-        "name": "Phoenicia",
-        "abilities": [{
+        advancement_level=0,
+    )
+    PHOENICIA = CivTemplate(
+        name="Phoenicia",
+        abilities=[{
             "name": "IncreaseYieldsForTerrainNextToSecondCity",
             "numbers": ["metal", "hills", 1]
         }],
-        "advancement_level": 0,
-    },
-    "Nazca": {
-        "name": "Nazca",
-        "abilities": [{
+        advancement_level=0,
+    )
+    NAZCA = CivTemplate(
+        name="Nazca",
+        abilities=[{
             "name": "IncreaseYieldsForTerrainNextToSecondCity",
             "numbers": ["food", "plains", 1]
         }],
-        "advancement_level": 0,
-    },
-    "Bantu": {
-        "name": "Bantu",
-        "abilities": [{
+        advancement_level=0,
+    )
+    BANTU = CivTemplate(
+        name="Bantu",
+        abilities=[{
             "name": "IncreaseYieldsForTerrainNextToSecondCity",
             "numbers": ["food", "grassland", 1]
         }],
-        "advancement_level": 0,
-    },
-    "Olmecs": {
-        "name": "Olmecs",
-        "abilities": [{
+        advancement_level=0,
+    )
+    OLMICS = CivTemplate(
+        name="Olmecs",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", "jungle", 1]
         }],
-        "advancement_level": 0,
-    },
-    "Zhou": {
-        "name": "Zhou",
-        "abilities": [{
+        advancement_level=0,
+    )
+    ZHOU = CivTemplate(
+        name="Zhou",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", "desert", 1]
         }],
-        "advancement_level": 0,
-    },
-    "Nubians": {
-        "name": "Nubians",
-        "abilities": [{
+        advancement_level=0,
+    )
+    NUBIANS = CivTemplate(
+        name="Nubians",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["food", "marsh", 1]
         }],
-        "advancement_level": 0,
-    },
-    "Pama-Nguyan": {
-        "name": "Pama-Nguyan",
-        "abilities": [{
+        advancement_level=0,
+    )
+    PAMA_NGUYAN = CivTemplate(
+        name="Pama-Nguyan",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", "tundra", 1]
         }],
-        "advancement_level": 0,
-    },
-    "Assyrians": {
-        "name": "Assyrians",
-        "abilities": [{
+        advancement_level=0,
+    )
+    ASSYRIANS = CivTemplate(
+        name="Assyrians",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", "mountain", 1]
         }],
-        "advancement_level": 0,
-    },
-    "Caralans": {
-        "name": "Caralans",
-        "abilities": [{
+        advancement_level=0,
+    )
+    CARALANS = CivTemplate(
+        name="Caralans",
+        abilities=[{
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Warrior", 3]
         }],
-        "advancement_level": 0,
-    },
-    "Troy": {
-        "name": "Troy",
-        "abilities": [{
+        advancement_level=0,
+    )
+    TROY = CivTemplate(
+        name="Troy",
+        abilities=[{
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Slinger", 2]
         }],
-        "advancement_level": 0,
-    },    
-    "Elamites": {
-        "name": "Elamites",
-        "abilities": [{
+        advancement_level=0,
+    )    
+    ELAMITES = CivTemplate(
+        name="Elamites",
+        abilities=[{
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Archer", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Teotihuacan": {
-        "name": "Teotihuacan",
-        "abilities": [{
+        advancement_level=0,
+    )
+    TEOTIHUACAN = CivTemplate(
+        name="Teotihuacan",
+        abilities=[{
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Spearman", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Scythians": {
-        "name": "Scythians",
-        "abilities": [{
+        advancement_level=0,
+    )
+    SCYTHIANS = CivTemplate(
+        name="Scythians",
+        abilities=[{
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Chariot", 2]
         }],
-        "advancement_level": 0,
-    },
-    "Maya": {
-        "name": "Maya",
-        "abilities": [{
+        advancement_level=0,
+    )
+    MAYA = CivTemplate(
+        name="Maya",
+        abilities=[{
             "name": "ExtraVpsPerCityCaptured",
             "numbers": [5]
         }],
-        "advancement_level": 0,
-    },
-    "Jomon": {
-        "name": "Jomon",
-        "abilities": [{
+        advancement_level=0,
+    )
+    JOMON = CivTemplate(
+        name="Jomon",
+        abilities=[{
             "name": "ExtraCityPower",
             "numbers": [50]
         }],
-        "advancement_level": 0,
-    },
-    "Yangshao": {
-        "name": "Yangshao",
-        "abilities": [{
+        advancement_level=0,
+    )
+    YANGS = CivTemplate(
+        name="Yangshao",
+        abilities=[{
             "name": "ExtraVpsPerUnitKilled",
             "numbers": [1]
         }],
-        "advancement_level": 0,
-    },    
-    "Romans": {
-        "name": "Romans",
-        "abilities": [{
+        advancement_level=0,
+    )    
+    ROMANS = CivTemplate(
+        name="Romans",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["wood", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Swordsman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Greece": {
-        "name": "Greece",
-        "abilities": [{
+        advancement_level=1,
+    )
+    GREECE = CivTemplate(
+        name="Greece",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["science", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Spearman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Gokturks": {
-        "name": "Gokturks",
-        "abilities": [{
+        advancement_level=1,
+    )
+    GOKTURKS = CivTemplate(
+        name="Gokturks",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["metal", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Persia": {
-        "name": "Persia",
-        "abilities": [{
+        advancement_level=1,
+    )
+    PERSIA = CivTemplate(
+        name="Persia",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["food", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Spearman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Han": {
-        "name": "Han",
-        "abilities": [{
+        advancement_level=1,
+    )
+    HAN = CivTemplate(
+        name="Han",
+        abilities=[{
             "name": "ExtraCityPower",
             "numbers": [100],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Huns": {
-        "name": "Huns",
-        "abilities": [{
+        advancement_level=1,
+    )
+    HUNS = CivTemplate(
+        name="Huns",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["metal", 20],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Carthage": {
-        "name": "Carthage",
-        "abilities": [{
+        advancement_level=1,
+    )
+    CARTHAGE = CivTemplate(
+        name="Carthage",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["food", 20],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horseman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Goths": {
-        "name": "Goths",
-        "abilities": [{
+        advancement_level=1,
+    )
+    GOTHS = CivTemplate(
+        name="Goths",
+        abilities=[{
             "name": "ExtraVpsPerCityCaptured",
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Swordsman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Franks": {
-        "name": "Franks",
-        "abilities": [{
+        advancement_level=1,
+    )
+    FRANKS = CivTemplate(
+        name="Franks",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["wood", 20],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Celts": {
-        "name": "Celts",
-        "abilities": [{
+        advancement_level=1,
+    )
+    CELTS = CivTemplate(
+        name="Celts",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["wood", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Joseon": {
-        "name": "Joseon",
-        "abilities": [{
+        advancement_level=1,
+    )
+    JOSEON = CivTemplate(
+        name="Joseon",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["science", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Chariot", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Jin": {
-        "name": "Jin",
-        "abilities": [{
+        advancement_level=1,
+    )
+    JIN = CivTemplate(
+        name="Jin",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["food", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Vikings": {
-        "name": "Vikings",
-        "abilities": [{
+        advancement_level=1,
+    )
+    VIKINGS = CivTemplate(
+        name="Vikings",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["metal", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Swordsman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Byzantines": {
-        "name": "Byzantines",
-        "abilities": [{
+        advancement_level=1,
+    )
+    BYZANTINES = CivTemplate(
+        name="Byzantines",
+        abilities=[{
             "name": "ExtraVpsPerWonder",
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Trebuchet", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Gupta": {
-        "name": "Gupta",
-        "abilities": [{
+        advancement_level=1,
+    )
+    GUPTA = CivTemplate(
+        name="Gupta",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["food", "grassland", 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Catapult", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Polynesia": {
-        "name": "Polynesia",
-        "abilities": [{
+        advancement_level=1,
+    )
+    POLYNESIA = CivTemplate(
+        name="Polynesia",
+        abilities=[{
             "name": "ExtraCityPower",
             "numbers": [100],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Slinger", 5],
         }],
-        "advancement_level": 1,
-    },
-    "Sukhothai": {
-        "name": "Sukhothai",
-        "abilities": [{
+        advancement_level=1,
+    )
+    SUKHOTHAI = CivTemplate(
+        name="Sukhothai",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", "forest", 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Srivijaya": {
-        "name": "Srivijaya",
-        "abilities": [{
+        advancement_level=1,
+    )
+    SRIVIJAYA = CivTemplate(
+        name="Srivijaya",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", "hills", 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Garrison", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Sassanids": {
-        "name": "Sassanids",
-        "abilities": [{
+        advancement_level=1,
+    )
+    SASSANIDS = CivTemplate(
+        name="Sassanids",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", "plains", 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horseman", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Abbasids": {
-        "name": "Abbasids",
-        "abilities": [{
+        advancement_level=1,
+    )
+    ABBASIDS = CivTemplate(
+        name="Abbasids",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", "hills", 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Umayyads": {
-        "name": "Umayyads",
-        "abilities": [{
+        advancement_level=1,
+    )
+    UMAYYADS = CivTemplate(
+        name="Umayyads",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["food", "plains", 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Xhosa": {
-        "name": "Xhosa",
-        "abilities": [{
+        advancement_level=1,
+    )
+    XHOSA = CivTemplate(
+        name="Xhosa",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", "grassland", 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Archer", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Xiongnu": {
-        "name": "Xiongnu",
-        "abilities": [{
+        advancement_level=1,
+    )
+    XIONGNU = CivTemplate(
+        name="Xiongnu",
+        abilities=[{
             "name": "ExtraVpsPerUnitKilled",
             "numbers": [1],
-        }, 
-        # {
-        #     "name": "IncreasedStrengthForUnit",
-        #     "numbers": ["Horse Archer", 3],
-        # }
-        ],
-        "advancement_level": 1,
-    },
-    "Aksum": {
-        "name": "Aksum",
-        "abilities": [{
+        }],
+        advancement_level=1,
+    )
+    AKSUM = CivTemplate(
+        name="Aksum",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["science", "plains", 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Archer", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Cumans": {
-        "name": "Cumans",
-        "abilities": [{
+        advancement_level=1,
+    )
+    CUMANS = CivTemplate(
+        name="Cumans",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", "forest", 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer", 3],
         }],
-        "advancement_level": 1,
-    },
-    "Majapahit": {
-        "name": "Majapahit",
-        "abilities": [{
+        advancement_level=1,
+    )
+    MAJAPAHIT = CivTemplate(
+        name="Majapahit",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Khmer": {
-        "name": "Khmer",
-        "abilities": [{
+        advancement_level=2,
+    )
+    KHMER = CivTemplate(
+        name="Khmer",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["wood", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Seljuks": {
-        "name": "Seljuks",
-        "abilities": [{
+        advancement_level=2,
+    )
+    SELJUKS = CivTemplate(
+        name="Seljuks",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["metal", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Timurids": {
-        "name": "Timurids",
-        "abilities": [{
+        advancement_level=2,
+    )
+    TIMURIDS = CivTemplate(
+        name="Timurids",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Mali": {
-        "name": "Mali",
-        "abilities": [{
+        advancement_level=2,
+    )
+    MALI = CivTemplate(
+        name="Mali",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["science", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Songhai": {
-        "name": "Songhai",
-        "abilities": [{
+        advancement_level=2,
+    )
+    SONGHAI = CivTemplate(
+        name="Songhai",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Mongols": {
-        "name": "Mongols",
-        "abilities": [{
+        advancement_level=2,
+    )
+    MONGOLS = CivTemplate(
+        name="Mongols",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["metal", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Aztecs": {
-        "name": "Aztecs",
-        "abilities": [{
+        advancement_level=2,
+    )
+    AZTECS = CivTemplate(
+        name="Aztecs",
+        abilities=[{
             "name": "ExtraVpsPerUnitKilled",
             "numbers": [1],
         }, 
@@ -785,623 +597,611 @@ ANCIENT_CIVS = {
         #     "numbers": ["Swordsman", 4],
         # }
         ],
-        "advancement_level": 2,
-    },
-    "Inca": {
-        "name": "Inca",
-        "abilities": [{
+        advancement_level=2,
+    )
+    INCA = CivTemplate(
+        name="Inca",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Mughals": {
-        "name": "Mughals",
-        "abilities": [{
+        advancement_level=2,
+    )
+    MUGHALS = CivTemplate(
+        name="Mughals",
+        abilities=[{
             "name": "ExtraVpsPerWonder",
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Marathas": {
-        "name": "Marathas",
-        "abilities": [{
+        advancement_level=2,
+    )
+    MARATHAS = CivTemplate(
+        name="Marathas",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Zulu": {
-        "name": "Zulu",
-        "abilities": [{
+        advancement_level=2,
+    )
+    ZULU = CivTemplate(
+        name="Zulu",
+        abilities=[{
             "name": "ExtraCityPower",
             "numbers": [150],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Maurya": {
-        "name": "Maurya",
-        "abilities": [{
+        advancement_level=2,
+    )
+    MAURYA = CivTemplate(
+        name="Maurya",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Chola": {
-        "name": "Chola",
-        "abilities": [{
+        advancement_level=2,
+    )
+    CHOLA = CivTemplate(
+        name="Chola",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Ming": {
-        "name": "Ming",
-        "abilities": [{
+        advancement_level=2,
+    )
+    MING = CivTemplate(
+        name="Ming",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["science", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Qin": {
-        "name": "Qin",
-        "abilities": [{
+        advancement_level=2,
+    )
+    QIN = CivTemplate(
+        name="Qin",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["science", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Burgundy": {
-        "name": "Burgundy",
-        "abilities": [{
+        advancement_level=2,
+    )
+    BURGUNDY = CivTemplate(
+        name="Burgundy",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["metal", "plains", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Bohemia": {
-        "name": "Bohemia",
-        "abilities": [{
+        advancement_level=2,
+    )
+    BOHEMIA = CivTemplate(
+        name="Bohemia",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["food", "grassland", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Militia", 4],
         }],
-        "advancement_level": 2,
-    },
-    "England": {
-        "name": "England",
-        "abilities": [{
+        advancement_level=2,
+    )
+    ENGLAND = CivTemplate(
+        name="England",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", "forest", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Novgorod": {
-        "name": "Novgorod",
-        "abilities": [{
+        advancement_level=2,
+    )
+    NOVGOROD = CivTemplate(
+        name="Novgorod",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", "hills", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Castile": {
-        "name": "Castile",
-        "abilities": [{
+        advancement_level=2,
+    )
+    CASTILE = CivTemplate(
+        name="Castile",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["food", "plains", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Venice": {
-        "name": "Venice",
-        "abilities": [{
+        advancement_level=2,
+    )
+    VENICE = CivTemplate(
+        name="Venice",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["science", "grassland", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Aragon": {
-        "name": "Aragon",
-        "abilities": [{
+        advancement_level=2,
+    )
+    ARAGON = CivTemplate(
+        name="Aragon",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Mamluks": {
-        "name": "Mamluks",
-        "abilities": [{
+        advancement_level=2,
+    )
+    MAMLUKS = CivTemplate(
+        name="Mamluks",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["science", "plains", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Delhi": {
-        "name": "Delhi",
-        "abilities": [{
+        advancement_level=2,
+    )
+    DELHI = CivTemplate(
+        name="Delhi",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["food", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Bahmani": {
-        "name": "Bahmani",
-        "abilities": [{
+        advancement_level=2,
+    )
+    BAHMANI = CivTemplate(
+        name="Bahmani",
+        abilities=[{
             "name": "IncreaseYieldsForTerrain",
             "numbers": ["wood", "grassland", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Vijayanagara": {
-        "name": "Vijayanagara",
-        "abilities": [{
+        advancement_level=2,
+    )
+    VIJAYANAGARA = CivTemplate(
+        name="Vijayanagara",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["science", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 4],
         }],
-        "advancement_level": 2,
-    },
-    "Iroquois": {
-        "name": "Iroquois",
-        "abilities": [{
+        advancement_level=2,
+    )
+    IROQUOIS = CivTemplate(
+        name="Iroquois",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Ottomans": {
-        "name": "Ottomans",
-        "abilities": [{
+        advancement_level=4,
+    )
+    OTTOMANS = CivTemplate(
+        name="Ottomans",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["food", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Austria-Hungary": {
-        "name": "Austria-Hungary",
-        "abilities": [{
+        advancement_level=4,
+    )
+    AUSTRIA_HUNGARY = CivTemplate(
+        name="Austria-Hungary",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["science", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Gatling Gun", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Sweden": {
-        "name": "Sweden",
-        "abilities": [{
+        advancement_level=4,
+    )
+    SWEDEN = CivTemplate(
+        name="Sweden",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["science", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Russia": {
-        "name": "Russia",
-        "abilities": [{
+        advancement_level=4,
+    )
+    RUSSIA = CivTemplate(
+        name="Russia",
+        abilities=[{
             "name": "ExtraCityPower",
             "numbers": [250],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Arabia": {
-        "name": "Arabia",
-        "abilities": [{
+        advancement_level=4,
+    )
+    ARABIA = CivTemplate(
+        name="Arabia",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["food", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Portugal": {
-        "name": "Portugal",
-        "abilities": [{
+        advancement_level=4,
+    )
+    PORTUGAL = CivTemplate(
+        name="Portugal",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["science", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Spain": {
-        "name": "Spain",
-        "abilities": [{
+        advancement_level=4,
+    )
+    SPAIN = CivTemplate(
+        name="Spain",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["metal", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry", 5],
         }],
-        "advancement_level": 4,
-    },
-    "France": {
-        "name": "France",
-        "abilities": [{
+        advancement_level=4,
+    )
+    FRANCE = CivTemplate(
+        name="France",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["wood", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Prussia": {
-        "name": "Prussia",
-        "abilities": [{
+        advancement_level=4,
+    )
+    PRUSSIA = CivTemplate(
+        name="Prussia",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["metal", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Manchu": {
-        "name": "Manchu",
-        "abilities": [{
+        advancement_level=4,
+    )
+    MANCHU = CivTemplate(
+        name="Manchu",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["science", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Poland": {
-        "name": "Poland",
-        "abilities": [{
+        advancement_level=4,
+    )
+    POLAND = CivTemplate(
+        name="Poland",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Lithuania": {
-        "name": "Lithuania",
-        "abilities": [{
+        advancement_level=4,
+    )
+    LITHUANIA = CivTemplate(
+        name="Lithuania",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["wood", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Netherlands": {
-        "name": "Netherlands",
-        "abilities": [{
+        advancement_level=4,
+    )
+    NETHERLANDS = CivTemplate(
+        name="Netherlands",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["science", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Gatling Gun", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Denmark": {
-        "name": "Denmark",
-        "abilities": [{
+        advancement_level=4,
+    )
+    DENMARK = CivTemplate(
+        name="Denmark",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["metal", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Gatling Gun", 5],
         }],
-        "advancement_level": 4,
-    },
-    "Brazil": {
-        "name": "Brazil",
-        "abilities": [{
+        advancement_level=4,
+    )
+    BRAZIL = CivTemplate(
+        name="Brazil",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["metal", 50],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 7],
         }],
-        "advancement_level": 5,
-    },
-    "United States": {
-        "name": "United States",
-        "abilities": [{
+        advancement_level=5,
+    )
+    UNITED_STATES = CivTemplate(
+        name="United States",
+        abilities=[{
             "name": "ExtraVpsPerCityCaptured",
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Infantry", 7],
         }],
-        "advancement_level": 5,
-    },
-    "Mexico": {
-        "name": "Mexico",
-        "abilities": [{
+        advancement_level=5,
+    )
+    MEXICO = CivTemplate(
+        name="Mexico",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["food", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery", 7],
         }],
-        "advancement_level": 5,
-    },
-    "United Kingdom": {
-        "name": "United Kingdom",
-        "abilities": [{
+        advancement_level=5,
+    )
+    UNITED_KINGDOM = CivTemplate(
+        name="United Kingdom",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["wood", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 7],
         }],
-        "advancement_level": 5,
-    },
-    "Indonesia": {
-        "name": "Indonesia",
-        "abilities": [{
+        advancement_level=5,
+    )
+    INDONESIA = CivTemplate(
+        name="Indonesia",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["food", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 7],
         }],
-        "advancement_level": 5,
-    },
-    "Japan": {
-        "name": "Japan",
-        "abilities": [{
+        advancement_level=5,
+    )
+    JAPAN = CivTemplate(
+        name="Japan",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["metal", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Swordsman", 12],
         }],
-        "advancement_level": 5,
-    },
-    "Korea": {
-        "name": "Korea",
-        "abilities": [{
+        advancement_level=5,
+    )
+    KOREA = CivTemplate(
+        name="Korea",
+        abilities=[{
             "name": "IncreaseCapitalYields",
             "numbers": ["science", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 7],
         }],
-        "advancement_level": 5,
-    },
-    "Ethiopia": {
-        "name": "Ethiopia",
-        "abilities": [{
+        advancement_level=5,
+    )
+    ETHIOPIA = CivTemplate(
+        name="Ethiopia",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["science", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 7],
         }],
-        "advancement_level": 5,
-    },    
-    "Italy": {
-        "name": "Italy",
-        "abilities": [{
+        advancement_level=5,
+    )    
+    ITALY = CivTemplate(
+        name="Italy",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["metal", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery", 7],
         }],
-        "advancement_level": 5,
-    },
-    "Germany": {
-        "name": "Germany",
-        "abilities": [{
+        advancement_level=5,
+    )
+    GERMANY = CivTemplate(
+        name="Germany",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["metal", 6],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Tank", 7],
         }],
-        "advancement_level": 5,
-    },
-    "Comanches": {
-        "name": "Comanches",
-        "abilities": [{
+        advancement_level=5,
+    )
+    COMANCHES = CivTemplate(
+        name="Comanches",
+        abilities=[{
             "name": "ExtraVpsPerUnitKilled",
             "numbers": [1],
-        }, 
-        # {
-        #     "name": "IncreasedStrengthForUnit",
-        #     "numbers": ["Cavalry", 7],
-        # }
-        ],
-        "advancement_level": 5,
-    },
-    "Canada": {
-        "name": "Canada",
-        "abilities": [{
+        }],
+        advancement_level=5,
+    )
+    CANADA = CivTemplate(
+        name="Canada",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["science", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Infantry", 8],
         }],
-        "advancement_level": 7,
-    },
-    "Australia": {
-        "name": "Australia",
-        "abilities": [{
+        advancement_level=7,
+    )
+    AUSTRALIA = CivTemplate(
+        name="Australia",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["food", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Bazooka", 8],
         }],
-        "advancement_level": 7,
-    },
-    "Vietnam": {
-        "name": "Vietnam",
-        "abilities": [{
+        advancement_level=7,
+    )
+    VIETNAM = CivTemplate(
+        name="Vietnam",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["wood", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Bazooka", 8],
         }],
-        "advancement_level": 7,
-    },
-    "India": {
-        "name": "India",
-        "abilities": [{
+        advancement_level=7,
+    )
+    INDIA = CivTemplate(
+        name="India",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["food", 150],
         }],
-        "advancement_level": 7,
-    },
-    "Soviet Union": {
-        "name": "Soviet Union",
-        "abilities": [{
+        advancement_level=7,
+    )
+    SOVIET_UNION = CivTemplate(
+        name="Soviet Union",
+        abilities=[{
             "name": "ExtraVpsPerCityCaptured",
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rocket Launcher", 8],
         }],
-        "advancement_level": 7,
-    },
-    "Communist China": {
-        "name": "Communist China",
-        "abilities": [{
+        advancement_level=7,
+    )
+    COMMUNIST_CHINA = CivTemplate(
+        name="Communist China",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["metal", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rocket Launcher", 8],
         }],
-        "advancement_level": 7,
-    },
-    "Turkey": {
-        "name": "Turkey",
-        "abilities": [{
+        advancement_level=7,
+    )
+    TURKEY = CivTemplate(
+        name="Turkey",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["wood", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Infantry", 8],
         }],
-        "advancement_level": 7,
-    },
-    "Solaria": {
-        "name": "Solaria",
-        "abilities": [{
+        advancement_level=7,
+    )
+    SOLARIA = CivTemplate(
+        name="Solaria",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["science", 200],
         }],
-        "advancement_level": 10,
-    },
-    "Arctic Alliance": {
-        "name": "Arctic Alliance",
-        "abilities": [{
+        advancement_level=10,
+    )
+    ARCTIC_ALLIANCE = CivTemplate(
+        name="Arctic Alliance",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["food", 400],
         }],
-        "advancement_level": 9,
-    },
-    "Greater EuroZone": {
-        "name": "Greater EuroZone",
-        "abilities": [{
+        advancement_level=9,
+    )
+    GREATER_EURO_ZONE = CivTemplate(
+        name="Greater Euro Zone",
+        abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["wood", 30],
         }],
-        "advancement_level": 9,
-    },
-    "Celestial Empire": {
-        "name": "Celestial Empire",
-        "abilities": [{
+        advancement_level=9,
+    )
+    CELESTIAL_EMPIRE = CivTemplate(
+        name="Celestial Empire",
+        abilities=[{
             "name": "StartWithResources",
             "numbers": ["metal", 150],
         }],
-        "advancement_level": 9,
-    },
-    "The Machine Intelligence": {
-        "name": "The Machine Intelligence",
-        "abilities": [{
+        advancement_level=9,
+    )
+    THE_MACHINE_INTELLIGENCE = CivTemplate(
+        name="The Machine Intelligence",
+        abilities=[{
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Giant Death Robot", 100],
         }],
-        "advancement_level": 9,
-    },
-}
-
-for i, civ in enumerate(ANCIENT_CIVS):
-    ANCIENT_CIVS[civ]["primary_color"] = color_pairs[i][0]
-    ANCIENT_CIVS[civ]["secondary_color"] = color_pairs[i][1]
-
-CIVS = {**ANCIENT_CIVS, **BARBARIAN_CIV}
+        advancement_level=9,
+    )

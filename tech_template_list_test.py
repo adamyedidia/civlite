@@ -10,11 +10,6 @@ from civ_template import CivTemplate
 from building_template import BuildingTemplate
 
 class TestConsistency:
-    def test_civ_names_consistency(self):
-        for name, json in CIVS.items():
-            civ_template = CivTemplate.from_json(json)
-            assert civ_template.name == name, f"key and name mismatch: {name} != {civ_template.name}"
-
     def test_units_tech_consistency(self):
         found_units = set()
         for tech_template in TECHS.all():
@@ -38,9 +33,7 @@ class TestConsistency:
             assert bldg in found_bldgs, f"Building {bldg} is not unlocked by any tech. It think it should be unlocked by {bldg.prereq}"
 
     def test_civ_special_units_consistency(self):
-        for name, json in CIVS.items():
-            civ_template = CivTemplate.from_json(json)
-
+        for civ_template in CIVS.all():
             for ability in civ_template.abilities:
                 if ability.name == 'IncreasedStrengthForUnit':
                     numbers = ability.numbers

@@ -9,6 +9,7 @@ from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_C
 from unit import Unit
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS, UNITS_BY_BUILDING_NAME
+from civ_templates_list import CIVS
 from utils import generate_unique_id
 import random
 from typing import Dict
@@ -1010,7 +1011,7 @@ class City:
 
             "revolting_starting_vitality": self.revolting_starting_vitality,
             "unhappiness": self.unhappiness,
-            "civ_to_revolt_into": self.civ_to_revolt_into.to_json() if self.civ_to_revolt_into else None,
+            "civ_to_revolt_into": self.civ_to_revolt_into.name if self.civ_to_revolt_into else None,
             "is_decline_view_option": self.is_decline_view_option,
             "food_demand": self.food_demand,
             "revolt_unit_count": self.revolt_unit_count,
@@ -1045,7 +1046,7 @@ class City:
         city.projected_income_base = json["projected_income_base"]
         city.projected_income_focus = json["projected_income_focus"]
         city.terrains_dict = json.get("terrains_dict") or {}
-        city.civ_to_revolt_into = CivTemplate.from_json(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
+        city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]
         city.unhappiness = json["unhappiness"]
         city.is_decline_view_option = json["is_decline_view_option"]
