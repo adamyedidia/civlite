@@ -7,7 +7,7 @@ def player_civs(min_advancement_level=0, max_advancement_level=9) -> Generator[C
             yield civ_template
 
 class CIVS():
-       # all & by_name are copy-pasted methods to all template lists.
+    # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
     # That handled the dynamic type properly.
     @classmethod
