@@ -252,12 +252,11 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     {selectedCityBuildingChoices && canBuild && (<>
                         <div className="building-choices-container">
                             <div className='building-choices-row'>
-                                <WithTooltip tooltip={showHiddenBuildings ? "Hide hidden buildings" : "Show hidden building"}>
-                                <img src={showHiddenBuildings ? eyeImg : closedEyeImg} className="clickable" height="20px" onClick={() => setShowHiddenBuildings(!showHiddenBuildings)} style={{
+                                <img src={showHiddenBuildings ? eyeImg : closedEyeImg} className={selectedCity.hidden_building_names.length > 0 ? "clickable" : ""} height="20px" onClick={() => setShowHiddenBuildings(!showHiddenBuildings)} style={{
                                     border: '2px solid black',
                                     borderRadius: '50%',
+                                    opacity: selectedCity.hidden_building_names.length > 0 ? 1.0 : 0.25,
                                 }}/>
-                                </WithTooltip>
                                 <BriefBuildingDisplayTitle title="Building Choices" />
                             </div>
                             {selectedCityBuildingChoices.map((buildingName, index) => {
@@ -266,12 +265,10 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                     return null;
                                 }
                                 return <div key={index} className={`building-choices-row ${hidden ? 'hidden' : ''}`}>
-                                    <WithTooltip tooltip={hidden ? "Unhide building" : "Hide building"}>
                                     <img src={hidden ? closedEyeImg : eyeImg} height="20px" className="clickable" onClick={() => handleHideBuilding(buildingName, !hidden)} style={{
                                         border: '2px solid black',
                                         borderRadius: '50%',
                                     }}/>
-                                    </WithTooltip>
                                     <BriefBuildingDisplay buildingName={buildingName} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
                                 </div>
                             })}
