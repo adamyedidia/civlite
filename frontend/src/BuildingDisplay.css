@@ -10,6 +10,7 @@
     align-items: center; /* Align items vertically in the center */
     font-size: 1.2em; /* Smaller font size */
     font-weight: bold; /* Make the text bold */
+    flex-grow: 1; /* Allow the element to grow and fill the available space, respecting any previous children */
 }
 
 .brief-building-card {
@@ -22,6 +23,7 @@
     justify-content: space-between; /* Distribute space evenly between the elements */
     align-items: center; /* Align items vertically in the center */
     font-size: 1.2em; /* Smaller font size */
+    flex-grow: 1; /* Allow the element to grow and fill the available space, respecting any previous children */
 }
 
 .brief-building-card.disabled {
