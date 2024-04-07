@@ -65,6 +65,7 @@ class City:
         self.projected_income_puppets: dict[str, dict[str, float]] = {'wood': {}, 'metal': {}}
         self.terrains_dict = {}
         self.founded_turn: int | None = None
+        self.hidden_building_names: list[str] = []
 
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
@@ -158,6 +159,12 @@ class City:
     def puppet_distance_penalty(self) -> float:
         bldg_factors: list[float] = [bldg.numbers_of_ability('ReducePuppetDistancePenalty')[0] for bldg in self.buildings if bldg.has_ability('ReducePuppetDistancePenalty')]
         return min([.1] + bldg_factors)
+
+    def toggle_discard(self, building_name: str, hidden=True) -> None:
+        if hidden and building_name not in self.hidden_building_names:
+            self.hidden_building_names.append(building_name)
+        elif not hidden and building_name in self.hidden_building_names:
+            self.hidden_building_names.remove(building_name)
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -725,6 +732,12 @@ class City:
         #         return game_state.get_civ_by_name(civ_name)
 
         return None
+    
+    def change_owner(self, civ: Civ, game_state: 'GameState') -> None:
+        self.civ = civ
+        self.orphan_territory_children(game_state)
+        self.set_territory_parent_if_needed(game_state)
+        self.hidden_building_names = []
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         print(f"****Captured {self.name}****")
@@ -735,9 +748,7 @@ class City:
         self.wood /= 2
         self.metal /= 2
         
-        self.civ = civ
-        self.orphan_territory_children(game_state)
-        self.set_territory_parent_if_needed(game_state)
+        self.change_owner(civ, game_state)
 
         for building in self.buildings:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
@@ -1005,6 +1016,7 @@ class City:
             "projected_income_puppets": self.projected_income_puppets,
             "growth_cost": self.growth_cost(),
             "terrains_dict": self.terrains_dict,
+            "hidden_building_names": self.hidden_building_names,
 
             "territory_parent_id": self._territory_parent_id,
             "territory_parent_coords": self._territory_parent_coords,
@@ -1046,6 +1058,7 @@ class City:
         city.projected_income_base = json["projected_income_base"]
         city.projected_income_focus = json["projected_income_focus"]
         city.terrains_dict = json.get("terrains_dict") or {}
+        city.hidden_building_names = json.get("hidden_building_names") or []
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]
         city.unhappiness = json["unhappiness"]

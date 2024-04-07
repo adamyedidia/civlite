@@ -145,6 +145,25 @@
     visibility: visible;
 }
 
+.building-choices-row {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.building-choices-row.hidden {
+    opacity: 0.25;
+}
+
+.building-choices-row img.clickable {
+
+    cursor: pointer;
+}
+.building-choices-row img.clickable:hover {
+    transform: scale(1.2);
+    background-color: #eee;
+}
+
 .building-queue-container {
   /* display: flex; */
   justify-content: center;

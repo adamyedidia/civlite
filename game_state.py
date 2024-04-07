@@ -286,8 +286,7 @@ class GameState:
             # This is not a fresh city , it's a pre-existing one.
             print(f"Declining to existing city at {coords}")
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
-            hex.city.civ = Civ(hex.city.civ_to_revolt_into, game_player=None)
-            hex.city.orphan_territory_children(self)
+            hex.city.change_owner(Civ(hex.city.civ_to_revolt_into, game_player=None), game_state=self)
         else:
             # This is a fake city, now it is becoming a real city.
             print(f"Declining to fresh city at {coords}")
@@ -428,6 +427,18 @@ class GameState:
                 game_player_to_return = game_player
 
                 city.refresh_available_buildings()
+
+            if move['move_type'] == 'hide_building':
+                building_name = move['building_name']
+                hidden = move['hidden']
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                city_id = move['city_id']
+                city = self.cities_by_id[city_id]
+                city.toggle_discard(building_name, hidden)
+                game_player_to_return = game_player
+                city.midturn_update(self)
 
             if move['move_type'] == 'select_infinite_queue':
                 unit_name = move['unit_name']
