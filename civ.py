@@ -46,7 +46,6 @@ class Civ:
         self.projected_science_income = 0.0
         self.projected_city_power_income = 0.0
         self.in_decline = False
-        self.initial_advancement_level = 0
         self.trade_hub_id: Optional[str] = None
         self.great_people_choices: list[GreatPerson] = []
         self.max_territories: int = 3
@@ -100,7 +99,6 @@ class Civ:
     def initialize_techs(self, start_techs: set[TechTemplate]):
         for tech in start_techs:
             self.techs_status[tech] = TechStatus.RESEARCHED
-        self.initial_advancement_level = self.get_advancement_level()
         self.get_new_tech_choices()
 
     def get_new_tech_choices(self):
@@ -167,7 +165,6 @@ class Civ:
             "projected_city_power_income": self.projected_city_power_income,
             "in_decline": self.in_decline,
             "advancement_level": self.get_advancement_level(),
-            "initial_advancement_level": self.initial_advancement_level,
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
             "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],
@@ -183,8 +180,7 @@ class Civ:
         self.available_unit_buildings: list[str] = [
             unit.building_name for unit in UNITS.all() 
             if ((unit.prereq is None or self.has_tech(unit.prereq)) and 
-                unit.building_name is not None and
-                unit.advancement_level() >= self.initial_advancement_level - 1)
+                unit.building_name is not None)
             ]
 
 
@@ -416,7 +412,6 @@ class Civ:
         civ.projected_science_income = json["projected_science_income"]
         civ.projected_city_power_income = json["projected_city_power_income"]
         civ.in_decline = json["in_decline"]
-        civ.initial_advancement_level = json.get("initial_advancement_level", 0)
         civ.trade_hub_id = json.get("trade_hub_id")
         civ.great_people_choices = [GreatPerson.from_json(great_person_json) for great_person_json in json.get("great_people_choices", [])]
         civ.max_territories = json.get("max_territories", 3)
