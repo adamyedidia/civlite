@@ -15,9 +15,8 @@ import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import declineImg from './images/phoenix.png';
 import tradeHubImg from './images/tradehub.png';
-
-
-
+import eyeImg from './images/view.png';
+import closedEyeImg from './images/hide.png';
 import workerImg from './images/worker.png';
 import { CityDetailPanel } from './CityDetailPanel.js';
 import { TextOnIcon } from './TextOnIcon.js';
@@ -125,7 +124,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
 
     const canBuild = !declinePreviewMode && !puppet;
     const [isBuildingListExpanded, setIsBuildingListExpanded] = useState(declinePreviewMode);
-
+    const [showHiddenBuildings, setShowHiddenBuildings] = useState(false);
 
     const handleClickClose = () => {
         setSelectedCity(null);
@@ -187,6 +186,12 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         submitPlayerInput('trade_hub', {});
     }
 
+    const handleHideBuilding = (buildingName, newHidden) => {
+        if (!canBuild) return;
+        console.log('discarding building', buildingName);
+        submitPlayerInput('hide_building', {'building_name': buildingName, 'hidden': newHidden});
+    }
+
     // A bit silly that we calculate the amount available of each resource here
     // And then recalculate each one in the CityDetailPanel.
     const projectedIncome = selectedCity.projected_income || {
@@ -246,12 +251,30 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 <CityDetailPanel title="wood" icon={woodImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCityBuildingChoices && canBuild && (<>
                         <div className="building-choices-container">
-                            <BriefBuildingDisplayTitle title="Building Choices" />
-                            {selectedCityBuildingChoices.map((buildingName, index) => (
-                                <BriefBuildingDisplay key={index} buildingName={buildingName} clickable={true}unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
-                            ))}
+                            <div className='building-choices-row'>
+                                <img src={showHiddenBuildings ? eyeImg : closedEyeImg} className={selectedCity.hidden_building_names.length > 0 ? "clickable" : ""} height="20px" onClick={() => setShowHiddenBuildings(!showHiddenBuildings)} style={{
+                                    border: '2px solid black',
+                                    borderRadius: '50%',
+                                    opacity: selectedCity.hidden_building_names.length > 0 ? 1.0 : 0.25,
+                                }}/>
+                                <BriefBuildingDisplayTitle title="Building Choices" />
+                            </div>
+                            {selectedCityBuildingChoices.map((buildingName, index) => {
+                                const hidden = selectedCity.hidden_building_names.includes(buildingName)
+                                if (!showHiddenBuildings && hidden) {
+                                    return null;
+                                }
+                                return <div key={index} className={`building-choices-row ${hidden ? 'hidden' : ''}`}>
+                                    <img src={hidden ? closedEyeImg : eyeImg} height="20px" className="clickable" onClick={() => handleHideBuilding(buildingName, !hidden)} style={{
+                                        border: '2px solid black',
+                                        borderRadius: '50%',
+                                    }}/>
+                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
+                                </div>
+                            })}
                         </div>
                         <div className="building-choices-placeholder"/>
+
                     </>)}
                     {selectedCityBuildingQueue && canBuild &&  (
                         <div className="building-queue-container">

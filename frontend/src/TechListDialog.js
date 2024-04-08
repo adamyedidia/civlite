@@ -72,7 +72,8 @@ const TechCard = ({tech, gameState, templates, myCiv, setHoveredTech, handleClic
                             margin: "0px",
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
-                            cursor: 'default'
+                            cursor: 'default',
+                            flexGrow: '0',
                         }}
                     />
                 })}

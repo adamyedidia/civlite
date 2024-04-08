@@ -705,28 +705,6 @@ def unend_turn(sess, game_id):
     return jsonify({})
 
 
-@app.route('/api/building_choices/<game_id>/<city_id>', methods=['GET'])
-@api_endpoint
-def get_building_choices(sess, game_id, city_id):
-    game = Game.get(sess, socketio, game_id)
-
-    if not game:
-        return jsonify({"error": "Game not found"}), 404
-    
-    game_state = game.get_turn_start_game_state(sess)
-
-    city = game_state.cities_by_id.get(city_id)
-
-    if not city:
-        return jsonify({"error": "City not found"}), 404
-
-    building_choices = city.get_available_buildings()
-
-    print('choices', building_choices)
-
-    return jsonify({'building_choices': [building_choice.to_json() for building_choice in building_choices]})
-
-
 @app.route('/api/game_constants', methods=['GET'])
 @api_endpoint
 def get_game_constants(sess):

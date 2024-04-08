@@ -8,6 +8,8 @@ from civ_templates_list import player_civs, CIVS
 from game_player import GamePlayer
 from settings import NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD
 from tech_template import TechTemplate
+from building_template import BuildingTemplate
+from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
 from building_templates_list import BUILDINGS
@@ -37,8 +39,8 @@ class Civ:
         self.techs_status: Dict[TechTemplate, TechStatus] = {tech: TechStatus.UNAVAILABLE for tech in TECHS.all()}
         self.vitality = 1.0
         self.city_power = 0.0
-        self.available_buildings: list[str] = []
-        self.available_unit_buildings: list[str] = []
+        self.available_buildings: list[BuildingTemplate] = []
+        self.available_unit_buildings: list[UnitTemplate] = []
         self.target1: Optional['Hex'] = None
         self.target2: Optional['Hex'] = None
         self.target1_coords: Optional[str] = None
@@ -46,7 +48,6 @@ class Civ:
         self.projected_science_income = 0.0
         self.projected_city_power_income = 0.0
         self.in_decline = False
-        self.initial_advancement_level = 0
         self.trade_hub_id: Optional[str] = None
         self.great_people_choices: list[GreatPerson] = []
         self.max_territories: int = 3
@@ -100,7 +101,6 @@ class Civ:
     def initialize_techs(self, start_techs: set[TechTemplate]):
         for tech in start_techs:
             self.techs_status[tech] = TechStatus.RESEARCHED
-        self.initial_advancement_level = self.get_advancement_level()
         self.get_new_tech_choices()
 
     def get_new_tech_choices(self):
@@ -159,15 +159,14 @@ class Civ:
             "current_tech_choices": [tech.name for tech, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)],
             "vitality": self.vitality,
             "city_power": self.city_power,
-            "available_buildings": self.available_buildings,
-            "available_unit_buildings": self.available_unit_buildings,
+            "available_buildings": [b.name for b in self.available_buildings],
+            "available_unit_buildings": [u.name for u in self.available_unit_buildings],
             "target1": self.target1.coords if self.target1 else None,
             "target2": self.target2.coords if self.target2 else None,
             "projected_science_income": self.projected_science_income,
             "projected_city_power_income": self.projected_city_power_income,
             "in_decline": self.in_decline,
             "advancement_level": self.get_advancement_level(),
-            "initial_advancement_level": self.initial_advancement_level,
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
             "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],
@@ -175,16 +174,15 @@ class Civ:
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
-        self.available_buildings = [building.name for building in BUILDINGS.all() if (
+        self.available_buildings = [building for building in BUILDINGS.all() if (
             (building.prereq is None or self.has_tech(building.prereq))
             and (not building.is_wonder or not game_state.wonders_built_to_civ_id.get(building.name))
             and (not building.is_national_wonder or not building.name in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
-        self.available_unit_buildings: list[str] = [
-            unit.building_name for unit in UNITS.all() 
+        self.available_unit_buildings: list[UnitTemplate] = [
+            unit for unit in UNITS.all() 
             if ((unit.prereq is None or self.has_tech(unit.prereq)) and 
-                unit.building_name is not None and
-                unit.advancement_level() >= self.initial_advancement_level - 1)
+                unit.building_name is not None)
             ]
 
 
@@ -409,14 +407,13 @@ class Civ:
         civ.techs_status = {tech: TechStatus(json["techs_status"][tech.name]) for tech in TECHS.all()}
         civ.vitality = json["vitality"]
         civ.city_power = json["city_power"]
-        civ.available_buildings = json["available_buildings"][:]
-        civ.available_unit_buildings = json["available_unit_buildings"][:]
+        civ.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
+        civ.available_unit_buildings = [UNITS.by_name(u) for u in json["available_unit_buildings"]]
         civ.target1_coords = json["target1"]
         civ.target2_coords = json["target2"]
         civ.projected_science_income = json["projected_science_income"]
         civ.projected_city_power_income = json["projected_city_power_income"]
         civ.in_decline = json["in_decline"]
-        civ.initial_advancement_level = json.get("initial_advancement_level", 0)
         civ.trade_hub_id = json.get("trade_hub_id")
         civ.great_people_choices = [GreatPerson.from_json(great_person_json) for great_person_json in json.get("great_people_choices", [])]
         civ.max_territories = json.get("max_territories", 3)

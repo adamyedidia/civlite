@@ -53,7 +53,7 @@ class City:
         self.infinite_queue_unit: Optional[UnitTemplate] = None
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
         self.buildings: list[Building] = [Building(UNITS.WARRIOR, building_template=None)]
-        self.available_buildings: list[str] = []
+        self.available_buildings: list[BuildingTemplate] = []
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, float, int]]] = {}
         self.capital = False
         self._territory_parent_id: Optional[str] = None
@@ -65,6 +65,7 @@ class City:
         self.projected_income_puppets: dict[str, dict[str, float]] = {'wood': {}, 'metal': {}}
         self.terrains_dict = {}
         self.founded_turn: int | None = None
+        self.hidden_building_names: list[str] = []
 
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
@@ -158,6 +159,12 @@ class City:
     def puppet_distance_penalty(self) -> float:
         bldg_factors: list[float] = [bldg.numbers_of_ability('ReducePuppetDistancePenalty')[0] for bldg in self.buildings if bldg.has_ability('ReducePuppetDistancePenalty')]
         return min([.1] + bldg_factors)
+
+    def toggle_discard(self, building_name: str, hidden=True) -> None:
+        if hidden and building_name not in self.hidden_building_names:
+            self.hidden_building_names.append(building_name)
+        elif not hidden and building_name in self.hidden_building_names:
+            self.hidden_building_names.remove(building_name)
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -381,7 +388,9 @@ class City:
         if not self.civ:
             return
 
-        self.available_buildings = [building_name for building_name in self.civ.available_buildings if not self.has_building(building_name) and not self.building_is_in_queue(building_name)]
+        old_available_buildings = set(self.available_buildings)
+        self.available_buildings = self.civ.available_buildings
+        new_bldgs = set(self.available_buildings) - old_available_buildings
 
         if not self.hex:
             return
@@ -445,7 +454,9 @@ class City:
                         "type": "yield",
                         "value": total_yields,
                         "value_for_ai": total_yields + total_pseudoyields,
-                    }                            
+                    }        
+                    if building_template in new_bldgs and total_yields == 0 and total_pseudoyields == 0:
+                        self.toggle_discard(building_template.name, hidden=True)
 
                 elif not building_template.is_wonder:
                     self.available_buildings_to_descriptions[building_template.name] = {
@@ -458,14 +469,6 @@ class City:
                         "type": "wonder_cost",
                         "value": building_template.cost,
                     }
-
-            if unit_template is not None:
-                self.available_buildings_to_descriptions[unit_template.building_name] = {
-                    "type": "strength",
-                    "value": unit_template.strength,
-                }
-
-
 
     def refresh_available_units(self) -> None:
         self.available_units = [unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
@@ -483,8 +486,8 @@ class City:
         if not self.civ:
             return []
         building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
-        buildings = [BUILDINGS.by_name(building_name) for building_name in self.available_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
-        unit_buildings = [UNITS_BY_BUILDING_NAME[building_name] for building_name in self.civ.available_unit_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
+        buildings: list[BuildingTemplate] = [building for building in self.available_buildings if not building.name in building_names_in_queue and not self.has_building(building.name)]
+        unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
         return [*buildings, *unit_buildings]
 
     def build_units(self, game_state: 'GameState') -> None:
@@ -725,6 +728,12 @@ class City:
         #         return game_state.get_civ_by_name(civ_name)
 
         return None
+    
+    def change_owner(self, civ: Civ, game_state: 'GameState') -> None:
+        self.civ = civ
+        self.orphan_territory_children(game_state)
+        self.set_territory_parent_if_needed(game_state)
+        self.hidden_building_names = []
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         print(f"****Captured {self.name}****")
@@ -735,9 +744,7 @@ class City:
         self.wood /= 2
         self.metal /= 2
         
-        self.civ = civ
-        self.orphan_territory_children(game_state)
-        self.set_territory_parent_if_needed(game_state)
+        self.change_owner(civ, game_state)
 
         for building in self.buildings:
             if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
@@ -994,7 +1001,7 @@ class City:
             "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
             "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
             "buildings": [building.to_json() for building in self.buildings],
-            "available_buildings": self.available_buildings,
+            "available_buildings": [b.name for b in self.available_buildings],
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
             "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
             "capital": self.capital,
@@ -1005,6 +1012,7 @@ class City:
             "projected_income_puppets": self.projected_income_puppets,
             "growth_cost": self.growth_cost(),
             "terrains_dict": self.terrains_dict,
+            "hidden_building_names": self.hidden_building_names,
 
             "territory_parent_id": self._territory_parent_id,
             "territory_parent_coords": self._territory_parent_coords,
@@ -1037,7 +1045,7 @@ class City:
         city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
         city.capital = json["capital"]
         city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BUILDINGS.by_name(building) for building in json["buildings_queue"]]
-        city.available_buildings = json["available_buildings"][:]
+        city.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
         city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UNITS.by_name(json["infinite_queue_unit"])
@@ -1046,6 +1054,7 @@ class City:
         city.projected_income_base = json["projected_income_base"]
         city.projected_income_focus = json["projected_income_focus"]
         city.terrains_dict = json.get("terrains_dict") or {}
+        city.hidden_building_names = json.get("hidden_building_names") or []
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]
         city.unhappiness = json["unhappiness"]
