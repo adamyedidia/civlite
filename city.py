@@ -388,7 +388,9 @@ class City:
         if not self.civ:
             return
 
-        self.available_buildings = [building for building in self.civ.available_buildings if not self.has_building(building.name) and not self.building_is_in_queue(building.name)]
+        old_available_buildings = set(self.available_buildings)
+        self.available_buildings = self.civ.available_buildings
+        new_bldgs = set(self.available_buildings) - old_available_buildings
 
         if not self.hex:
             return
@@ -452,7 +454,9 @@ class City:
                         "type": "yield",
                         "value": total_yields,
                         "value_for_ai": total_yields + total_pseudoyields,
-                    }                            
+                    }        
+                    if building_template in new_bldgs and total_yields == 0 and total_pseudoyields == 0:
+                        self.toggle_discard(building_template.name, hidden=True)
 
                 elif not building_template.is_wonder:
                     self.available_buildings_to_descriptions[building_template.name] = {
@@ -465,14 +469,6 @@ class City:
                         "type": "wonder_cost",
                         "value": building_template.cost,
                     }
-
-            if unit_template is not None:
-                self.available_buildings_to_descriptions[unit_template.building_name] = {
-                    "type": "strength",
-                    "value": unit_template.strength,
-                }
-
-
 
     def refresh_available_units(self) -> None:
         self.available_units = [unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
