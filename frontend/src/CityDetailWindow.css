@@ -129,7 +129,7 @@
 }
 
 .building-choices-container:hover {
-    max-height: 800px;
+    max-height: 350px;
     z-index: 1;
     position: absolute;
     left: 50%;
