@@ -2304,15 +2304,6 @@ export default function GamePage() {
             .then(data => setTemplates(data));
     }, [])
 
-
-    // useEffect(() => {
-    //     if (selectedCity?.id) {
-    //         fetch(`${URL}/api/building_choices/${gameId}/${selectedCity?.id}`).then(response => response.json()).then(data => {
-    //             setSelectedCityBuildingChoices(data.building_choices);
-    //         });
-    //     }
-    // }, [selectedCity?.id])
-
     const showSingleMovementArrow = (fromHexCoords, toHexCoords, arrowType = null) => {
 
         const fromHexClientRef = hexRefs?.current?.[fromHexCoords]?.current?.getBoundingClientRect();
