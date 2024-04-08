@@ -53,7 +53,7 @@ class City:
         self.infinite_queue_unit: Optional[UnitTemplate] = None
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
         self.buildings: list[Building] = [Building(UNITS.WARRIOR, building_template=None)]
-        self.available_buildings: list[str] = []
+        self.available_buildings: list[BuildingTemplate] = []
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, float, int]]] = {}
         self.capital = False
         self._territory_parent_id: Optional[str] = None
@@ -388,7 +388,7 @@ class City:
         if not self.civ:
             return
 
-        self.available_buildings = [building_name for building_name in self.civ.available_buildings if not self.has_building(building_name) and not self.building_is_in_queue(building_name)]
+        self.available_buildings = [building for building in self.civ.available_buildings if not self.has_building(building.name) and not self.building_is_in_queue(building.name)]
 
         if not self.hex:
             return
@@ -490,8 +490,8 @@ class City:
         if not self.civ:
             return []
         building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
-        buildings = [BUILDINGS.by_name(building_name) for building_name in self.available_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
-        unit_buildings = [UNITS_BY_BUILDING_NAME[building_name] for building_name in self.civ.available_unit_buildings if not building_name in building_names_in_queue and not self.has_building(building_name)]
+        buildings: list[BuildingTemplate] = [building for building in self.available_buildings if not building.name in building_names_in_queue and not self.has_building(building.name)]
+        unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
         return [*buildings, *unit_buildings]
 
     def build_units(self, game_state: 'GameState') -> None:
@@ -1005,7 +1005,7 @@ class City:
             "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
             "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
             "buildings": [building.to_json() for building in self.buildings],
-            "available_buildings": self.available_buildings,
+            "available_buildings": [b.name for b in self.available_buildings],
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
             "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
             "capital": self.capital,
@@ -1049,7 +1049,7 @@ class City:
         city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
         city.capital = json["capital"]
         city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BUILDINGS.by_name(building) for building in json["buildings_queue"]]
-        city.available_buildings = json["available_buildings"][:]
+        city.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
         city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UNITS.by_name(json["infinite_queue_unit"])
