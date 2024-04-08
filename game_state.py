@@ -550,6 +550,7 @@ class GameState:
                 civ: Civ = self.civs_by_id[game_player.civ_id]
                 civ.select_great_person(self, move['great_person_name'])
                 game_player_to_return = game_player
+                self.midturn_update()
 
             if move['move_type'] == 'found_city':
                 game_player = self.game_player_by_player_num[player_num]
