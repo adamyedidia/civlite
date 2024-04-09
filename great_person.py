@@ -83,7 +83,10 @@ class GreatScientist(GreatPerson):
         super().__init__(name, hover_entity_type="tech", hover_entity_name=tech_template.name)
 
     def description(self) -> str:
-        return f"Immediately learn {self.tech_template.name} and gain {int(self.extra_science)} science."
+        desc = f"Immediately learn {self.tech_template.name}"
+        if self.extra_science > 0:
+            desc += f" and gain {int(self.extra_science)} science."
+        return desc
 
     def apply(self, game_state, city: City):
         city.civ.gain_tech(game_state, self.tech_template)
@@ -133,15 +136,15 @@ merchant_names = {
 scientist_names = {
     'Archery': 'Artemis',
     'Bronze Working': 'Hephaestus',
-    # 'Pottery': 'TODO',
+    'Pottery': 'The Potter of Mohenjo-Daro',
     'Code of Laws': 'Hammurabi',
-    # 'Calendar': 'TODO',
-    # 'The Wheel': 'TODO',
-    # 'Mining': 'TODO',
-    # 'Forestry': 'TODO',
-    # 'Irrigation': 'TODO',
+    'Calendar': 'Sosigenes of Alexandria',
+    'The Wheel': 'Daedalus',
+    'Mining': 'Thoth',
+    'Forestry': 'Johnny Appleseed',
+    'Irrigation': 'King Yu the Great',
     'Writing': 'Socrates',
-    # 'Masonry': 'TODO',
+    'Masonry': 'Imhotep',
     'Mathematics': "Euclid",
     'Horseback Riding': 'Xenophon',
     'Iron Working': 'Ashurbanipal',
@@ -149,31 +152,31 @@ scientist_names = {
     'Engineering': 'Qin Shi Huang',  # This is the great wall guy. If we add a Great Wall, we should put it here or move him to it.
     'Construction': 'Emperor Vespasian',
     'Education': 'Robert of Sorbon',
-    # 'Machinery': 'TODO',
+    'Machinery': 'Heron of Alexandria',
     'Civil Service': 'Emperor Wen of Sui',
     'Chivalry': 'Uther Pendragon',
     'Compass': 'Galileo Galilei',
     'Physics': 'Isaac Newton',
     'Printing Press': 'Johannes Gutenberg',
-    # 'Gunpowder': 'TODO',
+    'Gunpowder': 'Li Tian',
     # 'Metallurgy': 'TODO',
     'Architecture': 'Michelangelo',
     "Medicine": 'Louis Pasteur',
     'Economics': 'Adam Smith',
-    # 'Military Science': 'TODO',
-    # 'Rifling': 'TODO',
+    'Military Science': 'Frederick the Great',
+    'Rifling': 'Oliver Winchester',
     'Industrialization': 'James Watt',
     'Dynamite': 'Alfred Nobel',
-    # 'Radio': 'TODO',
+    'Radio': 'Nikola Tesla',
     # 'Combined Arms': 'TODO',
     # 'Ballistics': 'TODO',
     'Mechanized Agriculture': 'Norman Borlaug',
     'Rocketry': 'Marie Curie',
     'Computers': 'Alan Turing',
-    # 'Nanotechnology': 'TODO',
-    # 'Megarobotics': 'TODO',
+    'Nanotechnology': 'Richard Feynman',
+    'Megarobotics': 'Isaac Asimov',
 }
-# Ibn Fadlan, 
+
 for resource in ["metal", "wood", "food", "science"]:
     for age in range(10):
         _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], _target_value_by_age(age), resource))
@@ -183,7 +186,7 @@ for t in TECHS.all():
         continue
     level = t.advancement_level
     scientist_name = scientist_names.get(t.name, f"[A{level - 1} Scientist: {t.name}]")
-    _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t, extra_science=0.75 * _target_value_by_age(level - 1) - t.cost))
+    _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t, extra_science=max(0, 0.75 * _target_value_by_age(level - 1) - t.cost)))
     for u in t.unlocks_units:
         great_people_names: dict[str, str] = u.great_people_names
         advanced_general_name: str = great_people_names.get("general_advanced", f"[A{level - 1} General: {u.name}]")
@@ -210,6 +213,34 @@ if duplicate_names:
 
 _great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", UNITS.SWORDSMAN, 47))
 
+def random_great_people_by_age(age: int, n: int = 1) -> list[GreatPerson]:
+    return random.sample(_great_people_by_age[age], n)
+
+###### unnamed great people #####
+num_placeholder = len([name for name in unique_names if name.startswith("[")])
+print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} great people")
+
+for age, people in _great_people_by_age.items():
+    if 1 <= age <= 9:
+        print(f"======= Age {age} =======")
+        for person in people:
+            if person.name.startswith("["):
+                if isinstance(person, GreatGeneral):
+                    print(person.number, person.unit_template.name)
+                elif isinstance(person, GreatMerchant):
+                    print(person.amount, person.resource)
+                elif isinstance(person, GreatScientist):
+                    print(person.tech_template.name)
+                elif isinstance(person, GreatEngineer):
+                    print(f"{person.unit_template.building_name} ({person.unit_template.name})")
+                else:
+                    print(person.name)
+                people.remove(person)
+    else:
+        print(f"======= INVALID AGE {age}")
+        for person in people:
+            print(person.name)
+
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 
 # Set some numbers to their correct values, even if it's not balanced.
@@ -217,30 +248,3 @@ great_people_by_name["King Arthur"].number = 12  # Should be 11  #type: ignore
 great_people_by_name["Alexandre Dumas"].number = 3  # Should be 4  #type: ignore
 great_people_by_name["Achilles and Patroclus"].number = 2  # Should be 3.2  #type: ignore
 great_people_by_name["Roland and Oliver"].number = 2  # Should be 2.7  #type: ignore
-
-def random_great_people_by_age(age: int, n: int = 1) -> list[GreatPerson]:
-    return random.sample(_great_people_by_age[age], n)
-
-# unnamed great people
-num_placeholder = len([name for name in unique_names if name.startswith("[")])
-print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} great people")
-
-for age, people in _great_people_by_age.items():
-    if age > 9: continue
-    print(f"======= Age {age} =======")
-    for person in people:
-        if person.name.startswith("["):
-            if isinstance(person, GreatGeneral):
-                print(person.number, person.unit_template.name)
-            elif isinstance(person, GreatMerchant):
-                print(person.amount, person.resource)
-            elif isinstance(person, GreatScientist):
-                print(person.tech_template.name)
-            elif isinstance(person, GreatEngineer):
-                print(f"{person.unit_template.building_name} ({person.unit_template.name})")
-            else:
-                print(person.name)
-        
-    
-
-

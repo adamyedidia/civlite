@@ -45,7 +45,7 @@ class UNITS():
             "engineer": "Ashoka",
             "general_advanced": "Hippolyta",
             "general_normal": "Legolas",
-            "general_horde": "Robin Hood",
+            "general_horde": "Vercingetorix",
         },
     )
     SPEARMAN = UnitTemplate(
@@ -64,6 +64,7 @@ class UNITS():
             "numbers": [UnitTag.MOUNTED.value, 4],
         }],
         great_people_names={
+            "engineer": "Judah Maccabee",  # This doesn't super fit.
             "general_advanced": "Achilles and Patroclus",
             "general_normal": "Lysander",
             "general_horde": "Boudicca",
@@ -85,8 +86,10 @@ class UNITS():
             "numbers": [UnitTag.RANGED.value, 5],
         }],
         great_people_names={
+            "engineer": "Apollo",
             "general_advanced": "Thutmose III",
             "general_normal": "Ramesses II",
+            "general_horde": "Cyrus the Great",
         },
     )
     GARRISON = UnitTemplate(
@@ -123,6 +126,11 @@ class UNITS():
             "name": "BonusNextTo",
             "numbers": [UnitTag.INFANTRY.value, 4],
         }],
+        great_people_names={
+            "engineer": "Vitruvius",
+            "general_normal": "Philip II of Macedonia",
+            "general_horde": "Edward Longshanks",
+        }
     )
     HORSEMAN = UnitTemplate(
         name="Horseman",
@@ -162,7 +170,8 @@ class UNITS():
             "numbers": [UnitTag.INFANTRY.value, 8],
         }],
         great_people_names={
-            "general_normal": "Hannibal Barca",
+            "engineer": "Hannibal Barca",
+            "general_normal": "Khalid ibn al-Walid",
             "general_advanced": "Tomyris",
             "general_horde": "Attila the Hun",
         },
@@ -224,8 +233,10 @@ class UNITS():
             "numbers": [UnitTag.SIEGE.value, 4],
         }],
         great_people_names={
-            "general_advanced": "Henry V",
-            "general_normal": "Joan of Arc",
+            "engineer": "Zhuge Liang",
+            "general_horde": "Henry V",
+            "general_advanced": "Robin Hood",
+            "general_normal": "The Black Prince",
         },
     )
     KNIGHT = UnitTemplate(
@@ -268,6 +279,7 @@ class UNITS():
         great_people_names={
             "engineer": "Saladin",
             "general_advanced": "Richard the Lionheart",
+            "general_normal": "Joan of Arc",
             "general_horde": "Tokugawa Ieyasu",
         },
     )
@@ -305,6 +317,7 @@ class UNITS():
             "numbers": [UnitTag.DEFENSIVE.value, 10],
         }],
         great_people_names={
+            "engineer": "Berthold the Black",
             "general_horde": "Napolean Bonaparte",
             "general_normal": "Jack Sparrow",
             "general_advanced": "Mehmet II",
@@ -346,6 +359,7 @@ class UNITS():
         great_people_names={
             "engineer": "Gustavus Adolphus",
             "general_advanced": "Sitting Bull",
+            "general_normal": "Jeb Stuart",
         },
     )
     RIFLEMAN = UnitTemplate(
@@ -361,9 +375,8 @@ class UNITS():
         prereq=TECHS.RIFLING,
         abilities=[],
         great_people_names={
-            "engineer": "Ulysses S. Grant",
-            "general_advanced": "Robert E Lee",  # Issue: the civil war is generally taken to ahve been after the napoleonic wars.
-            "general_normal": "Duke of Wellington",
+            "general_normal": "Robert E Lee",
+            "general_advanced": "Duke of Wellington",
         },
     )
     GATLING_GUN = UnitTemplate(
@@ -383,6 +396,8 @@ class UNITS():
         }],
         great_people_names={
             "engineer": "Richard Gatling",
+            "general_normal": "Ulysses S. Grant",
+            "general_horde": "Theodore Roosevelt"
         },
     )
     ARTILLERY = UnitTemplate(
@@ -401,6 +416,7 @@ class UNITS():
             "numbers": [UnitTag.INFANTRY.value, 15],
         }],
         great_people_names={
+            "engineer": "Henry Shrapnel",
             "general_advanced": "Oliver Cromwell",
         },
     )
@@ -454,6 +470,9 @@ class UNITS():
             "name": "BonusAgainst",
             "numbers": [UnitTag.INFANTRY.value, 20],
         }],
+        great_people_names={
+            "general_normal": "John J. Pershing", 
+        }
     )
     ROCKET_LAUNCHER = UnitTemplate(
         name="Rocket Launcher",
@@ -528,6 +547,10 @@ class UNITS():
             "name": "ConvertKills",
             "numbers": [],
         }],
+        great_people_names={
+            "engineer": "Ray Kurzweil",
+            "general_normal": "Ender Wiggin",  # Doesn't really fit but he's a good character.
+        }
     )
 
     # all & by_name are copy-pasted methods to all template lists.
