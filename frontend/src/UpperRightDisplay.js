@@ -36,8 +36,8 @@ const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
     );
 }
 
-const NewCityIcon = ({  civTemplate, size, disabled, children}) => {
-    return <div className="new-city-icon" style={{height: size, width:size, backgroundColor: disabled? "#aaa" : civTemplate.primary_color, borderColor: disabled? "#888" : civTemplate.secondary_color}}> {children} </div>
+const NewCityIcon = ({  civTemplate, size, disabled, children, atMaxTerritories}) => {
+    return <div className={`new-city-icon ${atMaxTerritories ? "at-max" : ""}`} style={{height: size, width:size, backgroundColor: disabled? "#aaa" : civTemplate.primary_color, borderColor: disabled? "#888" : civTemplate.secondary_color}}> {children} </div>
 }
 
 const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFoundCity, isFoundingCity, disableUI}) => {
@@ -46,6 +46,8 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     const incomeProgress = civ.projected_city_power_income / cityPowerCost * 100;
     const newCities = Math.max(0, Math.floor(civ.city_power / cityPowerCost));
     const civTemplate = templates.CIVS[civ.name];
+    const currentTerritories = myCities.filter(city => !city.territory_parent_id).length;
+    const atMaxTerritories = currentTerritories == civ.max_territories;
     const iconTooltip = <table><tbody>
         <tr><td> +10 </td><td> base </td></tr>
         {myCities?.map((city, index) => {
@@ -57,6 +59,7 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}
         iconTooltip={iconTooltip}
     >
+        <div className='city-power-top-row'>
         <WithTooltip tooltip={newCities == 0  ?  "Gather City Power to build new cities" :
                 newCities > 0 && !canFoundCity ? "No Valid City Sites" :
                 newCities > 0 && canFoundCity && !isFoundingCity ? "Click to found city" :
@@ -64,13 +67,22 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
         <div className={`city-power-new-cities`}>
             {[...Array(newCities)].map((_, index) => (
                 <div key={index} className={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? null :toggleFoundingCity}>
-                    <NewCityIcon civTemplate={civTemplate} disabled={!canFoundCity || (isFoundingCity & index > 0)}>
+                    <NewCityIcon civTemplate={civTemplate} disabled={!canFoundCity || (isFoundingCity & index > 0)} atMaxTerritories={atMaxTerritories}>
                         +
                     </NewCityIcon>
                 </div>
             ))}
         </div>
         </WithTooltip>
+        <WithTooltip tooltip="Current / max territories">
+            <div className='city-power-territories' style={{
+                backgroundColor: civTemplate.primary_color,
+                borderColor: civTemplate.secondary_color,
+            }}>
+                {currentTerritories}/{civ.max_territories}
+            </div>
+        </WithTooltip>
+        </div>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={`${Math.floor(civ.city_power % cityPowerCost)} / ${cityPowerCost}`}/>
     </CivDetailPanel>
 };
