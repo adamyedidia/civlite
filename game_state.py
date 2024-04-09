@@ -801,7 +801,7 @@ class GameState:
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
         needed_revolt_choices: int = 5 - len(self.fresh_cities_for_decline)
-        cities_to_revolt: list[tuple[float, str, City]] = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.unhappiness >= 1], reverse=True)
+        cities_to_revolt: list[tuple[float, str, City]] = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.unhappiness >= 1 and city.under_siege_by_civ is None], reverse=True)
         revolt_choices: list[tuple[float, str, City]] = cities_to_revolt[:needed_revolt_choices]
         if len(revolt_choices) > 0:
             self.unhappiness_threshold = revolt_choices[-1][0]
