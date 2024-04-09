@@ -105,7 +105,7 @@ class Civ:
 
     def get_new_tech_choices(self):
         print(f"getting new techs for {self.moniker()}.")
-        max_advancement_level = self.get_advancement_level()
+        max_advancement_level = max(1, self.get_advancement_level())
 
         characteristic_tech_offered = False
 
@@ -135,7 +135,11 @@ class Civ:
             self.techs_status[TECHS.RENAISSANCE] = TechStatus.AVAILABLE
 
     def get_advancement_level(self) -> int:
-        return 1 + len(self.researched_techs) // 3
+        num_techs = len(self.researched_techs)
+        if num_techs == 0:
+            return 0
+        else:
+            return 1 + num_techs // 3
 
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 2 + round(self.get_advancement_level() / 3)
