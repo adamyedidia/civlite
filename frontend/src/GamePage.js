@@ -2283,6 +2283,7 @@ export default function GamePage() {
             .then(data => {
                 if (data.game_state) {
                     setGameState(data.game_state);
+                    refreshSelectedCity(data.game_state);
                 }
             });
     }
