@@ -105,8 +105,7 @@ class Civ:
 
     def get_new_tech_choices(self):
         print(f"getting new techs for {self.moniker()}.")
-        tech_level = len(self.researched_techs)
-        max_advancement_level = 1 + tech_level // 3
+        max_advancement_level = self.get_advancement_level()
 
         characteristic_tech_offered = False
 
@@ -136,10 +135,7 @@ class Civ:
             self.techs_status[TECHS.RENAISSANCE] = TechStatus.AVAILABLE
 
     def get_advancement_level(self) -> int:
-        my_techs = [tech.advancement_level for tech in TECHS.all() if self.has_tech(tech)]
-        if len(my_techs) == 0:
-            return 0
-        return max(my_techs)
+        return 1 + len(self.researched_techs) // 3
 
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 2 + round(self.get_advancement_level() / 3)
@@ -364,7 +360,6 @@ class Civ:
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
-        self.update_max_territories(game_state)
 
         if self.researching_tech:
             researching_tech = self.researching_tech
@@ -380,6 +375,8 @@ class Civ:
         self.vitality *= VITALITY_DECAY_RATE
 
         self.city_power += BASE_CITY_POWER_INCOME * self.vitality
+        
+        self.update_max_territories(game_state)
 
     def update_game_player(self, game_player_by_player_num: dict[int, GamePlayer]) -> None:
         if self.game_player is not None:

@@ -17,7 +17,7 @@ const TechLevelBox = ({level, techs, myCiv, gameState, templates, setHoveredTech
 
     // Need to keep this in sync with python code. Might be better to pass it down.
     const myTechs = myCiv.num_researched_techs;
-    const unlockedLevel = 1 + Math.floor(myTechs / 3);
+    const unlockedLevel = myCiv.advancement_level;
     const techsToUnlockNextLevel = 3 * unlockedLevel;
     return (
         <div className={`tech-level-box ${unlockedLevel < level ? 'disabled' : ''}`}>
