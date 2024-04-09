@@ -730,27 +730,45 @@ class City:
         return None
     
     def change_owner(self, civ: Civ, game_state: 'GameState') -> None:
+        """
+        Called when an existing city changes owner; called by capture() and process_decline_option().
+        """
+        # Remove trade hub
+        if self.is_trade_hub():
+            self.civ.trade_hub_id = None
+
+        # Re-assign global wonders, and remove national wonders.
+        for building in self.buildings:
+            if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
+                game_state.wonders_built_to_civ_id[building.template.name] = civ.id
+            if isinstance(building.template, BuildingTemplate) and building.template.is_national_wonder:
+                game_state.national_wonders_built_by_civ_id[self.civ.id].remove(building.template.name)
+        self.buildings = [b for b in self.buildings if not b.is_national_wonder]
+
+        # Change the civ
         self.civ = civ
+
+        # Fix territory parent lines
         self.orphan_territory_children(game_state)
         self.set_territory_parent_if_needed(game_state)
+
+        # Reset various properties
         self.hidden_building_names = []
+        self.under_siege_by_civ = None
+        self.buildings_queue = []
+        self.infinite_queue_unit = None
+        self.ever_controlled_by_civ_ids[civ.id] = True
+
+        # Update available stuff
+        self.refresh_available_buildings()
+        self.refresh_available_units()
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         print(f"****Captured {self.name}****")
-        if self.is_trade_hub():
-            self.civ.trade_hub_id = None
         self.capital = False
         self.unhappiness = 0
         self.wood /= 2
         self.metal /= 2
-        
-        self.change_owner(civ, game_state)
-
-        for building in self.buildings:
-            if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
-                game_state.wonders_built_to_civ_id[building.template.name] = civ.id
-
-        self.buildings = [b for b in self.buildings if not b.is_national_wonder]
 
         military_bldgs = [building for building in self.buildings if isinstance(building.template, UnitTemplate)]
         military_bldgs.sort(key=lambda unit: (-unit.template.advancement_level(), random.random()))  # type: ignore
@@ -763,7 +781,6 @@ class City:
         if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
             civ.game_player.score += CITY_CAPTURE_REWARD
             civ.game_player.score_from_capturing_cities_and_camps += CITY_CAPTURE_REWARD
-            self.ever_controlled_by_civ_ids[civ.id] = True
 
             if civ.has_ability('ExtraVpsPerCityCaptured'):
                 civ.game_player.score += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
@@ -784,19 +801,7 @@ class City:
                             civ.game_player.score += ability.numbers[0]
                             civ.game_player.score_from_abilities += ability.numbers[0]
 
-        self.under_siege_by_civ = None
-
-        for building in self.buildings:
-            if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
-                game_state.wonders_built_to_civ_id[building.template.name] = civ.id
-
-            if isinstance(building.template, BuildingTemplate) and building.template.is_national_wonder:
-                if civ.id in game_state.national_wonders_built_by_civ_id:
-                    game_state.national_wonders_built_by_civ_id[civ.id].append(building.template.name)
-                else:
-                    game_state.national_wonders_built_by_civ_id[civ.id] = [building.template.name]
-
-        self.buildings_queue = []
+        self.change_owner(civ, game_state)
 
         if self.hex:
             game_state.add_animation_frame(sess, {
@@ -808,18 +813,8 @@ class City:
 
     def capitalize(self, game_state: 'GameState') -> None:
         civ = self.civ
-        self.ever_controlled_by_civ_ids[self.civ.id] = True
         self.capital = True
-        self.make_territory_capital(game_state)
     
-        self.buildings_queue = []
-
-        self.civ.fill_out_available_buildings(game_state)
-        self.refresh_available_buildings()
-        self.refresh_available_units()
-
-        self.under_siege_by_civ = None
-
         if civ.has_ability('IncreaseCapitalYields'):
             if self.hex:
                 self.hex.yields.increase(civ.numbers_of_ability('IncreaseCapitalYields')[0],
