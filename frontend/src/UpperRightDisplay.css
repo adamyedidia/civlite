@@ -81,23 +81,44 @@ h2.tech-name {
     padding-top: 15px;
 }
 
+.city-power-top-row {
+    display: flex;
+    justify-content: space-between;
+}
+
 .city-power-new-cities {
     display: flex;
     gap: 5px;
     padding: 5px;
     height: 40px;
     position: relative;
+    width: 180px;
+    overflow-x: hidden;
+}
+
+.city-power-territories {
+    margin: 3px;
+    border: 3px solid black;
+    padding: 0 3px 0 3px;
+    height: 25px;
+    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .new-city-icon {
-    height: 30px;
-    width: 30px;
+    height: 20px;
+    width: 40px;
     border: 4px solid black;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
+.new-city-icon.at-max {
+    border-radius: 30px;
+}
 
 .new-city-button {
     cursor: pointer;
@@ -105,7 +126,6 @@ h2.tech-name {
 
 .new-city-button.enabled:hover {
     transform: scale(1.2); /* Slightly increase size to indicate selection */
-    box-shadow: 0 0 5px 5px rgba(0,0,0,0.5); /* Add shadow for depth */  
     animation: none;
     z-index: 10; /* Above the buttons next to it */
 }
