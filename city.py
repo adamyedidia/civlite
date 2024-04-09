@@ -397,8 +397,6 @@ class City:
 
         for template in self.get_available_buildings():
             building_template = template if isinstance(template, BuildingTemplate) else None
-            unit_template = template if isinstance(template, UnitTemplate) else None
-
             if building_template is not None:
                 total_yields: float = 0
                 total_pseudoyields: float = 0
@@ -729,6 +727,20 @@ class City:
 
         return None
     
+    def hide_bad_buildings(self):
+        highest_unit_level = max([0] + [u.advancement_level() for u in self.civ.available_unit_buildings])
+        for building in self.get_available_buildings():
+            if isinstance(building, BuildingTemplate):
+                if building.is_wonder or building.is_national_wonder:
+                    continue
+                desc = self.available_buildings_to_descriptions[building.name]
+                if desc.get('type') == 'yield' and desc.get('value') == 0 and desc.get('value_for_ai') == 0:
+                    self.toggle_discard(building.name, hidden=True)
+            elif isinstance(building, UnitTemplate):
+                if building.advancement_level() < highest_unit_level - 1:
+                    self.toggle_discard(building.name, hidden=True)
+
+
     def change_owner(self, civ: Civ, game_state: 'GameState') -> None:
         """
         Called when an existing city changes owner; called by capture() and process_decline_option().
@@ -762,6 +774,7 @@ class City:
         # Update available stuff
         self.refresh_available_buildings()
         self.refresh_available_units()
+        self.hide_bad_buildings()
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         print(f"****Captured {self.name}****")

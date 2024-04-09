@@ -145,7 +145,8 @@ class GameState:
                             city.grow_inner(self)
 
         self.refresh_foundability_by_civ()
-        self.midturn_update()     
+        self.midturn_update() 
+        city.hide_bad_buildings()
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have entered decline!')                
