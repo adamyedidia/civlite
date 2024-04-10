@@ -468,6 +468,12 @@ class City:
                         "value": building_template.cost,
                     }
 
+            elif isinstance(template, UnitTemplate):
+                self.available_buildings_to_descriptions[template.building_name] = {
+                    "type": "strength",
+                    "value": template.strength, 
+                }
+
     def refresh_available_units(self) -> None:
         self.available_units = [unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
         self.available_units.sort(key=lambda unit: (unit.advancement_level(), unit.metal_cost, unit.name))
