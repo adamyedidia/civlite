@@ -139,7 +139,7 @@ class Civ:
         if num_techs == 0:
             return 0
         else:
-            return 1 + num_techs // 3
+            return min(9, 1 + num_techs // 3)
 
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 2 + round(self.get_advancement_level() / 3)
