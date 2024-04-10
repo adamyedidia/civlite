@@ -223,7 +223,7 @@ print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} g
 for age, people in _great_people_by_age.items():
     if 0 <= age <= 9:
         print(f"======= Age {age} =======")
-        for person in people:
+        for person in people.copy():
             if person.name.startswith("["):
                 if isinstance(person, GreatGeneral):
                     print(person.number, person.unit_template.name)
