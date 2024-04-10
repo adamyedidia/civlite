@@ -738,7 +738,7 @@ class City:
                     self.toggle_discard(building.name, hidden=True)
             elif isinstance(building, UnitTemplate):
                 if building.advancement_level() < highest_unit_level - 1:
-                    self.toggle_discard(building.name, hidden=True)
+                    self.toggle_discard(building.building_name, hidden=True)
 
 
     def change_owner(self, civ: Civ, game_state: 'GameState') -> None:
