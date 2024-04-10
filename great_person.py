@@ -186,15 +186,15 @@ for t in TECHS.all():
         continue
     level = t.advancement_level
     scientist_name = scientist_names.get(t.name, f"[A{level - 1} Scientist: {t.name}]")
-    _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t, extra_science=max(0, 0.75 * _target_value_by_age(level - 1) - t.cost)))
+    _great_people_by_age[level - 1].append(GreatScientist(scientist_name, t, extra_science=max(0, 0.8 * _target_value_by_age(level - 1) - t.cost)))
     for u in t.unlocks_units:
         great_people_names: dict[str, str] = u.great_people_names
         advanced_general_name: str = great_people_names.get("general_advanced", f"[A{level - 1} General: {u.name}]")
         _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, u, round(0.5 * _target_value_by_age(level - 1) / u.metal_cost)))
         normal_general_name: str = great_people_names.get("general_normal", f"[A{level} General: {u.name}]")
-        _great_people_by_age[level].append(GreatGeneral(normal_general_name, u, round(0.8 * _target_value_by_age(level) / u.metal_cost)))
+        _great_people_by_age[level].append(GreatGeneral(normal_general_name, u, round(0.7 * _target_value_by_age(level) / u.metal_cost)))
         horde_general_name: str = great_people_names.get("general_horde", f"[A{level + 1} General: {u.name}]")
-        _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, u, round(1.1 * _target_value_by_age(level + 1) / u.metal_cost)))
+        _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, u, round(0.9 * _target_value_by_age(level + 1) / u.metal_cost)))
 
         engineer_name = great_people_names.get("engineer", f"[A{level - 1} Engineer: {u.building_name}]")
         _great_people_by_age[level - 1].append(GreatEngineer(engineer_name, u, max(0, 0.5 * _target_value_by_age(level - 1) - u.wood_cost)))
@@ -221,7 +221,7 @@ num_placeholder = len([name for name in unique_names if name.startswith("[")])
 print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} great people")
 
 for age, people in _great_people_by_age.items():
-    if 1 <= age <= 9:
+    if 0 <= age <= 9:
         print(f"======= Age {age} =======")
         for person in people:
             if person.name.startswith("["):
