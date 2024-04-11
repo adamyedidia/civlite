@@ -2315,6 +2315,9 @@ export default function GamePage() {
         fetch(`${URL}/api/templates`)
             .then(response => response.json())
             .then(data => setTemplates(data));
+        fetch(`${URL}/api/game_constants`)
+            .then(response => response.json())
+            .then(data => setGameConstants(data));
     }, [])
 
     const showSingleMovementArrow = (fromHexCoords, toHexCoords, arrowType = null) => {
