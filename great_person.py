@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import abc
 from collections import defaultdict
+import inflect
 import random
 from typing import TYPE_CHECKING, Optional
 
@@ -12,6 +13,8 @@ from unit_templates_list import UNITS
 
 if TYPE_CHECKING:
     from city import City
+
+p = inflect.engine()
 
 class GreatPerson(abc.ABC):
     def __init__(self, name: str, hover_entity_type: Optional[str] = None, hover_entity_name: Optional[str] = None):
@@ -50,7 +53,7 @@ class GreatGeneral(GreatPerson):
         super().__init__(name, hover_entity_type="unit", hover_entity_name=unit_template.name)
 
     def description(self) -> str:
-        return f"Immediately build {self.number} free {self.unit_template.name}s"
+        return f"Immediately build {self.number} free {p.plural(self.unit_template.name)}"  # type: ignore
 
     def apply(self, game_state, city: City):
         for _ in range(self.number):

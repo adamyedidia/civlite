@@ -1,6 +1,8 @@
 from typing import Callable
 
 from ability import Ability
+import inflect
+p = inflect.engine()
 
 
 ABILITIES: dict[str, Callable] = {}
@@ -18,17 +20,17 @@ CIV_ABILITIES: dict[str, Callable] = {
     ),
     "IncreaseYieldsForTerrainNextToSecondCity": lambda x, y, z: Ability(
         name="IncreaseYieldsForTerrainNextToSecondCity",
-        description=f"Increase {x} yields in {y}s around your second city by {z}.",
+        description=f"Increase {x} yields in {p.plural(y)} around your second city by {z}.",
         numbers=[x, y, z],
     ),
     "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
         name="IncreaseYieldsForTerrain",
-        description=f"When you found or capture a city for the first time, increase {x} yields in {y}s around it by {z}.",
+        description=f"When you found or capture a city for the first time, increase {x} yields in {p.plural(y)} around it by {z}.",
         numbers=[x, y, z],
     ),
     "IncreasedStrengthForUnit": lambda x, y: Ability(
         name="IncreasedStrengthForUnit",
-        description=f"{x}s you build have +{y} strength.",
+        description=f"{p.plural(x)} you build have +{y} strength.",
         numbers=[x, y],
     ),
     "ExtraVpsPerWonder": lambda x: Ability(
@@ -61,7 +63,7 @@ CIV_ABILITIES: dict[str, Callable] = {
 BUILDING_ABILITIES: dict[str, Callable] = {
     "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
         name="IncreaseYieldsForTerrain",
-        description=f"Increase {x} yields in {z}s around the city by {y}.",
+        description=f"Increase {x} yields in {p.plural(z)} around the city by {y}.",
         numbers=[x, y, z],
     ),
     "IncreaseYieldsInCity": lambda x, y: Ability(
@@ -116,7 +118,7 @@ BUILDING_ABILITIES: dict[str, Callable] = {
     ),
     "DoubleYieldsForTerrainInCity": lambda x: Ability(
         name="DoubleYieldsForTerrainInCity",
-        description=f"Double yields in {x}s adjacent to and in the city.",
+        description=f"Double yields in {p.plural(x)} adjacent to and in the city.",
         numbers=[x],
     ),
     "IncreasePopulationOfNewCities": lambda x: Ability(

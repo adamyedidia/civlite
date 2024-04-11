@@ -3,6 +3,7 @@ psycopg2-binary
 flask
 flask-cors
 flask-socketio
+inflect
 redis
 sqlalchemy-stubs
 python-redis-lock
