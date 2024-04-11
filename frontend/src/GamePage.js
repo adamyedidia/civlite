@@ -598,6 +598,8 @@ export default function GamePage() {
                     scroll(scrollAmount, 0);
                     scrollIntervalId = setInterval(() => scroll(scrollAmount, 0), interval);
                     break;
+                default:
+                    break;
             }
         };
 
@@ -704,32 +706,57 @@ export default function GamePage() {
         hasRunCenterRef.current = true;
     }, [gameState]);
 
-    const handleContextMenu = (e) => {
-        if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
-            e.preventDefault();
-        } 
-
-        if (hoveredHexRef.current) {
-            setHoveredCity(null);
-
-            if (engineState !== EngineStates.PLAYING) {return;}
-
-            if (hexesAreEqual(hoveredHexRef.current, target1Ref.current)) {
-                removeTarget(false);
-            } else if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
-                removeTarget(true);
-            } else {
-                setTarget(hoveredHexRef.current, !target1Ref.current ? false : !target2Ref.current ? true : lastSetPrimaryTargetRef.current ? true : false);
-            }
-            
-            // Show flag arrows for 1s. Start after 100ms so there's time for the system to react to the update.
-            clearTimeout(flagArrowsTimeoutRef.current);
-            setTimeout(() => setShowFlagArrows(true), 100);
-            flagArrowsTimeoutRef.current = setTimeout(() => setShowFlagArrows(false), 1000);
-        }
-    }
-
     useEffect(() => {
+        const setTarget = (hex, isSecondary) => {
+            if (!myCivIdRef.current || gameStateRef?.current?.special_mode_by_player_num?.[playerNumRef.current]) return;
+    
+            if (isSecondary) {
+                setLastSetPrimaryTarget(false);
+            }
+            else {
+                setLastSetPrimaryTarget(true);
+            }
+    
+            const playerInput = {
+                'move_type': `set_civ_${isSecondary ? "secondary" : "primary"}_target`,
+                'target_coords': `${hex.q},${hex.r},${hex.s}`,
+            }
+            submitPlayerInput(playerInput);
+        }
+    
+        const removeTarget = (isSecondary) => {
+            if (!myCivIdRef.current) return;
+    
+            const playerInput = {
+                'move_type': `remove_civ_${isSecondary ? "secondary" : "primary"}_target`,
+            }
+            submitPlayerInput(playerInput);
+        }
+
+        const handleContextMenu = (e) => {
+            if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
+                e.preventDefault();
+            } 
+    
+            if (hoveredHexRef.current) {
+                setHoveredCity(null);
+    
+                if (engineState !== EngineStates.PLAYING) {return;}
+    
+                if (hexesAreEqual(hoveredHexRef.current, target1Ref.current)) {
+                    removeTarget(false);
+                } else if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
+                    removeTarget(true);
+                } else {
+                    setTarget(hoveredHexRef.current, !target1Ref.current ? false : !target2Ref.current ? true : lastSetPrimaryTargetRef.current ? true : false);
+                }
+                
+                // Show flag arrows for 1s. Start after 100ms so there's time for the system to react to the update.
+                clearTimeout(flagArrowsTimeoutRef.current);
+                setTimeout(() => setShowFlagArrows(true), 100);
+                flagArrowsTimeoutRef.current = setTimeout(() => setShowFlagArrows(false), 1000);
+            }
+        }
 
         document.addEventListener('contextmenu', handleContextMenu);
 
@@ -851,18 +878,6 @@ export default function GamePage() {
         try {
             let audio = new Audio(gunpowderRangedAttackSound);
             audio.volume = 0.09 * volumeRef.current / 100;
-            audio.play();
-        } catch (error) {
-            console.error('Error playing sound:', error);
-        }
-    }
-
-    function playSpawnSound(spawnSound) {
-        if (!userHasInteracted) return;
-
-        try {
-            let audio = new Audio(spawnSound);
-            audio.volume = 0.5 * volumeRef.current / 100;
             audio.play();
         } catch (error) {
             console.error('Error playing sound:', error);
@@ -2189,21 +2204,21 @@ export default function GamePage() {
             setHoveredUnit(null);
             setHoveredTech(null);
         }
-    }, [!!hoveredBuilding])
+    }, [hoveredBuilding])
 
     useEffect(() => {
         if (!!hoveredUnit) {
             setHoveredBuilding(null);
             setHoveredTech(null);
         }
-    }, [!!hoveredUnit])
+    }, [hoveredUnit])
 
     useEffect(() => {
         if (!!hoveredTech) {
             setHoveredBuilding(null);
             setHoveredUnit(null);
         }
-    }, [!!hoveredTech])
+    }, [hoveredTech])
 
     const toggleFoundingCity = () => {
         setFoundingCity(!foundingCity);
@@ -2392,6 +2407,8 @@ export default function GamePage() {
                     showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
                     setGameState(json.game_state);
                     break;
+                default:
+                    console.error("Unknown animation type", json.data.type);
             }
             // Wait MIN_ANIMATION_DELAY before saying we're done with this frame.
             // So it definitely displays for at least that long.
@@ -2409,7 +2426,7 @@ export default function GamePage() {
         const finalGameState = animationFinalStateRef.current;
         setGameState(finalGameState);
         refreshSelectedCity(finalGameState);
-        const {_, __, myCiv} = getMyInfo(finalGameState);
+        const { myCiv } = getMyInfo(finalGameState);
         sciencePopupIfNeeded(myCiv);
         greatPersonPopupIfNeeded(myCiv);
     }
@@ -2514,11 +2531,8 @@ export default function GamePage() {
         if (!showFlagArrows) { return; }
         return (
             <div className="flag-arrows-container">
-                {hexagons.map((hex, index) => {
-                    if (!hex.units?.length) {return;}
-                    if (civsById?.[hex.units?.[0]?.civ_id]?.name !== myCiv?.name) {return;}
-                    return <FlagArrow key={index} hex={hex} />
-                })}
+                {hexagons.filter(hex => hex.units?.length && civsById?.[hex.units?.[0]?.civ_id]?.name === myCiv?.name)
+                    .map((hex, index) => <FlagArrow key={index} hex={hex} />)}
             </div>
         );
     }
@@ -2561,24 +2575,24 @@ export default function GamePage() {
             />
     }
 
-    // Event handler for keydown event for the flag arrows
-    const handleKeyDown = (event) => {
-        if (event.key === 'f' || event.key === 'F') {
-            if (engineState !== EngineStates.PLAYING) {return;}
-            console.log("Showing flag arrows")
-            setShowFlagArrows(true);
-        }
-    };
-
-    // Event handler for keydown event for the flag arrows
-    const handleKeyUp = (event) => {
-        if (event.key === 'f' || event.key === 'F') {
-            flagArrowsTimeoutRef.current = setTimeout(() => setShowFlagArrows(false), 200);
-        }
-    };
-
     // Add event listeners for flag arrows when the component mounts
     useEffect(() => {
+        // Event handler for keydown event for the flag arrows
+        const handleKeyDown = (event) => {
+            if (event.key === 'f' || event.key === 'F') {
+                if (engineState !== EngineStates.PLAYING) {return;}
+                console.log("Showing flag arrows")
+                setShowFlagArrows(true);
+            }
+        };
+
+        // Event handler for keydown event for the flag arrows
+        const handleKeyUp = (event) => {
+            if (event.key === 'f' || event.key === 'F') {
+                flagArrowsTimeoutRef.current = setTimeout(() => setShowFlagArrows(false), 200);
+            }
+        };
+
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
 
@@ -2935,32 +2949,6 @@ export default function GamePage() {
         }   
     };
 
-    const setTarget = (hex, isSecondary) => {
-        if (!myCivIdRef.current || gameStateRef?.current?.special_mode_by_player_num?.[playerNumRef.current]) return;
-
-        if (isSecondary) {
-            setLastSetPrimaryTarget(false);
-        }
-        else {
-            setLastSetPrimaryTarget(true);
-        }
-
-        const playerInput = {
-            'move_type': `set_civ_${isSecondary ? "secondary" : "primary"}_target`,
-            'target_coords': `${hex.q},${hex.r},${hex.s}`,
-        }
-        submitPlayerInput(playerInput);
-    }
-
-    const removeTarget = (isSecondary) => {
-        if (!myCivIdRef.current) return;
-
-        const playerInput = {
-            'move_type': `remove_civ_${isSecondary ? "secondary" : "primary"}_target`,
-        }
-        submitPlayerInput(playerInput);
-    }
-
     const handleSelectGreatPerson = (greatPerson) => {
         const playerInput = {
             'move_type': 'select_great_person',
@@ -3011,11 +2999,7 @@ export default function GamePage() {
                                 </Hexagon>
                             );
                         })}
-                        {hexagons.map((hex, i) => {
-                            if (hex.city && hex.city.territory_parent_coords) {
-                                return <PuppetArrow key={i} city={hex.city}/>
-                            }
-                        })}
+                        {hexagons.filter(hex => hex.city && hex.city.territory_parent_coords).map((hex, i) => <PuppetArrow key={i} city={hex.city}/>)}
                         {hexagons.map((hex, i) => {
                             return (
                                 <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} cellStyle={{
@@ -3274,7 +3258,7 @@ export default function GamePage() {
                     triggerAnimations(data.game_state);
                 } else {
                     setGameState(data.game_state);
-                    const {_, __, myCiv} = getMyInfo(data.game_state);
+                    const { myCiv } = getMyInfo(data.game_state);
                     sciencePopupIfNeeded(myCiv);
                 }
             })
