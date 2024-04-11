@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 
-import { HexGrid, Layout, Hexagon, Text, Pattern, Path, Hex, GridGenerator } from 'react-hexgrid';
+import { HexGrid, Layout, Hexagon } from 'react-hexgrid';
 import './arrow.css';
 import './GamePage.css';
 import { Typography, IconButton } from '@mui/material';
@@ -15,7 +15,6 @@ import {
     DialogContentText,
     DialogActions,
     Grid,
-    TextField,
     Select,
     MenuItem,
 } from '@mui/material';
@@ -44,7 +43,6 @@ import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
 import vitalityImg from './images/heart.png';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
-import { TextOnIcon } from './TextOnIcon.js';
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -295,7 +293,7 @@ const generateUniqueId = () => {
 }
 
 const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital, civsById}) => {
-    const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player?.player_num == playerNum;
+    const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player?.player_num === playerNum;
     const disabledMsg = isMyCity ? "Can't decline to my own city" 
             : myGamePlayer?.decline_this_turn ? "Already declined this turn"
             : (isOvertime && !myGamePlayer?.failed_to_decline_this_turn) ? "Can't decline in overtime"
@@ -397,7 +395,6 @@ export default function GamePage() {
     const [declineFailedDialogOpen, setDeclineFailedDialogOpen] = useState(false);
 
     const [turnTimer, setTurnTimer] = useState(-1);
-    const [timerMutedOnTurn, setTimerMutedOnTurn] = useState(null);
 
     const [turnEndedByPlayerNum, setTurnEndedByPlayerNum] = useState({});
     const [gameOverDialogOpen, setGameOverDialogOpen] = useState(false);
@@ -2519,7 +2516,7 @@ export default function GamePage() {
             <div className="flag-arrows-container">
                 {hexagons.map((hex, index) => {
                     if (!hex.units?.length) {return;}
-                    if (civsById?.[hex.units?.[0]?.civ_id]?.name != myCiv?.name) {return;}
+                    if (civsById?.[hex.units?.[0]?.civ_id]?.name !== myCiv?.name) {return;}
                     return <FlagArrow key={index} hex={hex} />
                 })}
             </div>
@@ -2592,15 +2589,7 @@ export default function GamePage() {
         };
     }, [engineState]);
 
-    const isFriendlyCityHex = (hex) => {
-        return isFriendlyCity(hex?.city);
-    }
-
     const isFriendlyCity = (city) => {
-        // if (gameState?.special_mode_by_player_num[playerNum]) {
-        //     return true;
-        // }
-        // console.log(city.name, declineOptionsView, playerNum, city?.civ?.game_player?.player_num)
         if (declineOptionsView) {
             return city?.is_decline_view_option;
         }
@@ -2613,12 +2602,6 @@ export default function GamePage() {
         }
         return false;
     }
-
-    // const City = ({ primaryColor, secondaryColor }) => {
-    //     return (
-    //         <CityIcon fill={primaryColor} stroke={secondaryColor} strokeWidth="5" />
-    //     );
-    // };
 
     const handleMouseOverCity = (city) => {
         setHoveredCity(city);
@@ -2638,7 +2621,7 @@ export default function GamePage() {
     };
 
     const handleFoundCapital = () => {
-        if (gameState.special_mode_by_player_num[playerNum] == 'starting_location') {
+        if (gameState.special_mode_by_player_num[playerNum] === 'starting_location') {
             const data = {
                 player_num: playerNum,
                 city_id: selectedCity.id,
@@ -2652,7 +2635,6 @@ export default function GamePage() {
             }).then(response => response.json())
                 .then(data => {
                     if (data.game_state) {
-                        const myNewCiv = data.game_state.civs_by_id?.[data.game_state.game_player_by_player_num[playerNum].civ_id];
                         setGameState(data.game_state);
                         refreshSelectedCity(data.game_state);    
                     }
@@ -2675,7 +2657,7 @@ export default function GamePage() {
             }).then(response => response.json())
                 .then(data => {
                     const myNewCiv = data.game_state.civs_by_id?.[data.game_state.game_player_by_player_num[playerNum].civ_id];
-                    const success = myNewCiv?.name == civsByIdRef.current[selectedCity.civ_id].name;
+                    const success = myNewCiv?.name === civsByIdRef.current[selectedCity.civ_id].name;
                     if (data.game_state && success) {
                         setGameState(data.game_state);
                         setNonDeclineViewGameState(data.game_state);  // Clear the old cached non-decline game state.
@@ -2702,18 +2684,6 @@ export default function GamePage() {
         const friendly = isFriendlyCity(city);
         const puppet = city.territory_parent_coords;
     
-        // Function to darken color
-        const darkenColor = (color) => {
-            let f = parseInt(color.slice(1), 16),
-                t = 0 | ((1 << 8) + f - (f >> 2) & 0xFFFFFF),
-                newColor = "#" + t.toString(16).toUpperCase();
-            return newColor;
-        };
-    
-        // Darken colors if city is in decline
-        // const finalPrimaryColor = city.civ.in_decline ? darkenColor(primaryColor) : primaryColor;
-        // const finalSecondaryColor = city.civ.in_decline ? darkenColor(secondaryColor) : secondaryColor;
-
         const finalPrimaryColor = primaryColor;
         const finalSecondaryColor = secondaryColor;
         const colors = 
@@ -2724,7 +2694,7 @@ export default function GamePage() {
         const focusColor = friendly ? colors[city.focus] : finalPrimaryColor;
         let buildingText;
         let buildingIconUnit;
-        if (city.buildings_queue.length == 0) {
+        if (city.buildings_queue.length === 0) {
             buildingText = "??";
             buildingIconUnit = null;
         } else if (unitTemplatesByBuildingName[city.buildings_queue[0]]) {
@@ -2835,19 +2805,7 @@ export default function GamePage() {
         if (healthPercentage === 0) {
             healthPercentage = 1;
         }
-    
-        // Function to darken color
-        const darkenColor = (color) => {
-            let f = parseInt(color.slice(1), 16),
-                t = 0 | ((1 << 8) + f - (f >> 2) & 0xFFFFFF),
-                newColor = "#" + t.toString(16).toUpperCase();
-            return newColor;
-        };
-    
-        // Darken colors if unit's civ is in decline
-        // const finalPrimaryColor = unit.civ.in_decline ? darkenColor(primaryColor) : primaryColor;
-        // const finalSecondaryColor = unit.civ.in_decline ? darkenColor(secondaryColor) : secondaryColor;
-    
+
         const finalPrimaryColor = primaryColor;
         const finalSecondaryColor = secondaryColor;
 
@@ -3152,7 +3110,7 @@ export default function GamePage() {
                         myTerritoryCapitals={myTerritoryCapitals}
                         myCivTemplate={templates.CIVS[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
                         myCiv={myCiv}
-                        declinePreviewMode={!myCiv || selectedCity.civ_id != myCivId}
+                        declinePreviewMode={!myCiv || selectedCity.civ_id !== myCivId}
                         puppet={selectedCity.territory_parent_coords}
                         playerNum={playerNum}
                         playerApiUrl={playerApiUrl}
@@ -3195,13 +3153,12 @@ export default function GamePage() {
                         bottom: '10px', 
                         left: '50%', 
                         transform: 'translate(-50%, 0%)', 
-                        flexDirection: 'row',
                         display: 'flex', // Enable flexbox
                         flexDirection: 'row',
                         whiteSpace: 'nowrap', // Prevent wrapping                    
                     }}>
                         {engineState === EngineStates.PLAYING && selectedCity && 
-                            (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] == 'starting_location') && 
+                            (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] === 'starting_location') && 
                             <ChooseCapitalButton 
                                 playerNum={playerNum}
                                 isOvertime={timerStatus === "OVERTIME"}
