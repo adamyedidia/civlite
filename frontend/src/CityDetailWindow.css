@@ -441,7 +441,7 @@
 .make-territory-area {
     display: flex;
     align-items: center;
-    justify-content: start;
+    justify-content: flex-start;
     width: 304px;
 }
 
