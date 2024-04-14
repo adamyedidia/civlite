@@ -43,7 +43,7 @@ const UnitQueueOption = ({unitName, isCurrentIQUnit, canBuild, templates, setHov
         />
         <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px"}}>
             {templates.UNITS[unitName].metal_cost}
-            <img src={metalImg} height="10px"/>
+            <img src={metalImg} alt="" height="10px"/>
         </div>
     </div>
     </WithTooltip>;
@@ -252,7 +252,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     {selectedCityBuildingChoices && canBuild && (<>
                         <div className="building-choices-container">
                             <div className='building-choices-row'>
-                                <img src={showHiddenBuildings ? eyeImg : closedEyeImg} className={selectedCity.hidden_building_names.length > 0 ? "clickable" : ""} height="20px" onClick={() => setShowHiddenBuildings(!showHiddenBuildings)} style={{
+                                <img src={showHiddenBuildings ? eyeImg : closedEyeImg} alt="" className={selectedCity.hidden_building_names.length > 0 ? "clickable" : ""} height="20px" onClick={() => setShowHiddenBuildings(!showHiddenBuildings)} style={{
                                     border: '2px solid black',
                                     borderRadius: '50%',
                                     opacity: selectedCity.hidden_building_names.length > 0 ? 1.0 : 0.25,
@@ -265,7 +265,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                     return null;
                                 }
                                 return <div key={index} className={`building-choices-row ${hidden ? 'hidden' : ''}`}>
-                                    <img src={hidden ? closedEyeImg : eyeImg} height="20px" className="clickable" onClick={() => handleHideBuilding(buildingName, !hidden)} style={{
+                                    <img src={hidden ? closedEyeImg : eyeImg} alt="" height="20px" className="clickable" onClick={() => handleHideBuilding(buildingName, !hidden)} style={{
                                         border: '2px solid black',
                                         borderRadius: '50%',
                                     }}/>
@@ -321,13 +321,13 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     {!declinePreviewMode && <div className="unhappiness-area">
                         <div className="unhappiness-area-top-row">
                             <div className="unhappiness-current">
-                                <img src={happinessIcon} height="30px"/>
+                                <img src={happinessIcon} alt="" height="30px"/>
                                 <WithTooltip tooltip={`${selectedCity.unhappiness.toFixed(2)} unhappiness`}><>
                                 <span className="unhappiness-value">{Math.ceil(selectedCity.unhappiness)}</span>
                                 </></WithTooltip>
                                 <div style={{visibility: selectedCity.civ_to_revolt_into ? "visible" : "hidden"}}>
                                 <WithTooltip tooltip="This city is a revolt option for other players!">
-                                    <img src={declineImg} height="30px"/>
+                                    <img src={declineImg} alt="" height="30px"/>
                                 </WithTooltip>
                                 </div>
                             </div>
@@ -338,6 +338,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                 onClick = {handleClickTradeHub}>
                                     <img 
                                     src={tradeHubImg}
+                                    alt=""
                                     className={selectedCity.is_trade_hub ? "active" : "not-active"}
                                     />
                             </div>
@@ -350,7 +351,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             >
                                 <div className="unhappiness-income-value">
                                     +{projectedIncome['city-power'] > 0 ? Math.floor(projectedIncome['city-power']) : Math.floor(projectedIncome['unhappiness'])}
-                                    <img src={projectedIncome['city-power'] > 0 ? cityImg : sadImg} height="30px"/>
+                                    <img src={projectedIncome['city-power'] > 0 ? cityImg : sadImg}  alt="" height="30px"/>
                                 </div>
                             </WithTooltip>
                             <WithTooltip tooltip={foodDemandTooltip}>

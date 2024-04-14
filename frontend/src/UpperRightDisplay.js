@@ -24,7 +24,7 @@ const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
         <div className={`civ-detail-panel ${title}-area`}>
             <WithTooltip tooltip={iconTooltip} alignBottom={title === 'science'}>
                 <div className="icon">
-                    <img src={icon}></img>
+                    <img src={icon} alt=""></img>
                     <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>
                 </div>
             </WithTooltip>
@@ -128,13 +128,13 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
         </div>
         <div className="revolt-cities-detail">
             {Math.floor(city.projected_income_base['food'])}
-            <img src={foodImg}/>
+            <img src={foodImg} alt=""/>
             {Math.floor(city.projected_income_base['science'])}
-            <img src={scienceImg}/>
+            <img src={scienceImg} alt=""/>
             {Math.floor(city.projected_income_base['wood'])}
-            <img src={woodImg}/>
+            <img src={woodImg} alt=""/>
             {Math.floor(city.projected_income_base['metal'])}
-            <img src={metalImg}/>
+            <img src={metalImg} alt=""/>
         </div>
         <div className="revolt-cities-detail">
         {city.available_units.map((unitName, index) => (
@@ -198,7 +198,7 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap,
             <WithTooltip tooltip={`Threshold unhappiness to enter decline choices: ${unhappinessThreshold?.toFixed(2)}`}>
                 <div className="unhappiness-threshold-content">
                     {Math.floor(unhappinessThreshold)}
-                    <img src={sadImg} height="16px"/>
+                    <img src={sadImg} height="16px" alt=""/>
                 </div>
             </WithTooltip>
         </div>}

@@ -117,7 +117,7 @@ const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, 
                 >
                     Close
                 </IconButton>
-                <img src={scienceImg} style={{
+                <img src={scienceImg} alt="" style={{
                         height: 'auto', 
                         width: '100px', 
                         position: "absolute",
