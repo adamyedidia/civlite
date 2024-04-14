@@ -8,7 +8,6 @@ import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';
-import declineImg from './images/phoenix.png';
 import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import workerImg from './images/worker.png';
@@ -47,12 +46,12 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     const newCities = Math.max(0, Math.floor(civ.city_power / cityPowerCost));
     const civTemplate = templates.CIVS[civ.name];
     const currentTerritories = myCities.filter(city => !city.territory_parent_id).length;
-    const atMaxTerritories = currentTerritories == civ.max_territories;
+    const atMaxTerritories = currentTerritories === civ.max_territories;
     const iconTooltip = <table><tbody>
         <tr><td> +10 </td><td> base </td></tr>
         {myCities?.map((city, index) => {
             const amount = Math.floor(city.projected_income['city-power']);
-            return amount != 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
+            return amount !== 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
         })}
     </tbody></table>
     
@@ -60,13 +59,13 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
         iconTooltip={iconTooltip}
     >
         <div className='city-power-top-row'>
-        <WithTooltip tooltip={newCities == 0  ?  "Gather City Power to build new cities" :
+        <WithTooltip tooltip={newCities === 0  ?  "Gather City Power to build new cities" :
                 newCities > 0 && !canFoundCity ? "No Valid City Sites" :
                 newCities > 0 && canFoundCity && !isFoundingCity ? "Click to found city" :
                 newCities > 0 && canFoundCity && isFoundingCity ? "Click to cancel found city" : null}>
         <div className={`city-power-new-cities`}>
             {[...Array(newCities)].map((_, index) => (
-                <div key={index} className={`new-city-button ${(canFoundCity && index==0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? null :toggleFoundingCity}>
+                <div key={index} className={`new-city-button ${(canFoundCity && index===0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? null :toggleFoundingCity}>
                     <NewCityIcon civTemplate={civTemplate} disabled={!canFoundCity || (isFoundingCity & index > 0)} atMaxTerritories={atMaxTerritories}>
                         +
                     </NewCityIcon>
@@ -264,7 +263,7 @@ const ScoreDisplay = ({ myGamePlayer, gameEndScore }) => {
 
 const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTechChoiceDialogOpen, setHoveredTech, disableUI}) => {
     const tech = templates.TECHS[civ.researching_tech_name];
-    const techCost = tech?.name  == "Renaissance" ? civ.renaissance_cost : tech?.cost;
+    const techCost = tech?.name  === "Renaissance" ? civ.renaissance_cost : tech?.cost;
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income / techCost * 100 : 0;
     const iconTooltip = <table><tbody>

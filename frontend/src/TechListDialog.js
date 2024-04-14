@@ -1,7 +1,7 @@
 import React from "react";
 import './TechListDialog.css';
 
-import { Dialog, DialogTitle, DialogContent, DialogActions, Button, Typography, IconButton } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from "@mui/material";
 import { IconUnitDisplay } from "./UnitDisplay";
 import { BriefBuildingDisplay } from "./BuildingDisplay";
 import scienceImg from './images/science.png';
@@ -23,7 +23,7 @@ const TechLevelBox = ({level, techs, myCiv, gameState, templates, setHoveredTech
         <div className={`tech-level-box ${unlockedLevel < level ? 'disabled' : ''}`}>
             <div className='tech-level-box-header'>
                 <Typography variant="h5" style={{fontFamily: '"Times New Roman", serif'}}>{levelRomanNumeral}</Typography>
-                {unlockedLevel == level - 1  && 
+                {unlockedLevel === level - 1  && 
                     <Typography variant="h7"> ({myTechs}/{techsToUnlockNextLevel} to unlock) </Typography>
                 }
             </div>
