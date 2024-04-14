@@ -141,9 +141,12 @@ class Civ:
         else:
             return min(9, 1 + num_techs // 3)
 
+    def get_my_cities(self, game_state: 'GameState') -> list['City']:
+        return [city for city in game_state.cities_by_id.values() if city.civ == self]
+
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 2 + round(self.get_advancement_level() / 3)
-        my_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self]
+        my_cities: list[City] = self.get_my_cities(game_state)
         bonuses: int = sum([bldg.has_ability('ExtraTerritory') for city in my_cities for bldg in city.buildings])
         self.max_territories = base + bonuses
 
@@ -222,7 +225,7 @@ class Civ:
                 print(f"{self.moniker()} deciding not to decline because opponent would win.")
                 return None
 
-        my_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self]
+        my_cities: list[City] = self.get_my_cities(game_state)
         my_total_yields: float = sum(
             [city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
              for city in my_cities])
@@ -255,7 +258,7 @@ class Civ:
         if  len(self.great_people_choices) > 0:
             self.select_great_person(game_state, self.great_people_choices[0].name)
 
-        my_cities = [city for city in game_state.cities_by_id.values() if city.civ == self]
+        my_cities = self.get_my_cities(game_state)
 
         # Choose trade hub:
         unhappy_cities = [city for city in my_cities if city.unhappiness + city.projected_income["unhappiness"] > 0]
@@ -382,9 +385,14 @@ class Civ:
         
         self.update_max_territories(game_state)
 
-    def update_game_player(self, game_player_by_player_num: dict[int, GamePlayer]) -> None:
+    def from_json_postprocess(self, game_state: 'GameState') -> None:
         if self.game_player is not None:
-            self.game_player = game_player_by_player_num[self.game_player.player_num]
+            self.game_player = game_state.game_player_by_player_num[self.game_player.player_num]
+
+        if self.target1_coords:
+            self.target1 = game_state.hexes[self.target1_coords]
+        if self.target2_coords:
+            self.target2 = game_state.hexes[self.target2_coords]
 
     def capital_city(self, game_state) -> 'City':
         return next(city for city in game_state.cities_by_id.values() if city.civ == self and city.capital)

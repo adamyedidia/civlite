@@ -42,7 +42,6 @@ class City:
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True} if civ else {}
         self.name = name
         self.population = 1
-        self.buildings: list[Building] = []
         self.food = 0.0
         self.metal = 0.0
         self.wood = 0.0
@@ -81,9 +80,6 @@ class City:
 
     def has_building(self, building_name: str) -> bool:
         return any([(building.template.building_name if hasattr(building.template, 'building_name') else building.template.name) == building_name for building in self.buildings])  # type: ignore
-
-    def building_is_in_queue(self, building_name: str) -> bool:
-        return any([(building.building_name if hasattr(building, 'building_name') else building.name) == building_name for building in self.buildings_queue])  # type: ignore
 
     def orphan_territory_children(self, game_state: 'GameState', make_new_territory=True):
         """
@@ -720,17 +716,6 @@ class City:
             if unit.civ.id != self.civ.id and unit.template.type == 'military':
                 return unit.civ
 
-        # num_neighboring_units_by_civ_name = defaultdict(int)
-
-        # for hex in self.hex.get_neighbors(game_state.hexes):
-        #     for unit in hex.units:
-        #         if unit.template.type == 'military':
-        #             num_neighboring_units_by_civ_name[unit.civ.template.name] += 1
-
-        # for civ_name, num_neighboring_units in num_neighboring_units_by_civ_name.items():
-        #     if num_neighboring_units >= 4 and civ_name != self.civ.template.name:
-        #         return game_state.get_civ_by_name(civ_name)
-
         return None
     
     def hide_bad_buildings(self):
@@ -871,7 +856,7 @@ class City:
         wonders = [building for building in choices if building.is_wonder]
         nonwonders = [building for building in choices if not building.is_wonder and not building.is_national_wonder]
 
-        existing_national_wonders = [building for building in self.buildings if isinstance(building.template, BuildingTemplate) and building.template.is_national_wonder]
+        existing_national_wonders: list[BuildingTemplate] = [building for building in self.buildings if isinstance(building, BuildingTemplate) and building.is_national_wonder]
         if len(national_wonders) > 0 and len(existing_national_wonders) == 0 and self.population >= 8:
             return random.choice(national_wonders)
 
@@ -1005,7 +990,6 @@ class City:
             "ever_controlled_by_civ_ids": self.ever_controlled_by_civ_ids,
             "name": self.name,
             "population": self.population,
-            "buildings": [building.to_json() for building in self.buildings],
             "food": self.food,
             "metal": self.metal,
             "wood": self.wood,
