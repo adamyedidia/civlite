@@ -135,13 +135,18 @@ class Hex:
                 return True
         return False
 
-    def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
+    def from_json_postprocess(self, game_state: 'GameState') -> None:
         for unit in self.units:
-            unit.update_civ_by_id(civs_by_id)
+            unit.update_civ_by_id(game_state.civs_by_id)
+            unit.hex = self
+            game_state.units.append(unit)
         if self.city:
-            self.city.update_civ_by_id(civs_by_id)
+            self.city.update_civ_by_id(game_state.civs_by_id)
+            self.city.hex = self
+            game_state.cities_by_id[self.city.id] = self.city
         if self.camp:
-            self.camp.update_civ_by_id(civs_by_id)          
+            self.camp.update_civ_by_id(game_state.civs_by_id)          
+            self.camp.hex = self
 
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         return {

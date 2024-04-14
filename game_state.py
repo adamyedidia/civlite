@@ -1,8 +1,6 @@
 import math
-from datetime import datetime, timedelta
 from typing import Any, Optional
 from animation_frame import AnimationFrame
-from building import Building
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
@@ -84,14 +82,7 @@ class GameState:
     def add_announcement(self, content):
         self.announcements.append(f'[T {self.turn_num}] {content}')
 
-    def set_unit_and_city_hexes(self) -> None:
-        for hex in self.hexes.values():
-            for unit in hex.units:
-                unit.hex = hex
-            if hex.city:
-                hex.city.hex = hex
-            if hex.camp:
-                hex.camp.hex = hex
+    def fresh_cities_from_json_postprocess(self) -> None:
         for coords, city in self.fresh_cities_for_decline.items():
             city.hex = self.hexes[coords]
 
@@ -999,13 +990,6 @@ class GameState:
             "unhappiness_threshold": self.unhappiness_threshold,
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
         }
-    
-    def set_civ_targets(self, hexes: dict[str, Hex]) -> None:
-        for civ in self.civs_by_id.values():
-            if civ.target1_coords:
-                civ.target1 = hexes[civ.target1_coords]
-            if civ.target2_coords:
-                civ.target2 = hexes[civ.target2_coords]
 
     @staticmethod
     def from_json(json: dict) -> "GameState":
@@ -1015,21 +999,23 @@ class GameState:
         game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs_by_id"].items()}
         game_state.civ_ids_with_game_player_at_turn_start = json["civ_ids_with_game_player_at_turn_start"]
         # game_state.cities_by_id set from the other entries, to ensure references are all good.
-        game_state.barbarians = [civ for civ in game_state.civs_by_id.values() if civ.template.name == 'Barbarians'][0]
+        game_state.barbarians = [civ for civ in game_state.civs_by_id.values() if civ.template == CIVS.BARBARIAN][0]
         game_state.advancement_level = json["advancement_level"]
-        for civ in game_state.civs_by_id.values():
-            civ.update_game_player(game_state.game_player_by_player_num)
-        for hex in game_state.hexes.values():
-            hex.update_civ_by_id(game_state.civs_by_id)
+
         game_state.turn_num = json["turn_num"]
         game_state.wonders_built_to_civ_id = json["wonders_built_to_civ_id"].copy()
         game_state.national_wonders_built_by_civ_id = {k: v[:] for k, v in json["national_wonders_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}
-        game_state.set_unit_and_city_hexes()
-        game_state.set_civ_targets(hexes)
         game_state.game_over = json["game_over"]
         game_state.announcements = json["announcements"][:]
         game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
+
+        for civ in game_state.civs_by_id.values():
+            civ.from_json_postprocess(game_state)
+        for hex in game_state.hexes.values():
+            hex.from_json_postprocess(game_state)
+            # That sets game_state.units and game_state.cities_by_id
+        game_state.fresh_cities_from_json_postprocess()
         game_state.midturn_update()
         return game_state
