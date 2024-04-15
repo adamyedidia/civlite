@@ -11,7 +11,6 @@ from unit import Unit
 from hex import Hex
 from city import City
 from building_template import BuildingTemplate
-from building import Building
 from animation_frame import AnimationFrame
 from game_state import GameState
 
@@ -33,7 +32,6 @@ def main():
         "Hex": Hex,
         "City": City,
         "BuildingTemplate": BuildingTemplate,
-        "Building": Building,
         "AnimationFrame": AnimationFrame,
     }
 

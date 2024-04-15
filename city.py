@@ -5,6 +5,8 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
+from wood_buildable import WoodBuildable
+from wonder import Wonder
 from camp import Camp
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
@@ -13,7 +15,7 @@ from unit_templates_list import UNITS, UNITS_BY_BUILDING_NAME
 from civ_templates_list import CIVS
 from utils import generate_unique_id
 import random
-from typing import Dict
+from typing import Dict, Any
 import traceback
 
 if TYPE_CHECKING:
@@ -51,10 +53,15 @@ class City:
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
         self.infinite_queue_unit: Optional[UnitTemplate] = None
-        self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
-        self.buildings: list[Building] = [Building(UNITS.WARRIOR, building_template=None)]
+        self.buildings_queue: list[WoodBuildable] = []
+        self.buildings: list[WoodBuildable] = [UNITS.WARRIOR]
+
+        # Building names for when we're in the middle of loading from json and haven't resolved them yet.
+        self.prebuilt_buildings_queue: Optional[list[dict[str, str]]] = None
+        self.prebuilt_buildings: Optional[list[dict[str, str]]] = None
+
         self.available_buildings: list[BuildingTemplate] = []
-        self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, float, int]]] = {}
+        self.available_woodbuildables_to_descriptions: dict[str, dict[str, Union[str, float, int]]] = {}
         self.capital = False
         self._territory_parent_id: Optional[str] = None
         self._territory_parent_coords: Optional[str] = None
@@ -79,8 +86,8 @@ class City:
     def __repr__(self):
         return f"<City {self.name} @ {self.hex.coords if self.hex else None}>"
 
-    def has_building(self, building_name: str) -> bool:
-        return any([(building.template.building_name if hasattr(building.template, 'building_name') else building.template.name) == building_name for building in self.buildings])  # type: ignore
+    def has_building(self, buildable: WoodBuildable) -> bool:
+        return any([b.building_name == buildable.building_name for b in self.buildings])
 
     def orphan_territory_children(self, game_state: 'GameState', make_new_territory=True):
         """
@@ -220,7 +227,7 @@ class City:
         }
 
         for building in self.buildings:
-            for ability in building.template.abilities:
+            for ability in building.get_abilities():
                 if ability.name == 'IncreaseYieldsPerPopulation':
                     yields_per_population[ability.numbers[0]] += ability.numbers[1]
 
@@ -243,7 +250,7 @@ class City:
             bonus_resource, count = self.civ.numbers_of_ability('IncreaseFocusYields')
             yields[bonus_resource] += count
         for building in self.buildings:
-            for ability in building.template.abilities:
+            for ability in building.get_abilities():
                 if ability.name == 'IncreaseFocusYieldsPerPopulation':
                     focus, amount_per_pop = ability.numbers
                     yields[focus] += amount_per_pop * self.population * vitality
@@ -313,7 +320,7 @@ class City:
             result += 2
 
         for building in self.buildings:
-            for ability in building.template.abilities:
+            for ability in building.get_abilities():
                 if ability.name == 'DecreaseFoodDemand':
                     result -= ability.numbers[0]
         result = max(result, 0)
@@ -336,14 +343,6 @@ class City:
     def grow_inner(self, game_state: 'GameState') -> None:
         self.population += 1
 
-        if self.civ.game_player:
-            for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
-                    for ability in abilities:
-                        if ability.name == "ExtraVpsForCityGrowth":
-                            self.civ.game_player.score += ability.numbers[0]    
-                            self.civ.game_player.score_from_abilities += ability.numbers[0]
-
 
     def grow(self, game_state: 'GameState') -> None:
         while self.food >= self.growth_cost():
@@ -354,7 +353,7 @@ class City:
         total_growth_cost_reduction = 0.0
 
         for building in self.buildings:
-            for ability in building.template.abilities:
+            for ability in building.get_abilities():
                 if ability.name == 'CityGrowthCostReduction':
                     total_growth_cost_reduction += ability.numbers[0]
 
@@ -392,7 +391,13 @@ class City:
         if not self.hex:
             return
 
-        for template in self.get_available_buildings():
+        all_buildables = self.get_available_woodbuildables(include_in_queue=True, include_built=True)
+        
+        # Filter out unbuildable items.
+        # TODO not clear this should happen in this function.
+        self.buildings_queue = [b for b in self.buildings_queue if b in all_buildables]
+
+        for template in all_buildables:
             building_template = template if isinstance(template, BuildingTemplate) else None
             if building_template is not None:
                 total_yields: float = 0
@@ -445,51 +450,54 @@ class City:
                         total_yields += round(yields * (self.puppet_distance_penalty() - ability.numbers[0]), ndigits=1)
 
                 if is_economic_building:
-                    self.available_buildings_to_descriptions[building_template.name] = {
+                    self.available_woodbuildables_to_descriptions[building_template.building_name] = {
                         "type": "yield",
                         "value": total_yields,
                         "value_for_ai": total_yields + total_pseudoyields,
                     }        
                     if building_template in new_bldgs and total_yields == 0 and total_pseudoyields == 0:
-                        self.toggle_discard(building_template.name, hidden=True)
+                        self.toggle_discard(building_template.building_name, hidden=True)
 
-                elif not building_template.is_wonder:
-                    self.available_buildings_to_descriptions[building_template.name] = {
+                else:
+                    self.available_woodbuildables_to_descriptions[building_template.building_name] = {
                         "type": "???",
                         "value": 0,
                     }
 
-                if building_template.is_wonder:
-                    self.available_buildings_to_descriptions[building_template.name] = {
-                        "type": "wonder_cost",
-                        "value": building_template.cost,
-                    }
+            if isinstance(template, Wonder):
+                self.available_woodbuildables_to_descriptions[template.building_name] = {
+                    "type": "wonder_cost",
+                    "value": template.building_cost_for_civ(self.civ),
+                }
 
             elif isinstance(template, UnitTemplate):
-                self.available_buildings_to_descriptions[template.building_name] = {
+                self.available_woodbuildables_to_descriptions[template.building_name] = {
                     "type": "strength",
                     "value": template.strength, 
                 }
 
     def refresh_available_units(self) -> None:
-        self.available_units = [unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
+        self.available_units = [unit for unit in UNITS.all() if self.has_building(unit)]
         self.available_units.sort(key=lambda unit: (unit.advancement_level(), unit.metal_cost, unit.name))
-
-    def has_production_building_for_unit(self, unit: UnitTemplate) -> bool:
-        return self.has_building(unit.building_name)
 
     def handle_cleanup(self) -> None:
 
         self.refresh_available_units()
         self.refresh_available_buildings()
 
-    def get_available_buildings(self) -> list[Union[BuildingTemplate, UnitTemplate]]:
+    def get_available_woodbuildables(self, include_in_queue=False, include_built=False) -> list[WoodBuildable]:
         if not self.civ:
             return []
-        building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
-        buildings: list[BuildingTemplate] = [building for building in self.available_buildings if not building.name in building_names_in_queue and not self.has_building(building.name)]
-        unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
-        return [*buildings, *unit_buildings]
+
+        filter_set = set()
+        if not include_in_queue:
+            filter_set.update({building.building_name for building in self.buildings_queue})
+        if not include_built:
+            filter_set.update({building.building_name for building in self.buildings})
+
+
+        buildings: list[WoodBuildable] = [building for building in self.available_buildings + self.civ.available_unit_buildings + self.civ.available_wonders if not building.building_name in filter_set]
+        return buildings
 
     def build_units(self, game_state: 'GameState') -> None:
         if self.infinite_queue_unit:
@@ -613,50 +621,32 @@ class City:
             if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
                 unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
 
-        for wonder in game_state.wonders_built_to_civ_id:
-            if game_state.wonders_built_to_civ_id[wonder] == self.civ.id:
-                for ability in BUILDINGS.by_name(wonder).abilities:
-                    if ability.name == 'NewUnitsGainBonusStrength':
-                        unit.strength += ability.numbers[0]
-
     def reinforce_unit(self, unit: Unit) -> None:
         unit.health += 100
 
     def build_buildings(self, game_state: 'GameState') -> None:
         while self.buildings_queue:
-            building = self.buildings_queue[0]
-            if isinstance(building, BuildingTemplate):
-                if self.wood >= building.cost:
-                    self.buildings_queue.pop(0)
-                    self.build_building(game_state, building)
-                    self.wood -= building.cost
-                else:
-                    break
-
-            elif isinstance(building, UnitTemplate):
-                if self.wood >= building.wood_cost:
-                    self.buildings_queue.pop(0)
-                    self.build_building(game_state, building)
-                    self.wood -= building.wood_cost
-                else:
-                    break
-
+            building: WoodBuildable = self.buildings_queue[0]
+            cost: float = building.building_cost_for_civ(self.civ)
+            if self.wood >= cost:
+                self.buildings_queue.pop(0)
+                self.build_building(game_state, building)
+                self.wood -= cost
             else:
                 break
 
-    def build_building(self, game_state: 'GameState', building: Union[BuildingTemplate, UnitTemplate]) -> None:
-        unit_template = building if isinstance(building, UnitTemplate) else None
-        building_template = building if isinstance(building, BuildingTemplate) else None
+    def build_building(self, game_state: 'GameState', building: WoodBuildable) -> None:
+        self.buildings.append(building)
 
-        new_building = Building(unit_template=unit_template, building_template=building_template)
+        if isinstance(building, UnitTemplate):
+            self.infinite_queue_unit = building
 
-        self.buildings.append(new_building)
+        if isinstance(building, BuildingTemplate) and building.vp_reward and self.civ.game_player:
+            self.civ.game_player.score += building.vp_reward
+            self.civ.game_player.score_from_building_vps += building.vp_reward
 
-        if unit_template is not None:
-            self.infinite_queue_unit = unit_template
-
-        if new_building.has_ability('IncreaseYieldsForTerrain'):
-            for ability in new_building.template.abilities:
+        for ability in building.get_abilities():
+            if ability.name == 'IncreaseYieldsForTerrain':
                 assert self.hex
                 numbers = ability.numbers
                 for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
@@ -664,50 +654,44 @@ class City:
                         new_value = getattr(hex.yields, numbers[0]) + numbers[1]
                         setattr(hex.yields, numbers[0], new_value)
 
-        if new_building.has_ability('DoubleYieldsForTerrainInCity'):
-            assert self.hex
-            numbers = new_building.numbers_of_ability('DoubleYieldsForTerrainInCity')
-            for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
-                if hex.terrain == numbers[0]:
-                    for yield_name in ['food', 'metal', 'wood', 'science']:
-                        new_value = getattr(hex.yields, yield_name) * 2
-                        setattr(hex.yields, yield_name, new_value)
+            elif ability.name == 'DoubleYieldsForTerrainInCity':
+                assert self.hex
+                numbers = ability.numbers
+                for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                    if hex.terrain == numbers[0]:
+                        for yield_name in ['food', 'metal', 'wood', 'science']:
+                            new_value = getattr(hex.yields, yield_name) * 2
+                            setattr(hex.yields, yield_name, new_value)
 
-        if new_building.has_ability('ExistingUnitsGainBonusStrength'):
-            for unit in game_state.units:
-                if unit.civ.id == self.civ.id:
-                    unit.strength += new_building.numbers_of_ability('ExistingUnitsGainBonusStrength')[0]
+            elif ability.name == 'ExistingUnitsGainBonusStrength':
+                for unit in game_state.units:
+                    if unit.civ.id == self.civ.id:
+                        unit.strength += ability.numbers[0]
 
-        if new_building.has_ability('IncreaseYieldsInCity'):
-            assert self.hex
-            numbers = new_building.numbers_of_ability('IncreaseYieldsInCity')
-            new_value = getattr(self.hex.yields, numbers[0]) + numbers[1]
-            setattr(self.hex.yields, numbers[0], new_value)
+            elif ability.name == 'IncreaseYieldsInCity':
+                assert self.hex
+                numbers = ability.numbers
+                new_value = getattr(self.hex.yields, numbers[0]) + numbers[1]
+                setattr(self.hex.yields, numbers[0], new_value)
 
-        if isinstance(new_building.template, BuildingTemplate) and new_building.template.vp_reward and self.civ.game_player:
-            self.civ.game_player.score += new_building.template.vp_reward
-            self.civ.game_player.score_from_building_vps += new_building.template.vp_reward
+            elif ability.name == 'GainCityPower':
+                self.civ.city_power += ability.numbers[0]
 
-        if new_building.has_ability('GainCityPower'):
-            self.civ.city_power += new_building.numbers_of_ability('GainCityPower')[0]
+            elif ability.name == 'GainFreeUnits':
+                for _ in range(ability.numbers[1]):
+                    self.build_unit(game_state, UNITS.by_name(ability.numbers[0]))
 
-        if new_building.has_ability('GainFreeUnits'):
-            for _ in range(new_building.numbers_of_ability('GainFreeUnits')[1]):
-                self.build_unit(game_state, UNITS.by_name(new_building.numbers_of_ability('GainFreeUnits')[0]))
+            elif ability.name == 'EndTheGame':
+                game_state.game_over = True
 
-        if new_building.has_ability('EndTheGame'):
-            game_state.game_over = True
+            elif ability.name == 'TripleCityPopulation':
+                self.population *= 3
 
-        if new_building.has_ability('TripleCityPopulation'):
-            self.population *= 3
+        if isinstance(building, BuildingTemplate) and building.is_national_wonder:
+            game_state.handle_national_wonder_built(self.civ, building)
 
-        if building_template is not None and building_template.is_wonder:
-            assert isinstance(building_template, BuildingTemplate)
-            game_state.handle_wonder_built(self.civ, building_template, national=False)
-
-        if building_template is not None and building_template.is_national_wonder:
-            assert isinstance(building_template, BuildingTemplate)
-            game_state.handle_wonder_built(self.civ, building_template, national=True)
+        if isinstance(building, Wonder):
+            game_state.handle_wonder_built(self, building)
 
     def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
         if self.hex is None:
@@ -721,13 +705,13 @@ class City:
     
     def hide_bad_buildings(self):
         highest_unit_level = max([0] + [u.advancement_level() for u in self.civ.available_unit_buildings])
-        for building in self.get_available_buildings():
+        for building in self.get_available_woodbuildables():
             if isinstance(building, BuildingTemplate):
                 if building.is_wonder or building.is_national_wonder:
                     continue
-                desc = self.available_buildings_to_descriptions[building.name]
+                desc = self.available_woodbuildables_to_descriptions[building.building_name]
                 if desc.get('type') == 'yield' and desc.get('value') == 0 and desc.get('value_for_ai') == 0:
-                    self.toggle_discard(building.name, hidden=True)
+                    self.toggle_discard(building.building_name, hidden=True)
             elif isinstance(building, UnitTemplate):
                 if building.advancement_level() < highest_unit_level - 1:
                     self.toggle_discard(building.building_name, hidden=True)
@@ -743,11 +727,9 @@ class City:
 
         # Re-assign global wonders, and remove national wonders.
         for building in self.buildings:
-            if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
-                game_state.wonders_built_to_civ_id[building.template.name] = civ.id
-            if isinstance(building.template, BuildingTemplate) and building.template.is_national_wonder:
-                game_state.national_wonders_built_by_civ_id[self.civ.id].remove(building.template.name)
-        self.buildings = [b for b in self.buildings if not b.is_national_wonder]
+            if isinstance(building, BuildingTemplate) and building.is_national_wonder:
+                game_state.national_wonders_built_by_civ_id[self.civ.id].remove(building.building_name)
+        self.buildings = [b for b in self.buildings if not isinstance(b, BuildingTemplate) or not b.is_national_wonder]
 
         # Change the civ
         self.civ = civ
@@ -801,10 +783,10 @@ class City:
         self.wood /= 2
         self.metal /= 2
 
-        military_bldgs = [building for building in self.buildings if isinstance(building.template, UnitTemplate)]
-        military_bldgs.sort(key=lambda unit: (-unit.template.advancement_level(), random.random()))  # type: ignore
-        best_3 = military_bldgs[:3]
-        top_level = [building for building in military_bldgs if building.template.advancement_level() == military_bldgs[0].template.advancement_level()]  # type: ignore
+        military_bldgs: list[UnitTemplate] = [building for building in self.buildings if isinstance(building, UnitTemplate)]
+        military_bldgs.sort(key=lambda unit: (-unit.advancement_level(), random.random()))
+        best_3: list[UnitTemplate] = military_bldgs[:3]
+        top_level: list[UnitTemplate] = [building for building in military_bldgs if building.advancement_level() == military_bldgs[0].advancement_level()]
         for building in military_bldgs:
             if building not in best_3 and building not in top_level:
                 self.buildings.remove(building)
@@ -823,14 +805,7 @@ class City:
                 for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
                     if hex.terrain == numbers[1]:
                         new_value = getattr(hex.yields, numbers[0]) + numbers[2]
-                        setattr(hex.yields, numbers[0], new_value)                
-
-            for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
-                    for ability in abilities:
-                        if ability.name == "ExtraVpsForCityCapture":
-                            civ.game_player.score += ability.numbers[0]
-                            civ.game_player.score_from_abilities += ability.numbers[0]
+                        setattr(hex.yields, numbers[0], new_value)
 
         self.change_owner(civ, game_state)
 
@@ -878,28 +853,21 @@ class City:
         self.civ = civs_by_id[self.civ_id]
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
 
-    def bot_pick_economic_building(self, choices) -> Optional[BuildingTemplate]:
+    def bot_pick_economic_building(self, choices: list[BuildingTemplate]) -> Optional[BuildingTemplate]:
         national_wonders = [building for building in choices if building.is_national_wonder]
-        wonders = [building for building in choices if building.is_wonder]
         nonwonders = [building for building in choices if not building.is_wonder and not building.is_national_wonder]
 
         existing_national_wonders: list[BuildingTemplate] = [building for building in self.buildings if isinstance(building, BuildingTemplate) and building.is_national_wonder]
         if len(national_wonders) > 0 and len(existing_national_wonders) == 0 and self.population >= 8:
             return random.choice(national_wonders)
 
-        if len(wonders) > 0:
-            random.shuffle(wonders)
-            for wonder in wonders:
-                if self.wood + self.projected_income['wood'] > wonder.cost:
-                    return wonder
-
         if len(nonwonders) > 0:
             # print(f"    Choosing nonwonder; {self.available_buildings_to_descriptions=}")
             ACCEPTABLE_PAYOFF_TURNS = 8
             inverse_payoff_turns: dict[BuildingTemplate, float] = {
-                building: self.available_buildings_to_descriptions[building.name].get('value_for_ai', 0) / building.cost
+                building: float(self.available_woodbuildables_to_descriptions[building.building_name].get('value_for_ai', 0)) / building.cost
                 for building in nonwonders
-                if building.name in self.available_buildings_to_descriptions and self.available_buildings_to_descriptions[building.name]['type'] == 'yield'
+                if building.building_name in self.available_woodbuildables_to_descriptions and self.available_woodbuildables_to_descriptions[building.building_name]['type'] == 'yield'
             }
             print(f"    {inverse_payoff_turns=}")
             if len(nonwonders) > len(inverse_payoff_turns):
@@ -939,9 +907,12 @@ class City:
             self.infinite_queue_unit = random.choice(highest_tier_units)
             print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units]})")
 
-        available_buildings = self.get_available_buildings()
+        available_buildings = self.get_available_woodbuildables()
         economic_buildings = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
         military_buildings = [building for building in available_buildings if isinstance(building, UnitTemplate) and building.movement > 0]
+        wonders = [building for building in available_buildings if isinstance(building, Wonder)]
+        wonder_costs = [wonder.building_cost_for_civ(self.civ) for wonder in wonders]
+        cheapest_wonder_cost = min(wonder_costs) if len(wonder_costs) > 0 else 0
         if len(military_buildings) > 0:
             # Choose buildings first by effective advancement level, then randomly, but prefering slingers over warriors if we have the bldg
             best_military_building = max(military_buildings, key=lambda building: (
@@ -963,6 +934,9 @@ class City:
             print(f"  building slingers because of all the wood.")
         elif len(self.buildings_queue) > 0:
             print(f"  continuing previous build queue: {self.buildings_queue}")
+        elif len(wonders) > 0 and self.wood + self.projected_income['wood'] > cheapest_wonder_cost:
+            self.buildings_queue = [random.choice([w for w in wonders if w.building_cost_for_civ(self.civ) == cheapest_wonder_cost])]
+            print(f"  set building queue to wonder: {self.buildings_queue}")
         elif len(economic_buildings) > 0:
             choice = self.bot_pick_economic_building(economic_buildings)
             if choice:
@@ -1008,6 +982,21 @@ class City:
 
             print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
         
+    def summarize_building_for_json(self, b: WoodBuildable) -> dict:
+        return {"type": b.__class__.__name__, "name": b.building_name, "cost": b.building_cost_for_civ(self.civ)}
+
+    def summarize_available_buildings_for_display(self):
+        all_available = self.get_available_woodbuildables()
+        def class_sort_key(b: WoodBuildable) -> tuple:
+            if isinstance(b, BuildingTemplate):
+                return 1, b.is_national_wonder, b.building_cost_for_civ(self.civ)
+            if isinstance(b, UnitTemplate):
+                return 2, b.advancement_level(), b.strength 
+            if isinstance(b, Wonder):
+                return 3, b.template.advancement_level, b.building_cost_for_civ(self.civ)
+            return (b.building_cost_for_civ(self.civ), b.building_name)
+        sorted_available = sorted(all_available, key=class_sort_key)
+        return [self.summarize_building_for_json(b) for b in sorted_available]
 
     def to_json(self, include_civ_details: bool = False) -> dict:
         return {
@@ -1024,11 +1013,11 @@ class City:
             "under_siege_by_civ": self.under_siege_by_civ.to_json() if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
             "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
-            "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
-            "buildings": [building.to_json() for building in self.buildings],
-            "available_buildings": [b.name for b in self.available_buildings],
-            "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
-            "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
+            "buildings_queue": [self.summarize_building_for_json(building) for building in self.buildings_queue],
+            "buildings": [self.summarize_building_for_json(building) for building in self.buildings],
+            "available_buildings": [b.building_name for b in self.available_buildings],
+            "available_buildings_to_descriptions": self.available_woodbuildables_to_descriptions.copy(),
+            "available_woodbuildables": self.summarize_available_buildings_for_display(),
             "capital": self.capital,
             "available_units": [u.name for u in self.available_units],
             "projected_income": self.projected_income,
@@ -1063,16 +1052,15 @@ class City:
         city.civ_id = json["civ_id"]
         city.ever_controlled_by_civ_ids = json["ever_controlled_by_civ_ids"].copy()
         city.population = json["population"]
-        city.buildings = [Building.from_json(building) for building in json["buildings"]]
         city.food = json["food"]
         city.metal = json["metal"]
         city.wood = json["wood"]
         city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
         city.capital = json["capital"]
-        city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BUILDINGS.by_name(building) for building in json["buildings_queue"]]
+        city.prebuilt_buildings_queue = json["buildings_queue"]
+        city.prebuilt_buildings = json["buildings"]
         city.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
-        city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
-        city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
+        city.available_woodbuildables_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UNITS.by_name(json["infinite_queue_unit"])
         city.focus = json["focus"]
         city.projected_income = json["projected_income"]
@@ -1093,6 +1081,23 @@ class City:
 
         return city
 
+
+    def from_json_postprocess(self, game_state: 'GameState') -> None:
+        def unpack_building(type: str, name: str) -> WoodBuildable:
+            if type == "BuildingTemplate":
+                return BUILDINGS.by_name(name)
+            elif type == "UnitTemplate":
+                return UNITS_BY_BUILDING_NAME[name]
+            elif type == "Wonder":
+                return next(w for w in game_state.all_wonders() if w.building_name == name)
+            else:
+                raise ValueError(f"Unknown class name: {type}")
+
+        assert self.prebuilt_buildings is not None and self.prebuilt_buildings_queue is not None
+        self.buildings = [unpack_building(type=data["type"], name=data["name"]) for data in self.prebuilt_buildings]
+        self.buildings_queue = [unpack_building(type=data["type"], name=data["name"]) for data in self.prebuilt_buildings_queue]
+        self.prebuilt_buildings = None
+        self.prebuilt_buildings_queue = None
 
 CITY_NAMES = {
     "Miami",

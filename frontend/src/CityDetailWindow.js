@@ -227,8 +227,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const woodAvailable = selectedCity.wood + projectedIncome['wood'];
 
     const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / templates.UNITS[selectedCity.infinite_queue_unit].metal_cost) : 0;
-    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => templates.BUILDINGS[item] ? templates.BUILDINGS[item].cost : unitTemplatesByBuildingName[item].wood_cost);
-
+    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => item.cost);
 
     return (
         <div className="city-detail-window" 
@@ -259,17 +258,17 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                 }}/>
                                 <BriefBuildingDisplayTitle title="Building Choices" />
                             </div>
-                            {selectedCityBuildingChoices.map((buildingName, index) => {
-                                const hidden = selectedCity.hidden_building_names.includes(buildingName)
+                            {selectedCityBuildingChoices.map((building, index) => {
+                                const hidden = selectedCity.hidden_building_names.includes(building.name)
                                 if (!showHiddenBuildings && hidden) {
                                     return null;
                                 }
                                 return <div key={index} className={`building-choices-row ${hidden ? 'hidden' : ''}`}>
-                                    <img src={hidden ? closedEyeImg : eyeImg} alt="" height="20px" className="clickable" onClick={() => handleHideBuilding(buildingName, !hidden)} style={{
+                                    <img src={hidden ? closedEyeImg : eyeImg} alt="" height="20px" className="clickable" onClick={() => handleHideBuilding(building.name, !hidden)} style={{
                                         border: '2px solid black',
                                         borderRadius: '50%',
                                     }}/>
-                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
+                                    <BriefBuildingDisplay buildingName={building.name} cost={building.cost} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(building.name)} descriptions={descriptions} />
                                 </div>
                             })}
                         </div>
@@ -279,9 +278,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     {selectedCityBuildingQueue && canBuild &&  (
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
-                            {selectedCityBuildingQueue.map((buildingName, index) => (
+                            {selectedCityBuildingQueue.map((building, index) => (
                                 <div key={index} className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
+                                    <BriefBuildingDisplay buildingName={building.name} cost={building.cost} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(building.name)} descriptions={descriptions}/>
                                 </div>
                             ))}
                         </div>
@@ -301,7 +300,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             {(isBuildingListExpanded || !canBuild) && (
                                 <div className="existing-buildings-container">
                                     {selectedCityBuildings.map((buildingName, index) => (
-                                        <BriefBuildingDisplay key={index} buildingName={buildingName} clickable={false} hideCost={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
+                                        <BriefBuildingDisplay key={index} buildingName={buildingName} clickable={false} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
                                     ))}
                                 </div>
                             )}

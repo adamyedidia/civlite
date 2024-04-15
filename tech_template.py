@@ -30,7 +30,7 @@ class TechTemplate:
             "cost": self.cost,
             "advancement_level": self.advancement_level,
             "unlocks_units": [u.name for u in self.unlocks_units],
-            "unlocks_buildings": [b.name for b in self.unlocks_buildings],
+            "unlocks_buildings": [b.building_name for b in self.unlocks_buildings],
         }
     
     @staticmethod

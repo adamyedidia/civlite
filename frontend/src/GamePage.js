@@ -2148,45 +2148,9 @@ export default function GamePage() {
         '20,0,-20': React.createRef(),
     });
 
-    // const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
-
     const descriptions = selectedCity?.available_buildings_to_descriptions;
 
-    const unsortedSelectedCityBuildingChoices = selectedCity?.available_building_names;
-
-    let selectedCityBuildingChoices = [];
-
-    if (descriptions && Object.keys(descriptions).length > 0) {
-        selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices?.sort((buildingName1, buildingName2) => {
-            const description1 = descriptions[buildingName1];
-            const description2 = descriptions[buildingName2];
-        
-            const getTypeOrder = (type) => {
-                switch (type) {
-                    case 'yield':
-                        return 1;
-                    case 'wonder_cost':
-                        return 2;
-                    case 'strength':
-                        return 3;
-                    default:
-                        return 4;
-                }
-            };
-        
-            const typeOrder1 = getTypeOrder(description1?.type);
-            const typeOrder2 = getTypeOrder(description2?.type);
-        
-            if (typeOrder1 !== typeOrder2) {
-                return typeOrder1 - typeOrder2;
-            } else {
-                return description2?.value - description1?.value;
-            }
-        });
-    }
-    else {
-        selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices;
-    }
+    const selectedCityBuildingChoices = selectedCity?.available_woodbuildables;
 
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
     const selectedCityBuildings = selectedCity?.buildings?.map(building => building.name);
@@ -2714,11 +2678,11 @@ export default function GamePage() {
         if (city.buildings_queue.length === 0) {
             buildingText = "??";
             buildingIconUnit = null;
-        } else if (unitTemplatesByBuildingName[city.buildings_queue[0]]) {
+        } else if (unitTemplatesByBuildingName[city.buildings_queue[0].name]) {
             buildingText = "";
-            buildingIconUnit = unitTemplatesByBuildingName[city.buildings_queue[0]].name;
+            buildingIconUnit = unitTemplatesByBuildingName[city.buildings_queue[0].name].name;
         } else {
-            buildingText = city.buildings_queue[0].slice(0, 2);
+            buildingText = city.buildings_queue[0].name.slice(0, 2);
             buildingIconUnit = null;
         }
         const buildingImage = buildingIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(buildingIconUnit)}.svg`; 

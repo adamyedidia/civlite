@@ -12,8 +12,26 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, hideCost, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
+const getBuildingType = ( buildingName, templates ) => {
+    // TODO this is a mess
+    const b = templates.BUILDINGS[buildingName]
+    if (b && b.is_national_wonder) {
+        return 'national-wonder'
+    } else if (b) {
+        return 'economic'
+    } else if (templates.WONDERS[buildingName]) {
+        return 'wonder'
+    } else {
+        return 'military'
+    }
+}
+
+
+
+export const BriefBuildingDisplay = ({ buildingName, cost, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
     const building = unitTemplatesByBuildingName?.[buildingName] || templates.BUILDINGS[buildingName];
+
+    const type = getBuildingType(buildingName, templates)
 
     const description = descriptions?.[buildingName];
 
@@ -25,14 +43,14 @@ export const BriefBuildingDisplay = ({ buildingName, hideCost, clickable, style,
 
     return (
         <div 
-            className={`brief-building-card ${building?.is_wonder ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : unitTemplatesByBuildingName?.[buildingName] ? 'military' : 'economic'} ${disabledMsg && 'disabled'} ${clickable ? 'clickable' : ''}`} 
+            className={`brief-building-card ${type} ${disabledMsg && 'disabled'} ${clickable ? 'clickable' : ''}`} 
             onClick={onClick}
             onMouseEnter={() => setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => setHoveredBuilding(null)} // clear on mouse leave
             style={style}
         >
-            <span className="building-name">{`${building?.building_name || building?.name}${descriptionStr !== null ? descriptionStr : ''}`}</span>
-            {!hideCost && <span className="building-cost">{building?.wood_cost || building?.cost} wood</span>}
+            <span className="building-name">{`${buildingName}${descriptionStr !== null ? descriptionStr : ''}`}</span>
+            {cost && <span className="building-cost">{cost} wood</span>}
         </div>
     );
 };

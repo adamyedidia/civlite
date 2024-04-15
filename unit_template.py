@@ -2,6 +2,7 @@ from typing import Union, Optional
 
 from ability import Ability
 from abilities_list import ABILITIES, UNIT_ABILITIES
+from wood_buildable import WoodBuildable
 from tech_templates_list import TECHS
 from tech_template import TechTemplate
 from enum import Enum
@@ -15,10 +16,10 @@ class UnitTag(Enum):
     GUNPOWDER = "gunpowder"
     DEFENSIVE = "defensive"
 
-class UnitTemplate:
+class UnitTemplate(WoodBuildable):
     def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[UnitTag], movement: int, range: int, abilities: list[dict[str, Union[str, list]]], type: str, prereq: Optional[TechTemplate], great_people_names: dict[str, str] = {}) -> None:
+        super().__init__(building_name)
         self.name = name
-        self.building_name = building_name
         self.metal_cost = metal_cost
         self.wood_cost = wood_cost
         self.strength = strength
@@ -33,10 +34,11 @@ class UnitTemplate:
             prereq.unlocks_units.append(self)
         self.great_people_names = great_people_names
 
-
-
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"
+
+    def building_cost_for_civ(self, civ) -> float:
+        return self.wood_cost
 
     def advancement_level(self):
         if self.prereq is None:

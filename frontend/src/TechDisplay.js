@@ -28,7 +28,6 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
                         buildingName={buildingName} 
                         templates={templates} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName} 
-                        disabledMsg={gameState.wonders_built_to_civ_id.hasOwnProperty(buildingName) ? `==  Built by ${gameState.civs_by_id[gameState.wonders_built_to_civ_id[buildingName]].name}  ==` : ""} 
                         onClick={() => {}} 
                     />
                 ))}

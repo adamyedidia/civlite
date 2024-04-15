@@ -15,6 +15,7 @@ from city import City, generate_random_city_name
 from civ import Civ, create_starting_civ_options_for_players
 from civ_template import CivTemplate
 from civ_templates_list import CIVS
+from wonder_template_list import WONDERS
 from database import SessionLocal
 from game import Game, TimerStatus
 from game_player import GamePlayer
@@ -255,6 +256,8 @@ def _launch_game_inner(sess, game: Game) -> None:
     starting_civs_for_players = {}
 
     game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
+
+    game_state.populate_wonders()
 
     for player_num, civ_options_tups in starting_civ_options_for_players.items():
         game_player = game_state.game_player_by_player_num[player_num]
@@ -737,7 +740,8 @@ def get_all_templates(sess):
         'CIVS': {civ_template.name: civ_template.to_json() for civ_template in CIVS.all()},
         'UNITS': {unit_template.name: unit_template.to_json() for unit_template in UNITS.all()},
         'TECHS': {tech.name: tech.to_json() for tech in TECHS.all()},
-        'BUILDINGS': {building_template.name: building_template.to_json() for building_template in BUILDINGS.all()},
+        'BUILDINGS': {building_template.building_name: building_template.to_json() for building_template in BUILDINGS.all()},
+        'WONDERS': {wonder_template.name: wonder_template.to_json() for wonder_template in WONDERS.all()},
     })
 
 @socketio.on('connect')

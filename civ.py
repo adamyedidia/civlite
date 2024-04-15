@@ -2,6 +2,7 @@ import random
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Dict
 from collections import defaultdict
+from wonder import Wonder
 from great_person import GreatPerson, great_people_by_name
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
@@ -40,6 +41,7 @@ class Civ:
         self.vitality = 1.0
         self.city_power = 0.0
         self.available_buildings: list[BuildingTemplate] = []
+        self.available_wonders: list[Wonder] = []
         self.available_unit_buildings: list[UnitTemplate] = []
         self.target1: Optional['Hex'] = None
         self.target2: Optional['Hex'] = None
@@ -56,6 +58,9 @@ class Civ:
     def __eq__(self, other: 'Civ') -> bool:
         # TODO(dfarhi) clean up all remaining instances of (civ1.id == civ2.id)
         return other is not None and self.id == other.id
+
+    def __hash__(self) -> int:
+        return hash(self.id)
 
     def moniker(self) -> str:
         game_player_parenthetical = f' ({self.game_player.username})' if self.game_player else ''
@@ -163,7 +168,8 @@ class Civ:
             "current_tech_choices": [tech.name for tech, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)],
             "vitality": self.vitality,
             "city_power": self.city_power,
-            "available_buildings": [b.name for b in self.available_buildings],
+            "available_buildings": [b.building_name for b in self.available_buildings],
+            "available_wonders": [w.building_name for w in self.available_wonders],
             "available_unit_buildings": [u.name for u in self.available_unit_buildings],
             "target1": self.target1.coords if self.target1 else None,
             "target2": self.target2.coords if self.target2 else None,
@@ -181,15 +187,14 @@ class Civ:
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
         self.available_buildings = [building for building in BUILDINGS.all() if (
             (building.prereq is None or self.has_tech(building.prereq))
-            and (not building.is_wonder or not game_state.wonders_built_to_civ_id.get(building.name))
-            and (not building.is_national_wonder or not building.name in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
+            and (not building.is_national_wonder or not building.building_name in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
         self.available_unit_buildings: list[UnitTemplate] = [
             unit for unit in UNITS.all() 
             if ((unit.prereq is None or self.has_tech(unit.prereq)) and 
                 unit.building_name is not None)
             ]
-
+        self.available_wonders = game_state.available_wonders()
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
         """
@@ -367,13 +372,6 @@ class Civ:
             self.game_player.score += TECH_VP_REWARD
             self.game_player.score_from_researching_techs += TECH_VP_REWARD
 
-            for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS.by_name(wonder).abilities):
-                    for ability in abilities:
-                        if ability.name == "ExtraVpsForTechs":
-                            self.game_player.score += ability.numbers[0]    
-                            self.game_player.score_from_abilities += ability.numbers[0]
-
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
 
@@ -402,6 +400,8 @@ class Civ:
             self.target1 = game_state.hexes[self.target1_coords]
         if self.target2_coords:
             self.target2 = game_state.hexes[self.target2_coords]
+
+        self.fill_out_available_buildings(game_state)
 
     def capital_city(self, game_state) -> 'City':
         return next(city for city in game_state.cities_by_id.values() if city.civ == self and city.capital)
