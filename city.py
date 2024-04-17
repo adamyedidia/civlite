@@ -324,7 +324,7 @@ class City:
         else:
             self.revolting_starting_vitality = 1.0 + 0.025 * game_state.turn_num + 0.0075 * self.unhappiness
 
-        if not self.is_fake_city() and self.unhappiness > 100 and self.civ_to_revolt_into is not None:
+        if not self.is_fake_city() and self.unhappiness > 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None:
             # Revolt to AI
             assert self.hex is not None
             game_state.process_decline_option(self.hex.coords, [])
