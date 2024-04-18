@@ -470,9 +470,6 @@ class City:
                     "value": template.strength, 
                 }
 
-                if building_template in new_bldgs and building_template.advancement_level() < max([b.advancement_level() for b in self.buildings if isinstance(b, UnitTemplate)]):
-                    self.toggle_discard(building_template.name, hidden=True)
-
     def refresh_available_units(self) -> None:
         self.available_units = [unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
         self.available_units.sort(key=lambda unit: (unit.advancement_level(), unit.metal_cost, unit.name))
