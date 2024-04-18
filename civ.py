@@ -51,6 +51,7 @@ class Civ:
         self.trade_hub_id: Optional[str] = None
         self.great_people_choices: list[GreatPerson] = []
         self.max_territories: int = 3
+        self.vandetta_civ_id: Optional[str] = None
 
     def __eq__(self, other: 'Civ') -> bool:
         # TODO(dfarhi) clean up all remaining instances of (civ1.id == civ2.id)
@@ -174,6 +175,7 @@ class Civ:
             "trade_hub_id": self.trade_hub_id,
             "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],
             "max_territories": self.max_territories,
+            "vandetta_civ_id": self.vandetta_civ_id,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -272,16 +274,23 @@ class Civ:
             self.trade_hub_id = max(unhappy_cities, key=trade_hub_priority).id
 
         if random.random() < 0.2 or self.target1 is None or self.target2 is None:
-            enemy_cities = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
-            possible_target_hexes = [*[city.hex for city in enemy_cities if city.hex], *[camp.hex for camp in game_state.camps if camp.hex]]
+            enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
+            vandetta_cities: list[City] = [city for city in enemy_cities if city.civ.id == self.vandetta_civ_id]
+            if len(vandetta_cities) > 0:
+                possible_target_hexes: list[Hex | None] = [city.hex for city in vandetta_cities]
+            else:
+                possible_target_hexes: list[Hex | None] = [*[city.hex for city in enemy_cities], *[camp.hex for camp in game_state.camps]]
 
-            random.shuffle(possible_target_hexes)
+            # These all aren't None, but we've got to make the type checker happy
+            possible_target_hexes_filtered: list[Hex] = [hex for hex in possible_target_hexes if hex is not None]
 
-            if len(possible_target_hexes) > 0:
-                self.target1 = possible_target_hexes[0]
+            random.shuffle(possible_target_hexes_filtered)
+
+            if len(possible_target_hexes_filtered) > 0:
+                self.target1 = possible_target_hexes_filtered[0]
                 self.target1_coords = self.target1.coords
-            if len(possible_target_hexes) > 1:
-                self.target2 = possible_target_hexes[1]
+            if len(possible_target_hexes_filtered) > 1:
+                self.target2 = possible_target_hexes_filtered[1]
                 self.target2_coords = self.target2.coords
 
         if self.researching_tech is None:
@@ -426,6 +435,7 @@ class Civ:
         civ.trade_hub_id = json.get("trade_hub_id")
         civ.great_people_choices = [GreatPerson.from_json(great_person_json) for great_person_json in json.get("great_people_choices", [])]
         civ.max_territories = json.get("max_territories", 3)
+        civ.vandetta_civ_id = json.get("vandetta_civ_id")
 
         return civ
 

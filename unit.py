@@ -177,7 +177,7 @@ class Unit:
                 self.fight(sess, game_state, best_target)
                 self.attacks_used += 1
 
-    def target_score(self, target: 'Unit') -> tuple[float, float, float, float]:
+    def target_score(self, target: 'Unit') -> tuple[float, float, float, float, float]:
         """
         Ranking function for which target to attack
         """
@@ -189,7 +189,8 @@ class Unit:
         }
         seiging_my_city: bool = (target.hex.city is not None and target.hex.city.civ == self.civ and len(target.hex.units) > 0 and target.hex.units[0].civ != self.civ)
         closest_target: Hex = self.destination or self.hex
-        return seiging_my_city, -closest_target.distance_to(target.hex), type_scores[target.template.type], -target.strength
+        is_vandetta_civ: bool = target.civ.id == self.civ.vandetta_civ_id
+        return seiging_my_city, is_vandetta_civ, -closest_target.distance_to(target.hex), type_scores[target.template.type], -target.strength
 
     def valid_attack(self, target: 'Unit') -> bool:
         visible: bool = target.hex is not None and target.hex.visible_to_civ(self.civ)

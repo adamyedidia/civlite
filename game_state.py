@@ -276,11 +276,14 @@ class GameState:
         hex = self.hexes[coords]
         if hex.city:
             # This is not a fresh city , it's a pre-existing one.
+            old_civ: Optional[Civ] = hex.city.civ
             print(f"Declining to existing city at {coords}")
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
             hex.city.change_owner(Civ(hex.city.civ_to_revolt_into, game_player=None), game_state=self)
+            hex.city.civ.vandetta_civ_id = old_civ.id
         else:
             # This is a fake city, now it is becoming a real city.
+            old_civ: Optional[Civ] = None
             print(f"Declining to fresh city at {coords}")
             self.register_city(self.fresh_cities_for_decline[coords])
         assert hex.city is not None, "Failed to register city!"
@@ -290,7 +293,6 @@ class GameState:
         hex.city.civ_to_revolt_into = None
         hex.city.buildings = [b for b in hex.city.buildings if not b.is_national_wonder]
 
-        old_civ = hex.city.civ
         new_civ: Civ = hex.city.civ
         new_civ.vitality = hex.city.revolting_starting_vitality
         self.civs_by_id[new_civ.id] = new_civ
