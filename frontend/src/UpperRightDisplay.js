@@ -252,11 +252,7 @@ const ScoreDisplay = ({ myGamePlayer, gameEndScore }) => {
                     {myGamePlayer?.sfs || 0} survival  (25/decline)
                 </Typography>
             </Grid>
-            <Grid item>
-                <Typography>
-                    {myGamePlayer?.sfrc || 0} revolting units (1/unit)
-                </Typography>
-            </Grid>                                                                     
+                                                            
         </Grid>
     </CivDetailPanel>
 }

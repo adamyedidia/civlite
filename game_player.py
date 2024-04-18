@@ -11,7 +11,6 @@ class GamePlayer:
         self.score_from_building_vps = 0
         self.score_from_abilities = 0
         self.score_from_survival = 0
-        self.score_from_revolting_cities = 0
         self.renaissances = 0
         self.decline_this_turn = False
         self.failed_to_decline_this_turn = False
@@ -33,7 +32,6 @@ class GamePlayer:
             "sfbv": self.score_from_building_vps,
             "sfa": self.score_from_abilities,
             "sfs": self.score_from_survival,
-            "sfrc": self.score_from_revolting_cities,
             "renaissances": self.renaissances,
             "decline_this_turn": self.decline_this_turn,
             "failed_to_decline_this_turn": self.failed_to_decline_this_turn,
@@ -54,7 +52,6 @@ class GamePlayer:
         game_player.score_from_building_vps = json["sfbv"]
         game_player.score_from_abilities = json["sfa"]
         game_player.score_from_survival = json["sfs"]
-        game_player.score_from_revolting_cities = json["sfrc"]
         game_player.renaissances = json["renaissances"]
         game_player.decline_this_turn = json["decline_this_turn"]
         game_player.failed_to_decline_this_turn = json["failed_to_decline_this_turn"]
