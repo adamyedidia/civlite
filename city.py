@@ -5,6 +5,7 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
+from camp import Camp
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
@@ -767,7 +768,33 @@ class City:
         self.refresh_available_units()
         self.hide_bad_buildings()
 
+    def barbarian_capture(self, game_state: 'GameState') -> None:
+        """Barbarians replace the city with a camp."""
+        
+        # Call change_owner to do the cleanup on the previous civ ownership
+        self.change_owner(game_state.barbarians, game_state)
+
+        best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level(), random.random()))
+
+        assert self.hex and self.hex.city
+
+
+        # Also build a handful of units out of the ruins of the city
+        for u in self.available_units:
+            print(u)
+            self.hex.city.build_unit(game_state, u)
+
+        self.hex.city = None
+        self.hex.camp = Camp(game_state.barbarians, unit=best_unit)
+
+        del game_state.cities_by_id[self.id]
+        game_state.camps.append(self.hex.camp)
+
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
+        if civ == game_state.barbarians:
+            self.barbarian_capture(game_state)
+            return
+
         print(f"****Captured {self.name}****")
         self.capital = False
         self.unhappiness = 0
