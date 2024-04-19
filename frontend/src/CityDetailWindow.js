@@ -24,7 +24,7 @@ import ProgressBar from './ProgressBar.js';
 import { WithTooltip } from './WithTooltip.js';
 
 const UnitQueueOption = ({unitName, isCurrentIQUnit, canBuild, templates, setHoveredUnit, handleSetInfiniteQueue}) => {
-    return <WithTooltip tooltip={canBuild ? "&#x1F5B1; Toggle infinite queue." : "Cannot build units here."}>
+    return <WithTooltip tooltip={canBuild ? "Toggle infinite queue." : "Cannot build units here."}>
     <div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''} ${canBuild ? 'enabled' : 'disabled'}`}
         onClick={(event) => {
             if (!canBuild) return;

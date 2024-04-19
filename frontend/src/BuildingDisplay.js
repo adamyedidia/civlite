@@ -19,7 +19,7 @@ export const BriefBuildingDisplay = ({ buildingName, hideCost, clickable, style,
 
     let descriptionStr = null;
 
-    if (description?.type === 'yield') {
+    if (description?.type === 'yield' && !(description.value_for_ai > description.value)) {
         descriptionStr = ` (+${description.value})`;
     }
 

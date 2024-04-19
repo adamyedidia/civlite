@@ -270,7 +270,7 @@ class UNITS():
         strength=14,
         movement=1,
         range=2,
-        tags=[UnitTag.SIEGE],
+        tags=[UnitTag.SIEGE, UnitTag.RANGED],
         prereq=TECHS.PHYSICS,
         abilities=[{
             "name": "BonusNextTo",
@@ -503,7 +503,7 @@ class UNITS():
         strength=45,
         movement=1,
         range=2,
-        tags=[UnitTag.INFANTRY, UnitTag.GUNPOWDER],
+        tags=[UnitTag.INFANTRY, UnitTag.GUNPOWDER, UnitTag.RANGED],
         prereq=TECHS.BALLISTICS,
         abilities=[{
             "name": "BonusAgainst",

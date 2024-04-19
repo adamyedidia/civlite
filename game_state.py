@@ -276,11 +276,14 @@ class GameState:
         hex = self.hexes[coords]
         if hex.city:
             # This is not a fresh city , it's a pre-existing one.
+            old_civ: Optional[Civ] = hex.city.civ
             print(f"Declining to existing city at {coords}")
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
             hex.city.change_owner(Civ(hex.city.civ_to_revolt_into, game_player=None), game_state=self)
+            hex.city.civ.vandetta_civ_id = old_civ.id
         else:
             # This is a fake city, now it is becoming a real city.
+            old_civ: Optional[Civ] = None
             print(f"Declining to fresh city at {coords}")
             self.register_city(self.fresh_cities_for_decline[coords])
         assert hex.city is not None, "Failed to register city!"
@@ -298,15 +301,11 @@ class GameState:
         unit_count = 0
         for neighbor_hex in [hex, *hex.get_neighbors(self.hexes)]:
             for unit in neighbor_hex.units:
-                old_unit_civ: Civ = unit.civ
-                unit.civ = new_civ
-                stack_size: int = unit.get_stack_size()
-                unit_count += stack_size
+                if unit.civ == old_civ or unit.civ.template == CIVS.BARBARIAN:
+                    unit.civ = new_civ
+                    stack_size: int = unit.get_stack_size()
+                    unit_count += stack_size
                 
-                if old_unit_civ.game_player:
-                    old_unit_civ.game_player.score += stack_size
-                    old_unit_civ.game_player.score_from_revolting_cities += stack_size
-
             neighbor_hex.camp = None
         hex.city.revolt_unit_count = unit_count
 
