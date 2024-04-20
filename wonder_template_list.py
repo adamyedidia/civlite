@@ -96,6 +96,50 @@ class WONDERS():
         boost_check=TotalPopulation(7),
     )
 
+    # STONEHENGE                    2000 BC
+
+    # ORACLE                         800 BC
+
+    # STATUE OF ZEUS                 435 BC
+    # MAUSOLEUM OF HALICARNASSUS     350 BC
+    # COLOSSUS                       280 BC
+    # GREAT LIBRARY                  250 BC
+    # GREAT_LIGHTHOUSE               250 BC
+    # GREAT_WALL                     200 BC
+    # PARTHENON
+    # PETRA
+    # TERRACOTTA_ARMY
+
+    # ALHAMBRA
+    # ANGKOR WAT
+    # BOROBUDUR
+    # CHICHEN ITZA
+    # MOSQUE OF DJENNE
+    # HAGIA SOPHIA
+    # MACCHU PICCHU
+    # NOTRE DAME
+
+    # FORBIDDEN PALACE
+    # GLOBE THEATER
+    # HIMEJI CASTLE
+    # LEANING TOWER OF PISA
+    # PORCELAIN TOWER
+    # RED FORT
+    # SISTENE CHAPEL
+    # TAJ MAHAL
+    # UFFIZI
+
+    # BIG BEN
+    # BRANDENBURG GATE
+    # LOUVRE
+
+    # BROADWAY
+    # EIFFEL TOWER
+    # KREMLIN
+    # NEUSCHWANSTEIN
+    # PRORA
+    # STATUE OF LIBERTY
+    # CRISTO REDENTOR
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
     # That handled the dynamic type properly.
