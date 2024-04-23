@@ -1043,7 +1043,7 @@ class CIVS():
         name="Korea",
         abilities=[{
             "name": "IncreaseCapitalYields",
-            "numbers": ["science", 8],
+            "numbers": ["science", 60],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 7],
@@ -1054,7 +1054,7 @@ class CIVS():
         name="Ethiopia",
         abilities=[{
             "name": "StartWithResources",
-            "numbers": ["science", 8],
+            "numbers": ["science", 60],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman", 7],

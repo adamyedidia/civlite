@@ -287,9 +287,9 @@ class GameState:
             print(f"Declining to fresh city at {coords}")
             self.register_city(self.fresh_cities_for_decline[coords])
         assert hex.city is not None, "Failed to register city!"
+        hex.city.wood = hex.city.metal = hex.city.unhappiness = 0
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.advancement_level + 1)
-        hex.city.wood = hex.city.metal = hex.city.unhappiness = 0
         hex.city.civ_to_revolt_into = None
         hex.city.buildings = [b for b in hex.city.buildings if not b.is_national_wonder]
 
