@@ -119,7 +119,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
     selectedCityUnitChoices, selectedCity,
     unitTemplatesByBuildingName, templates, descriptions,
-    setHoveredUnit, setHoveredBuilding, setSelectedCity
+    setHoveredUnit, setHoveredBuilding, setSelectedCity, centerMap
      }) => {
 
     const canBuild = !declinePreviewMode && !puppet;
@@ -192,6 +192,24 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         submitPlayerInput('hide_building', {'building_name': buildingName, 'hidden': newHidden});
     }
 
+    const CycleCities = (direction) => {
+        let newCity;
+        if (puppet) {
+            newCity = gameState.cities_by_id[selectedCity.territory_parent_id];
+        } else {
+            const cycleCities = declinePreviewMode ? Object.values(gameState?.cities_by_id || {}).filter(city => city.is_decline_view_option) : myTerritoryCapitals;
+            const cityIndex = cycleCities.findIndex(city => city.id === selectedCity.id);
+            const newIndex = (cityIndex + (direction ? 1 : -1) + cycleCities.length) % cycleCities.length;
+            newCity = cycleCities[newIndex];
+        }
+        if (newCity) {
+            setSelectedCity(newCity);
+            centerMap(newCity.hex);
+        } else {
+            console.log("Error, no city found!")
+        }
+    }
+
     // A bit silly that we calculate the amount available of each resource here
     // And then recalculate each one in the CityDetailPanel.
     const projectedIncome = selectedCity.projected_income || {
@@ -238,8 +256,24 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
                 </h1>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span 
+                        role="img" 
+                        aria-label="Previous City" 
+                        className="city-navigation-icon" 
+                        onClick={() => CycleCities(false)}
+                    >
+                        {puppet ? "⇧" : "◀"}
+                    </span>
                     {selectedCity.name}
                     {declinePreviewMode ? " (preview)" : ""}
+                    <span 
+                        role="img" 
+                        aria-label="Previous City" 
+                        className="city-navigation-icon" 
+                        onClick={() => CycleCities(true)}
+                    >
+                    {puppet ? "⇧" : "▶"}
+                    </span>
                 </h1>
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
             </div>

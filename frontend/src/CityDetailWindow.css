@@ -454,4 +454,13 @@
   50% { background-color: #ff0000; }
 }
 
+.city-navigation-icon {
+  cursor: pointer;
+  margin: 0 20px;
+}
+
+.city-navigation-icon:hover {
+  transform: scale(1.2);
+  color: #666;
+}
 

@@ -3118,6 +3118,7 @@ export default function GamePage() {
                         setHoveredUnit={setHoveredUnit}
                         setHoveredBuilding={setHoveredBuilding}
                         setSelectedCity={setSelectedCity}
+                        centerMap={centerMap}
                         />}
                     <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
                         {hoveredBuilding && (
