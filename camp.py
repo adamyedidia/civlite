@@ -156,7 +156,7 @@ class Camp:
                 "cityPowerReward": CAMP_CLEAR_CITY_POWER_REWARD,
             }, hexes_must_be_visible=[self.hex])
 
-            self.hex.camp = None
+            game_state.unregister_camp(self)
 
         self.hex = None
 

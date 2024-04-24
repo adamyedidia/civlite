@@ -101,6 +101,15 @@ class GameState:
         city.populate_terrains_dict(self)
         return city
 
+    def register_camp(self, camp, hex):
+        camp.hex = hex
+        hex.camp = camp
+        self.camps.append(camp)
+
+    def unregister_camp(self, camp):
+        camp.hex.camp = None
+        self.camps.remove(camp)
+
     def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str) -> None:
         civ.city_power -= 100
         city = self.new_city(civ, hex, city_id)
@@ -306,7 +315,8 @@ class GameState:
                     stack_size: int = unit.get_stack_size()
                     unit_count += stack_size
                 
-            neighbor_hex.camp = None
+            if neighbor_hex.camp is not None:
+                self.unregister_camp(neighbor_hex.camp)
         hex.city.revolt_unit_count = unit_count
 
         hex.city.midturn_update(self)
@@ -357,10 +367,7 @@ class GameState:
 
                         else:
                             if city.hex:
-                                camp = Camp(self.barbarians)
-                                camp.hex = city.hex
-                                city.hex.camp = camp
-                                self.camps.append(camp)
+                                self.register_camp(Camp(self.barbarians), city.hex)
 
                                 city.hex.city = None
                                 city.hex = None
@@ -831,7 +838,7 @@ class GameState:
         self.fresh_cities_for_decline.pop(coords)
         camp_level: int = max(0, self.advancement_level - 2)
         print(f"Making camp at {coords} at level {camp_level}")
-        self.hexes[coords].camp = Camp(self.barbarians, advancement_level=camp_level)
+        self.register_camp(Camp(self.barbarians, advancement_level=camp_level), self.hexes[coords])
 
     def populate_fresh_cities_for_decline(self) -> None:
         self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()

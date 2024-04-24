@@ -785,10 +785,9 @@ class City:
             self.hex.city.build_unit(game_state, u)
 
         self.hex.city = None
-        self.hex.camp = Camp(game_state.barbarians, unit=best_unit)
+        game_state.register_camp(Camp(game_state.barbarians, unit=best_unit), self.hex)
 
         del game_state.cities_by_id[self.id]
-        game_state.camps.append(self.hex.camp)
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         if civ == game_state.barbarians:
