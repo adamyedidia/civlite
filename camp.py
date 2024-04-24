@@ -165,11 +165,9 @@ class Camp:
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None            
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
-        if game_state.turn_num % 2 == 0:
-            self.build_unit(sess, game_state, self.unit)
-
         self.handle_siege(sess, game_state)
-
+        if self.hex and game_state.turn_num % 2 == 0:
+            self.build_unit(sess, game_state, self.unit)
 
     def to_json(self):
         return {
