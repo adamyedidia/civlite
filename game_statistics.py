@@ -44,8 +44,9 @@ def make_game_statistics_plots(sess, game_id: str):
         }
 
         for player_num in game_state.game_player_by_player_num:
-            if old_civ_ids_by_player and old_civ_ids_by_player[player_num] != civ_ids_by_player[player_num]:
-                decline_turns[player_num].append(frame.turn_num)
+            game_player = game_state.game_player_by_player_num[player_num]
+            if old_civ_ids_by_player and old_civ_ids_by_player[player_num] != game_player.civ_id:
+                decline_turns[game_player.username].append(frame.turn_num)
 
 
     print('Plotting: ', scores_by_turn)
