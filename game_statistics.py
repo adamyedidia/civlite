@@ -5,6 +5,7 @@ from game_state import GameState
 from animation_frame import AnimationFrame
 
 from collections import defaultdict
+from itertools import cycle
 
 
 def make_game_statistics_plots(sess, game_id: str):
@@ -58,21 +59,42 @@ def make_game_statistics_plots(sess, game_id: str):
 
     print("Decline turns: ", decline_turns)
 
+    # Define a list of different dash styles for up to 8 players
+    dash_styles = cycle([
+        '--',  # Dashed
+        '-.',  # Dash-dot
+        ':',   # Dotted
+        (0, (1, 10)),  # Very long dash, long space
+        (0, (5, 1)),   # Long dash, short space
+        (0, (3, 10, 1, 10)),  # Dash, long space, dot, long space
+        (0, (3, 5, 1, 5)),    # Dash, space, dot, space
+        (0, (3, 1, 1, 1, 1, 1))  # Dash, dot, dot-dot-dot
+    ])
+
     for username, scores in scores_by_turn.items():
         line, = plt.plot(scores, label=username)  # Store the Line2D object returned by plt.plot
         plt.legend()
         line_color = line.get_color()  # Get the color of the line
+        dash_style = next(dash_styles)  # Get the next dash style from the cycle
         for decline_turn in decline_turns[username]:
-            plt.axvline(decline_turn, color=line_color, linestyle='--')  # Use the same color for the vertical line
+            plt.axvline(decline_turn, color=line_color, linestyle=dash_style)  # Use the same color but different dash style for the vertical line
         plt.savefig(f"plots/scores_by_player_{game_id}.png")
 
     plt.clf()
+
+    # Reset the dash styles for cumulative scores
+    dash_styles = cycle([
+        '--', '-.', ':', 
+        (0, (1, 10)), (0, (5, 1)), 
+        (0, (3, 10, 1, 10)), (0, (3, 5, 1, 5)), 
+        (0, (3, 1, 1, 1, 1, 1))
+    ])
 
     for username, scores in cum_scores_by_turn.items():
         line, = plt.plot(scores, label=username)  # Store the Line2D object returned by plt.plot
         plt.legend()
         line_color = line.get_color()  # Get the color of the line
+        dash_style = next(dash_styles)  # Get the next dash style from the cycle
         for decline_turn in decline_turns[username]:
-            plt.axvline(decline_turn, color=line_color, linestyle='--')  # Use the same color for the vertical line
+            plt.axvline(decline_turn, color=line_color, linestyle=dash_style)  # Use the same color but different dash style for the vertical line
         plt.savefig(f"plots/cum_scores_by_player_{game_id}.png")
-
