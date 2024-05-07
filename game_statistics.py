@@ -52,10 +52,10 @@ def make_game_statistics_plots(sess, game_id: str):
 
     print('Plotting: ', scores_by_turn)
 
-    # # Apply some smoothing to scores_by_turn
-    # for username, scores in scores_by_turn.items():
-    #     for i in range(1, len(scores) - 1):
-    #         scores[i] = (scores[i - 1] + scores[i] + scores[i + 1]) / 3
+    # Apply some smoothing to scores_by_turn
+    for username, scores in scores_by_turn.items():
+        for i in range(1, len(scores) - 1):
+            scores[i] = (scores[i - 1] + scores[i] + scores[i + 1]) / 3
 
     print("Decline turns: ", decline_turns)
 
