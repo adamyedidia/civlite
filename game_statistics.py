@@ -4,12 +4,11 @@ from game_state import GameState
 
 from animation_frame import AnimationFrame
 
-import matplotlib.pyplot as plt
-
 from collections import defaultdict
 
 
 def make_game_statistics_plots(sess, game_id: str):
+    import matplotlib.pyplot as plt
     animation_frames = (
         sess.query(AnimationFrame)
         .filter(AnimationFrame.game_id == game_id)
