@@ -55,6 +55,7 @@ def make_game_statistics_plots(sess, game_id: str):
         for i in range(1, len(scores) - 1):
             scores[i] = (scores[i - 1] + scores[i] + scores[i + 1]) / 3
 
+    print("Decline turns: ", decline_turns)
 
     for username, scores in scores_by_turn.items():
         line, = plt.plot(scores, label=username)  # Store the Line2D object returned by plt.plot
