@@ -341,7 +341,8 @@ class City:
                 if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
                     for ability in abilities:
                         if ability.name == "ExtraVpsForCityGrowth":
-                            self.civ.game_player.score += ability.numbers[0]    
+                            self.civ.game_player.score += ability.numbers[0]
+                            self.civ.score += ability.numbers[0]    
                             self.civ.game_player.score_from_abilities += ability.numbers[0]
 
 
@@ -686,6 +687,7 @@ class City:
 
         if isinstance(new_building.template, BuildingTemplate) and new_building.template.vp_reward and self.civ.game_player:
             self.civ.game_player.score += new_building.template.vp_reward
+            self.civ.score += new_building.template.vp_reward
             self.civ.game_player.score_from_building_vps += new_building.template.vp_reward
 
         if new_building.has_ability('GainCityPower'):
@@ -810,10 +812,12 @@ class City:
 
         if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
             civ.game_player.score += CITY_CAPTURE_REWARD
+            civ.score += CITY_CAPTURE_REWARD
             civ.game_player.score_from_capturing_cities_and_camps += CITY_CAPTURE_REWARD
 
             if civ.has_ability('ExtraVpsPerCityCaptured'):
                 civ.game_player.score += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
+                civ.score += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
                 civ.game_player.score_from_abilities += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
 
             if civ.has_ability('IncreaseYieldsForTerrain'):
@@ -829,6 +833,7 @@ class City:
                     for ability in abilities:
                         if ability.name == "ExtraVpsForCityCapture":
                             civ.game_player.score += ability.numbers[0]
+                            civ.score += ability.numbers[0]
                             civ.game_player.score_from_abilities += ability.numbers[0]
 
         self.change_owner(civ, game_state)

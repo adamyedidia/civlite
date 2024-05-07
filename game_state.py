@@ -119,6 +119,7 @@ class GameState:
         if civ.game_player:
             civ.game_player.score += 2
             civ.game_player.score_from_capturing_cities_and_camps += 2
+            civ.score += 2
 
         if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
             if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
@@ -904,6 +905,7 @@ class GameState:
             if civ.has_ability('ExtraVpsPerWonder'):
                 game_player.score += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
                 game_player.score_from_abilities += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
+                civ.score += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
 
         for city in self.cities_by_id.values():
             for i, building in enumerate(city.buildings_queue):

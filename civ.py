@@ -53,6 +53,9 @@ class Civ:
         self.max_territories: int = 3
         self.vandetta_civ_id: Optional[str] = None
 
+        # Not used in gameplay, just for graphs
+        self.score = 0
+
     def __eq__(self, other: 'Civ') -> bool:
         # TODO(dfarhi) clean up all remaining instances of (civ1.id == civ2.id)
         return other is not None and self.id == other.id
@@ -353,6 +356,7 @@ class Civ:
             if self.game_player is not None:
                 self.game_player.score_from_researching_techs += RENAISSANCE_VP_REWARD
                 self.game_player.score += RENAISSANCE_VP_REWARD
+                self.score += RENAISSANCE_VP_REWARD
                 self.game_player.renaissances += 1
         else:
             self.science -= tech.cost
@@ -366,6 +370,7 @@ class Civ:
         if self.game_player:
             self.game_player.score += TECH_VP_REWARD
             self.game_player.score_from_researching_techs += TECH_VP_REWARD
+            self.score += TECH_VP_REWARD
 
             for wonder in game_state.wonders_built_to_civ_id:
                 if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS.by_name(wonder).abilities):
@@ -373,6 +378,7 @@ class Civ:
                         if ability.name == "ExtraVpsForTechs":
                             self.game_player.score += ability.numbers[0]    
                             self.game_player.score_from_abilities += ability.numbers[0]
+                            self.score += ability.numbers[0]
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
