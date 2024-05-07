@@ -40,4 +40,4 @@ REACT_APP_LOCAL='true'
 * `npm install`
 * `npm start`
 
-You'll want to make a plots/ directory in the main directory of the repo if you want to test plotmaking/game stats stuff locally
+You'll want to make a plots/ directory in the main directory of the repo, and install matplotlib with `pip install matplotlib`, if you want to test plotmaking/game stats stuff locally.
