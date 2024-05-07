@@ -74,7 +74,7 @@ def make_game_statistics_plots(sess, game_id: str):
     ])
 
     for username, scores in scores_by_turn.items():
-        line, = plt.plot(scores, label=username)  # Store the Line2D object returned by plt.plot
+        line, = plt.plot(turn_nums, scores, label=username)  # Store the Line2D object returned by plt.plot
         plt.legend()
         line_color = line.get_color()  # Get the color of the line
         dash_style = next(dash_styles)  # Get the next dash style from the cycle
@@ -93,7 +93,7 @@ def make_game_statistics_plots(sess, game_id: str):
     ])
 
     for username, scores in actual_cum_scores_by_turn.items():
-        line, = plt.plot(scores, label=username)  # Store the Line2D object returned by plt.plot
+        line, = plt.plot(turn_nums, scores, label=username)  # Store the Line2D object returned by plt.plot
         plt.legend()
         line_color = line.get_color()  # Get the color of the line
         dash_style = next(dash_styles)  # Get the next dash style from the cycle
