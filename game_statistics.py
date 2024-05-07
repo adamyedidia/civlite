@@ -25,8 +25,9 @@ def make_game_statistics_plots(sess, game_id: str):
         game_state = GameState.from_json(frame.game_state)
         for player_num in game_state.game_player_by_player_num:
             player = game_state.game_player_by_player_num[player_num]
-            scores_by_turn[player.username].append(player.score - (cum_scores_by_turn[player.username][-1] if cum_scores_by_turn[player.username] else 0))
-            cum_scores_by_turn[player.username].append(player.score)
+            player_score_excluding_survival = player.score - player.score_from_survival
+            scores_by_turn[player.username].append(player_score_excluding_survival - (cum_scores_by_turn[player.username][-1] if cum_scores_by_turn[player.username] else 0))
+            cum_scores_by_turn[player.username].append(player_score_excluding_survival)
 
     print('Plotting: ', scores_by_turn)
 
