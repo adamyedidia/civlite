@@ -21,6 +21,7 @@ def make_game_statistics_plots(sess, game_id: str):
 
     scores_by_turn = defaultdict(list)
     cum_scores_by_turn = defaultdict(list)
+    actual_cum_scores_by_turn = defaultdict(list)
 
     civ_ids_by_player = None
 
@@ -34,6 +35,7 @@ def make_game_statistics_plots(sess, game_id: str):
             player_score_excluding_survival = player.score - player.score_from_survival
             scores_by_turn[player.username].append(player_score_excluding_survival - (cum_scores_by_turn[player.username][-1] if cum_scores_by_turn[player.username] else 0))
             cum_scores_by_turn[player.username].append(player_score_excluding_survival)
+            actual_cum_scores_by_turn[player.username].append(player.score)
 
         turn_nums.append(frame.turn_num)
 
@@ -90,7 +92,7 @@ def make_game_statistics_plots(sess, game_id: str):
         (0, (3, 1, 1, 1, 1, 1))
     ])
 
-    for username, scores in cum_scores_by_turn.items():
+    for username, scores in actual_cum_scores_by_turn.items():
         line, = plt.plot(scores, label=username)  # Store the Line2D object returned by plt.plot
         plt.legend()
         line_color = line.get_color()  # Get the color of the line
