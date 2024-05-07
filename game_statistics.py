@@ -64,10 +64,10 @@ def make_game_statistics_plots(sess, game_id: str):
         '--',  # Dashed
         '-.',  # Dash-dot
         ':',   # Dotted
-        (0, (1, 10)),  # Very long dash, long space
+        (0, (1, 2)),  # Very long dash, long space
         (0, (5, 1)),   # Long dash, short space
-        (0, (3, 10, 1, 10)),  # Dash, long space, dot, long space
-        (0, (3, 5, 1, 5)),    # Dash, space, dot, space
+        (0, (3, 2, 1, 2)),  # Dash, long space, dot, long space
+        (0, (3, 3, 1, 3)),    # Dash, space, dot, space
         (0, (3, 1, 1, 1, 1, 1))  # Dash, dot, dot-dot-dot
     ])
 
@@ -85,8 +85,8 @@ def make_game_statistics_plots(sess, game_id: str):
     # Reset the dash styles for cumulative scores
     dash_styles = cycle([
         '--', '-.', ':', 
-        (0, (1, 10)), (0, (5, 1)), 
-        (0, (3, 10, 1, 10)), (0, (3, 5, 1, 5)), 
+        (0, (1, 2)), (0, (5, 1)), 
+        (0, (3, 2, 1, 2)), (0, (3, 3, 1, 3)), 
         (0, (3, 1, 1, 1, 1, 1))
     ])
 
