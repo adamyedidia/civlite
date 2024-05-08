@@ -278,7 +278,7 @@ class GameState:
         return from_civ_perspectives
 
 
-    def process_decline_option(self, coords: str, from_civ_perspectives: list[Civ]) -> City:
+    def process_decline_option(self, coords: str, from_civ_perspectives: list[Civ], is_game_player: bool=True) -> City:
         """
         The parts of entering decline that happen both when you do it for real,
         and when the special decline options view GameState is produced.
@@ -309,13 +309,15 @@ class GameState:
         from_civ_perspectives.append(new_civ)
 
         unit_count = 0
-        for neighbor_hex in [hex, *hex.get_neighbors(self.hexes)]:
+        hexes_to_steal_from: list[Hex] = [hex, *hex.get_neighbors(self.hexes)] if is_game_player else [hex]
+        print(f"Stealing units from {hexes_to_steal_from}")
+        for neighbor_hex in hexes_to_steal_from:
             for unit in neighbor_hex.units:
                 if unit.civ == old_civ or unit.civ.template == CIVS.BARBARIAN:
                     unit.civ = new_civ
                     stack_size: int = unit.get_stack_size()
                     unit_count += stack_size
-                
+        for neighbor_hex in [hex, *hex.get_neighbors(self.hexes)]:
             if neighbor_hex.camp is not None:
                 self.unregister_camp(neighbor_hex.camp)
         hex.city.revolt_unit_count = unit_count

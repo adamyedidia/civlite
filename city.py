@@ -325,10 +325,10 @@ class City:
         else:
             self.revolting_starting_vitality = 1.0 + 0.025 * game_state.turn_num + 0.0075 * self.unhappiness
 
-        if not self.is_fake_city() and self.unhappiness > 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None:
+        if not self.is_fake_city() and self.unhappiness > 10 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None:
             # Revolt to AI
             assert self.hex is not None
-            game_state.process_decline_option(self.hex.coords, [])
+            game_state.process_decline_option(self.hex.coords, [], is_game_player=False)
             game_state.make_new_civ_from_the_ashes(self)
             # Rebel civs have no great person
             self.civ.great_people_choices = []
