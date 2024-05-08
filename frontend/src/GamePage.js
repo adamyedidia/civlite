@@ -42,6 +42,7 @@ import SettingsDialog from './SettingsDialog';
 import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
 import vitalityImg from './images/heart.png';
+import declineImg from './images/phoenix.png';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
 const coordsToObject = (coords) => {
@@ -2753,7 +2754,7 @@ export default function GamePage() {
                         {city.name}
                     </text>
 
-                    {/* Populatoin */}
+                    {/* Population */}
                     <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={finalSecondaryColor} strokeWidth="0.1"/>
                     <image opacity={.7} href={workerIcon} x="3.5" y="0.4" height="1" width="1" />
                     <text x="50%" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
@@ -2787,6 +2788,10 @@ export default function GamePage() {
                     <text x="0" y="0.4" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
                         {Math.floor(city.revolting_starting_vitality * 100)}%
                     </text>
+                    </>
+                }
+                {!declineOptionsView && friendly && city.unhappiness >= 100 && <>
+                    <image href={declineImg} x="-1.5" y="-2.5" height="3" width="3" />
                     </>
                 }
             </>
