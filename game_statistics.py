@@ -136,6 +136,7 @@ def make_game_statistics_plots(sess, game_id: str):
             plt.axvline(decline_turn, color=line_color, linestyle=dash_style)  # Use the same color but different dash style for the vertical line
         plt.savefig(f"plots/cum_scores_by_player_{game_id}.png")
 
+    plt.clf()
 
     num_turns = len(turn_nums)
 
@@ -152,6 +153,7 @@ def make_game_statistics_plots(sess, game_id: str):
             plt.axvline(decline_turn, color=line_color, linestyle=dash_style)
         plt.savefig(f"plots/total_yields_by_civ_{game_id}.png")
 
+    plt.clf()
 
     for civ_id, military_strength in military_strength_by_turn.items():
         if civ_id not in civs_that_have_ever_had_game_player:
