@@ -143,7 +143,10 @@ def make_game_statistics_plots(sess, game_id: str):
     legend_fontsize = 'small'  # Adjust font size
     legend_columns = 2  # Number of columns in the legend
 
+    print(civs_that_have_ever_had_game_player)
+
     for civ_id, yields in total_yields_by_turn.items():
+        print(civ_id, civ_id not in civs_that_have_ever_had_game_player)
         if civ_id not in civs_that_have_ever_had_game_player:
             continue
 
