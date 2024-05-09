@@ -705,6 +705,16 @@ def unend_turn(sess, game_id):
     return jsonify({})
 
 
+@app.route('/final_graphs/<game_id>', methods=['GET'])
+@api_endpoint
+def final_graphs(sess, game_id):
+    game = Game.get(sess, socketio, game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+
+    return jsonify({})
+
+
 @app.route('/api/game_constants', methods=['GET'])
 @api_endpoint
 def get_game_constants(sess):
