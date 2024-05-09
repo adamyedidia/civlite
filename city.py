@@ -317,12 +317,6 @@ class City:
             for ability in building.template.abilities:
                 if ability.name == 'DecreaseFoodDemand':
                     result -= ability.numbers[0]
-        parent = self.get_territory_parent(game_state)
-        if parent is not None:
-            for building in parent.buildings:
-                for ability in building.template.abilities:
-                    if ability.name == 'DecreaseFoodDemandPuppets':
-                        result -= ability.numbers[0]
         result = max(result, 0)
         return result
 
@@ -710,14 +704,6 @@ class City:
 
         if new_building.has_ability('TripleCityPopulation'):
             self.population *= 3
-
-        if new_building.has_ability('ResetCityUnhappiness'):
-            self.unhappiness = 0
-        
-        if new_building.has_ability('ResetCivUnhappiness'):
-            for city in game_state.cities_by_id.values():
-                if city.civ == self.civ:
-                    city.unhappiness = 0
 
         if building_template is not None and building_template.is_wonder:
             assert isinstance(building_template, BuildingTemplate)
