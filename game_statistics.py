@@ -69,6 +69,8 @@ def make_game_statistics_plots(sess, game_id: str):
             civ_scores_by_turn[civ_id].append(civ.score - (cum_civ_scores_by_turn[civ_id][-2] if len(cum_civ_scores_by_turn[civ_id]) > 1 else 0))
         
             if civ.game_player:
+                print("has ever had game player: ", civ_id)
+
                 civs_that_have_ever_had_game_player.add(civ_id)
 
         for city_id in game_state.cities_by_id:
