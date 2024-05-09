@@ -76,6 +76,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                     shape: 'linear',
                     dash: 'solid'
                 },
+                legendgroup: colorByCiv ? `group${civId}` : `group${civInfos[civId].player_num}`,
                 showlegend: showLegend,
             });
         }
@@ -93,6 +94,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                     shape: 'linear',
                     dash: 'dot'
                 },
+                legendgroup: colorByCiv ? `group${civId}` : `group${civInfos[civId].player_num}`,
                 showlegend: false,
             });
         }
@@ -116,7 +118,9 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                         color: color,
                         width: 2,
                         dash: 'dot'
-                    }
+                    },
+                    legendgroup: `group${civId}`,
+                    showlegend: false,
                 });
             }
         });
