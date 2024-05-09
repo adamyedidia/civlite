@@ -69,8 +69,6 @@ def make_game_statistics_plots(sess, game_id: str):
             civ_scores_by_turn[civ_id].append(civ.score - (cum_civ_scores_by_turn[civ_id][-2] if len(cum_civ_scores_by_turn[civ_id]) > 1 else 0))
         
             if civ.game_player:
-                print("has ever had game player: ", civ_id)
-
                 civs_that_have_ever_had_game_player.add(civ_id)
 
         for city_id in game_state.cities_by_id:
@@ -139,39 +137,29 @@ def make_game_statistics_plots(sess, game_id: str):
 
     num_turns = len(turn_nums)
 
-    # Example adjustments for the legend
-    legend_fontsize = 'small'  # Adjust font size
-    legend_columns = 2  # Number of columns in the legend
-
-    print(civs_that_have_ever_had_game_player)
-
     for civ_id, yields in total_yields_by_turn.items():
-        print(civ_id, civ_id not in civs_that_have_ever_had_game_player)
         if civ_id not in civs_that_have_ever_had_game_player:
             continue
 
         padded_yields = [0] * (num_turns - len(yields)) + yields
-        line, = plt.plot(turn_nums, padded_yields, label=game_state.civs_by_id[civ_id].template.name)
-        plt.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize=legend_fontsize, ncol=legend_columns)  # Adjust legend placement and size
+        line, = plt.plot(turn_nums, padded_yields, label=game_state.civs_by_id[civ_id].template.name)  # type: ignore
+        plt.legend()
         line_color = line.get_color()
         dash_style = next(dash_styles)
         for decline_turn in decline_turns_for_civs[civ_id]:
             plt.axvline(decline_turn, color=line_color, linestyle=dash_style)
-        plt.savefig(f"plots/total_yields_by_civ_{game_id}.png", bbox_inches='tight')  # Adjust bounding box to include legend
+        plt.savefig(f"plots/total_yields_by_civ_{game_id}.png")
 
-        plt.clf()
 
     for civ_id, military_strength in military_strength_by_turn.items():
         if civ_id not in civs_that_have_ever_had_game_player:
             continue
         
         padded_military_strength = [0] * (num_turns - len(military_strength)) + military_strength
-        line, = plt.plot(turn_nums, padded_military_strength, label=game_state.civs_by_id[civ_id].template.name)
-        plt.legend(loc='upper left', bbox_to_anchor=(1, 1), fontsize=legend_fontsize, ncol=legend_columns)  # Adjust legend placement and size
+        line, = plt.plot(turn_nums, padded_military_strength, label=game_state.civs_by_id[civ_id].template.name)  # type: ignore
+        plt.legend()
         line_color = line.get_color()
         dash_style = next(dash_styles)
         for decline_turn in decline_turns_for_civs[civ_id]:
             plt.axvline(decline_turn, color=line_color, linestyle=dash_style)
-        plt.savefig(f"plots/military_strength_by_civ_{game_id}.png", bbox_inches='tight')  # Adjust bounding box to include legend
-
-        plt.clf()
+        plt.savefig(f"plots/military_strength_by_civ_{game_id}.png")
