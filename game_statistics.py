@@ -1,5 +1,3 @@
-from game import Game
-
 from game_state import GameState
 
 from animation_frame import AnimationFrame
