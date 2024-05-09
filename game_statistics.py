@@ -143,7 +143,7 @@ def make_game_statistics_plots(sess, game_id: str):
 
         padded_yields = [0] * (num_turns - len(yields)) + yields
         line, = plt.plot(turn_nums, padded_yields, label=game_state.civs_by_id[civ_id].template.name)  # type: ignore
-        plt.legend()
+        plt.legend(loc='upper left')
         line_color = line.get_color()
         dash_style = next(dash_styles)
         for decline_turn in decline_turns_for_civs[civ_id]:
@@ -157,7 +157,7 @@ def make_game_statistics_plots(sess, game_id: str):
         
         padded_military_strength = [0] * (num_turns - len(military_strength)) + military_strength
         line, = plt.plot(turn_nums, padded_military_strength, label=game_state.civs_by_id[civ_id].template.name)  # type: ignore
-        plt.legend()
+        plt.legend(loc='upper left')
         line_color = line.get_color()
         dash_style = next(dash_styles)
         for decline_turn in decline_turns_for_civs[civ_id]:
