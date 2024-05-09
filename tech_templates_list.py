@@ -173,6 +173,11 @@ class TECHS():
         cost=170,
         advancement_level=6,
     )
+    MASS_MARKETS = TechTemplate(
+        name='Mass Markets',
+        cost=200,
+        advancement_level=6,
+    )
     RADIO = TechTemplate(
         name='Radio',
         cost=250,
