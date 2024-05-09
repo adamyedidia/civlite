@@ -43,6 +43,7 @@ import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
 import vitalityImg from './images/heart.png';
 import declineImg from './images/phoenix.png';
+import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
 const coordsToObject = (coords) => {
@@ -177,26 +178,31 @@ function RulesDialog({open, onClose, gameConstants}) {
     )
 }
 
-function GameOverDialog({open, onClose, gameState}) {
+function GameOverDialog({open, onClose, gameState, gameId, URL, templates}) {
     return (
-        <Dialog open={open} onClose={onClose}>
+        <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth="lg">
             <DialogTitle>
                 <Typography variant="h2" component="div">  
                     {/* component="div" removes an html error complaining of nested h2s */}
                     Game over
                 </Typography>
             </DialogTitle>
-            <DialogContent>
+            <DialogContent className="game-over-dialog-content">
                 <Grid container direction="column" spacing={2}>
-                    {Object.values(gameState?.game_player_by_player_num).map((gamePlayer) => {
+                    {Object.values(gameState?.game_player_by_player_num).sort((a, b) => b.score - a.score).map((gamePlayer) => {
                         return (
-                            <Grid item key={gamePlayer.player_num}>
-                                <Typography variant="h5">{gamePlayer.username}</Typography>
-                                <Typography>Score: {gamePlayer.score}</Typography>
+                            <Grid container item key={gamePlayer.player_num} spacing={0}>
+                                <Grid item xs={2}>
+                                    <Typography variant="h5">{gamePlayer.score}</Typography>
+                                </Grid>
+                                <Grid item xs={3}>
+                                    <Typography variant="h5">{gamePlayer.username}</Typography>
+                                </Grid>
                             </Grid>
                         )
                     })}
                 </Grid>
+                <PostGameStats gameState={gameState} gameId={gameId} URL={URL} templates={templates} />
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose} color="primary">
@@ -3215,6 +3221,9 @@ export default function GamePage() {
                     open={gameOverDialogOpen}
                     onClose={() => setGameOverDialogOpen(false)}
                     gameState={gameState}
+                    gameId={gameId}
+                    URL={URL}
+                    templates={templates}
                 />}
             </>
         );

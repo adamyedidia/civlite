@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from functools import wraps
+from functools import lru_cache, wraps
 import logging
 from logging.handlers import RotatingFileHandler
 import traceback
@@ -18,7 +18,7 @@ from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game, TimerStatus
 from game_player import GamePlayer
-from game_state import GameState
+from game_state import GameState, make_game_statistics_plots
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
@@ -703,6 +703,20 @@ def unend_turn(sess, game_id):
     game.set_turn_ended_by_player_num(player_num, False, via_player_input=True)
 
     return jsonify({})
+
+@app.route('/api/postgame_stats/<game_id>', methods=['GET'])
+@api_endpoint
+# @lru_cache  ## TODO uncomment after debugging
+def get_postgame_stats(sess, game_id):
+    game = Game.get(sess, socketio, game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    civ_infos, stats = make_game_statistics_plots(sess, game.id)
+    return jsonify({
+        'civ_infos': civ_infos,
+        'stats': stats,
+    })
 
 
 @app.route('/final_graphs/<game_id>', methods=['GET'])
