@@ -117,7 +117,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                     line: {
                         color: color,
                         width: 2,
-                        dash: 'dot'
+                        dash: 'dash'
                     },
                     legendgroup: `group${civId}`,
                     showlegend: false,
