@@ -32,7 +32,7 @@ def make_game_statistics_plots(sess, game_id: str):
     total_yields_by_turn = defaultdict(list)
     military_strength_by_turn = defaultdict(list)
 
-    civs_that_have_ever_had_game_player = set()
+    civs_that_have_ever_had_game_player = {}
 
     for frame in animation_frames:
         game_state = GameState.from_json(frame.game_state)
@@ -69,7 +69,7 @@ def make_game_statistics_plots(sess, game_id: str):
             civ_scores_by_turn[civ_id].append(civ.score - (cum_civ_scores_by_turn[civ_id][-2] if len(cum_civ_scores_by_turn[civ_id]) > 1 else 0))
         
             if civ.game_player:
-                civs_that_have_ever_had_game_player.add(civ_id)
+                civs_that_have_ever_had_game_player[civ_id] = civ.game_player.username
 
         for city_id in game_state.cities_by_id:
             city = game_state.cities_by_id[city_id]
@@ -144,7 +144,7 @@ def make_game_statistics_plots(sess, game_id: str):
             continue
 
         padded_yields = [0] * (num_turns - len(yields)) + yields
-        line, = plt.plot(turn_nums, padded_yields, label=game_state.civs_by_id[civ_id].template.name)  # type: ignore
+        line, = plt.plot(turn_nums, padded_yields, label=f'{game_state.civs_by_id[civ_id].template.name} ({civs_that_have_ever_had_game_player[civ_id]})')  # type: ignore
         plt.legend(loc='upper left')
         line_color = line.get_color()
         dash_style = next(dash_styles)
@@ -158,7 +158,7 @@ def make_game_statistics_plots(sess, game_id: str):
             continue
         
         padded_military_strength = [0] * (num_turns - len(military_strength)) + military_strength
-        line, = plt.plot(turn_nums, padded_military_strength, label=game_state.civs_by_id[civ_id].template.name)  # type: ignore
+        line, = plt.plot(turn_nums, padded_military_strength, label=f'{game_state.civs_by_id[civ_id].template.name} ({civs_that_have_ever_had_game_player[civ_id]})')  # type: ignore
         plt.legend(loc='upper left')
         line_color = line.get_color()
         dash_style = next(dash_styles)
