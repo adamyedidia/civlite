@@ -130,12 +130,11 @@ def make_game_statistics_plots(sess, game_id: str):
         plt.savefig(f"plots/cum_scores_by_player_{game_id}.png")
 
 
-    for civ_id, yields in total_yields_by_turn.items():
-        print("Plotting yields for civ_id: ", civ_id)
-        print("Yields: ", yields)
-        print("Turn nums: ", turn_nums)
+    num_turns = len(turn_nums)
 
-        line, = plt.plot(turn_nums, yields, label=game_state.civs_by_id[civ_id].name)  # type: ignore
+    for civ_id, yields in total_yields_by_turn.items():
+        padded_yields = [0] * (num_turns - len(yields)) + yields
+        line, = plt.plot(turn_nums, padded_yields, label=game_state.civs_by_id[civ_id].name)  # type: ignore
         plt.legend()
         line_color = line.get_color()
         dash_style = next(dash_styles)
@@ -145,7 +144,8 @@ def make_game_statistics_plots(sess, game_id: str):
 
 
     for civ_id, military_strength in military_strength_by_turn.items():
-        line, = plt.plot(turn_nums, military_strength, label=game_state.civs_by_id[civ_id].name)  # type: ignore
+        padded_military_strength = [0] * (num_turns - len(military_strength)) + military_strength
+        line, = plt.plot(turn_nums, padded_military_strength, label=game_state.civs_by_id[civ_id].name)  # type: ignore
         plt.legend()
         line_color = line.get_color()
         dash_style = next(dash_styles)
