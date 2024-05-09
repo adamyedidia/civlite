@@ -106,6 +106,8 @@ def make_game_statistics_plots(sess, game_id: str):
         (0, (3, 1, 1, 1, 1, 1))  # Dash, dot, dot-dot-dot
     ])
 
+    plt.figure(figsize=(12, 8))
+
     for username, scores in scores_by_turn.items():
         line, = plt.plot(turn_nums, scores, label=username)  # Store the Line2D object returned by plt.plot
         plt.legend()
