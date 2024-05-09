@@ -56,7 +56,7 @@ def make_game_statistics_plots(sess, game_id: str):
             game_player = game_state.game_player_by_player_num[player_num]
             if old_civ_ids_by_player and old_civ_ids_by_player[player_num] != game_player.civ_id:
                 decline_turns[game_player.username].append(frame.turn_num)
-                decline_turns_for_civs[game_player.civ_id].append(frame.turn_num)
+                decline_turns_for_civs[old_civ_ids_by_player[player_num]].append(frame.turn_num)
 
         yields_by_civ = defaultdict(float)
         total_metal_value_by_civ = defaultdict(int)
