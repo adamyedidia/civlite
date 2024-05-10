@@ -14,7 +14,7 @@ from building_template import BuildingTemplate
 from building import Building
 from animation_frame import AnimationFrame
 from game_state import GameState
-from game_statistics import make_game_statistics_plots
+from sqlalchemy import func
 
 
 def main():
@@ -23,6 +23,7 @@ def main():
     # add objects that you want to use in the shell to this dictionary
     user_ns = {
         "sess": sess, 
+        "func": func,
         "Game": Game,
         "GameState": GameState,
         "Civ": Civ,
@@ -36,7 +37,6 @@ def main():
         "BuildingTemplate": BuildingTemplate,
         "Building": Building,
         "AnimationFrame": AnimationFrame,
-        "make_game_statistics_plots": make_game_statistics_plots,
     }
 
     embed(user_ns=user_ns)

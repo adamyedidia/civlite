@@ -406,6 +406,33 @@ def get_movie_frame(sess, game_id, frame_num):
         'data': animation_frame.data,
     })
 
+
+@app.route('/api/final_movie/<game_id>/<turn_num>', methods=['GET'])
+@api_endpoint
+def get_final_movie(sess, game_id, turn_num):
+    game = Game.get(sess, socketio, game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+
+    animation_frame: Optional[AnimationFrame] = (
+        sess.query(AnimationFrame)
+        .filter(AnimationFrame.game_id == game_id)
+        .filter(AnimationFrame.player_num == None)
+        .filter(AnimationFrame.frame_num == 1)
+        .filter(AnimationFrame.turn_num == turn_num)
+        .one_or_none()
+    )
+
+    if animation_frame is None:
+        return jsonify({"error": "Animation frame not found"}), 404
+    
+    return jsonify({
+        'game_state': animation_frame.game_state,
+        'turn_num': game.turn_num,
+        'data': animation_frame.data,
+    })
+
+
 @app.route('/api/reset_game/', methods=['POST'])
 @api_endpoint
 def reset_game(sess):

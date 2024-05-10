@@ -22,7 +22,7 @@ const AnimationControlBar = ({animationFrame, animationTotalFrames}) => {
 
 const LowerRightDisplay = ({ gameState, gameId, playerNum, timerStatus, nextForcedRollAt, turnEndedByPlayerNum, hoveredHex, 
     handleClickEndTurn, handleClickUnendTurn, overtimeUnendTurnDisabled,
-    triggerAnimations, engineState, animationFrameLastPlayedRef, animationTotalFrames, cancelAnimations }) => {
+    triggerAnimations, engineState, animationFrameLastPlayedRef, animationTotalFrames, cancelAnimations, playFinalMovie }) => {
     const toggleAnimations = () => {
         if (engineState === EngineStates.ANIMATING) {
             cancelAnimations();
@@ -68,6 +68,7 @@ const LowerRightDisplay = ({ gameState, gameId, playerNum, timerStatus, nextForc
 
                     : "Replay animations" }
                 </Button>}
+                {gameState?.game_over && <Button onClick={playFinalMovie} variant="contained" style={{backgroundColor: "#ffccff"}}>Play final movie</Button>}
             </div>
             <TurnEndedDisplay 
                 gamePlayerByPlayerNum={gameState?.game_player_by_player_num}

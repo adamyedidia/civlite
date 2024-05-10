@@ -961,13 +961,6 @@ class GameState:
 
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= self.game_end_score():
-                def make_game_stats():
-                    try:
-                        make_game_statistics_plots(sess, self.game_id)
-                    except Exception as e:
-                        print(f"Failed to make game stats: {e}")
-
-                Thread(target=make_game_stats).start()
                 self.game_over = True
 
                 break

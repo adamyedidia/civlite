@@ -2435,6 +2435,22 @@ export default function GamePage() {
         greatPersonPopupIfNeeded(myCiv);
     }
 
+    const playFinalMovie = async () => {
+        const finalTurnNum = gameStateRef.current.turn_num;
+
+        const currentGameState = gameStateRef.current;
+
+        for (let turnNum = 1; turnNum <= finalTurnNum; turnNum++) {
+            const response = await fetch(`${URL}/api/final_movie/${gameId}/${turnNum}`);
+            const json = await response.json();
+            if (json.data) {
+                setGameState(json.game_state);
+            }
+            await new Promise(resolve => setTimeout(resolve, 700));
+        }
+        setGameState(currentGameState);
+    }
+
     const triggerAnimationsInner = async () => {
         animationsLastStartedAtRef.current = Date.now();
         animationFrameLastPlayedRef.current = 0;
@@ -3075,6 +3091,7 @@ export default function GamePage() {
                         animationFrameLastPlayedRef={animationFrameLastPlayedRef}
                         animationTotalFrames={animationTotalFrames}
                         cancelAnimations={cancelAnimations}
+                        playFinalMovie={playFinalMovie}
                     />}
                     {<UpperRightDisplay 
                         setHoveredUnit={setHoveredUnit} 
