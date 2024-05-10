@@ -2446,7 +2446,7 @@ export default function GamePage() {
             if (json.data) {
                 setGameState(json.game_state);
             }
-            await new Promise(resolve => setTimeout(resolve, 700));
+            await new Promise(resolve => setTimeout(resolve, 1200));
         }
         setGameState(currentGameState);
     }
