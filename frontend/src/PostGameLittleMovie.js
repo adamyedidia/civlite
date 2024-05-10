@@ -37,7 +37,8 @@ const PostGameLittleMovie = ({ movieData, movieFrame, setMovieFrame, getColor, c
                 </Hexagon>
             })}
         </Layout>
-    </HexGrid>;
+    </HexGrid>
+    <div>Turn {thisFrame.turn_num}</div>
     <input
         type="range"
         min="0"
