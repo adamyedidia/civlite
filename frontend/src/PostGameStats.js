@@ -261,7 +261,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
         </div>
         <div className="little-movie-container">
             <PostGameLittleMovie movieData={movieData} movieFrame={movieFrame} setMovieFrame={setMovieFrame} 
-                getColor={getColor} civInfos={civInfos} />
+                getColor={getColor} civInfos={civInfos} finalGameState={gameState} />
         </div>
         </div>
     );

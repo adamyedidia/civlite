@@ -200,8 +200,8 @@ def make_game_statistics_plots(sess, game_id: str):
                 'coords': {'q': hex.q, 'r': hex.r, 's': hex.s},
                 'civ': civ_color(hex), 
                 'city': hex.city is not None,
+                'puppet': hex.city is not None and not hex.city.is_territory_capital,
                 'camp': hex.camp is not None,
-                # TODO add puppet lines
                 }
                 for hex in game_state.hexes.values()],
         })
