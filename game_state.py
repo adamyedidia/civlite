@@ -86,7 +86,6 @@ def make_game_statistics_plots(sess, game_id: str):
         .order_by(AnimationFrame.turn_num)
         .all()
     )
-    print([(frame.game_state['turn_num'], frame.frame_num, frame.game_id == game_id, frame.player_num == None) for frame in animation_frames])
 
     scores_by_turn = defaultdict(list)
     cum_scores_by_turn = defaultdict(list)

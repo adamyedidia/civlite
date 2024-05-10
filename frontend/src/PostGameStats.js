@@ -2,7 +2,7 @@ import React from 'react';
 import './PostGameStats.css';
 
 import Plot from 'react-plotly.js';
-import { FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Switch } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Switch, Slider, Typography } from '@mui/material';
 import PostGameLittleMovie from './PostGameLittleMovie';
 
 const PostGameStats = ({ gameState, gameId, URL, templates }) => {
@@ -13,6 +13,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     const [displayStat, setDisplayStat] = React.useState('total_yields');
     const [colorByCiv, setColorByCiv] = React.useState(true);
     const [showDeclines, setShowDeclines] = React.useState(true);
+    const [smoothing, setSmoothing] = React.useState(0);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
 
@@ -66,13 +67,25 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
         const dead_turn = civInfos[civId].dead_turn || last_turn;
         const end_turn = (displayStat == 'score_per_turn' || displayStat == 'cumulative_score') ? decline_turn : dead_turn;
         const x = Array.from({ length: end_turn - start_turn + 1 }, (_, index) => index + start_turn);
-        const y = activeData[civId].slice(0, end_turn - start_turn + 1);
-        if (x.length !== y.length) {
+        const rawy = activeData[civId].slice(0, end_turn - start_turn + 1);
+        if (x.length !== rawy.length) {
             console.error("Data mismatch: 'x' and 'y' arrays must be the same length.");
             console.log(x.length, x)
-            console.log(y.length, y)
+            console.log(rawy.length, rawy)
             console.log(start_turn, decline_turn, end_turn, activeData[civId].length)
         }
+        const smoothingFactor = smoothing / 100;
+        const y = rawy.map((current, index, arr) => {
+            let smoothedValue = 0;
+            let normalizationFactor = 0;
+            let weight = 1;
+            for (let i = index; i >= 0; i--) {
+                smoothedValue += weight * arr[i];
+                normalizationFactor += weight;
+                weight *= smoothingFactor;
+            }
+            return smoothedValue / normalizationFactor;
+        });
     
         const line_color = getColor(civId);
         const dot_color = colorByCiv ? templates.CIVS[gameState.civs_by_id[civId].name].secondary_color : playerNumPlotColors[civInfos[civId].player_num];
@@ -212,6 +225,21 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                             label="Show Declines"
                         />
                     </FormGroup>
+                </FormControl>
+                <FormControl fullWidth>
+                    <Typography id="smoothing-slider-label">
+                        Smoothing: {smoothing}%
+                    </Typography>
+                    <Slider
+                        aria-labelledby="smoothing-slider-label"
+                        value={smoothing}
+                        onChange={(e, newValue) => setSmoothing(newValue)}
+                        valueLabelDisplay="auto"
+                        step={1}
+                        marks
+                        min={0}
+                        max={100}
+                    />
                 </FormControl>
             </div>
             <Plot
