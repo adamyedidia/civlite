@@ -41,7 +41,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     if (error) return <div>Error: {error}</div>;
 
     const activeData = stats[displayStat];
-    const last_turn = gameState.turn_num - 1;
+    const last_turn = gameState.turn_num;
     const playerNumPlotColors = ['red', 'green', 'blue', 'orange', 'purple', 'black', 'pink', 'brown'];
 
 
@@ -63,9 +63,16 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
         }
         const start_turn = civInfos[civId].start_turn;
         const decline_turn = civInfos[civId].decline_turn || last_turn;
-        const end_turn = civInfos[civId].dead_turn || last_turn;
+        const dead_turn = civInfos[civId].dead_turn || last_turn;
+        const end_turn = (displayStat == 'score_per_turn' || displayStat == 'cumulative_score') ? decline_turn : dead_turn;
         const x = Array.from({ length: end_turn - start_turn + 1 }, (_, index) => index + start_turn);
         const y = activeData[civId].slice(0, end_turn - start_turn + 1);
+        if (x.length !== y.length) {
+            console.error("Data mismatch: 'x' and 'y' arrays must be the same length.");
+            console.log(x.length, x)
+            console.log(y.length, y)
+            console.log(start_turn, decline_turn, end_turn, activeData[civId].length)
+        }
     
         const line_color = getColor(civId);
         const dot_color = colorByCiv ? templates.CIVS[gameState.civs_by_id[civId].name].secondary_color : playerNumPlotColors[civInfos[civId].player_num];

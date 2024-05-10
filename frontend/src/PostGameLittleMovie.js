@@ -22,7 +22,6 @@ const PostGameLittleMovie = ({ movieData, movieFrame, setMovieFrame, getColor, c
         const newFrame = parseInt(event.target.value, 10);
         setMovieFrame(newFrame);
     };
-    console.log(civInfos)
     return <div className='little-movie'>
     <HexGrid width={400} height={400}>
         <Layout size={{ x: 3, y: 3 }}>
