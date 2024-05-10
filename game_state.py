@@ -65,6 +65,7 @@ def make_game_statistics_plots(sess, game_id: str):
         .order_by(AnimationFrame.turn_num)
         .all()
     )
+    print([frame.game_state['turn_num'] for frame in animation_frames])
 
     scores_by_turn = defaultdict(list)
     cum_scores_by_turn = defaultdict(list)
@@ -111,7 +112,6 @@ def make_game_statistics_plots(sess, game_id: str):
             if old_civ_ids_by_player and old_civ_ids_by_player[player_num] != game_player.civ_id:
                 decline_turns[game_player.username].append(frame.turn_num - 1)
                 decline_turns_for_civs[old_civ_ids_by_player[player_num]] = frame.turn_num - 1
-                start_turns_for_civs[game_player.civ_id] = frame.turn_num - 1
                 # Give their old civ a dot for their cumulative score so that the line is continuous  
                 civ_cumulative_scores_by_turn[old_civ_ids_by_player[player_num]].append(actual_cum_scores_by_turn[game_player.username][-1])
                 civ_scores_by_turn[old_civ_ids_by_player[player_num]].append(scores_by_turn[game_player.username][-1])
@@ -124,6 +124,11 @@ def make_game_statistics_plots(sess, game_id: str):
 
         for civ_id, civ in game_state.civs_by_id.items():
             vitality[civ_id].append(civ.vitality)
+            if civ_id not in start_turns_for_civs:
+                start_turns_for_civs[civ_id] = frame.turn_num - 1
+                if not civ.game_player:
+                    # Rebels start declined
+                    decline_turns_for_civs[civ_id] = frame.turn_num - 1
             if civ.game_player:
                 civs_that_have_ever_had_game_player[civ_id] = civ.game_player.player_num
                 civ_scores_by_turn[civ_id].append(scores_by_turn[civ.game_player.username][-1])
@@ -176,9 +181,9 @@ def make_game_statistics_plots(sess, game_id: str):
             'start_turn': start_turns_for_civs[civ_id],
             'decline_turn': decline_turns_for_civs.get(civ_id, None),
             'dead_turn': dead_turns.get(civ_id, None),
-            'player_num': civs_that_have_ever_had_game_player[civ_id],
+            'player_num': civs_that_have_ever_had_game_player.get(civ_id, None),
         }
-        for civ_id in civs_that_have_ever_had_game_player
+        for civ_id in start_turns_for_civs
     }
 
     stats = {

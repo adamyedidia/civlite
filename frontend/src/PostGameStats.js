@@ -49,7 +49,11 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
         if (colorByCiv) {
             return templates.CIVS[gameState.civs_by_id[civId].name].primary_color;
         } else {
-            return playerNumPlotColors[civInfos[civId].player_num];
+            const playerNum = civInfos[civId].player_num;
+            if (!playerNum) {
+                return 'grey';
+            }
+            return playerNumPlotColors[playerNum];
         }
     }
 
