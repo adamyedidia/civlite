@@ -113,6 +113,7 @@ def make_game_statistics_plots(sess, game_id: str):
                 start_turns_for_civs[game_player.civ_id] = frame.turn_num - 1
                 # Give their old civ a dot for their cumulative score so that the line is continuous  
                 civ_cumulative_scores_by_turn[old_civ_ids_by_player[player_num]].append(actual_cum_scores_by_turn[game_player.username][-1])
+                civ_scores_by_turn[old_civ_ids_by_player[player_num]].append(scores_by_turn[game_player.username][-1])
 
 
         yields_by_civ = defaultdict(float)

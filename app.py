@@ -706,11 +706,12 @@ def unend_turn(sess, game_id):
 
 @app.route('/api/postgame_stats/<game_id>', methods=['GET'])
 @api_endpoint
-# @lru_cache  ## TODO uncomment after debugging
+@lru_cache
 def get_postgame_stats(sess, game_id):
     game = Game.get(sess, socketio, game_id)
     if not game:
         return jsonify({"error": "Game not found"}), 404
+    assert game.game_over
     
     civ_infos, stats = make_game_statistics_plots(sess, game.id)
     return jsonify({
