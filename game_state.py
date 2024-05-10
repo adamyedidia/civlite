@@ -124,7 +124,7 @@ def make_game_statistics_plots(sess, game_id: str):
 
         for civ_id, civ in game_state.civs_by_id.items():
             vitality[civ_id].append(civ.vitality)
-            if civ_id not in start_turns_for_civs:
+            if civ_id not in start_turns_for_civs and civ_id != game_state.barbarians.id:
                 start_turns_for_civs[civ_id] = frame.turn_num - 1
                 if not civ.game_player:
                     # Rebels start declined

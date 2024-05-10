@@ -50,7 +50,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
             return templates.CIVS[gameState.civs_by_id[civId].name].primary_color;
         } else {
             const playerNum = civInfos[civId].player_num;
-            if (!playerNum) {
+            if (playerNum === null) {
                 return 'grey';
             }
             return playerNumPlotColors[playerNum];
@@ -58,6 +58,9 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     }
 
     const plotData = Object.keys(civInfos).flatMap(civId => {
+        if (!activeData[civId]) {
+            return [];
+        }
         const start_turn = civInfos[civId].start_turn;
         const decline_turn = civInfos[civId].decline_turn || last_turn;
         const end_turn = civInfos[civId].dead_turn || last_turn;
@@ -83,8 +86,8 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                 type: 'scatter',
                 mode: 'lines+markers',
                 name: colorByCiv ? 
-                    gameState.civs_by_id[civId].name + ' (' + gameState.game_player_by_player_num[civInfos[civId].player_num].username + ')' :
-                    gameState.game_player_by_player_num[civInfos[civId].player_num].username,
+                    gameState.civs_by_id[civId].name + ' (' + (gameState.game_player_by_player_num[civInfos[civId].player_num]?.username || 'Rebels') + ')' :
+                    gameState.game_player_by_player_num[civInfos[civId].player_num]?.username || 'Rebels',
                 x: solidX,
                 y: solidY,
                 marker: { size: 6, color: dot_color },
@@ -136,7 +139,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     if (showDeclines) {
         Object.keys(civInfos).forEach(civId => {
             const startTurn = civInfos[civId].start_turn;
-            if (startTurn > 1) {
+            if (startTurn > 1 && civInfos[civId].player_num !== null) {
                 const color = getColor(civId);
                 plotShapes.push({
                     type: 'line',
