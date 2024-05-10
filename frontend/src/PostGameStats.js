@@ -3,10 +3,13 @@ import './PostGameStats.css';
 
 import Plot from 'react-plotly.js';
 import { FormControl, InputLabel, Select, MenuItem, FormGroup, FormControlLabel, Switch } from '@mui/material';
+import PostGameLittleMovie from './PostGameLittleMovie';
 
 const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     const [civInfos, setCivInfos] = React.useState(null);
     const [stats, setStats] = React.useState(null);
+    const [movieData, setMovieData] = React.useState(null);
+    const [movieFrame, setMovieFrame] = React.useState(0);
     const [displayStat, setDisplayStat] = React.useState('total_yields');
     const [colorByCiv, setColorByCiv] = React.useState(true);
     const [showDeclines, setShowDeclines] = React.useState(true);
@@ -23,6 +26,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                 const data = await response.json();
                 setCivInfos(data.civ_infos);
                 setStats(data.stats);
+                setMovieData(data.movie_frames);
             } catch (err) {
                 setError(err.message);
             } finally {
@@ -40,6 +44,15 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     const last_turn = gameState.turn_num - 1;
     const playerNumPlotColors = ['red', 'green', 'blue', 'orange', 'purple', 'black', 'pink', 'brown'];
 
+
+    const getColor = (civId) => {
+        if (colorByCiv) {
+            return templates.CIVS[gameState.civs_by_id[civId].name].primary_color;
+        } else {
+            return playerNumPlotColors[civInfos[civId].player_num];
+        }
+    }
+
     const plotData = Object.keys(civInfos).flatMap(civId => {
         const start_turn = civInfos[civId].start_turn;
         const decline_turn = civInfos[civId].decline_turn || last_turn;
@@ -47,7 +60,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
         const x = Array.from({ length: end_turn - start_turn + 1 }, (_, index) => index + start_turn);
         const y = activeData[civId].slice(0, end_turn - start_turn + 1);
     
-        const line_color = colorByCiv ? templates.CIVS[gameState.civs_by_id[civId].name].primary_color : playerNumPlotColors[civInfos[civId].player_num];
+        const line_color = getColor(civId);
         const dot_color = colorByCiv ? templates.CIVS[gameState.civs_by_id[civId].name].secondary_color : playerNumPlotColors[civInfos[civId].player_num];
     
         // Split the data into two parts: before and after the decline
@@ -101,12 +114,26 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     
         return traces;
     });
-    const plotShapes = [];
+    const frameTurnNum = movieData[movieFrame].turn_num;
+    const plotShapes = [
+        {
+            type: 'line',
+            x0: frameTurnNum,
+            x1: frameTurnNum,
+            y0: 0,
+            y1: 1,
+            yref: 'paper', // This makes the line span the entire y-axis height
+            line: {
+                color: 'black',
+                width: 2,
+            },
+        }
+    ];
     if (showDeclines) {
         Object.keys(civInfos).forEach(civId => {
             const startTurn = civInfos[civId].start_turn;
             if (startTurn > 1) {
-                const color = colorByCiv ? templates.CIVS[gameState.civs_by_id[civId].name].primary_color : playerNumPlotColors[civInfos[civId].player_num];
+                const color = getColor(civId);
                 plotShapes.push({
                     type: 'line',
                     x0: startTurn,
@@ -119,8 +146,6 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                         width: 2,
                         dash: 'dash'
                     },
-                    legendgroup: `group${civId}`,
-                    showlegend: false,
                 });
             }
         });
@@ -128,6 +153,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
 
     return (
         <div className="post-game-stats">
+            <div className="post-game-graph">
             <div className="stat-selector-container">
                 <FormControl fullWidth>
                     <InputLabel id="stat-select-label">Statistic</InputLabel>
@@ -190,6 +216,11 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                 height: 600,
             }}
             />
+        </div>
+        <div className="little-movie-container">
+            <PostGameLittleMovie movieData={movieData} movieFrame={movieFrame} setMovieFrame={setMovieFrame} 
+                getColor={getColor} civInfos={civInfos} />
+        </div>
         </div>
     );
 };

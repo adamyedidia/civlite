@@ -6,7 +6,19 @@
 }
 
 .post-game-stats {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.post-game-graph {
     margin: 10px;
+}
+
+.little-movie {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .stat-selector-container {

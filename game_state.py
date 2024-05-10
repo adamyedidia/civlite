@@ -84,6 +84,7 @@ def make_game_statistics_plots(sess, game_id: str):
     civ_cumulative_scores_by_turn = defaultdict(list)
     vitality = defaultdict(list)
     population = defaultdict(list)
+    movie_frames = []
 
     civs_that_have_ever_had_game_player = {}
 
@@ -145,6 +146,31 @@ def make_game_statistics_plots(sess, game_id: str):
             if yields_by_civ[civ_id] == 0 and total_metal_value_by_civ[civ_id] == 0 and civ_id not in dead_turns:
                 dead_turns[civ_id] = frame.turn_num
 
+        def civ_color(hex) -> str | None:
+            if hex.city:
+                return hex.city.civ_id
+           
+            neighbor_city_civs = {n.city.civ_id for n in hex.get_neighbors(game_state.hexes) if n.city}
+            if len(neighbor_city_civs) == 1:
+                return neighbor_city_civs.pop()
+            if len(neighbor_city_civs) > 1:
+                if len(hex.units) > 0 and hex.units[0].civ_id in neighbor_city_civs:
+                    return hex.units[0].civ_id
+
+            return None
+
+        movie_frames.append({
+            'turn_num': frame.turn_num,
+            'hexes': [{
+                'coords': {'q': hex.q, 'r': hex.r, 's': hex.s},
+                'civ': civ_color(hex), 
+                'city': hex.city is not None,
+                'camp': hex.camp is not None,
+                # TODO add puppet lines
+                }
+                for hex in game_state.hexes.values()],
+        })
+
     civ_infos = {
         civ_id: {
             'start_turn': start_turns_for_civs[civ_id],
@@ -164,7 +190,7 @@ def make_game_statistics_plots(sess, game_id: str):
         'vitality': vitality,
     }
 
-    return civ_infos, stats
+    return civ_infos, stats, movie_frames
 
 class GameState:
     def __init__(self, game_id: str, hexes: dict[str, Hex]):

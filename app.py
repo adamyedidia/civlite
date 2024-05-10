@@ -740,10 +740,11 @@ def get_postgame_stats(sess, game_id):
         return jsonify({"error": "Game not found"}), 404
     assert game.game_over
     
-    civ_infos, stats = make_game_statistics_plots(sess, game.id)
+    civ_infos, stats, movie_frames = make_game_statistics_plots(sess, game.id)
     return jsonify({
         'civ_infos': civ_infos,
         'stats': stats,
+        'movie_frames': movie_frames,
     })
 
 
