@@ -2,7 +2,7 @@ import random
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Dict
 from collections import defaultdict
-from great_person import GreatPerson, great_people_by_name
+from great_person import GreatGeneral, GreatPerson, great_people_by_name
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
 from game_player import GamePlayer
@@ -261,7 +261,8 @@ class Civ:
 
     def bot_move(self, game_state: 'GameState') -> None:
         if  len(self.great_people_choices) > 0:
-            self.select_great_person(game_state, self.great_people_choices[0].name)
+            choice: GreatPerson = max(self.great_people_choices, key=lambda g: (isinstance(g, GreatGeneral), random.random()))
+            self.select_great_person(game_state, choice.name)
 
         my_cities = self.get_my_cities(game_state)
 

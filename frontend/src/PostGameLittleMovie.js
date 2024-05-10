@@ -32,7 +32,7 @@ const PostGameLittleMovie = ({ movieData, movieFrame, setMovieFrame, getColor, c
                 let civName;
                 if (civ) {
                     const civPlayerNum = civInfos[hex.civ].player_num
-                    civName = civPlayerNum ? `${civ.name} (${finalGameState.game_player_by_player_num[civPlayerNum].username})` : civ.name;
+                    civName = civPlayerNum !== null ? `${civ.name} (${finalGameState.game_player_by_player_num[civPlayerNum].username})` : civ.name;
                 }
                 return <Hexagon key={`${hex.coords.q}-${hex.coords.r}-${hex.coords.s}`} q={hex.coords.q} r={hex.coords.r} s={hex.coords.s} 
                     style={{
