@@ -110,7 +110,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                     gameState.game_player_by_player_num[civInfos[civId].player_num]?.username || 'Rebels',
                 x: solidX,
                 y: solidY,
-                marker: { size: 6, color: dot_color },
+                marker: { size: 5, color: dot_color },
                 line: {
                     color: line_color,
                     shape: 'linear',
@@ -128,7 +128,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                 mode: 'lines+markers',
                 x: dotX,
                 y: dotY,
-                marker: { size: 5, color: dot_color },
+                marker: { size: 3, color: dot_color },
                 line: {
                     color: line_color,
                     shape: 'linear',
