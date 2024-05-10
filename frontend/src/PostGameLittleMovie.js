@@ -3,7 +3,7 @@ import { HexGrid, Layout, Hexagon } from 'react-hexgrid';
 
 const PostGameLittleMovie = ({ movieData, movieFrame, setMovieFrame, getColor, civInfos }) => {
     const thisFrame = movieData[movieFrame];
-    const [paused, setPaused] = React.useState(false);
+    const [paused, setPaused] = React.useState(true);
     const [tickInterval, setTickInterval] = React.useState(null);
 
     React.useEffect(() => {

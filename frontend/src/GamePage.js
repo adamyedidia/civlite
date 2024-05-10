@@ -180,7 +180,7 @@ function RulesDialog({open, onClose, gameConstants}) {
 
 function GameOverDialog({open, onClose, gameState, gameId, URL, templates}) {
     return (
-        <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth="lg">
+        <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth={false} style={{ width: '80vw' }}>
             <DialogTitle>
                 <Typography variant="h2" component="div">  
                     {/* component="div" removes an html error complaining of nested h2s */}
@@ -188,7 +188,7 @@ function GameOverDialog({open, onClose, gameState, gameId, URL, templates}) {
                 </Typography>
             </DialogTitle>
             <DialogContent className="game-over-dialog-content">
-                <Grid container direction="column" spacing={2}>
+                <Grid container direction="column" spacing={2} width="300px">
                     {Object.values(gameState?.game_player_by_player_num).sort((a, b) => b.score - a.score).map((gamePlayer) => {
                         return (
                             <Grid container item key={gamePlayer.player_num} spacing={0}>
