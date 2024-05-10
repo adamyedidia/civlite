@@ -923,12 +923,14 @@ class City:
         return self.hex.is_threatened_city(game_state)
 
     def bot_move(self, game_state: 'GameState') -> None:
-        def effective_advancement_level(unit: UnitTemplate) -> int:
+        def effective_advancement_level(unit: UnitTemplate, slingers_better_than_warriors=False) -> float:
             # treat my civ's unique unit as +1 adv level.
             if self.civ.has_ability('IncreasedStrengthForUnit'):
                 special_unit_name = self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0]
                 if unit.name == special_unit_name:
                     return unit.advancement_level() + 1
+            if unit == UNITS.SLINGER and slingers_better_than_warriors:
+                return 0.5
             return unit.advancement_level()
 
         print(f"Planning Ai move for city {self.name}")
@@ -936,11 +938,14 @@ class City:
 
         # Don't build stationary units
         available_units = [unit for unit in self.available_units if unit.movement > 0]
-        highest_level = max([effective_advancement_level(unit) for unit in available_units])
-        highest_tier_units = [unit for unit in available_units if effective_advancement_level(unit) == highest_level]
+        highest_level = max([effective_advancement_level(unit, slingers_better_than_warriors=True) for unit in available_units])
+        highest_tier_units = [unit for unit in available_units if effective_advancement_level(unit, slingers_better_than_warriors=True) == highest_level]
         if highest_level < self.civ.get_advancement_level() - 2 and not self.is_threatened_city(game_state):
             self.infinite_queue_unit = None
             print(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
+        elif highest_level < self.civ.get_advancement_level() - 4:
+            self.infinite_queue_unit = None
+            print(f"  not building units even though threatened, because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
         else:
             self.infinite_queue_unit = random.choice(highest_tier_units)
             print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units]})")
@@ -948,25 +953,21 @@ class City:
         available_buildings = self.get_available_buildings()
         economic_buildings = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
         military_buildings = [building for building in available_buildings if isinstance(building, UnitTemplate) and building.movement > 0]
+        lotsa_wood: bool = self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2
         if len(military_buildings) > 0:
-            # Choose buildings first by effective advancement level, then randomly, but prefering slingers over warriors if we have the bldg
+            # Choose buildings first by effective advancement level, then randomly
             best_military_building = max(military_buildings, key=lambda building: (
-                building.advancement_level(), 
-                1 if building.name == "Slinger" else 0,
+                effective_advancement_level(building, slingers_better_than_warriors=lotsa_wood), 
                 random.random()
                 ))
         else:
             best_military_building = None
-        if best_military_building is not None and (self.infinite_queue_unit is None or effective_advancement_level(best_military_building) > effective_advancement_level(self.infinite_queue_unit)):
+        if best_military_building is not None and (self.infinite_queue_unit is None or effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood) > effective_advancement_level(self.infinite_queue_unit, slingers_better_than_warriors=lotsa_wood)):
             self.buildings_queue = [best_military_building]
-            print(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building)}): {self.buildings_queue}")
+            print(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)}): {self.buildings_queue}")
             if self.infinite_queue_unit is not None and not self.is_threatened_city(game_state):
                 print(f"  not building units to wait for new military building.")
                 self.infinite_queue_unit = None
-        elif highest_level == 0 and UNITS.SLINGER not in self.available_units and self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2:
-            # switch from warrior to slinger
-            self.buildings_queue = [UNITS.SLINGER]
-            print(f"  building slingers because of all the wood.")
         elif len(self.buildings_queue) > 0:
             print(f"  continuing previous build queue: {self.buildings_queue}")
         elif len(economic_buildings) > 0:
