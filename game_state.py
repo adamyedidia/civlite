@@ -23,7 +23,7 @@ from unit_template import UnitTemplate
 from utils import dream_key, staged_moves_key, deterministic_hash
 from great_person import random_great_people_by_age
 
-from sqlalchemy import func
+from sqlalchemy import and_, func
 
 from threading import Thread
 
@@ -57,11 +57,32 @@ def get_all_camps(hexes: dict[str, Hex]) -> list[Camp]:
 
 # TODO this shouldn't be in game_state.py
 def make_game_statistics_plots(sess, game_id: str):
-    animation_frames = (
-        sess.query(AnimationFrame)
+    # Find the last frame for each turn. GPT4 wrote these queries
+    # Subquery to find the maximum frame_num for each turn_num
+    max_frame_subquery = (
+        sess.query(
+            AnimationFrame.turn_num,
+            func.max(AnimationFrame.frame_num).label('max_frame_num')
+        )
         .filter(AnimationFrame.game_id == game_id)
         .filter(AnimationFrame.player_num == None)
-        .filter(AnimationFrame.frame_num == 1)
+        .group_by(AnimationFrame.turn_num)
+        .subquery()
+    )
+
+    # Main query to fetch the frames with the highest frame_num for each turn_num
+    animation_frames = (
+        sess.query(AnimationFrame)
+        .join(
+            max_frame_subquery,
+            and_(
+                AnimationFrame.turn_num == max_frame_subquery.c.turn_num,
+                AnimationFrame.frame_num == max_frame_subquery.c.max_frame_num
+            )
+        )
+        .filter(AnimationFrame.game_id == game_id)
+        .filter(AnimationFrame.player_num == None)
+        .filter(AnimationFrame.turn_num > 1)  # Exclude the first turn which has hallucinated state
         .order_by(AnimationFrame.turn_num)
         .all()
     )
@@ -78,12 +99,16 @@ def make_game_statistics_plots(sess, game_id: str):
     start_turns_for_civs = defaultdict(lambda: 1)
     dead_turns: dict[str, int] = {}
 
-    total_yields_by_turn = defaultdict(list)
-    military_strength_by_turn = defaultdict(list)
-    civ_scores_by_turn = defaultdict(list)
+    # In all the following, we initialize to a list with one entry.
+    # Because the first time we notice you is the start of the turn AFTER you were born
+    # So the plots are more intuitive if we prepend one tur of data from the turn you were born.
+    total_yields_by_turn = defaultdict(lambda: [0.0])
+    military_strength_by_turn = defaultdict(lambda: [0.0])
+    civ_scores_by_turn = defaultdict(lambda: [0.0])
     civ_cumulative_scores_by_turn = defaultdict(list)
     vitality = defaultdict(list)
-    population = defaultdict(list)
+    population = defaultdict(lambda: [0.0])
+    movie_frames = []
 
     civs_that_have_ever_had_game_player = {}
 
@@ -110,10 +135,6 @@ def make_game_statistics_plots(sess, game_id: str):
             if old_civ_ids_by_player and old_civ_ids_by_player[player_num] != game_player.civ_id:
                 decline_turns[game_player.username].append(frame.turn_num - 1)
                 decline_turns_for_civs[old_civ_ids_by_player[player_num]] = frame.turn_num - 1
-                start_turns_for_civs[game_player.civ_id] = frame.turn_num - 1
-                # Give their old civ a dot for their cumulative score so that the line is continuous  
-                civ_cumulative_scores_by_turn[old_civ_ids_by_player[player_num]].append(actual_cum_scores_by_turn[game_player.username][-1])
-                civ_scores_by_turn[old_civ_ids_by_player[player_num]].append(scores_by_turn[game_player.username][-1])
 
 
         yields_by_civ = defaultdict(float)
@@ -122,7 +143,22 @@ def make_game_statistics_plots(sess, game_id: str):
 
 
         for civ_id, civ in game_state.civs_by_id.items():
+            if civ_id not in start_turns_for_civs and civ_id != game_state.barbarians.id:
+                start_turns_for_civs[civ_id] = frame.turn_num - 1
+                # Add vitality for the previous turn when we appeared
+                vitality[civ_id].append(civ.vitality / 0.92)
+                if not civ.game_player:
+                    # Rebels start declined
+                    decline_turns_for_civs[civ_id] = frame.turn_num - 1
+                else:
+                    # Add cum score for the previous turn when we appeared
+                    if frame.turn_num > 2:
+                        civ_cumulative_scores_by_turn[civ_id].append(actual_cum_scores_by_turn[civ.game_player.username][-2])
+                    else:
+                        civ_cumulative_scores_by_turn[civ_id].append(0)
+
             vitality[civ_id].append(civ.vitality)
+
             if civ.game_player:
                 civs_that_have_ever_had_game_player[civ_id] = civ.game_player.player_num
                 civ_scores_by_turn[civ_id].append(scores_by_turn[civ.game_player.username][-1])
@@ -145,14 +181,39 @@ def make_game_statistics_plots(sess, game_id: str):
             if yields_by_civ[civ_id] == 0 and total_metal_value_by_civ[civ_id] == 0 and civ_id not in dead_turns:
                 dead_turns[civ_id] = frame.turn_num
 
+        def civ_color(hex) -> str | None:
+            if hex.city:
+                return hex.city.civ_id
+           
+            neighbor_city_civs = {n.city.civ_id for n in hex.get_neighbors(game_state.hexes) if n.city}
+            if len(neighbor_city_civs) == 1:
+                return neighbor_city_civs.pop()
+            if len(neighbor_city_civs) > 1:
+                if len(hex.units) > 0 and hex.units[0].civ_id in neighbor_city_civs:
+                    return hex.units[0].civ_id
+
+            return None
+
+        movie_frames.append({
+            'turn_num': frame.turn_num,
+            'hexes': [{
+                'coords': {'q': hex.q, 'r': hex.r, 's': hex.s},
+                'civ': civ_color(hex), 
+                'city': hex.city is not None,
+                'puppet': hex.city is not None and not hex.city.is_territory_capital,
+                'camp': hex.camp is not None,
+                }
+                for hex in game_state.hexes.values()],
+        })
+
     civ_infos = {
         civ_id: {
             'start_turn': start_turns_for_civs[civ_id],
             'decline_turn': decline_turns_for_civs.get(civ_id, None),
             'dead_turn': dead_turns.get(civ_id, None),
-            'player_num': civs_that_have_ever_had_game_player[civ_id],
+            'player_num': civs_that_have_ever_had_game_player.get(civ_id, None),
         }
-        for civ_id in civs_that_have_ever_had_game_player
+        for civ_id in start_turns_for_civs
     }
 
     stats = {
@@ -164,7 +225,7 @@ def make_game_statistics_plots(sess, game_id: str):
         'vitality': vitality,
     }
 
-    return civ_infos, stats
+    return civ_infos, stats, movie_frames
 
 class GameState:
     def __init__(self, game_id: str, hexes: dict[str, Hex]):
