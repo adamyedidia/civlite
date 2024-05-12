@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from functools import lru_cache, wraps
+from functools import wraps
 import logging
 from logging.handlers import RotatingFileHandler
 import traceback
@@ -11,9 +11,7 @@ from flask_socketio import SocketIO, join_room, leave_room
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from animation_frame import AnimationFrame
-from city import City, generate_random_city_name
-from civ import Civ, create_starting_civ_options_for_players
-from civ_template import CivTemplate
+from civ import create_starting_civ_options_for_players
 from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game, TimerStatus
@@ -733,7 +731,6 @@ def unend_turn(sess, game_id):
 
 @app.route('/api/postgame_stats/<game_id>', methods=['GET'])
 @api_endpoint
-@lru_cache
 def get_postgame_stats(sess, game_id):
     game = Game.get(sess, socketio, game_id)
     if not game:
