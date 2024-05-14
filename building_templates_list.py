@@ -336,7 +336,7 @@ class BUILDINGS():
     WORLDS_FAIR = BuildingTemplate(
         name="World's Fair",
         type="economy",
-        cost=100,
+        cost=200,
         abilities=[{
             "name": "ResetCivUnhappiness",
             "numbers": [],
@@ -586,7 +586,7 @@ class BUILDINGS():
         vp_reward=5,
         prereq=TECHS.MECHANIZED_AGRICULTURE,
     )
-    APPLOLO_PROGRAM = BuildingTemplate(
+    APOLLO_PROGRAM = BuildingTemplate(
         name="Apollo Program",
         type="economy",
         cost=400,
