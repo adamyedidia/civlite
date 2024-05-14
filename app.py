@@ -11,14 +11,12 @@ from flask_socketio import SocketIO, join_room, leave_room
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from animation_frame import AnimationFrame
-from city import City, generate_random_city_name
-from civ import Civ, create_starting_civ_options_for_players
-from civ_template import CivTemplate
+from civ import create_starting_civ_options_for_players
 from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game, TimerStatus
 from game_player import GamePlayer
-from game_state import GameState
+from game_state import GameState, make_game_statistics_plots
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
 
@@ -730,6 +728,21 @@ def unend_turn(sess, game_id):
     game.set_turn_ended_by_player_num(player_num, False, via_player_input=True)
 
     return jsonify({})
+
+@app.route('/api/postgame_stats/<game_id>', methods=['GET'])
+@api_endpoint
+def get_postgame_stats(sess, game_id):
+    game = Game.get(sess, socketio, game_id)
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    assert game.game_over
+    
+    civ_infos, stats, movie_frames = make_game_statistics_plots(sess, game.id)
+    return jsonify({
+        'civ_infos': civ_infos,
+        'stats': stats,
+        'movie_frames': movie_frames,
+    })
 
 
 @app.route('/final_graphs/<game_id>', methods=['GET'])

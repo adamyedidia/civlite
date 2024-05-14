@@ -23,7 +23,7 @@ from unit_template import UnitTemplate
 from utils import dream_key, staged_moves_key, deterministic_hash
 from great_person import random_great_people_by_age
 
-from sqlalchemy import func
+from sqlalchemy import and_, func
 
 from threading import Thread
 
@@ -55,14 +55,34 @@ def get_all_camps(hexes: dict[str, Hex]) -> list[Camp]:
             camps.append(hex.camp)
     return camps
 
-
+# TODO this shouldn't be in game_state.py
 def make_game_statistics_plots(sess, game_id: str):
-    import matplotlib.pyplot as plt
-    animation_frames = (
-        sess.query(AnimationFrame)
+    # Find the last frame for each turn. GPT4 wrote these queries
+    # Subquery to find the maximum frame_num for each turn_num
+    max_frame_subquery = (
+        sess.query(
+            AnimationFrame.turn_num,
+            func.max(AnimationFrame.frame_num).label('max_frame_num')
+        )
         .filter(AnimationFrame.game_id == game_id)
         .filter(AnimationFrame.player_num == None)
-        .filter(AnimationFrame.frame_num == 1)
+        .group_by(AnimationFrame.turn_num)
+        .subquery()
+    )
+
+    # Main query to fetch the frames with the highest frame_num for each turn_num
+    animation_frames = (
+        sess.query(AnimationFrame)
+        .join(
+            max_frame_subquery,
+            and_(
+                AnimationFrame.turn_num == max_frame_subquery.c.turn_num,
+                AnimationFrame.frame_num == max_frame_subquery.c.max_frame_num
+            )
+        )
+        .filter(AnimationFrame.game_id == game_id)
+        .filter(AnimationFrame.player_num == None)
+        .filter(AnimationFrame.turn_num > 1)  # Exclude the first turn which has hallucinated state
         .order_by(AnimationFrame.turn_num)
         .all()
     )
@@ -75,10 +95,20 @@ def make_game_statistics_plots(sess, game_id: str):
 
     turn_nums = []
     decline_turns = defaultdict(list)
-    decline_turns_for_civs = defaultdict(list)    
+    decline_turns_for_civs: dict[str, int] = {}
+    start_turns_for_civs = defaultdict(lambda: 1)
+    dead_turns: dict[str, int] = {}
 
-    total_yields_by_turn = defaultdict(list)
-    military_strength_by_turn = defaultdict(list)
+    # In all the following, we initialize to a list with one entry.
+    # Because the first time we notice you is the start of the turn AFTER you were born
+    # So the plots are more intuitive if we prepend one tur of data from the turn you were born.
+    total_yields_by_turn = defaultdict(lambda: [0.0])
+    military_strength_by_turn = defaultdict(lambda: [0.0])
+    civ_scores_by_turn = defaultdict(lambda: [0.0])
+    civ_cumulative_scores_by_turn = defaultdict(list)
+    vitality = defaultdict(list)
+    population = defaultdict(lambda: [0.0])
+    movie_frames = []
 
     civs_that_have_ever_had_game_player = {}
 
@@ -103,27 +133,43 @@ def make_game_statistics_plots(sess, game_id: str):
         for player_num in game_state.game_player_by_player_num:
             game_player = game_state.game_player_by_player_num[player_num]
             if old_civ_ids_by_player and old_civ_ids_by_player[player_num] != game_player.civ_id:
-                decline_turns[game_player.username].append(frame.turn_num)
-                decline_turns_for_civs[old_civ_ids_by_player[player_num]].append(frame.turn_num)
+                decline_turns[game_player.username].append(frame.turn_num - 1)
+                decline_turns_for_civs[old_civ_ids_by_player[player_num]] = frame.turn_num - 1
+
 
         yields_by_civ = defaultdict(float)
         total_metal_value_by_civ = defaultdict(int)
+        pop_by_civ = defaultdict(int)
 
-        civ_scores_by_turn = defaultdict(list)
-        cum_civ_scores_by_turn = defaultdict(list)
 
         for civ_id, civ in game_state.civs_by_id.items():
-            cum_civ_scores_by_turn[civ_id].append(civ.score)
-            civ_scores_by_turn[civ_id].append(civ.score - (cum_civ_scores_by_turn[civ_id][-2] if len(cum_civ_scores_by_turn[civ_id]) > 1 else 0))
-        
+            if civ_id not in start_turns_for_civs and civ_id != game_state.barbarians.id:
+                start_turns_for_civs[civ_id] = frame.turn_num - 1
+                # Add vitality for the previous turn when we appeared
+                vitality[civ_id].append(civ.vitality / 0.92)
+                if not civ.game_player:
+                    # Rebels start declined
+                    decline_turns_for_civs[civ_id] = frame.turn_num - 1
+                else:
+                    # Add cum score for the previous turn when we appeared
+                    if frame.turn_num > 2:
+                        civ_cumulative_scores_by_turn[civ_id].append(actual_cum_scores_by_turn[civ.game_player.username][-2])
+                    else:
+                        civ_cumulative_scores_by_turn[civ_id].append(0)
+
+            vitality[civ_id].append(civ.vitality)
+
             if civ.game_player:
-                civs_that_have_ever_had_game_player[civ_id] = civ.game_player.username
+                civs_that_have_ever_had_game_player[civ_id] = civ.game_player.player_num
+                civ_scores_by_turn[civ_id].append(scores_by_turn[civ.game_player.username][-1])
+                civ_cumulative_scores_by_turn[civ_id].append(actual_cum_scores_by_turn[civ.game_player.username][-1])
 
         for city_id in game_state.cities_by_id:
             city = game_state.cities_by_id[city_id]
             city.adjust_projected_yields(game_state)
             total_yields = city.projected_income['food'] + city.projected_income['wood'] + city.projected_income['metal'] + city.projected_income['science']
             yields_by_civ[city.civ_id] += total_yields
+            pop_by_civ[city.civ_id] += city.population
 
         for unit in game_state.units:
             total_metal_value_by_civ[unit.civ_id] += unit.template.metal_cost
@@ -131,90 +177,55 @@ def make_game_statistics_plots(sess, game_id: str):
         for civ_id, civ in game_state.civs_by_id.items():
             total_yields_by_turn[civ_id].append(yields_by_civ[civ_id])
             military_strength_by_turn[civ_id].append(total_metal_value_by_civ[civ_id])
+            population[civ_id].append(pop_by_civ[civ_id])
+            if yields_by_civ[civ_id] == 0 and total_metal_value_by_civ[civ_id] == 0 and civ_id not in dead_turns:
+                dead_turns[civ_id] = frame.turn_num
 
+        def civ_color(hex) -> str | None:
+            if hex.city:
+                return hex.city.civ_id
+           
+            neighbor_city_civs = {n.city.civ_id for n in hex.get_neighbors(game_state.hexes) if n.city}
+            if len(neighbor_city_civs) == 1:
+                return neighbor_city_civs.pop()
+            if len(neighbor_city_civs) > 1:
+                if len(hex.units) > 0 and hex.units[0].civ_id in neighbor_city_civs:
+                    return hex.units[0].civ_id
 
-    print('Plotting: ', scores_by_turn)
+            return None
 
-    # Apply some smoothing to scores_by_turn
-    for username, scores in scores_by_turn.items():
-        for i in range(1, len(scores) - 1):
-            scores[i] = (scores[i - 1] + scores[i] + scores[i + 1]) / 3
+        movie_frames.append({
+            'turn_num': frame.turn_num,
+            'hexes': [{
+                'coords': {'q': hex.q, 'r': hex.r, 's': hex.s},
+                'civ': civ_color(hex), 
+                'city': hex.city is not None,
+                'puppet': hex.city is not None and not hex.city.is_territory_capital,
+                'camp': hex.camp is not None,
+                }
+                for hex in game_state.hexes.values()],
+        })
 
-    print("Decline turns: ", decline_turns)
+    civ_infos = {
+        civ_id: {
+            'start_turn': start_turns_for_civs[civ_id],
+            'decline_turn': decline_turns_for_civs.get(civ_id, None),
+            'dead_turn': dead_turns.get(civ_id, None),
+            'player_num': civs_that_have_ever_had_game_player.get(civ_id, None),
+        }
+        for civ_id in start_turns_for_civs
+    }
 
-    # Define a list of different dash styles for up to 8 players
-    dash_styles = cycle([
-        '--',  # Dashed
-        '-.',  # Dash-dot
-        ':',   # Dotted
-        (0, (1, 2)),  # Very long dash, long space
-        (0, (5, 1)),   # Long dash, short space
-        (0, (3, 2, 1, 2)),  # Dash, long space, dot, long space
-        (0, (3, 3, 1, 3)),    # Dash, space, dot, space
-        (0, (3, 1, 1, 1, 1, 1))  # Dash, dot, dot-dot-dot
-    ])
+    stats = {
+        'score_per_turn': civ_scores_by_turn,
+        'cumulative_score': civ_cumulative_scores_by_turn,
+        'total_yields': total_yields_by_turn,
+        'military_strength': military_strength_by_turn,
+        'population': population,
+        'vitality': vitality,
+    }
 
-    plt.figure(figsize=(12, 8))
-
-    for username, scores in scores_by_turn.items():
-        line, = plt.plot(turn_nums, scores, label=username)  # Store the Line2D object returned by plt.plot
-        plt.legend()
-        line_color = line.get_color()  # Get the color of the line
-        dash_style = next(dash_styles)  # Get the next dash style from the cycle
-        for decline_turn in decline_turns[username]:
-            plt.axvline(decline_turn, color=line_color, linestyle=dash_style)  # Use the same color but different dash style for the vertical line
-        plt.savefig(f"plots/scores_by_player_{game_id}.png")
-
-    plt.clf()
-
-    # Reset the dash styles for cumulative scores
-    dash_styles = cycle([
-        '--', '-.', ':', 
-        (0, (1, 2)), (0, (5, 1)), 
-        (0, (3, 2, 1, 2)), (0, (3, 3, 1, 3)), 
-        (0, (3, 1, 1, 1, 1, 1))
-    ])
-
-    for username, scores in actual_cum_scores_by_turn.items():
-        line, = plt.plot(turn_nums, scores, label=username)  # Store the Line2D object returned by plt.plot
-        plt.legend()
-        line_color = line.get_color()  # Get the color of the line
-        dash_style = next(dash_styles)  # Get the next dash style from the cycle
-        for decline_turn in decline_turns[username]:
-            plt.axvline(decline_turn, color=line_color, linestyle=dash_style)  # Use the same color but different dash style for the vertical line
-        plt.savefig(f"plots/cum_scores_by_player_{game_id}.png")
-
-    plt.clf()
-
-    num_turns = len(turn_nums)
-
-    for civ_id, yields in total_yields_by_turn.items():
-        if civ_id not in civs_that_have_ever_had_game_player:
-            continue
-
-        padded_yields = [0] * (num_turns - len(yields)) + yields
-        line, = plt.plot(turn_nums, padded_yields, label=f'{game_state.civs_by_id[civ_id].template.name} ({civs_that_have_ever_had_game_player[civ_id]})')  # type: ignore
-        plt.legend(loc='upper left')
-        line_color = line.get_color()
-        dash_style = next(dash_styles)
-        for decline_turn in decline_turns_for_civs[civ_id]:
-            plt.axvline(decline_turn, color=line_color, linestyle=dash_style)
-        plt.savefig(f"plots/total_yields_by_civ_{game_id}.png")
-
-    plt.clf()
-
-    for civ_id, military_strength in military_strength_by_turn.items():
-        if civ_id not in civs_that_have_ever_had_game_player:
-            continue
-        
-        padded_military_strength = [0] * (num_turns - len(military_strength)) + military_strength
-        line, = plt.plot(turn_nums, padded_military_strength, label=f'{game_state.civs_by_id[civ_id].template.name} ({civs_that_have_ever_had_game_player[civ_id]})')  # type: ignore
-        plt.legend(loc='upper left')
-        line_color = line.get_color()
-        dash_style = next(dash_styles)
-        for decline_turn in decline_turns_for_civs[civ_id]:
-            plt.axvline(decline_turn, color=line_color, linestyle=dash_style)
-        plt.savefig(f"plots/military_strength_by_civ_{game_id}.png")
+    return civ_infos, stats, movie_frames
 
 class GameState:
     def __init__(self, game_id: str, hexes: dict[str, Hex]):

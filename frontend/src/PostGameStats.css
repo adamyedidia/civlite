@@ -1,0 +1,30 @@
+.game-over-dialog-content {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.post-game-stats {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.post-game-graph {
+    margin: 10px;
+}
+
+.little-movie {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-selector-container {
+    display: flex;
+    flex-direction: row;
+    align-items: space-between;
+    gap: 10px;
+}
+
