@@ -1043,7 +1043,7 @@ class CIVS():
         name="Korea",
         abilities=[{
             "name": "IncreaseCapitalYields",
-            "numbers": ["science", 60],
+            "numbers": ["science", 6],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon", 7],

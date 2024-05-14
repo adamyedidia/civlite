@@ -91,6 +91,11 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Decrease food demand by {x}.",
         numbers=[x],
     ),
+    "DecreaseFoodDemandPuppets": lambda x: Ability(
+        name="DecreaseFoodDemandPuppets",
+        description=f"Decrease food demand by {x} for puppet cities.",
+        numbers=[x],
+    ),
     "ExtraTerritory": lambda: Ability(
         name="ExtraTerritory",
         description=f"+1 maximum territories.",
@@ -154,6 +159,16 @@ BUILDING_ABILITIES: dict[str, Callable] = {
     "TripleCityPopulation": lambda: Ability(
         name="TripleCityPopulation",
         description=f"Triple the population of the city upon completion.",
+        numbers=[],
+    ),
+    "ResetCityUnhappiness": lambda: Ability(
+        name="ResetCityUnhappiness",
+        description=f"Reset unhappiness to 0 upon completion.",
+        numbers=[],
+    ),
+    "ResetCivUnhappiness": lambda: Ability(
+        name="ResetCivUnhappiness",
+        description=f"Reset unhappiness of all your cities to 0 upon completion.",
         numbers=[],
     ),
 }

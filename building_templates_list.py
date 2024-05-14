@@ -179,9 +179,9 @@ class BUILDINGS():
         name="Stadium",
         type="economy",
         cost=40,
-        prereq=TECHS.RADIO,
+        prereq=TECHS.MASS_MARKETS,
         abilities=[],
-        vp_reward=1,
+        vp_reward=2,
     )
     RAILROADS = BuildingTemplate(
         name="Railroads",
@@ -192,6 +192,19 @@ class BUILDINGS():
             "numbers": [0.02],
         }],
         prereq=TECHS.DYNAMITE,
+    )
+    SHOPPING_MALL = BuildingTemplate(
+        name="Shopping Mall",
+        type="economy",
+        cost=20,
+        abilities=[{
+            "name": "DecreaseFoodDemand",
+            "numbers": [10],
+        }, {
+            "name": "DecreaseFoodDemandPuppets",
+            "numbers": [10],
+        }],
+        prereq=TECHS.MASS_MARKETS,
     )
     WINDMILL = BuildingTemplate(
         name="Windmill",
@@ -309,13 +322,39 @@ class BUILDINGS():
         is_national_wonder=True,
         prereq=TECHS.IRRIGATION,
     )
+    GRAND_PALACE = BuildingTemplate(
+        name="Grand Palace",
+        type="economy",
+        cost=100,
+        abilities=[{
+            "name": "ResetCityUnhappiness",
+            "numbers": [],
+        }],
+        is_national_wonder=True,
+        prereq=TECHS.RIFLING,
+    )
+    WORLDS_FAIR = BuildingTemplate(
+        name="World's Fair",
+        type="economy",
+        cost=100,
+        abilities=[{
+            "name": "ResetCivUnhappiness",
+            "numbers": [],
+        }],
+        is_wonder=True,
+        prereq=TECHS.RADIO,
+        vp_reward=5,
+    )
     INDUSTRIAL_FARM = BuildingTemplate(
         name="Industrial Farm",
         type="economy",
-        cost=60,
+        cost=80,
         abilities=[{
-            "name": "IncreaseYieldsPerPopulation",
-            "numbers": ["food", 2],
+            "name": "IncreaseYieldsInCity",
+            "numbers": ["food", 30],
+        }, {
+            "name": "IncreaseYieldsInCity",
+            "numbers": ["wood", 15],
         }],
         prereq=TECHS.MECHANIZED_AGRICULTURE,
     )
