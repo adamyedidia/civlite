@@ -11,6 +11,7 @@ import vpImg from './images/crown.png';
 import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import workerImg from './images/worker.png';
+import wonderImg from './images/wonders.png';
 import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
 import { TextOnIcon } from './TextOnIcon.js';
@@ -86,6 +87,34 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     </CivDetailPanel>
 };
 
+const WonderDisplay = ({ wonder, built }) => {
+    return <div className="wonder-display">
+        {wonder.name}
+    </div>
+}
+
+const WonderAgeDisplay = ({ age, wonders, built_wonders, cost, templates }) => {
+    console.log(age, romanNumeral(age))
+    return <div className="wonder-age-display">
+        <div className="wonder-age">{romanNumeral(age)}</div>
+        <div className="wonder-cost">
+            {cost} <img src={woodImg} alt="" width="16px" height="16px"/>
+        </div>
+        {wonders.map((wonder, index) => (
+            <WonderDisplay key={index} wonder={templates.WONDERS[wonder]} built={built_wonders[wonder.name]} cost={cost} templates={templates} />
+        ))}
+    </div>
+}
+
+const WonderListDisplay = ({ wonders_by_age, built_wonders, cost_by_age, templates }) => {
+    return <CivDetailPanel title="wonders" icon={wonderImg} iconTooltip="Wonders" bignum="">
+    <div className="wonder-list-display">
+        {Object.entries(wonders_by_age).map(([age, wonders]) => {
+            return <WonderAgeDisplay key={age} age={parseInt(age)} wonders={wonders} built_wonders={built_wonders} cost={cost_by_age[age]} templates={templates}/>
+        })}
+    </div>
+    </CivDetailPanel>
+}
 
 const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templates, centerMap, setHoveredCiv, setHoveredUnit, setHoveredBuilding, setSelectedCity, civsById}) => {
     return <div className="decline-option-row"
@@ -291,6 +320,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
     turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, civsById}) => {
     return (
         <div className="upper-right-display">
+            {myCiv && <WonderListDisplay wonders_by_age={mainGameState.wonders_by_age} built_wonders={mainGameState.built_wonders} cost_by_age={mainGameState.wonder_costs_by_age} templates={templates}/>}
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} templates={templates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} templates={templates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay playerNum={myGamePlayer?.player_num} myCiv={myCiv} myGamePlayer={myGamePlayer} turnNum={turnNum}
