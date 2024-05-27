@@ -241,6 +241,7 @@ def _launch_game_inner(sess, game: Game) -> None:
     hexes = create_hex_map(map_size)
 
     game_state = GameState(game_id, hexes)
+    game_state.initialize_wonders()
 
     assert num_players <= 8
 

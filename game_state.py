@@ -9,11 +9,14 @@ from city import City, generate_random_city_name
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
+from civlite.wonder_templates_list import WONDERS
+from wonder_built_info import WonderBuiltInfo
+from wonder_template import WonderTemplate
 from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
 from redis_utils import rget_json, rlock, rset_json, rdel, rset, rget
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY, BASE_WONDER_COST
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -24,8 +27,6 @@ from utils import dream_key, staged_moves_key, deterministic_hash
 from great_person import random_great_people_by_age
 
 from sqlalchemy import and_, func
-
-from threading import Thread
 
 from animation_frame import AnimationFrame
 
@@ -238,7 +239,9 @@ class GameState:
         self.civs_by_id: dict[str, Civ] = {self.barbarians.id: self.barbarians}
         self.turn_num = 1
         self.game_player_by_player_num: dict[int, GamePlayer] = {}
-        self.wonders_built_to_civ_id: dict[str, str] = {}
+        self.wonders_built_to_civ_id: dict[str, str] = {}  # TODO remove
+        self.wonders_by_age: dict[int, list[WonderTemplate]] = {}
+        self.built_wonders: dict[WonderTemplate, WonderBuiltInfo] = {}
         self.national_wonders_built_by_civ_id: dict[str, list[str]] = {}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
@@ -289,6 +292,19 @@ class GameState:
     def unregister_camp(self, camp):
         camp.hex.camp = None
         self.camps.remove(camp)
+
+    def initialize_wonders(self):
+        wonders_per_age: int = len(self.game_player_by_player_num) - 1
+        self.wonders_by_age: dict[int, list[WonderTemplate]] = {
+            age: random.sample(list(WONDERS.all_by_age(age)), wonders_per_age) for age in range(1, 10)}
+
+    def wonder_cost(self, age: int) -> int:
+        base: int = BASE_WONDER_COST[age]
+        num_built: int = len([w for w in self.built_wonders if w.age == age])
+        total_num: int = len(self.wonders_by_age[age])
+        # The first one costs base, the last one 2 * base
+        cost = int(base * (1 + num_built / (total_num - 1)))
+        return cost
 
     def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str) -> None:
         civ.city_power -= 100
@@ -1170,6 +1186,8 @@ class GameState:
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
             "turn_num": self.turn_num,
             "wonders_built_to_civ_id": self.wonders_built_to_civ_id.copy(),
+            "wonders_by_age": {age: [wonder.name for wonder in wonders] for age, wonders in self.wonders_by_age.items()},
+            "built_wonders": {wonder.name: built_wonder.to_json() for wonder, built_wonder in self.built_wonders.items()},
             "national_wonders_built_by_civ_id": {k: v[:] for k, v in self.national_wonders_built_by_civ_id.items()},
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
@@ -1180,6 +1198,7 @@ class GameState:
             "fresh_cities_for_decline": {coords: city.to_json(include_civ_details=True) for coords, city in self.fresh_cities_for_decline.items()},
             "unhappiness_threshold": self.unhappiness_threshold,
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
+            "wonder_costs_by_age": {age: self.wonder_cost(age) for age in self.wonders_by_age},
         }
 
     @staticmethod
@@ -1195,6 +1214,8 @@ class GameState:
 
         game_state.turn_num = json["turn_num"]
         game_state.wonders_built_to_civ_id = json["wonders_built_to_civ_id"].copy()
+        game_state.wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["wonders_by_age"].items()}
+        game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json, game_state) for wonder_name, wonder_json in json["built_wonders"].items()}
         game_state.national_wonders_built_by_civ_id = {k: v[:] for k, v in json["national_wonders_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}
