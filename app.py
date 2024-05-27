@@ -241,7 +241,6 @@ def _launch_game_inner(sess, game: Game) -> None:
     hexes = create_hex_map(map_size)
 
     game_state = GameState(game_id, hexes)
-    game_state.initialize_wonders()
 
     assert num_players <= 8
 
@@ -254,6 +253,8 @@ def _launch_game_inner(sess, game: Game) -> None:
     starting_civs_for_players = {}
 
     game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
+
+    game_state.initialize_wonders()
 
     for player_num, civ_options_tups in starting_civ_options_for_players.items():
         game_player = game_state.game_player_by_player_num[player_num]

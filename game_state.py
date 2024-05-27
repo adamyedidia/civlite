@@ -9,7 +9,7 @@ from city import City, generate_random_city_name
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
-from civlite.wonder_templates_list import WONDERS
+from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
 from wonder_template import WonderTemplate
 from game_player import GamePlayer
@@ -294,6 +294,7 @@ class GameState:
         self.camps.remove(camp)
 
     def initialize_wonders(self):
+        assert len(self.game_player_by_player_num) > 0, "Cannot initialize wonders without players"
         wonders_per_age: int = len(self.game_player_by_player_num) - 1
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {
             age: random.sample(list(WONDERS.all_by_age(age)), wonders_per_age) for age in range(1, 10)}
