@@ -94,7 +94,6 @@ const WonderDisplay = ({ wonder, built }) => {
 }
 
 const WonderAgeDisplay = ({ age, wonders, built_wonders, cost, templates }) => {
-    console.log(age, romanNumeral(age))
     return <div className="wonder-age-display">
         <div className="wonder-age">{romanNumeral(age)}</div>
         <div className="wonder-cost">
