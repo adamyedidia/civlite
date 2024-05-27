@@ -10,6 +10,8 @@ from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_C
 from unit import Unit
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS, UNITS_BY_BUILDING_NAME
+from wonder_template import WonderTemplate
+from wonder_templates_list import WONDERS
 from civ_templates_list import CIVS
 from utils import generate_unique_id
 import random
@@ -51,9 +53,10 @@ class City:
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
         self.infinite_queue_unit: Optional[UnitTemplate] = None
-        self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate]] = []
+        self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate, WonderTemplate]] = []
         self.buildings: list[Building] = [Building(UNITS.WARRIOR, building_template=None)]
         self.available_buildings: list[BuildingTemplate] = []
+        self.available_wonders: list[WonderTemplate] = []
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, float, int]]] = {}
         self.capital = False
         self._territory_parent_id: Optional[str] = None
@@ -390,6 +393,10 @@ class City:
             else:
                 self.terrains_dict[hex.terrain] += 1
 
+    def refresh_available_wonders(self, game_state: 'GameState') -> None:
+        self.available_wonders: list[WonderTemplate] = game_state.available_wonders()
+        print(self.available_wonders)
+
     def refresh_available_buildings(self) -> None:
         if not self.civ:
             return
@@ -468,11 +475,11 @@ class City:
                         "value": 0,
                     }
 
-                if building_template.is_wonder:
-                    self.available_buildings_to_descriptions[building_template.name] = {
-                        "type": "wonder_cost",
-                        "value": building_template.cost,
-                    }
+            elif isinstance(template, WonderTemplate):
+                self.available_buildings_to_descriptions[template.name] = {
+                    "type": "wonder",
+                    "value": template.age,
+                }
 
             elif isinstance(template, UnitTemplate):
                 self.available_buildings_to_descriptions[template.building_name] = {
@@ -492,13 +499,14 @@ class City:
         self.refresh_available_units()
         self.refresh_available_buildings()
 
-    def get_available_buildings(self) -> list[Union[BuildingTemplate, UnitTemplate]]:
+    def get_available_buildings(self) -> list[Union[BuildingTemplate, UnitTemplate, WonderTemplate]]:
         if not self.civ:
             return []
         building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
+        wonders: list[WonderTemplate] = [wonder for wonder in self.available_wonders if wonder.name not in building_names_in_queue]
         buildings: list[BuildingTemplate] = [building for building in self.available_buildings if not building.name in building_names_in_queue and not self.has_building(building.name)]
         unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
-        return [*buildings, *unit_buildings]
+        return [*wonders, *buildings, *unit_buildings]
 
     def build_units(self, game_state: 'GameState') -> None:
         if self.infinite_queue_unit:
@@ -649,6 +657,9 @@ class City:
                     self.wood -= building.wood_cost
                 else:
                     break
+
+            elif isinstance(building, WonderTemplate):
+                raise NotImplementedError("Wonders are not implemented yet")
 
             else:
                 break
@@ -1048,6 +1059,7 @@ class City:
             "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
             "buildings": [building.to_json() for building in self.buildings],
             "available_buildings": [b.name for b in self.available_buildings],
+            "available_wonders": [w.name for w in self.available_wonders],
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
             "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
             "capital": self.capital,
@@ -1090,8 +1102,9 @@ class City:
         city.wood = json["wood"]
         city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
         city.capital = json["capital"]
-        city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BUILDINGS.by_name(building) for building in json["buildings_queue"]]
+        city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BUILDINGS.by_name(building) if building in [b.name for b in BUILDINGS.all()] else WONDERS.by_name(building) for building in json["buildings_queue"]]
         city.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
+        city.available_wonders = [WONDERS.by_name(w) for w in json["available_wonders"]]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
         city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UNITS.by_name(json["infinite_queue_unit"])

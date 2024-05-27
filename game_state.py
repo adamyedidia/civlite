@@ -297,7 +297,7 @@ class GameState:
         assert len(self.game_player_by_player_num) > 0, "Cannot initialize wonders without players"
         wonders_per_age: int = len(self.game_player_by_player_num) - 1
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {
-            age: random.sample(list(WONDERS.all_by_age(age)), wonders_per_age) for age in range(1, 10)}
+            age: sorted(random.sample(list(WONDERS.all_by_age(age)), wonders_per_age), key=lambda w: w.name) for age in range(1, 10)}
 
     def wonder_cost(self, age: int) -> int:
         base: int = BASE_WONDER_COST[age]
@@ -602,8 +602,12 @@ class GameState:
 
                 if building_name in UNITS_BY_BUILDING_NAME:
                     building = UNITS_BY_BUILDING_NAME[building_name]
-                else:
+                elif building_name in {b.name for b in BUILDINGS.all()}:
                     building = BUILDINGS.by_name(building_name)
+                elif building_name in {w.name for w in WONDERS.all()}:
+                    building = WONDERS.by_name(building_name)
+                else:
+                    raise ValueError(f"Unknown building name {building_name}")
                 city.buildings_queue.append(building)
                 game_player_to_return = game_player
 
@@ -985,7 +989,8 @@ class GameState:
             civ.fill_out_available_buildings(self)
 
         for city in self.cities_by_id.values():
-            city.refresh_available_buildings()       
+            city.refresh_available_buildings()     
+            city.refresh_available_wonders(self)
 
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= self.game_end_score():
@@ -1168,6 +1173,8 @@ class GameState:
         if not no_commit:
             sess.commit()
 
+    def available_wonders(self) -> list[WonderTemplate]:
+        return [wonder for age, wonders in self.wonders_by_age.items() for wonder in wonders if age <= self.advancement_level and wonder not in self.built_wonders]
 
     def get_civ_by_name(self, civ_name: str) -> Civ:
         for civ in self.civs_by_id.values():
@@ -1189,6 +1196,7 @@ class GameState:
             "wonders_built_to_civ_id": self.wonders_built_to_civ_id.copy(),
             "wonders_by_age": {age: [wonder.name for wonder in wonders] for age, wonders in self.wonders_by_age.items()},
             "built_wonders": {wonder.name: built_wonder.to_json() for wonder, built_wonder in self.built_wonders.items()},
+            "available_wonders": [w.name for w in self.available_wonders()],
             "national_wonders_built_by_civ_id": {k: v[:] for k, v in self.national_wonders_built_by_civ_id.items()},
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),

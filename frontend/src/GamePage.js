@@ -2167,12 +2167,12 @@ export default function GamePage() {
         selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices?.sort((buildingName1, buildingName2) => {
             const description1 = descriptions[buildingName1];
             const description2 = descriptions[buildingName2];
-        
+            
             const getTypeOrder = (type) => {
                 switch (type) {
                     case 'yield':
                         return 1;
-                    case 'wonder_cost':
+                    case 'wonder':
                         return 2;
                     case 'strength':
                         return 3;

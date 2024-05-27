@@ -1,6 +1,7 @@
 import React from 'react';
 import UnitDisplay from './UnitDisplay';
 import './BuildingDisplay.css';
+import woodImage from './images/wood.png';
 
 export const BriefBuildingDisplayTitle = ({ title }) => {
     return (
@@ -12,9 +13,19 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, hideCost, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
-    const building = unitTemplatesByBuildingName?.[buildingName] || templates.BUILDINGS[buildingName];
-
+export const BriefBuildingDisplay = ({ buildingName, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
+    let building_type = '';
+    let building;
+    if (templates.BUILDINGS?.[buildingName]) {
+        building_type = 'BUILDING';
+        building = templates.BUILDINGS?.[buildingName];
+    } else if (templates.WONDERS?.[buildingName]) {
+        building_type = 'WONDER';
+        building = templates.WONDERS?.[buildingName];
+    } else if (unitTemplatesByBuildingName?.[buildingName]) {
+        building_type = 'UNIT';
+        building = unitTemplatesByBuildingName?.[buildingName];
+    }
     const description = descriptions?.[buildingName];
 
     let descriptionStr = null;
@@ -23,16 +34,18 @@ export const BriefBuildingDisplay = ({ buildingName, hideCost, clickable, style,
         descriptionStr = ` (+${description.value})`;
     }
 
+    const building_class = building_type == 'WONDER' ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : building_type == 'UNIT' ? 'military' : 'economic';
+    const cost = !hideCost && (building_type == 'UNIT' ? building.wood_cost : building_type == 'BUILDING' ? building.cost : building_type == 'WONDER' ? wonderCostsByAge[building.age] : null);
     return (
         <div 
-            className={`brief-building-card ${building?.is_wonder ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : unitTemplatesByBuildingName?.[buildingName] ? 'military' : 'economic'} ${disabledMsg && 'disabled'} ${clickable ? 'clickable' : ''}`} 
+            className={`brief-building-card ${building_class} ${disabledMsg && 'disabled'} ${clickable ? 'clickable' : ''}`} 
             onClick={onClick}
             onMouseEnter={() => setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => setHoveredBuilding(null)} // clear on mouse leave
             style={style}
         >
             <span className="building-name">{`${building?.building_name || building?.name}${descriptionStr !== null ? descriptionStr : ''}`}</span>
-            {!hideCost && <span className="building-cost">{building?.wood_cost || building?.cost} wood</span>}
+            {!hideCost && <span className="building-cost">{cost} <img src={woodImage} alt="" width="16" height="16" /></span>}
         </div>
     );
 };
