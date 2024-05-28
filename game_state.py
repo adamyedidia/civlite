@@ -368,7 +368,7 @@ class GameState:
 
         # Start with prereqs for the buildings we have
         for building in city.buildings:
-            prereq = building.template.prereq
+            prereq = building.prereq
             if prereq is not None:
                 chosen_techs.add(prereq)
                 chosen_techs_by_advancement[prereq.advancement_level] += 1
@@ -1095,16 +1095,11 @@ class GameState:
         ))
 
         sess.commit()
- 
-    def handle_wonder_built(self, civ: Civ, building_template: BuildingTemplate, national: bool = False) -> None:
-        if national:
-            if civ.id not in self.national_wonders_built_by_civ_id:
-                self.national_wonders_built_by_civ_id[civ.id] = [building_template.name]
-            else:
-                self.national_wonders_built_by_civ_id[civ.id].append(building_template.name)
-        else:
-            self.wonders_built_to_civ_id[building_template.name] = civ.id
 
+    def handle_wonder_built(self, civ: Civ, wonder: WonderTemplate) -> None:
+        self.wonders_built_to_civ_id[wonder.name] = civ.id
+        player_num: int | None = civ.game_player.player_num if civ.game_player is not None else None
+        self.built_wonders[wonder] = WonderBuiltInfo(player_num, civ, self.turn_num)
         
         if (game_player := civ.game_player) is not None:
             if civ.has_ability('ExtraVpsPerWonder'):
@@ -1112,15 +1107,7 @@ class GameState:
                 game_player.score_from_abilities += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
                 civ.score += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
 
-        for city in self.cities_by_id.values():
-            for i, building in enumerate(city.buildings_queue):
-                if building.name == building_template.name:
-                    if city.civ.id == civ.id or not national:
-                        city.buildings_queue = [building for building in city.buildings_queue if building.name != building_template.name]
-                        break
-
-        if not national:
-            self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={building_template.name}>{building_template.name}<wonder>!')
+        self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={wonder.name}>{wonder.name}<wonder>!')
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:
         if data['type'] not in ['UnitAttack', 'UnitMovement', 'StartOfNewTurn']:
@@ -1173,8 +1160,16 @@ class GameState:
         if not no_commit:
             sess.commit()
 
+    def wonder_buildable(self, wonder):
+        if wonder.age > self.advancement_level:
+            # Can't build it yet
+            return False
+        if wonder in self.built_wonders:
+            # Can only build it if it was built by someone else this same turn
+            return self.built_wonders[wonder].turn_num < self.turn_num
+
     def available_wonders(self) -> list[WonderTemplate]:
-        return [wonder for age, wonders in self.wonders_by_age.items() for wonder in wonders if age <= self.advancement_level and wonder not in self.built_wonders]
+        return [wonder for wonders in self.wonders_by_age.values() for wonder in wonders if self.wonder_buildable(wonder)]
 
     def get_civ_by_name(self, civ_name: str) -> Civ:
         for civ in self.civs_by_id.values():

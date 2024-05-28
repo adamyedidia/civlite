@@ -1,7 +1,7 @@
 from civ import Civ
 
 class WonderBuiltInfo:
-    def __init__(self, player_num: int, civ: Civ, turn_num: int) -> None:
+    def __init__(self, player_num: int | None, civ: Civ, turn_num: int) -> None:
         self.player_num = player_num
         self.civ = civ
         self.turn_num = turn_num
