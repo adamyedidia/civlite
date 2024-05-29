@@ -88,7 +88,7 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
 };
 
 const WonderDisplay = ({ wonder, built }) => {
-    return <div className="wonder-display">
+    return <div className={`wonder-display ${built ? "built" : ""}`}>
         {wonder.name}
     </div>
 }
@@ -100,7 +100,7 @@ const WonderAgeDisplay = ({ age, wonders, built_wonders, cost, templates }) => {
             {cost} <img src={woodImg} alt="" width="16px" height="16px"/>
         </div>
         {wonders.map((wonder, index) => (
-            <WonderDisplay key={index} wonder={templates.WONDERS[wonder]} built={built_wonders[wonder.name]} cost={cost} templates={templates} />
+            <WonderDisplay key={index} wonder={templates.WONDERS[wonder]} built={built_wonders[wonder]} cost={cost} templates={templates} />
         ))}
     </div>
 }

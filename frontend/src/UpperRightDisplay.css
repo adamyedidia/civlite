@@ -384,3 +384,7 @@ h2.tech-name {
     background-color: #eed1e9;
     overflow-x: hidden;
 }
+
+.wonder-display.built {
+    opacity: 0.3;
+}
