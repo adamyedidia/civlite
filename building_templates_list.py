@@ -377,44 +377,6 @@ class BUILDINGS():
         }],        
         prereq=TECHS.COMPUTERS,
     )
-    HANGING_GARDENS = BuildingTemplate(
-        name="Hanging Gardens",
-        type="economy",
-        cost=50,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["food", 5],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.CODE_OF_LAWS,
-    )
-    PYRAMIDS = BuildingTemplate(
-        name="Pyramids",
-        type="wonder",
-        cost=50,
-        abilities=[
-            {
-                "name": "GainCityPower",
-                "numbers": [100],
-            },
-        ],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.MASONRY,
-    )
-    TEMPLE_OF_ARTEMIS = BuildingTemplate(
-        name="Temple of Artemis",
-        type="economy",
-        cost=50,
-        abilities=[{
-            "name": "GainFreeUnits",
-            "numbers": ["Archer", 3],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.CALENDAR,
-    )
     COLOSUS = BuildingTemplate(
         name="Colossus",
         type="economy",
@@ -426,18 +388,6 @@ class BUILDINGS():
         is_wonder=True,
         vp_reward=5,
         prereq=TECHS.IRON_WORKING,
-    )
-    STATUE_OF_ZEUS = BuildingTemplate(
-        name="Statue of Zeus",
-        type="economy",
-        cost=60,
-        abilities=[{
-            "name": "NewUnitsGainBonusStrength",
-            "numbers": [1],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.ENGINEERING,
     )
     GREAT_LIBRARY = BuildingTemplate(
         name="Great Library",

@@ -723,6 +723,7 @@ class City:
                     city.unhappiness = 0
 
         if isinstance(building, WonderTemplate):
+            building.on_build.apply(self, game_state)
             game_state.handle_wonder_built(self.civ, building)
 
         if is_national_wonder:

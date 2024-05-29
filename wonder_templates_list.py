@@ -1,26 +1,48 @@
 from typing import Generator
+from unit_templates_list import UNITS
+from effect import BuildUnitsEffect
 from wonder_template import WonderTemplate
 
 class WONDERS():
-    PLACEHOLDER_A1_NUM1 = WonderTemplate(name="PLACEHOLDER_A1_NUM1", age=1)
-    PLACEHOLDER_A1_NUM2 = WonderTemplate(name="PLACEHOLDER_A1_NUM2", age=1)
-    PLACEHOLDER_A1_NUM3 = WonderTemplate(name="PLACEHOLDER_A1_NUM3", age=1)
-    PLACEHOLDER_A1_NUM4 = WonderTemplate(name="PLACEHOLDER_A1_NUM4", age=1)
+    # 6th century BC
+    # 4 free archers
+    TEMPLE_OF_ARTEMIS = WonderTemplate(name="Temple of Artemis", age=1,
+                                       on_build=BuildUnitsEffect(unit_template=UNITS.ARCHER, num=4))
 
-    PLACEHOLDER_A2_NUM1 = WonderTemplate(name="PLACEHOLDER_A2_NUM1", age=2)
-    PLACEHOLDER_A2_NUM2 = WonderTemplate(name="PLACEHOLDER_A2_NUM2", age=2)
+    # 7th century BC
+    # Turn the nearest barb camp into a city
+    HANGING_GARDENS = WonderTemplate(name="Hanging Gardens", age=1)
+
+    # 5th century BC
+    # Build a Zeus
+    STATUE_OF_ZEUS = WonderTemplate(name="Statue of Zeus", age=1)
+
+    # 6th century or earlier
+    # Free a3 tech
+    ORACLE = WonderTemplate(name="Oracle", age=1)
+    # Pyramids, Great Library
+
+    # 3rd century BC
+    # Build a bunch of Garrisons around your periphery
+    GREAT_WALL = WonderTemplate(name="Great Wall", age=2)
+    # 3rd century BC
+    # Build a Colossus unit
+    COLOSSUS = WonderTemplate(name="Colossus", age=2)
     PLACEHOLDER_A2_NUM3 = WonderTemplate(name="PLACEHOLDER_A2_NUM3", age=2)
     PLACEHOLDER_A2_NUM4 = WonderTemplate(name="PLACEHOLDER_A2_NUM4", age=2)
+    # Petra
 
-    PLACEHOLDER_A3_NUM1 = WonderTemplate(name="PLACEHOLDER_A3_NUM1", age=3)
+    CAMELOT = WonderTemplate(name="Camelot", age=3)
     PLACEHOLDER_A3_NUM2 = WonderTemplate(name="PLACEHOLDER_A3_NUM2", age=3)
     PLACEHOLDER_A3_NUM3 = WonderTemplate(name="PLACEHOLDER_A3_NUM3", age=3)
     PLACEHOLDER_A3_NUM4 = WonderTemplate(name="PLACEHOLDER_A3_NUM4", age=3)
+    # Chichen Itza, Great Lighthouse
 
     PLACEHOLDER_A4_NUM1 = WonderTemplate(name="PLACEHOLDER_A4_NUM1", age=4)
     PLACEHOLDER_A4_NUM2 = WonderTemplate(name="PLACEHOLDER_A4_NUM2", age=4)
     PLACEHOLDER_A4_NUM3 = WonderTemplate(name="PLACEHOLDER_A4_NUM3", age=4)
     PLACEHOLDER_A4_NUM4 = WonderTemplate(name="PLACEHOLDER_A4_NUM4", age=4)
+    # Notre Dame, Porcelain Tower, Himeji Castle, Forbidden Palace
 
     PLACEHOLDER_A5_NUM1 = WonderTemplate(name="PLACEHOLDER_A5_NUM1", age=5)
     PLACEHOLDER_A5_NUM2 = WonderTemplate(name="PLACEHOLDER_A5_NUM2", age=5)

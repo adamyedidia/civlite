@@ -6,6 +6,7 @@ const WonderHover = ({ wonder, }) => {
     console.log(wonder)
     return <div className={`wonder-card`}>
                 <h2>{wonder.name}</h2>
+                <p>{wonder.description}</p>
             </div>
 };
 
