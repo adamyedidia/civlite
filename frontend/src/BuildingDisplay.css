@@ -47,17 +47,10 @@
     border-radius: 5px;
     background-color: #e0b096;
     cursor: pointer;
-    /* position: fixed;
-    right: 32vw; 
-    top: 10px;  */
-    border: 1px solid #ddd;
-    padding: 10px;
-    border-radius: 5px;
     z-index: 1000; /* Ensure it's above other elements */
     max-height: 90vh; /* Adjust as needed */
     overflow-y: auto; /* Enable vertical scrolling */
     max-width: 30vw; /* Adjust as needed */
-    /* Add other styles as needed */    
 }
 
 .building-card.wonder-disabled {

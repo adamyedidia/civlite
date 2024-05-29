@@ -87,29 +87,29 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     </CivDetailPanel>
 };
 
-const WonderDisplay = ({ wonder, built }) => {
-    return <div className={`wonder-display ${built ? "built" : ""}`}>
+const WonderDisplay = ({ wonder, built, setHoveredWonder }) => {
+    return <div className={`wonder-display ${built ? "built" : ""}`} onMouseEnter={() => setHoveredWonder(wonder)} onMouseLeave={() => setHoveredWonder(null)}>
         {wonder.name}
     </div>
 }
 
-const WonderAgeDisplay = ({ age, wonders, built_wonders, cost, templates }) => {
+const WonderAgeDisplay = ({ age, wonders, built_wonders, cost, templates, setHoveredWonder }) => {
     return <div className="wonder-age-display">
         <div className="wonder-age">{romanNumeral(age)}</div>
         <div className="wonder-cost">
             {cost} <img src={woodImg} alt="" width="16px" height="16px"/>
         </div>
         {wonders.map((wonder, index) => (
-            <WonderDisplay key={index} wonder={templates.WONDERS[wonder]} built={built_wonders[wonder]} cost={cost} templates={templates} />
+            <WonderDisplay key={index} wonder={templates.WONDERS[wonder]} built={built_wonders[wonder]} cost={cost} templates={templates} setHoveredWonder={setHoveredWonder}/>
         ))}
     </div>
 }
 
-const WonderListDisplay = ({ wonders_by_age, built_wonders, cost_by_age, templates }) => {
+const WonderListDisplay = ({ wonders_by_age, built_wonders, cost_by_age, templates, setHoveredWonder }) => {
     return <CivDetailPanel title="wonders" icon={wonderImg} iconTooltip="Wonders" bignum="">
     <div className="wonder-list-display">
         {Object.entries(wonders_by_age).map(([age, wonders]) => {
-            return <WonderAgeDisplay key={age} age={parseInt(age)} wonders={wonders} built_wonders={built_wonders} cost={cost_by_age[age]} templates={templates}/>
+            return <WonderAgeDisplay key={age} age={parseInt(age)} wonders={wonders} built_wonders={built_wonders} cost={cost_by_age[age]} templates={templates} setHoveredWonder={setHoveredWonder}/>
         })}
     </div>
     </CivDetailPanel>
@@ -316,10 +316,10 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
     templates,
     setConfirmEnterDecline, setTechChoiceDialogOpen, setHoveredUnit, setHoveredBuilding, setHoveredTech, 
     toggleFoundingCity, myCiv, myGamePlayer, myCities, setTechListDialogOpen, 
-    turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, civsById}) => {
+    turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, setHoveredWonder, civsById}) => {
     return (
         <div className="upper-right-display">
-            {myCiv && <WonderListDisplay wonders_by_age={mainGameState.wonders_by_age} built_wonders={mainGameState.built_wonders} cost_by_age={mainGameState.wonder_costs_by_age} templates={templates}/>}
+            {myCiv && <WonderListDisplay wonders_by_age={mainGameState.wonders_by_age} built_wonders={mainGameState.built_wonders} cost_by_age={mainGameState.wonder_costs_by_age} templates={templates} setHoveredWonder={setHoveredWonder}/>}
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} templates={templates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} templates={templates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay playerNum={myGamePlayer?.player_num} myCiv={myCiv} myGamePlayer={myGamePlayer} turnNum={turnNum}

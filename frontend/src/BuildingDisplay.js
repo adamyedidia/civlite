@@ -13,7 +13,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, descriptions, disabledMsg }) => {
+export const BriefBuildingDisplay = ({ buildingName, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions, disabledMsg }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -40,8 +40,8 @@ export const BriefBuildingDisplay = ({ buildingName, hideCost, wonderCostsByAge,
         <div 
             className={`brief-building-card ${building_class} ${disabledMsg && 'disabled'} ${clickable ? 'clickable' : ''}`} 
             onClick={onClick}
-            onMouseEnter={() => setHoveredBuilding(buildingName)} // set on mouse enter
-            onMouseLeave={() => setHoveredBuilding(null)} // clear on mouse leave
+            onMouseEnter={() => building_type == 'WONDER' ? setHoveredWonder(building) : setHoveredBuilding(buildingName)} // set on mouse enter
+            onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : setHoveredBuilding(null)} // clear on mouse leave
             style={style}
         >
             <span className="building-name">{`${building?.building_name || building?.name}${descriptionStr !== null ? descriptionStr : ''}`}</span>

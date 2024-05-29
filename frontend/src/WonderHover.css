@@ -1,0 +1,11 @@
+.wonder-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    background-color: #b66dc0;
+    z-index: 1000;
+    max-height: 90vh;
+    overflow-y: auto;
+    max-width: 30vw;
+}

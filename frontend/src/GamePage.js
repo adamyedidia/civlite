@@ -24,6 +24,7 @@ import TechDisplay from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
 import BuildingDisplay from './BuildingDisplay';
 import UnitDisplay from './UnitDisplay';
+import WonderHover from './WonderHover';
 import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
 import LowerRightDisplay from './LowerRightDisplay.js';
@@ -373,6 +374,7 @@ export default function GamePage() {
     const [hoveredUnit, setHoveredUnit] = useState(null);
     const [hoveredBuilding, setHoveredBuilding] = useState(null);
     const [hoveredTech, setHoveredTech] = useState(null);
+    const [hoveredWonder, setHoveredWonder] = useState(null);
 
     const [hoveredCity, setHoveredCity] = useState(null);
 
@@ -2210,6 +2212,7 @@ export default function GamePage() {
         if (!!hoveredBuilding) {
             setHoveredUnit(null);
             setHoveredTech(null);
+            setHoveredWonder(null);
         }
     }, [hoveredBuilding])
 
@@ -2217,6 +2220,7 @@ export default function GamePage() {
         if (!!hoveredUnit) {
             setHoveredBuilding(null);
             setHoveredTech(null);
+            setHoveredWonder(null);
         }
     }, [hoveredUnit])
 
@@ -2224,8 +2228,17 @@ export default function GamePage() {
         if (!!hoveredTech) {
             setHoveredBuilding(null);
             setHoveredUnit(null);
+            setHoveredWonder(null);
         }
     }, [hoveredTech])
+
+    useEffect(() => {
+        if (!!hoveredWonder) {
+            setHoveredBuilding(null);
+            setHoveredUnit(null);
+            setHoveredTech(null);
+        }
+    }, [hoveredWonder])
 
     const toggleFoundingCity = () => {
         setFoundingCity(!foundingCity);
@@ -3104,6 +3117,7 @@ export default function GamePage() {
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
                         setHoveredCiv={setHoveredCiv}
+                        setHoveredWonder={setHoveredWonder}
                         setTechChoiceDialogOpen={setTechChoiceDialogOpen}
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
@@ -3145,6 +3159,7 @@ export default function GamePage() {
                         descriptions={descriptions}
                         setHoveredUnit={setHoveredUnit}
                         setHoveredBuilding={setHoveredBuilding}
+                        setHoveredWonder={setHoveredWonder}
                         setSelectedCity={setSelectedCity}
                         centerMap={centerMap}
                         />}
@@ -3155,10 +3170,13 @@ export default function GamePage() {
                         {hoveredUnit && (
                             <UnitDisplay unit={hoveredUnit} />
                         )}
+                        {hoveredWonder && (
+                            <WonderHover wonder={hoveredWonder}/>
+                        )}
                         {hoveredTech && (
                             <TechDisplay tech={hoveredTech} civ={myCiv} templates={templates}  unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
                         )}
-                        {!hoveredBuilding && !hoveredUnit && !hoveredTech && <div className='turn-num-card'>
+                        {!hoveredBuilding && !hoveredUnit && !hoveredTech && !hoveredWonder && <div className='turn-num-card'>
                             <Typography variant="h4">
                                 Turn {gameState?.turn_num}
                             </Typography>
