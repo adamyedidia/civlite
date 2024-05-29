@@ -10,7 +10,7 @@ from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_C
 from unit import Unit
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS, UNITS_BY_BUILDING_NAME
-from wonder_template import WonderTemplate
+from wonder_template import WonderTemplate, get_wonder_abilities_deprecated
 from wonder_templates_list import WONDERS
 from civ_templates_list import CIVS
 from utils import generate_unique_id
@@ -83,7 +83,7 @@ class City:
         return f"<City {self.name} @ {self.hex.coords if self.hex else None}>"
 
     def has_building(self, building_name: str) -> bool:
-        return any([(building.template.building_name if hasattr(building.template, 'building_name') else building.template.name) == building_name for building in self.buildings])  # type: ignore
+        return building_name in [b.building_name for b in self.buildings]
 
     def orphan_territory_children(self, game_state: 'GameState', make_new_territory=True):
         """
@@ -349,7 +349,7 @@ class City:
 
         if self.civ.game_player:
             for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
+                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := get_wonder_abilities_deprecated(wonder)):
                     for ability in abilities:
                         if ability.name == "ExtraVpsForCityGrowth":
                             self.civ.game_player.score += ability.numbers[0]
@@ -395,7 +395,6 @@ class City:
 
     def refresh_available_wonders(self, game_state: 'GameState') -> None:
         self.available_wonders: list[WonderTemplate] = game_state.available_wonders()
-        print(self.available_wonders)
 
     def refresh_available_buildings(self) -> None:
         if not self.civ:
@@ -408,7 +407,7 @@ class City:
         if not self.hex:
             return
         
-        new_available_bldgs = self.get_available_buildings()
+        new_available_bldgs = self.get_available_buildings(include_in_queue=True)
 
         # Validate queue
         self.buildings_queue = [bldg for bldg in self.buildings_queue if bldg in new_available_bldgs]
@@ -504,10 +503,13 @@ class City:
         self.refresh_available_units()
         self.refresh_available_buildings()
 
-    def get_available_buildings(self) -> list[Union[BuildingTemplate, UnitTemplate, WonderTemplate]]:
+    def get_available_buildings(self, include_in_queue=False) -> list[Union[BuildingTemplate, UnitTemplate, WonderTemplate]]:
         if not self.civ:
             return []
-        building_names_in_queue = [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue]  # type: ignore
+        if include_in_queue:
+            building_names_in_queue = {}
+        else:
+            building_names_in_queue = {building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue}  # type: ignore
         wonders: list[WonderTemplate] = [wonder for wonder in self.available_wonders if wonder.name not in building_names_in_queue]
         buildings: list[BuildingTemplate] = [building for building in self.available_buildings if not building.name in building_names_in_queue and not self.has_building(building.name)]
         unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
@@ -637,7 +639,7 @@ class City:
 
         for wonder in game_state.wonders_built_to_civ_id:
             if game_state.wonders_built_to_civ_id[wonder] == self.civ.id:
-                for ability in BUILDINGS.by_name(wonder).abilities:
+                for ability in get_wonder_abilities_deprecated(wonder):
                     if ability.name == 'NewUnitsGainBonusStrength':
                         unit.strength += ability.numbers[0]
 
@@ -694,10 +696,10 @@ class City:
             new_value = getattr(self.hex.yields, numbers[0]) + numbers[1]
             setattr(self.hex.yields, numbers[0], new_value)
 
-        if isinstance(new_building.template, BuildingTemplate) and new_building.template.vp_reward and self.civ.game_player:
-            self.civ.game_player.score += new_building.template.vp_reward
-            self.civ.score += new_building.template.vp_reward
-            self.civ.game_player.score_from_building_vps += new_building.template.vp_reward
+        if self.civ.game_player:
+            self.civ.game_player.score += new_building.vp_reward
+            self.civ.score += new_building.vp_reward
+            self.civ.game_player.score_from_building_vps += new_building.vp_reward
 
         if new_building.has_ability('GainCityPower'):
             self.civ.city_power += new_building.numbers_of_ability('GainCityPower')[0]
@@ -768,10 +770,10 @@ class City:
 
         # Re-assign global wonders, and remove national wonders.
         for building in self.buildings:
-            if isinstance(building.template, BuildingTemplate) and building.template.is_wonder:
-                game_state.wonders_built_to_civ_id[building.template.name] = civ.id
-            if isinstance(building.template, BuildingTemplate) and building.template.is_national_wonder:
-                game_state.national_wonders_built_by_civ_id[self.civ.id].remove(building.template.name)
+            if building.is_wonder:
+                game_state.wonders_built_to_civ_id[building.building_name] = civ.id
+            if building.is_national_wonder:
+                game_state.national_wonders_built_by_civ_id[self.civ.id].remove(building.building_name)
         self.buildings = [b for b in self.buildings if not b.is_national_wonder]
 
         # Change the civ
@@ -852,7 +854,7 @@ class City:
                         setattr(hex.yields, numbers[0], new_value)                
 
             for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
+                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := get_wonder_abilities_deprecated(wonder)):
                     for ability in abilities:
                         if ability.name == "ExtraVpsForCityCapture":
                             civ.game_player.score += ability.numbers[0]

@@ -11,7 +11,7 @@ from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
-from wonder_template import WonderTemplate
+from wonder_template import WonderTemplate, get_wonder_abilities_deprecated
 from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
@@ -336,7 +336,7 @@ class GameState:
                     setattr(hex.yields, numbers[0], new_value)
     
         for wonder in self.wonders_built_to_civ_id:
-            if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
+            if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := get_wonder_abilities_deprecated(wonder)):
                 for ability in abilities:
                     if ability.name == "IncreasePopulationOfNewCities":
                         for _ in range(ability.numbers[0]):
@@ -1160,15 +1160,17 @@ class GameState:
         if not no_commit:
             sess.commit()
 
-    def wonder_buildable(self, wonder):
+    def wonder_buildable(self, wonder) -> bool:
         if wonder.age > self.advancement_level:
             # Can't build it yet
             return False
         if wonder in self.built_wonders:
-            # Can only build it if it was built by someone else this same turn
-            return self.built_wonders[wonder].turn_num < self.turn_num
+            return False
+        return True
 
     def available_wonders(self) -> list[WonderTemplate]:
+        # This only gets called after the game has fully rolled, so it wont' prevent the 2nd player building the wonder in the same turn
+        # To make ties be generous.
         return [wonder for wonders in self.wonders_by_age.values() for wonder in wonders if self.wonder_buildable(wonder)]
 
     def get_civ_by_name(self, civ_name: str) -> Civ:

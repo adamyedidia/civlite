@@ -1,3 +1,9 @@
+
+from building_templates_list import BUILDINGS
+
+def get_wonder_abilities_deprecated(wonder_name):
+    return BUILDINGS.by_name(wonder_name).abilities if wonder_name in [b.name for b in BUILDINGS.all()] else []
+
 class WonderTemplate:
     def __init__(self, name: str, age: int):
         self.name = name
@@ -19,3 +25,4 @@ class WonderTemplate:
             "name": self.name,
             "age": self.age,
         }
+

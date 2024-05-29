@@ -6,6 +6,9 @@ class WonderBuiltInfo:
         self.civ = civ
         self.turn_num = turn_num
 
+    def __repr__(self) -> str:
+        return f"WonderBuiltInfo(player_num={self.player_num}, civ={self.civ}, turn_num={self.turn_num})"
+
     def to_json(self):
         return {
             "player_num": self.player_num,

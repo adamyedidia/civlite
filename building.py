@@ -17,6 +17,13 @@ class Building:
         return f"<Building {self.template.name}>"
 
     @property
+    def building_name(self) -> str:
+        if isinstance(self.template, UnitTemplate):
+            return self.template.building_name
+        else:
+            return self.template.name
+ 
+    @property
     def type(self) -> str:
         return "unit" if isinstance(self.template, UnitTemplate) else "building" if isinstance(self.template, BuildingTemplate) else "wonder"
 
@@ -41,6 +48,14 @@ class Building:
         elif isinstance(self.template, UnitTemplate):
             return self.template.prereq
         return None
+    
+    @property
+    def vp_reward(self) -> int:
+        if isinstance(self.template, BuildingTemplate):
+            return self.template.vp_reward or 0
+        if isinstance(self.template, WonderTemplate):
+            return 5
+        return 0
 
     def has_ability(self, ability_name: str) -> bool:
         return isinstance(self.template, BuildingTemplate) and any([ability.name == ability_name for ability in self.template.abilities])
@@ -52,7 +67,8 @@ class Building:
     def to_json(self) -> dict:
         return {
             "type": self.type,
-            "name": self.template.name,
+            "template_name": self.template.name,
+            "building_name": self.building_name,
             "unit_name": self.unit_name,
         }
     
@@ -60,4 +76,4 @@ class Building:
     def from_json(json: dict) -> "Building":
         type = json.get('type')
         proto_dict = UNITS if type == 'unit' else BUILDINGS if type == 'building' else WONDERS
-        return Building(template=proto_dict.by_name(json['name']))
+        return Building(template=proto_dict.by_name(json['template_name']))

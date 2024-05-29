@@ -2196,7 +2196,7 @@ export default function GamePage() {
     }
 
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
-    const selectedCityBuildings = selectedCity?.buildings?.map(building => building.name);
+    const selectedCityBuildings = selectedCity?.buildings?.map(building => building.building_name);
 
     const selectedCityUnitChoices = selectedCity?.available_units;
 

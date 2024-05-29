@@ -2,6 +2,7 @@ import random
 from enum import Enum
 from typing import TYPE_CHECKING, Optional, Dict
 from collections import defaultdict
+from wonder_template import get_wonder_abilities_deprecated
 from great_person import GreatGeneral, GreatPerson, great_people_by_name
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
@@ -374,7 +375,7 @@ class Civ:
             self.score += TECH_VP_REWARD
 
             for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS.by_name(wonder).abilities):
+                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := get_wonder_abilities_deprecated(wonder)):
                     for ability in abilities:
                         if ability.name == "ExtraVpsForTechs":
                             self.game_player.score += ability.numbers[0]    
