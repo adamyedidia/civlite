@@ -907,26 +907,27 @@ class City:
         self.civ = civs_by_id[self.civ_id]
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
 
-    def bot_pick_economic_building(self, choices) -> Optional[BuildingTemplate]:
+    def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
+        affordable_ages: set[int] = {age for age in range(1, 10) if game_state.wonder_cost(age) <= self.wood + self.projected_income['wood']}
+        affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.age in affordable_ages]
+        if len(affordable_choices) == 0:
+            return None
+        # Build the highest age one we can afford
+        return max(affordable_choices, key=lambda x: (x.age, random.random()))
+
+    def bot_pick_economic_building(self, choices: list[BuildingTemplate]) -> Optional[BuildingTemplate]:
         national_wonders = [building for building in choices if building.is_national_wonder]
-        wonders = [building for building in choices if building.is_wonder]
         nonwonders = [building for building in choices if not building.is_wonder and not building.is_national_wonder]
 
         existing_national_wonders: list[BuildingTemplate] = [building for building in self.buildings if isinstance(building, BuildingTemplate) and building.is_national_wonder]
         if len(national_wonders) > 0 and len(existing_national_wonders) == 0 and self.population >= 8:
             return random.choice(national_wonders)
 
-        if len(wonders) > 0:
-            random.shuffle(wonders)
-            for wonder in wonders:
-                if self.wood + self.projected_income['wood'] > wonder.cost:
-                    return wonder
-
         if len(nonwonders) > 0:
             # print(f"    Choosing nonwonder; {self.available_buildings_to_descriptions=}")
             ACCEPTABLE_PAYOFF_TURNS = 8
             inverse_payoff_turns: dict[BuildingTemplate, float] = {
-                building: self.available_buildings_to_descriptions[building.name].get('value_for_ai', 0) / building.cost
+                building: float(self.available_buildings_to_descriptions[building.name].get('value_for_ai', 0)) / building.cost
                 for building in nonwonders
                 if building.name in self.available_buildings_to_descriptions and self.available_buildings_to_descriptions[building.name]['type'] == 'yield'
             }
@@ -974,8 +975,9 @@ class City:
             print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units]})")
 
         available_buildings = self.get_available_buildings()
-        economic_buildings = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
-        military_buildings = [building for building in available_buildings if isinstance(building, UnitTemplate) and building.movement > 0]
+        wonders: list[WonderTemplate] = [building for building in available_buildings if isinstance(building, WonderTemplate)]
+        economic_buildings: list[BuildingTemplate] = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
+        military_buildings: list[UnitTemplate] = [building for building in available_buildings if isinstance(building, UnitTemplate) and building.movement > 0]
         lotsa_wood: bool = self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2
         if len(military_buildings) > 0:
             # Choose buildings first by effective advancement level, then randomly
@@ -993,13 +995,12 @@ class City:
                 self.infinite_queue_unit = None
         elif len(self.buildings_queue) > 0:
             print(f"  continuing previous build queue: {self.buildings_queue}")
-        elif len(economic_buildings) > 0:
-            choice = self.bot_pick_economic_building(economic_buildings)
-            if choice:
-                self.buildings_queue = [choice]
-                print(f"  set building queue to economic building: {self.buildings_queue}")
-            else:
-                print(f"  no economic buildings available that I liked (had {economic_buildings})")
+        elif len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None:
+            self.buildings_queue = [wonder_choice]
+            print(f"  set building queue to wonder: {self.buildings_queue}")
+        elif len(economic_buildings) > 0 and (choice := self.bot_pick_economic_building(economic_buildings)) is not None:
+            self.buildings_queue = [choice]
+            print(f"  set building queue to economic building: {self.buildings_queue}")
         else:
             print(f"  no buildings available")
 
