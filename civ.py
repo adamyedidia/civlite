@@ -1,7 +1,7 @@
 import random
-from enum import Enum
 from typing import TYPE_CHECKING, Optional, Dict
 from collections import defaultdict
+from TechStatus import TechStatus
 from wonder_template import get_wonder_abilities_deprecated
 from great_person import GreatGeneral, GreatPerson, great_people_by_name
 from civ_template import CivTemplate
@@ -23,13 +23,6 @@ if TYPE_CHECKING:
     from hex import Hex
     from city import City
 
-
-class TechStatus(Enum):
-    RESEARCHED = 'researched'
-    UNAVAILABLE = 'unavailable'
-    DISCARDED = 'discarded'
-    AVAILABLE = 'available'
-    RESEARCHING = 'researching'
 
 class Civ:
     def __init__(self, civ_template: CivTemplate, game_player: Optional[GamePlayer]):
@@ -376,10 +369,11 @@ class Civ:
             for wonder in game_state.wonders_built_to_civ_id:
                 if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := get_wonder_abilities_deprecated(wonder)):
                     for ability in abilities:
-                        if ability.name == "ExtraVpsForTechs":
-                            self.game_player.score += ability.numbers[0]    
-                            self.game_player.score_from_abilities += ability.numbers[0]
-                            self.score += ability.numbers[0]
+                        if ability.name == "ExtraVpPerAgeOfTechResearched":
+                            amount = ability.numbers[0] * tech.advancement_level
+                            self.game_player.score += amount    
+                            self.game_player.score_from_abilities += amount
+                            self.score += amount
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)

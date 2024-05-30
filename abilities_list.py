@@ -136,9 +136,9 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"All existing units gain +{x} strength.",
         numbers=[x],
     ),
-    "ExtraVpsForTechs": lambda x: Ability(
-        name="ExtraVpsForTechs",
-        description=f"Receive {x} extra VP for each tech you research.",
+    "ExtraVpPerAgeOfTechResearched": lambda x: Ability(
+        name="ExtraVpPerAgeOfTechResearched",
+        description=f"Receive {x} extra VP per age of tech you research.",
         numbers=[x],
     ),
     "ExtraVpsForCityGrowth": lambda x: Ability(

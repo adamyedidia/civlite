@@ -295,11 +295,17 @@ class City:
             if self.is_territory_capital:
                 self.build_units(game_state)
                 self.build_buildings(game_state)
+            self.roll_wonders(game_state)
             self.handle_siege(sess, game_state)
         
         self.handle_unhappiness(game_state)
         self.handle_cleanup()
         self.midturn_update(game_state)
+
+    def roll_wonders(self, game_state: 'GameState') -> None:
+        for blfg in self.buildings:
+            if isinstance(blfg.template, WonderTemplate):
+                blfg.template.per_turn.apply(self, game_state)
 
     def age(self, game_state) -> int:
         assert self.founded_turn is not None, "Can't get age of a fake city."

@@ -1,7 +1,7 @@
 import random
 from typing import TYPE_CHECKING, Callable
 
-from civ import TechStatus
+from TechStatus import TechStatus
 from effect import CityTargetEffect
 from unit_template import UnitTemplate
 
@@ -114,7 +114,7 @@ class FreeNearbyCityEffect(CityTargetEffect):
     def description(self) -> str:
         return f"Build a free nearby city 20 unhappiness"
 
-    def apply(self, city: City, game_state: GameState):
+    def apply(self, city: 'City', game_state: 'GameState'):
         my_civ = city.civ
         def valid_spot(hex: 'Hex') -> bool:
             if hex.camp is not None:
@@ -140,7 +140,7 @@ class RecruitBarbariansEffect(CityTargetEffect):
     def description(self) -> str:
         return f"Recruit all barbarians within {self.range} tiles (including camps)"
     
-    def apply(self, city: City, game_state: GameState):
+    def apply(self, city: 'City', game_state: 'GameState'):
         assert city.hex
         for hex in city.hex.get_hexes_within_range(game_state.hexes, self.range):
             if len(hex.units) > 0 and hex.units[0].civ == game_state.barbarians:
@@ -157,7 +157,7 @@ class PointsEffect(CityTargetEffect):
     def description(self) -> str:
         return self._description
     
-    def apply(self, city: City, game_state: GameState):
+    def apply(self, city: 'City', game_state: 'GameState'):
         if city.civ.game_player is not None:
             value = self.calculate_points(city, game_state)
             city.civ.game_player.score += value
@@ -173,9 +173,35 @@ class StrengthAllUnitsEffect(CityTargetEffect):
     def description(self) -> str:
         return f"All your existing units gain {self.amount} strength"
     
-    def apply(self, city: City, game_state: GameState):
+    def apply(self, city: 'City', game_state: 'GameState'):
         for unit in game_state.units:
             if unit.civ == city.civ:
                 unit.strength += self.amount
+
+class StealPopEffect(CityTargetEffect):
+    def __init__(self, num: int, cities: int) -> None:
+        self.num = num
+        self.cities = cities
+
+    @property
+    def description(self) -> str:
+        return f"Steal {self.num} population from the {self.cities} unhappiest cities"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        all_cities = list(game_state.cities_by_id.values())
+        all_cities.sort(key=lambda c: c.unhappiness, reverse=True)
+        for c in all_cities:
+            for _ in range(self.num):
+                city.grow_inner(game_state=game_state)
+                c.population -= 1
+        
+class ResetHappinessAllCitiesEffect(CityTargetEffect):
+    @property
+    def description(self) -> str:
+        return "Reset the happiness in all your cities to zero"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        for c in city.civ.get_my_cities(game_state=game_state):
+            c.unhappiness = 0
 
 

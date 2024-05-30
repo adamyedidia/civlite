@@ -1,14 +1,8 @@
 from typing import Generator
+from abilities_list import BUILDING_ABILITIES
 from unit_templates_list import UNITS
-from effects_list import BuildUnitsEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, StrengthAllUnitsEffect
+from effects_list import BuildUnitsEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect
 from wonder_template import WonderTemplate
-
-# Robin Hood
-# Steal pop from every other city on the map
-# vp per turn
-# unit per turn
-# pop per turn
-# great person
 
 class WONDERS():
     ########################## Age 0 ##########################
@@ -22,7 +16,7 @@ class WONDERS():
 
     STONEHENGE = WonderTemplate(
         name="Stonehenge", age=0,
-        on_build=BuildUnitsEffect(unit_template=UNITS.SLINGER, num=3)
+        per_turn=BuildUnitsEffect(unit_template=UNITS.SLINGER, num=1)
     )
 
     # Your warriors get +1 strength & -5 hp each turn?
@@ -87,8 +81,6 @@ class WONDERS():
     )
 
     ########################## Age 3 ##########################
-    # Options:
-    # * Chichen Itza (13th c)
 
     CAMELOT = WonderTemplate(
         name="Camelot", age=3,
@@ -99,15 +91,17 @@ class WONDERS():
     # 4th century
     HIPPODROME = WonderTemplate(
         name="Hippodrome", age=3,
-        # TODO -- 1 knight per turn, -5 unhappiness/turn all cities
+        per_turn=BuildUnitsEffect(unit_template=UNITS.KNIGHT, num=1)
         )
 
     ########################## Age 4 ##########################
     # Options:
+    # * Chichen Itza (13th c)
     # * Porcelain Tower (15th century), 
     # * Alhambra (13th century), 
     # * Angkor Wat (12th century), 
     # * Macchu Picchu (15th century)
+    # * Taj Mahal (16th century)
 
     # 13th century
     NOTRE_DAME = WonderTemplate(name="Notre Dame", age=4, vp_reward=20)
@@ -123,28 +117,49 @@ class WONDERS():
     )
 
     ########################## Age 5 ##########################
+    # Options:
+    # * Brandenburg Gate (1791)
 
-    # TODO
-    PLACEHOLDER_A5_NUM1 = WonderTemplate(name="PLACEHOLDER_A5_NUM1", age=5)
-    # TODO
-    PLACEHOLDER_A5_NUM2 = WonderTemplate(name="PLACEHOLDER_A5_NUM2", age=5)
-    # TODO
-    BRANDENBURG_GATE = WonderTemplate(name="Brandenburg Gate", age=5)
+    # 1849
+    KREMLIN = WonderTemplate(
+        name="Kremlin", age=5,
+        on_build=PointsEffect(calculate_points=lambda city, _: int(city.civ.city_power / 25), description="+1 vp per 25 city power you have stored")
+    )
+
+    # 1836
+    ARC_DE_TRIOMPHE = WonderTemplate(
+        name="Arc de Triomphe", age=5,
+        abilities=[BUILDING_ABILITIES["ExtraVpsForCityCapture"](5)]
+    )
+
+    # 1859
+    BIG_BEN = WonderTemplate(
+        name="Big Ben", age=5,
+        per_turn=PointsEffect(calculate_points=lambda city, _: 2, description="+2 vp per turn")
+    )
 
     ########################## Age 6 ##########################
+    # Options
+    # * Cristo Redentor (1931)
+    # * Empire State Building (1931)
 
-    # Reset all unhappiness
-    WORLDS_FAIR = WonderTemplate(
-        name="World's Fair", age=6,
-        # TODO reset unhappiness in all cities
-    )
+    # 1886
     STATUE_OF_LIBERTY = WonderTemplate(
         name="Statue of Liberty", age=6,
-        # TODO - each turn, steal 1 pop from the 5 unhappiest cities
+        per_turn=StealPopEffect(num=1, cities=5)
     )
-    KREMLIN = WonderTemplate(
-        name="Kremlin", age=6,
-        on_build=PointsEffect(calculate_points=lambda city, _: int(city.civ.city_power / 25), description="+1 vp per 25 city power you have stored")
+
+    # Eiffel Tower was 1889
+    WORLDS_FAIR = WonderTemplate(
+        name="World's Fair", age=6,
+        on_build=ResetHappinessAllCitiesEffect()
+    )
+
+    # 1931
+    CRISTO_REDENTOR = WonderTemplate(
+        name="Cristo Redentor", age=6,
+        on_build=BuildUnitsEffect(unit_template=UNITS.RIFLEMAN, num=6),
+        per_turn=GrowEffect(amount=3)
     )
 
     ########################## Age 7 ##########################
@@ -166,7 +181,7 @@ class WONDERS():
 
     APOLLO_PROGRAM = WonderTemplate(
         name="Apollo Program", age=8,
-        # TODO - vp per age of tech researched.
+        abilities=[BUILDING_ABILITIES["ExtraVpPerAgeOfTechResearched"](2)]
     )
     HUBBLE_SPACE_TELESCOPE = WonderTemplate(name="Hubble Space Telescope", age=8, on_build=FreeRandomTechEffect(age=9))
     AVENGERS_TOWER = WonderTemplate(
@@ -176,9 +191,9 @@ class WONDERS():
 
     ########################## Age 9 ##########################
 
-    AGI = WonderTemplate(name="AGI", age=9)
-    MARS_COLONY = WonderTemplate(name="Mars Colony", age=9)
-    DYSON_SWARM = WonderTemplate(name="Dyson Swarm", age=9)
+    AGI = WonderTemplate(name="AGI", age=9, vp_reward=50)
+    MARS_COLONY = WonderTemplate(name="Mars Colony", age=9, vp_reward=50)
+    DYSON_SWARM = WonderTemplate(name="Dyson Swarm", age=9, vp_reward=50)
 
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
