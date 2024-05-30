@@ -242,6 +242,7 @@ class GameState:
         self.wonders_built_to_civ_id: dict[str, str] = {}  # TODO remove
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {}
         self.built_wonders: dict[WonderTemplate, WonderBuiltInfo] = {}
+        self.wonder_cost_by_age: dict[int, int] = BASE_WONDER_COST.copy()
         self.national_wonders_built_by_civ_id: dict[str, list[str]] = {}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
@@ -299,12 +300,16 @@ class GameState:
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {
             age: sorted(random.sample(list(WONDERS.all_by_age(age)), wonders_per_age), key=lambda w: w.name) for age in range(0, 10)}
 
-    def wonder_cost(self, age: int) -> int:
+    def update_wonder_cost_by_age(self) -> None:
+        for age in self.wonders_by_age.keys():
+            self.wonder_cost_by_age[age] = self._wonder_cost(age)
+
+    def _wonder_cost(self, age: int) -> int:
         base: int = BASE_WONDER_COST[age]
         num_built: int = len([w for w in self.built_wonders if w.age == age])
         total_num: int = len(self.wonders_by_age[age])
         # The first one costs base, the last one 2 * base
-        cost = int(base * (1 + num_built / (total_num - 1)))
+        cost = int(base * (1 + num_built / max(total_num - 1, 1)))
         return cost
 
     def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str | None) -> City:
@@ -985,6 +990,7 @@ class GameState:
 
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
+        self.update_wonder_cost_by_age()
 
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
@@ -1205,7 +1211,7 @@ class GameState:
             "fresh_cities_for_decline": {coords: city.to_json(include_civ_details=True) for coords, city in self.fresh_cities_for_decline.items()},
             "unhappiness_threshold": self.unhappiness_threshold,
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
-            "wonder_costs_by_age": {age: self.wonder_cost(age) for age in self.wonders_by_age},
+            "wonder_cost_by_age": self.wonder_cost_by_age,
         }
 
     @staticmethod
@@ -1223,6 +1229,7 @@ class GameState:
         game_state.wonders_built_to_civ_id = json["wonders_built_to_civ_id"].copy()
         game_state.wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["wonders_by_age"].items()}
         game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json, game_state) for wonder_name, wonder_json in json["built_wonders"].items()}
+        game_state.wonder_cost_by_age = {int(age): cost for age, cost in json["wonder_cost_by_age"].items()}
         game_state.national_wonders_built_by_civ_id = {k: v[:] for k, v in json["national_wonders_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}

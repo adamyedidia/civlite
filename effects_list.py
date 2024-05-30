@@ -112,7 +112,7 @@ class GrowEffect(CityTargetEffect):
 class FreeNearbyCityEffect(CityTargetEffect):
     @property
     def description(self) -> str:
-        return f"Build a free nearby city 20 unhappiness"
+        return f"Build a free nearby city with 20 unhappiness"
 
     def apply(self, city: 'City', game_state: 'GameState'):
         my_civ = city.civ

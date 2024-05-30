@@ -28,9 +28,9 @@ class WonderTemplate:
     
     def description(self) -> str:
         effect_descs = []
-        if self.on_build != NullEffect():
+        if self.on_build.description != "":
             effect_descs.append(f"On build: {self.on_build.description}")
-        if self.per_turn != NullEffect():
+        if self.per_turn.description != "":
             effect_descs.append(f"Each turn: {self.per_turn.description}")
         effect_descs.extend([a.description for a in self.abilities])
         return "\n ".join(effect_descs)

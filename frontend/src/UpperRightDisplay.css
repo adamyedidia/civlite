@@ -337,6 +337,7 @@ h2.tech-name {
     scrollbar-color: #b8209e #e098d4;
     scroll-behavior: smooth;
     scroll-snap-type: y mandatory;
+    padding: 0;
 }
 
 /* For Webkit browsers. Dunno what this is, GPT put it here */
@@ -355,14 +356,25 @@ h2.tech-name {
 
 .wonder-list-display {
     display: flex;
-    gap: 5px;
 }
 
 .wonder-age-display {
-    width: 80px;
+    width: 100px;
+    min-width: 100px;
     display: flex;
     flex-direction: column;
     gap: 5px;
+    padding: 5px;
+}
+
+.wonder-age-display.locked {
+    background-color: #ac86a5;
+}
+.wonder-age-display.unlocked {
+    background-color: #e098d4;
+}
+.wonder-age-display.locked .wonder-display {
+    background-color: #d6a7ce;
 }
 
 .wonder-age-display .wonder-age {
@@ -383,6 +395,7 @@ h2.tech-name {
     padding: 5px;
     background-color: #eed1e9;
     overflow-x: hidden;
+    white-space: nowrap;
 }
 
 .wonder-display.built {

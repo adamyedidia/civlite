@@ -656,7 +656,7 @@ class City:
     def build_buildings(self, game_state: 'GameState') -> None:
         while self.buildings_queue:
             building: UnitTemplate | BuildingTemplate | WonderTemplate = self.buildings_queue[0]
-            cost = building.wood_cost if isinstance(building, UnitTemplate) else building.cost if isinstance(building, BuildingTemplate) else game_state.wonder_cost(building.age)
+            cost = building.wood_cost if isinstance(building, UnitTemplate) else building.cost if isinstance(building, BuildingTemplate) else game_state.wonder_cost_by_age[building.age]
             if self.wood >= cost:
                 self.buildings_queue.pop(0)
                 self.build_building(game_state, building)
@@ -916,7 +916,7 @@ class City:
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
 
     def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
-        affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost(age) <= self.wood + self.projected_income['wood']}
+        affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost_by_age[age] <= self.wood + self.projected_income['wood']}
         affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.age in affordable_ages]
         if len(affordable_choices) == 0:
             return None

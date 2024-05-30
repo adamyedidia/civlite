@@ -93,8 +93,8 @@ const WonderDisplay = ({ wonder, built, setHoveredWonder }) => {
     </div>
 }
 
-const WonderAgeDisplay = ({ age, wonders, built_wonders, cost, templates, setHoveredWonder }) => {
-    return <div className="wonder-age-display">
+const WonderAgeDisplay = ({ age, unlocked, wonders, built_wonders, cost, templates, setHoveredWonder }) => {
+    return <div className={`wonder-age-display ${unlocked ? "unlocked" : "locked"}`}>
         <div className="wonder-age">{romanNumeral(age)}</div>
         <div className="wonder-cost">
             {cost} <img src={woodImg} alt="" width="16px" height="16px"/>
@@ -105,11 +105,11 @@ const WonderAgeDisplay = ({ age, wonders, built_wonders, cost, templates, setHov
     </div>
 }
 
-const WonderListDisplay = ({ wonders_by_age, built_wonders, cost_by_age, templates, setHoveredWonder }) => {
+const WonderListDisplay = ({ wonders_by_age, game_age, built_wonders, cost_by_age, templates, setHoveredWonder }) => {
     return <CivDetailPanel title="wonders" icon={wonderImg} iconTooltip="Wonders" bignum="">
     <div className="wonder-list-display">
         {Object.entries(wonders_by_age).map(([age, wonders]) => {
-            return <WonderAgeDisplay key={age} age={parseInt(age)} wonders={wonders} built_wonders={built_wonders} cost={cost_by_age[age]} templates={templates} setHoveredWonder={setHoveredWonder}/>
+            return <WonderAgeDisplay key={age} unlocked={game_age >= parseInt(age)} age={parseInt(age)} wonders={wonders} built_wonders={built_wonders} cost={cost_by_age[age]} templates={templates} setHoveredWonder={setHoveredWonder}/>
         })}
     </div>
     </CivDetailPanel>
@@ -319,7 +319,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
     turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, setHoveredWonder, civsById}) => {
     return (
         <div className="upper-right-display">
-            {myCiv && <WonderListDisplay wonders_by_age={mainGameState.wonders_by_age} built_wonders={mainGameState.built_wonders} cost_by_age={mainGameState.wonder_costs_by_age} templates={templates} setHoveredWonder={setHoveredWonder}/>}
+            {myCiv && <WonderListDisplay wonders_by_age={mainGameState.wonders_by_age} game_age={mainGameState.advancement_level} built_wonders={mainGameState.built_wonders} cost_by_age={mainGameState.wonder_cost_by_age} templates={templates} setHoveredWonder={setHoveredWonder}/>}
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} templates={templates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} templates={templates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay playerNum={myGamePlayer?.player_num} myCiv={myCiv} myGamePlayer={myGamePlayer} turnNum={turnNum}
