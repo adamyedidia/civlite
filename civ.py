@@ -190,8 +190,7 @@ class Civ:
         )]
         self.available_unit_buildings: list[UnitTemplate] = [
             unit for unit in UNITS.all() 
-            if ((unit.prereq is None or self.has_tech(unit.prereq)) and 
-                unit.building_name is not None)
+            if unit.buildable and (unit.prereq is None or self.has_tech(unit.prereq))
             ]
 
 

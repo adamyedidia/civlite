@@ -37,6 +37,7 @@ SURVIVAL_BONUS = 25
 MULLIGAN_PENALTY = 5
 
 BASE_WONDER_COST = {
+    0: 20,
     1: 40,
     2: 60,
     3: 80,

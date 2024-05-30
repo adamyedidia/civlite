@@ -1,6 +1,7 @@
 
 from building_templates_list import BUILDINGS
-from effect import CityTargetEffect, NullEffect
+from effects_list import NullEffect
+from effect import CityTargetEffect
 
 def get_wonder_abilities_deprecated(wonder_name):
     return BUILDINGS.by_name(wonder_name).abilities if wonder_name in [b.name for b in BUILDINGS.all()] else []

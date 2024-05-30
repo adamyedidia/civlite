@@ -297,7 +297,7 @@ class GameState:
         assert len(self.game_player_by_player_num) > 0, "Cannot initialize wonders without players"
         wonders_per_age: int = len(self.game_player_by_player_num) - 1
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {
-            age: sorted(random.sample(list(WONDERS.all_by_age(age)), wonders_per_age), key=lambda w: w.name) for age in range(1, 10)}
+            age: sorted(random.sample(list(WONDERS.all_by_age(age)), wonders_per_age), key=lambda w: w.name) for age in range(0, 10)}
 
     def wonder_cost(self, age: int) -> int:
         base: int = BASE_WONDER_COST[age]
@@ -307,7 +307,7 @@ class GameState:
         cost = int(base * (1 + num_built / (total_num - 1)))
         return cost
 
-    def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str) -> None:
+    def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str | None) -> City:
         civ.city_power -= 100
         city = self.new_city(civ, hex, city_id)
         self.register_city(city)
@@ -345,6 +345,7 @@ class GameState:
         self.refresh_foundability_by_civ()
         self.midturn_update() 
         city.hide_bad_buildings()
+        return city
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have entered decline!')                

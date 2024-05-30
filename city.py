@@ -909,7 +909,7 @@ class City:
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
 
     def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
-        affordable_ages: set[int] = {age for age in range(1, 10) if game_state.wonder_cost(age) <= self.wood + self.projected_income['wood']}
+        affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost(age) <= self.wood + self.projected_income['wood']}
         affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.age in affordable_ages]
         if len(affordable_choices) == 0:
             return None

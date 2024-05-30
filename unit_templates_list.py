@@ -553,6 +553,36 @@ class UNITS():
         }
     )
 
+    ZEUS = UnitTemplate(
+        name="Zeus",
+        type="military",
+        metal_cost=40,
+        strength=25,
+        movement=1,
+        range=3,
+        tags=[UnitTag.WONDROUS, UnitTag.RANGED],
+        abilities=[],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    COLOSUS = UnitTemplate(
+        name="Colosus",
+        type="military",
+        metal_cost=60,
+        strength=50,
+        movement=0,
+        range=1,
+        tags=[UnitTag.WONDROUS, UnitTag.DEFENSIVE],
+        abilities=[],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
     # That handled the dynamic type properly.
