@@ -54,7 +54,7 @@ class FreeRandomTechEffect(CityTargetEffect):
 
         # try at the right age, but if none available, go down to age below.
         for a in range(self.age, 0, -1):
-            available_techs = [tech for tech, status in civ.techs_status.items() if status == TechStatus.AVAILABLE and tech.advancement_level == a]
+            available_techs = [tech for tech, status in civ.techs_status.items() if status in {TechStatus.UNAVAILABLE, TechStatus.AVAILABLE} and tech.advancement_level == a]
             if available_techs:
                 chosen = random.choice(available_techs)
                 civ.gain_tech(tech=chosen, game_state=game_state)
