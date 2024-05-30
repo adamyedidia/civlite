@@ -7,10 +7,11 @@ def get_wonder_abilities_deprecated(wonder_name):
     return BUILDINGS.by_name(wonder_name).abilities if wonder_name in [b.name for b in BUILDINGS.all()] else []
 
 class WonderTemplate:
-    def __init__(self, name: str, age: int, on_build: CityTargetEffect | None = None):
+    def __init__(self, name: str, age: int, on_build: CityTargetEffect | None = None, vp_reward: int = 5):
         self.name = name
         self.age = age
         self.on_build: CityTargetEffect = on_build or NullEffect()
+        self.vp_reward = vp_reward
 
     def __repr__(self):
         return f"<WonderTemplate {self.name})>"
@@ -28,5 +29,6 @@ class WonderTemplate:
             "name": self.name,
             "description": self.on_build.description,
             "age": self.age,
+            "vp_reward": self.vp_reward,
         }
 

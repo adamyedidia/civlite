@@ -546,12 +546,12 @@ class City:
             return target2
 
 
-    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False) -> bool:
+    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1) -> bool:
         if not self.hex:
             return False
 
         if not self.hex.is_occupied(unit.type, self.civ):
-            self.spawn_unit_on_hex(game_state, unit, self.hex)
+            self.spawn_unit_on_hex(game_state, unit, self.hex, stack_size=stack_size)
             return True
 
         best_hex = None
@@ -587,7 +587,7 @@ class City:
 
         if best_hex is None:
             if best_unit_to_reinforce:
-                self.reinforce_unit(best_unit_to_reinforce)
+                self.reinforce_unit(best_unit_to_reinforce, stack_size=stack_size)
                 return True
             
             else:
@@ -620,15 +620,16 @@ class City:
                             hex.units[0].remove_from_game(game_state)
                             break
 
-                return self.build_unit(game_state, unit, give_up_if_still_impossible=True)
+                return self.build_unit(game_state, unit, give_up_if_still_impossible=True, stack_size=stack_size)
 
         self.spawn_unit_on_hex(game_state, unit, best_hex)
         return True
 
-    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex') -> None:
+    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', stack_size=1) -> None:
         if self.hex is None:
             return
         unit = Unit(unit_template, self.civ)
+        unit.health *= stack_size
         unit.hex = hex
         hex.units.append(unit)
         game_state.units.append(unit)
@@ -643,8 +644,8 @@ class City:
                     if ability.name == 'NewUnitsGainBonusStrength':
                         unit.strength += ability.numbers[0]
 
-    def reinforce_unit(self, unit: Unit) -> None:
-        unit.health += 100
+    def reinforce_unit(self, unit: Unit, stack_size=1) -> None:
+        unit.health += 100 * stack_size
 
     def build_buildings(self, game_state: 'GameState') -> None:
         while self.buildings_queue:

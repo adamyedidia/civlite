@@ -116,15 +116,15 @@ _great_people_by_age: dict[int, list[GreatPerson]] = defaultdict(list)
 
 def _target_value_by_age(age: int) -> int:
     return {
-        0: 45,
-        1: 90,
-        2: 135,
+        0: 40,
+        1: 80,
+        2: 120,
         3: 180,
-        4: 300,
-        5: 375,
-        6: 450,
-        7: 600,
-        8: 900,
+        4: 240,
+        5: 320,
+        6: 420,
+        7: 560,
+        8: 800,
         9: 1200,
         10: 2400,
     }[age]

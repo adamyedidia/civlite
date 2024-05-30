@@ -54,7 +54,7 @@ class Building:
         if isinstance(self.template, BuildingTemplate):
             return self.template.vp_reward or 0
         if isinstance(self.template, WonderTemplate):
-            return 5
+            return self.template.vp_reward
         return 0
 
     def has_ability(self, ability_name: str) -> bool:

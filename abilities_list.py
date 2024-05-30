@@ -194,4 +194,19 @@ UNIT_ABILITIES: dict[str, Callable] = {
         description=f"Converts killed enemy units into more copies of itself.",
         numbers=[],
     ),
+    "HealAllies": lambda: Ability(
+        name="HealAllies",
+        description=f"Heal all adjacent allies after moving.",
+        numbers=[],
+    ),
+    "MultipleAttack": lambda x: Ability(
+        name="MultipleAttack",
+        description=f"Attack {x} times per turn.",
+        numbers=[x],
+    ),
+    "Missile": lambda: Ability(
+        name="Missile",
+        description=f"Dies after attacking.",
+        numbers=[],
+    ),
 }

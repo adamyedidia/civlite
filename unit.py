@@ -28,9 +28,15 @@ class Unit:
         self.attacks_used = 0
         self.destination = None
 
+    def num_attacks(self) -> int:
+        num_units = self.get_stack_size()
+        if self.has_ability('MultipleAttack'):
+            return num_units * self.numbers_of_ability('MultipleAttack')[0]
+        return num_units
+
     @property
     def done_attacking(self):
-        return self.attacks_used >= self.get_stack_size()
+        return self.attacks_used >= self.num_attacks()
 
     def __repr__(self):
         return f"<Unit {self.civ.moniker()} {self.template.name} @ {self.hex.coords if self.hex is not None else None}"
@@ -115,6 +121,12 @@ class Unit:
 
             self.update_nearby_hexes_visibility(game_state)
 
+            if self.has_ability('HealAllies'):
+                for neighbor in self.hex.get_neighbors(game_state.hexes):
+                    for unit in neighbor.units:
+                        if unit.civ == self.civ and not unit.has_ability('HealAllies'):
+                            unit.health = ceil(unit.health / 100) * 100
+
             game_state.add_animation_frame(sess, {
                 "type": "UnitMovement",
                 "coords": coord_strs,
@@ -165,7 +177,7 @@ class Unit:
         if self.hex is None or self.done_attacking:
             return
 
-        for _ in range(self.get_stack_size()):
+        while not self.done_attacking:
             if self.hex is None:
                 return
 
@@ -173,7 +185,10 @@ class Unit:
 
             best_target = self.get_best_target(hexes_to_check)
 
-            if best_target is not None:
+            if best_target is None:
+                break
+
+            else:
                 self.fight(sess, game_state, best_target)
                 self.attacks_used += 1
 
@@ -269,7 +284,7 @@ class Unit:
         if self.has_ability('Splash'):
             for neighboring_hex in target_hex.get_neighbors(game_state.hexes):
                 for unit in neighboring_hex.units:
-                    if unit.civ.id != self.civ.id:
+                    if unit.civ != self.civ:
                         self.punch(game_state, unit, self.numbers_of_ability('Splash')[0])
 
         if self.template.has_tag(UnitTag.RANGED):
@@ -286,6 +301,14 @@ class Unit:
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
         }, hexes_must_be_visible=[self_hex, target_hex], no_commit=True)
+
+        if self.has_ability('Missile'):
+            self.health -= self.health % 100
+            if self.health <= 0:
+                self.die(game_state, target)
+
+            # Only one attack from a stack of missiles per turn
+            self.attacks_used += 1000
 
     def remove_from_game(self, game_state: 'GameState') -> None:
         if self.hex is None:

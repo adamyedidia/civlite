@@ -583,6 +583,84 @@ class UNITS():
         wood_cost=0,
     )
 
+    SIR_LANCELOT = UnitTemplate(
+        name="Sir Lancelot",
+        type="military",
+        metal_cost=80,
+        strength=40,
+        movement=3,
+        range=1,
+        tags=[UnitTag.WONDROUS, UnitTag.MOUNTED],
+        abilities=[{
+            "name": "MultipleAttack",
+            "numbers": [2],
+        }],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    ARCHANGEL = UnitTemplate(
+        name="Archangel",
+        type="military",
+        metal_cost=50,
+        strength=30,
+        movement=2,
+        range=1,
+        tags=[UnitTag.WONDROUS],
+        abilities=[{
+            "name": "HealAllies",
+            "numbers": [],
+        }],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    ATOMIC_BOMB = UnitTemplate(
+        name="Atomic Bomb",
+        type="military",
+        metal_cost=100,
+        strength=100,
+        movement=1,
+        range=6,
+        tags=[UnitTag.WONDROUS],
+        abilities=[{
+            "name": "Splash",
+            "numbers": [1.0],
+        }, {
+            "name": "Missile",
+            "numbers": [],
+        }      ],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    IRONMAN = UnitTemplate(
+        name="Ironman",
+        type="military",
+        metal_cost=180,
+        strength=100,
+        movement=2,
+        range=2,
+        tags=[UnitTag.WONDROUS],
+        abilities=[{
+            "name": "MultipleAttack",
+            "numbers": [4],
+        }, {
+            "name": "Splash",
+            "numbers": [0.6],
+        }],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
     # That handled the dynamic type properly.

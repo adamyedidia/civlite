@@ -14,4 +14,3 @@ class CityTargetEffect(ABC):
     @abstractmethod
     def apply(self, city: 'City', game_state: 'GameState'):
         raise NotImplementedError
-
