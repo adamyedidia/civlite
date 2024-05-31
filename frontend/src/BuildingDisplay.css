@@ -53,16 +53,6 @@
     max-width: 30vw; /* Adjust as needed */
 }
 
-.building-card.wonder-disabled {
-    opacity: 0.5;
-}
-
-.building-card.wonder-disabled .wonder-disabled-msg {
-    /* Make the text centered and bold*/
-    text-align: center;
-    font-weight: bold;
-}
-
 .building-card h2 {
     margin-top: 0;
 }

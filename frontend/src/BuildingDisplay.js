@@ -13,7 +13,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions, disabledMsg }) => {
+export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -38,7 +38,7 @@ export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wond
     const cost = !hideCost && (building_type == 'UNIT' ? building.wood_cost : building_type == 'BUILDING' ? building.cost : building_type == 'WONDER' ? wonderCostsByAge[building.age] : null);
     return (
         <div 
-            className={`brief-building-card ${building_class} ${disabledMsg && 'disabled'} ${clickable ? 'clickable' : ''}`} 
+            className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''}`} 
             onClick={onClick}
             onMouseEnter={() => building_type == 'WONDER' ? setHoveredWonder(building) : setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : setHoveredBuilding(null)} // clear on mouse leave
@@ -50,7 +50,7 @@ export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wond
     );
 };
 
-const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName, disabledMsg, onClick }) => {
+const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName, onClick }) => {
     return (
         unitTemplatesByBuildingName[buildingName] ? 
             <div className="building-card" onClick={onClick}>
@@ -61,8 +61,7 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
                 </div>
             </div>
             :
-            <div className={`building-card ${disabledMsg ? 'wonder-disabled' : ''}`} onClick={onClick}>
-                {disabledMsg && <p className='wonder-disabled-msg'>{disabledMsg}</p>}
+            <div className={`building-card`} onClick={onClick}>
                 <h2>{templates.BUILDINGS[buildingName]?.name}</h2>
                 <p>Cost: {templates.BUILDINGS[buildingName]?.cost} wood</p>
                 {templates.BUILDINGS[buildingName]?.vp_reward && <p>VP reward: {templates.BUILDINGS[buildingName]?.vp_reward}</p>}

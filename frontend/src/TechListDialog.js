@@ -62,7 +62,6 @@ const TechCard = ({tech, gameState, templates, myCiv, setHoveredTech, handleClic
                         hideCost={true} 
                         templates={templates} 
                         setHoveredBuilding={()=>null}
-                        disabledMsg={gameState.wonders_built_to_civ_id.hasOwnProperty(buildingName) ? `==  Built by ${gameState.civs_by_id[gameState.wonders_built_to_civ_id[buildingName]].name}  ==` : ""} 
                         style={{
                             fontSize: '0.8em',
                             borderColor: '#e46c2b',
