@@ -283,6 +283,7 @@ class GameState:
         city = City(civ, name=city_name, id=city_id)
         city.hex = hex
         city.populate_terrains_dict(self)
+        city.refresh_available_wonders(self)
         return city
 
     def register_camp(self, camp, hex):
@@ -433,6 +434,7 @@ class GameState:
 
         city.refresh_available_buildings()
         city.refresh_available_units()
+        city.refresh_available_wonders(self)
         self.midturn_update()
 
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
@@ -1106,7 +1108,11 @@ class GameState:
     def handle_wonder_built(self, civ: Civ, wonder: WonderTemplate) -> None:
         self.wonders_built_to_civ_id[wonder.name] = civ.id
         player_num: int | None = civ.game_player.player_num if civ.game_player is not None else None
-        self.built_wonders[wonder] = WonderBuiltInfo(player_num, civ, self.turn_num)
+        if wonder in self.built_wonders:
+            self.built_wonders[wonder].player_nums.append(player_num)
+            self.built_wonders[wonder].civs.append(civ)
+        else:
+            self.built_wonders[wonder] = WonderBuiltInfo([player_num], [civ], self.turn_num)
         
         if (game_player := civ.game_player) is not None:
             if civ.has_ability('ExtraVpsPerWonder'):

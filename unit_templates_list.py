@@ -568,10 +568,10 @@ class UNITS():
         wood_cost=0,
     )
 
-    COLOSUS = UnitTemplate(
-        name="Colosus",
+    COLOSSUS = UnitTemplate(
+        name="Colossus",
         type="military",
-        metal_cost=60,
+        metal_cost=50,
         strength=50,
         movement=0,
         range=1,

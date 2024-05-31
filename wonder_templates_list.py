@@ -23,9 +23,10 @@ class WONDERS():
     # ZIGGURAT_OF_UR = WonderTemplate(name="Ziggurat of Ur", age=0)
 
     # 7th century BC
+    # UNTESTED
     HANGING_GARDENS = WonderTemplate(
         name="Hanging Gardens", age=0,
-        on_build=PointsEffect(calculate_points=lambda city, _: 2 * city.population, description="+2 vp per population in this city")
+        on_build=PointsEffect(calculate_points=lambda city, _: 3 * city.population, description="+3 vp per population in this city")
     )
 
     ########################## Age 1 ##########################
@@ -37,6 +38,7 @@ class WONDERS():
     )
 
     # 5th century BC
+    # UNTESTED
     STATUE_OF_ZEUS = WonderTemplate(
         name="Statue of Zeus", age=1,
         on_build=BuildUnitsEffect(unit_template=UNITS.ZEUS, num=1)
@@ -49,6 +51,7 @@ class WONDERS():
     )
 
     # 5th century BC
+    # UNTESTED
     PARTHENON = WonderTemplate(
         name="Parthenon", age=1,
         on_build=RecruitBarbariansEffect(range=3)
@@ -59,6 +62,7 @@ class WONDERS():
     # * Terracotta army (2nd century BC)
 
     # 3rd century BC
+    # UNTESTED
     GREAT_LIBRARY = WonderTemplate(
         name="Great Library", age=2,
         on_build=GainResourceEffect(resource='science', amount=100)
@@ -69,9 +73,11 @@ class WONDERS():
     # GREAT_WALL = WonderTemplate(name="Great Wall", age=2)
 
     # 3rd century BC
+    # UNTESTED
     COLOSSUS = WonderTemplate(
         name="Colossus", age=2,
-        on_build=BuildUnitsEffect(unit_template=UNITS.COLOSUS, num=1)
+        on_build=BuildUnitsEffect(unit_template=UNITS.COLOSSUS, num=1),
+        per_turn=GainResourceEffect(resource='metal', amount=2)
     )
 
     # 4th century BC
@@ -87,8 +93,10 @@ class WONDERS():
         on_build=BuildUnitsEffect(unit_template=UNITS.SIR_LANCELOT, num=1)
     )
     # 6th century
+    # UNTESTED
     HAGIA_SOPHIA = WonderTemplate(name="Hagia Sophia", age=3, on_build=GrowEffect(amount=8))
     # 4th century
+    # UNTESTED
     HIPPODROME = WonderTemplate(
         name="Hippodrome", age=3,
         per_turn=BuildUnitsEffect(unit_template=UNITS.KNIGHT, num=1)
@@ -104,13 +112,16 @@ class WONDERS():
     # * Taj Mahal (16th century)
 
     # 13th century
+    # UNTESTED
     NOTRE_DAME = WonderTemplate(name="Notre Dame", age=4, vp_reward=20)
     # 15th century
     # Gain city power & max territories?
     # FORBIDDEN_PALACE = WonderTemplate(name="Forbidden Palace", age=4)
     # 16th-17th century
+    # UNTESTED
     HIMEJI_CASTLE = WonderTemplate(name="Himeji Castle", age=4, on_build=StrengthAllUnitsEffect(amount=2))
     # 15th century
+    # UNTESTED
     SISTENE_CHAPEL = WonderTemplate(
         name="Sistene Chapel", age=4,
         on_build=BuildUnitsEffect(unit_template=UNITS.ARCHANGEL, num=2)
@@ -121,18 +132,21 @@ class WONDERS():
     # * Brandenburg Gate (1791)
 
     # 1849
+    # UNTESTED
     KREMLIN = WonderTemplate(
         name="Kremlin", age=5,
         on_build=PointsEffect(calculate_points=lambda city, _: int(city.civ.city_power / 25), description="+1 vp per 25 city power you have stored")
     )
 
     # 1836
+    # UNTESTED
     ARC_DE_TRIOMPHE = WonderTemplate(
         name="Arc de Triomphe", age=5,
         abilities=[BUILDING_ABILITIES["ExtraVpsForCityCapture"](5)]
     )
 
     # 1859
+    # UNTESTED
     BIG_BEN = WonderTemplate(
         name="Big Ben", age=5,
         per_turn=PointsEffect(calculate_points=lambda city, _: 2, description="+2 vp per turn")
@@ -144,18 +158,21 @@ class WONDERS():
     # * Empire State Building (1931)
 
     # 1886
+    # UNTESTED
     STATUE_OF_LIBERTY = WonderTemplate(
         name="Statue of Liberty", age=6,
         per_turn=StealPopEffect(num=1, cities=5)
     )
 
     # Eiffel Tower was 1889
+    # UNTESTED
     WORLDS_FAIR = WonderTemplate(
         name="World's Fair", age=6,
         on_build=ResetHappinessAllCitiesEffect()
     )
 
     # 1931
+    # UNTESTED
     CRISTO_REDENTOR = WonderTemplate(
         name="Cristo Redentor", age=6,
         on_build=BuildUnitsEffect(unit_template=UNITS.RIFLEMAN, num=6),
@@ -164,14 +181,19 @@ class WONDERS():
 
     ########################## Age 7 ##########################
 
+    # UNTESTED
     FAST_FOOD_CHAINS = WonderTemplate(
         name="Fast Food Chains", age=7,
         on_build=GrowEffect(amount_fn=lambda city, _: city.population * 2, description="Triple city population")
     )
+
+    # UNTESTED
     MANHATTAN_PROJECT = WonderTemplate(
         name="Manhattan Project", age=7,
         on_build=BuildUnitsEffect(unit_template=UNITS.ATOMIC_BOMB, num=2, stacked=True)
     )
+
+    # UNTESTED
     UNITED_NATIONS = WonderTemplate(
         name="United Nations", age=7,
         on_build=RecruitBarbariansEffect(range=100)
@@ -179,11 +201,16 @@ class WONDERS():
 
     ########################## Age 8 ##########################
 
+    # UNTESTED
     APOLLO_PROGRAM = WonderTemplate(
         name="Apollo Program", age=8,
         abilities=[BUILDING_ABILITIES["ExtraVpPerAgeOfTechResearched"](2)]
     )
+
+    # UNTESTED
     HUBBLE_SPACE_TELESCOPE = WonderTemplate(name="Hubble Space Telescope", age=8, on_build=FreeRandomTechEffect(age=9))
+
+    # UNTESTED
     AVENGERS_TOWER = WonderTemplate(
         name="Avengers Tower", age=8,
         on_build=BuildUnitsEffect(unit_template=UNITS.IRONMAN, num=1)

@@ -2198,7 +2198,6 @@ export default function GamePage() {
     }
 
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
-    const selectedCityBuildings = selectedCity?.buildings?.map(building => building.building_name);
 
     const selectedCityUnitChoices = selectedCity?.available_units;
 
@@ -3151,7 +3150,6 @@ export default function GamePage() {
                         refreshSelectedCity={refreshSelectedCity}
                         selectedCityBuildingChoices={selectedCityBuildingChoices} 
                         selectedCityBuildingQueue={selectedCityBuildingQueue}
-                        selectedCityBuildings={selectedCityBuildings}
                         selectedCityUnitChoices={selectedCityUnitChoices}
                         selectedCity={selectedCity} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName}

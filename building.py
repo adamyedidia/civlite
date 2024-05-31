@@ -7,11 +7,16 @@ from wonder_template import WonderTemplate
 from wonder_templates_list import WONDERS
 from tech_template import TechTemplate
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from game_state import GameState
 
 class Building:
     def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate]) -> None:
         self.template = template
         self.unit_name = template.name if isinstance(template, UnitTemplate) else None
+        self.ruined: bool = False
 
     def __repr__(self):
         return f"<Building {self.template.name}>"
@@ -57,8 +62,17 @@ class Building:
             return self.template.vp_reward
         return 0
 
+    def update_ruined_status(self, city, game_state: 'GameState') -> None:
+        if isinstance(self.template, WonderTemplate):
+            builders = game_state.built_wonders[self.template].civs
+            self.ruined = not city.civ in builders
+
     def has_ability(self, ability_name: str) -> bool:
-        return isinstance(self.template, BuildingTemplate) and any([ability.name == ability_name for ability in self.template.abilities])
+        if isinstance(self.template, UnitTemplate):
+            return False
+        if isinstance(self.template, WonderTemplate) and self.ruined:
+            return False
+        return any([ability.name == ability_name for ability in self.template.abilities])
 
     def numbers_of_ability(self, ability_name: str) -> list:
         assert isinstance(self.template, BuildingTemplate)
@@ -70,10 +84,13 @@ class Building:
             "template_name": self.template.name,
             "building_name": self.building_name,
             "unit_name": self.unit_name,
+            "ruined": self.ruined
         }
     
     @staticmethod
     def from_json(json: dict) -> "Building":
         type = json.get('type')
         proto_dict = UNITS if type == 'unit' else BUILDINGS if type == 'building' else WONDERS
-        return Building(template=proto_dict.by_name(json['template_name']))
+        b = Building(template=proto_dict.by_name(json['template_name']))
+        b.ruined = json['ruined']
+        return b

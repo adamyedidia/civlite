@@ -116,7 +116,7 @@ const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
 }
 
 const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
-    selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
+    selectedCityBuildingChoices, selectedCityBuildingQueue, 
     selectedCityUnitChoices, selectedCity,
     unitTemplatesByBuildingName, templates, descriptions,
     setHoveredUnit, setHoveredBuilding, setHoveredWonder, setSelectedCity, centerMap
@@ -320,7 +320,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             ))}
                         </div>
                     )}               
-                    {selectedCityBuildings && (
+                    {selectedCity?.buildings && (
                         <div>
                             {canBuild ? <button 
                                 className="collapse-expand-button" 
@@ -334,8 +334,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
 
                             {(isBuildingListExpanded || !canBuild) && (
                                 <div className="existing-buildings-container">
-                                    {selectedCityBuildings.map((buildingName, index) => (
-                                        <BriefBuildingDisplay key={index} buildingName={buildingName} clickable={false} hideCost={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} descriptions={descriptions}/>
+                                    {selectedCity?.buildings.map((building, index) => (
+                                        <BriefBuildingDisplay key={index} buildingName={building.building_name} buildingObj={building} clickable={false} hideCost={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} descriptions={descriptions}/>
                                     ))}
                                 </div>
                             )}

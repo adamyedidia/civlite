@@ -303,9 +303,11 @@ class City:
         self.midturn_update(game_state)
 
     def roll_wonders(self, game_state: 'GameState') -> None:
-        for blfg in self.buildings:
-            if isinstance(blfg.template, WonderTemplate):
-                blfg.template.per_turn.apply(self, game_state)
+        for bldg in self.buildings:
+            bldg.update_ruined_status(self, game_state)
+            print(bldg.ruined)
+            if isinstance(bldg.template, WonderTemplate) and not bldg.ruined:
+                bldg.template.per_turn.apply(self, game_state)
 
     def age(self, game_state) -> int:
         assert self.founded_turn is not None, "Can't get age of a fake city."
@@ -801,6 +803,7 @@ class City:
         # Update available stuff
         self.refresh_available_buildings()
         self.refresh_available_units()
+        self.refresh_available_wonders(game_state)
         self.hide_bad_buildings()
 
     def barbarian_capture(self, game_state: 'GameState') -> None:

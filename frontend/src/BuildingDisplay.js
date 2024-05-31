@@ -13,7 +13,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions, disabledMsg }) => {
+export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions, disabledMsg }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -44,7 +44,7 @@ export const BriefBuildingDisplay = ({ buildingName, hideCost, wonderCostsByAge,
             onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : setHoveredBuilding(null)} // clear on mouse leave
             style={style}
         >
-            <span className="building-name">{`${building?.building_name || building?.name}${descriptionStr !== null ? descriptionStr : ''}`}</span>
+            <span className="building-name">{`${building?.building_name || building?.name}${descriptionStr !== null ? descriptionStr : ''}${buildingObj?.ruined ? ' (Ruins)' : ''}`}</span>
             {!hideCost && <span className="building-cost">{cost} <img src={woodImage} alt="" width="16" height="16" /></span>}
         </div>
     );

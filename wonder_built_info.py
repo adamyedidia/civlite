@@ -1,22 +1,22 @@
 from civ import Civ
 
 class WonderBuiltInfo:
-    def __init__(self, player_num: int | None, civ: Civ, turn_num: int) -> None:
-        self.player_num = player_num
-        self.civ = civ
+    def __init__(self, player_nums: list[int | None], civs: list[Civ], turn_num: int) -> None:
+        self.player_nums = player_nums
+        self.civs = civs
         self.turn_num = turn_num
 
     def __repr__(self) -> str:
-        return f"WonderBuiltInfo(player_num={self.player_num}, civ={self.civ}, turn_num={self.turn_num})"
+        return f"WonderBuiltInfo(player_nums={self.player_nums}, civs={self.civs}, turn_num={self.turn_num})"
 
     def to_json(self):
         return {
-            "player_num": self.player_num,
-            "civ_id": self.civ.id,
+            "player_nums": self.player_nums,
+            "civ_ids": [civ.id for civ in self.civs],
             "turn_num": self.turn_num
         }
     
     @staticmethod
     def from_json(json, game_state) -> "WonderBuiltInfo":
-        civ: Civ = game_state.civs_by_id[json["civ_id"]]
-        return WonderBuiltInfo(json["player_num"], civ, json["turn_num"])
+        civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in json["civ_ids"]]
+        return WonderBuiltInfo(json["player_nums"], civs, json["turn_num"])
