@@ -470,6 +470,12 @@ class City:
                     }        
                     if building_template in new_bldgs and total_yields == 0 and total_pseudoyields == 0:
                         self.toggle_discard(building_template.name, hidden=True)
+                
+                else:
+                    self.available_buildings_to_descriptions[building_template.name] = {
+                        "type": "???",
+                        "value": 0,
+                    }
 
             elif isinstance(template, WonderTemplate):
                 self.available_buildings_to_descriptions[template.name] = {
