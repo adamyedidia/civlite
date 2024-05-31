@@ -604,8 +604,8 @@ class UNITS():
     ARCHANGEL = UnitTemplate(
         name="Archangel",
         type="military",
-        metal_cost=50,
-        strength=30,
+        metal_cost=60,
+        strength=35,
         movement=2,
         range=1,
         tags=[UnitTag.WONDROUS],
@@ -643,10 +643,10 @@ class UNITS():
     IRONMAN = UnitTemplate(
         name="Ironman",
         type="military",
-        metal_cost=180,
-        strength=100,
+        metal_cost=300,
+        strength=150,
         movement=2,
-        range=2,
+        range=3,
         tags=[UnitTag.WONDROUS],
         abilities=[{
             "name": "MultipleAttack",

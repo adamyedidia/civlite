@@ -73,7 +73,6 @@ class WONDERS():
     # GREAT_WALL = WonderTemplate(name="Great Wall", age=2)
 
     # 3rd century BC
-    # UNTESTED
     COLOSSUS = WonderTemplate(
         name="Colossus", age=2,
         on_build=BuildUnitsEffect(unit_template=UNITS.COLOSSUS, num=1),
@@ -93,7 +92,7 @@ class WONDERS():
         on_build=BuildUnitsEffect(unit_template=UNITS.SIR_LANCELOT, num=1)
     )
     # 6th century
-    HAGIA_SOPHIA = WonderTemplate(name="Hagia Sophia", age=3, on_build=GrowEffect(amount=8))
+    HAGIA_SOPHIA = WonderTemplate(name="Hagia Sophia", age=3, on_build=GrowEffect(amount=10))
     # 4th century
     HIPPODROME = WonderTemplate(
         name="Hippodrome", age=3,
@@ -116,7 +115,6 @@ class WONDERS():
     # Gain city power & max territories?
     # FORBIDDEN_PALACE = WonderTemplate(name="Forbidden Palace", age=4)
     # 16th-17th century
-    # UNTESTED
     HIMEJI_CASTLE = WonderTemplate(name="Himeji Castle", age=4, on_build=StrengthAllUnitsEffect(amount=2))
     # 15th century
     # UNTESTED
@@ -130,7 +128,6 @@ class WONDERS():
     # * Brandenburg Gate (1791)
 
     # 1849
-    # UNTESTED
     KREMLIN = WonderTemplate(
         name="Kremlin", age=5,
         on_build=PointsEffect(calculate_points=lambda city, _: int(city.civ.city_power / 25), description="+1 vp per 25 city power you have stored")
@@ -144,7 +141,6 @@ class WONDERS():
     )
 
     # 1859
-    # UNTESTED
     BIG_BEN = WonderTemplate(
         name="Big Ben", age=5,
         per_turn=PointsEffect(calculate_points=lambda city, _: 2, description="+2 vp per turn")
@@ -173,8 +169,8 @@ class WONDERS():
     # UNTESTED
     CRISTO_REDENTOR = WonderTemplate(
         name="Cristo Redentor", age=6,
-        on_build=BuildUnitsEffect(unit_template=UNITS.RIFLEMAN, num=6),
-        per_turn=GrowEffect(amount=3)
+        on_build=BuildUnitsEffect(unit_template=UNITS.RIFLEMAN, num=8),
+        per_turn=GrowEffect(amount=4)
     )
 
     ########################## Age 7 ##########################
