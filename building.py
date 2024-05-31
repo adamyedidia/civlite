@@ -37,10 +37,6 @@ class Building:
         return isinstance(self.template, BuildingTemplate) and self.template.is_national_wonder
     
     @property
-    def is_wonder(self) -> bool:
-        return isinstance(self.template, WonderTemplate)
-
-    @property
     def abilities(self) -> list:
         if isinstance(self.template, BuildingTemplate):
             return self.template.abilities

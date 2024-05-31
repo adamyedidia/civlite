@@ -178,7 +178,6 @@ class Civ:
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
         self.available_buildings = [building for building in BUILDINGS.all() if (
             (building.prereq is None or self.has_tech(building.prereq))
-            and (not building.is_wonder or not game_state.wonders_built_to_civ_id.get(building.name))
             and (not building.is_national_wonder or not building.name in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
         self.available_unit_buildings: list[UnitTemplate] = [

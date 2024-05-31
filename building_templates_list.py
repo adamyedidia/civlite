@@ -333,18 +333,6 @@ class BUILDINGS():
         is_national_wonder=True,
         prereq=TECHS.RIFLING,
     )
-    WORLDS_FAIR = BuildingTemplate(
-        name="World's Fair",
-        type="economy",
-        cost=200,
-        abilities=[{
-            "name": "ResetCivUnhappiness",
-            "numbers": [],
-        }],
-        is_wonder=True,
-        prereq=TECHS.RADIO,
-        vp_reward=5,
-    )
     INDUSTRIAL_FARM = BuildingTemplate(
         name="Industrial Farm",
         type="economy",

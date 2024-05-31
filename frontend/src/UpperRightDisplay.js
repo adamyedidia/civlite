@@ -176,15 +176,6 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
             </div>
         ))}
         </div>
-        <div className="revolt-cities-detail">
-        {city.buildings.filter(bldg => templates.BUILDINGS[bldg.name]?.is_wonder).map((wonder, index) => {
-            return <div key={index} className="city-wonder">
-                <BriefBuildingDisplay key={index} buildingName={wonder.name} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding}
-                    style={{fontSize: "12px", width: "60px", margin: "2px"}}
-                />
-            </div>
-        })}
-        </div>
     </div>
 }
 

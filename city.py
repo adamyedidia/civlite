@@ -481,12 +481,6 @@ class City:
                     if building_template in new_bldgs and total_yields == 0 and total_pseudoyields == 0:
                         self.toggle_discard(building_template.name, hidden=True)
 
-                elif not building_template.is_wonder:
-                    self.available_buildings_to_descriptions[building_template.name] = {
-                        "type": "???",
-                        "value": 0,
-                    }
-
             elif isinstance(template, WonderTemplate):
                 self.available_buildings_to_descriptions[template.name] = {
                     "type": "wonder",
@@ -760,7 +754,7 @@ class City:
         highest_unit_level = max([0] + [u.advancement_level() for u in self.civ.available_unit_buildings])
         for building in self.get_available_buildings():
             if isinstance(building, BuildingTemplate):
-                if building.is_wonder or building.is_national_wonder:
+                if building.is_national_wonder:
                     continue
                 desc = self.available_buildings_to_descriptions[building.name]
                 if desc.get('type') == 'yield' and desc.get('value') == 0 and desc.get('value_for_ai') == 0:
@@ -780,8 +774,6 @@ class City:
 
         # Re-assign global wonders, and remove national wonders.
         for building in self.buildings:
-            if building.is_wonder:
-                game_state.wonders_built_to_civ_id[building.building_name] = civ.id
             if building.is_national_wonder:
                 game_state.national_wonders_built_by_civ_id[self.civ.id].remove(building.building_name)
         self.buildings = [b for b in self.buildings if not b.is_national_wonder]
@@ -928,7 +920,7 @@ class City:
 
     def bot_pick_economic_building(self, choices: list[BuildingTemplate]) -> Optional[BuildingTemplate]:
         national_wonders = [building for building in choices if building.is_national_wonder]
-        nonwonders = [building for building in choices if not building.is_wonder and not building.is_national_wonder]
+        nonwonders = [building for building in choices if not building.is_national_wonder]
 
         existing_national_wonders: list[BuildingTemplate] = [building for building in self.buildings if isinstance(building, BuildingTemplate) and building.is_national_wonder]
         if len(national_wonders) > 0 and len(existing_national_wonders) == 0 and self.population >= 8:
