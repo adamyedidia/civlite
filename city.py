@@ -744,7 +744,7 @@ class City:
         if is_national_wonder or isinstance(building, WonderTemplate):
             # Clear it from any other cities immediately; you can't build two in one turn.
             for city in self.civ.get_my_cities(game_state):
-                city.buildings_queue = [building for building in city.buildings_queue if building.name != building.name]
+                city.buildings_queue = [b for b in city.buildings_queue if b.name != building.name]
 
     def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
         if self.hex is None:
