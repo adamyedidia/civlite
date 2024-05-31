@@ -22,7 +22,7 @@ from tech_templates_list import TECHS
 from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
-from unit_template import UnitTemplate
+from unit_template import UnitTag, UnitTemplate
 from utils import dream_key, staged_moves_key, deterministic_hash
 from great_person import random_great_people_by_age
 
@@ -981,6 +981,8 @@ class GameState:
         for unit in units_copy:
             unit.has_moved = False
             unit.attacks_used = 0
+            if unit.template.has_tag(UnitTag.WONDROUS):
+                unit.take_damage(5 * unit.get_stack_size(), self, from_civ=None)
 
         for game_player in self.game_player_by_player_num.values():
             game_player.decline_this_turn = False

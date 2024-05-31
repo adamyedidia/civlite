@@ -246,27 +246,28 @@ class Unit:
         return bonus_strength
 
     def punch(self, game_state: 'GameState', target: 'Unit', damage_reduction_factor: float = 1.0) -> None:
-        target_original_stack_size = target.get_stack_size()
-
         self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
         target.effective_strength = target.strength + target.compute_bonus_strength(game_state, self)
+        target.take_damage(self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength), from_civ=self.civ, game_state=game_state)
 
-        target.health = max(0, target.health - self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength))
+    def take_damage(self, amount: float, game_state: 'GameState', from_civ: Civ | None, from_unit: 'Unit | None' = None):
+        original_stack_size = self.get_stack_size()
+        self.health = max(0, self.health - amount)
+        final_stack_size = self.get_stack_size()
 
-        target_final_stack_size = target.get_stack_size()
+        if self.health == 0:
+            self.die(game_state, from_unit)
 
-        if target.health == 0:
-            target.die(game_state, self)
-
-        for _ in range(target_original_stack_size - target_final_stack_size):
-            if (game_player := self.civ.game_player) is not None:
+        if from_civ is not None and from_civ.game_player is not None:
+            game_player = from_civ.game_player
+            for _ in range(original_stack_size - final_stack_size):
                 game_player.score += UNIT_KILL_REWARD
                 game_player.score_from_killing_units += UNIT_KILL_REWARD
 
-                if self.civ.has_ability('ExtraVpsPerUnitKilled'):
-                    game_player.score += self.civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
-                    game_player.score_from_abilities += self.civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
-                    self.civ.score += self.civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
+                if from_civ.has_ability('ExtraVpsPerUnitKilled'):
+                    game_player.score += from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
+                    game_player.score_from_abilities += from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
+                    from_civ.score += from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
 
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
@@ -303,9 +304,7 @@ class Unit:
         }, hexes_must_be_visible=[self_hex, target_hex], no_commit=True)
 
         if self.has_ability('Missile'):
-            self.health -= self.health % 100
-            if self.health <= 0:
-                self.die(game_state, target)
+            self.take_damage(100, game_state, from_civ=None)
 
             # Only one attack from a stack of missiles per turn
             self.attacks_used += 1000
@@ -317,7 +316,7 @@ class Unit:
         game_state.units = [unit for unit in game_state.units if unit.id != self.id]
         self.hex = None        
 
-    def die(self, game_state: 'GameState', killer: 'Unit'):
+    def die(self, game_state: 'GameState', killer: 'Unit | None'):
         if self.hex is None:
             return
 
@@ -325,7 +324,7 @@ class Unit:
 
         self.remove_from_game(game_state)
 
-        if killer.has_ability('ConvertKills'):
+        if killer is not None and killer.has_ability('ConvertKills'):
             new_unit = Unit(killer.template, killer.civ)
             new_unit.hex = my_hex
             my_hex.units.append(new_unit)
