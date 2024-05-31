@@ -42,7 +42,7 @@ export const IconUnitDisplay = ({ unitName, templates, style, onClick, setHovere
     );
 };
 
-const UnitDisplay = ({ unit, hover }) => {
+const UnitDisplay = ({ unit }) => {
     if (!unit) {
         return null;
     }

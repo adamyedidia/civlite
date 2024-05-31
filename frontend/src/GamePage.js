@@ -3169,7 +3169,7 @@ export default function GamePage() {
                             <UnitDisplay unit={hoveredUnit} />
                         )}
                         {hoveredWonder && (
-                            <WonderHover wonder={hoveredWonder}/>
+                            <WonderHover wonder={hoveredWonder} templates={templates} />
                         )}
                         {hoveredTech && (
                             <TechDisplay tech={hoveredTech} civ={myCiv} templates={templates}  unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>

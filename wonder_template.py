@@ -1,6 +1,6 @@
 
 from building_templates_list import BUILDINGS
-from effects_list import NullEffect
+from effects_list import BuildUnitsEffect, NullEffect
 from effect import CityTargetEffect
 
 def get_wonder_abilities_deprecated(wonder_name):
@@ -34,6 +34,12 @@ class WonderTemplate:
             effect_descs.append(f"Each turn: {self.per_turn.description}")
         effect_descs.extend([a.description for a in self.abilities])
         return "\n ".join(effect_descs)
+    
+    def hover_unit_name(self) -> str:
+        for eff in [self.per_turn, self.on_build]:
+            if isinstance(eff, BuildUnitsEffect):
+                return eff.unit_template.name
+        return ""
 
     def to_json(self) -> dict:
         return {
@@ -41,5 +47,6 @@ class WonderTemplate:
             "description": self.description(),
             "age": self.age,
             "vp_reward": self.vp_reward,
+            "hover_unit_name": self.hover_unit_name(),
         }
 
