@@ -128,6 +128,7 @@ class FreeNearbyCityEffect(CityTargetEffect):
         assert city.hex is not None
         for hex in city.hex.get_distance_2_hexes(game_state.hexes):
             if valid_spot(hex):
+                city.civ.city_power += 100
                 city = game_state.found_city_for_civ(civ=city.civ, city_id=None, hex=hex)
                 city.unhappiness = 20
                 return
