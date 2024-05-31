@@ -126,11 +126,6 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Double yields in {p.plural(x)} adjacent to and in the city.",
         numbers=[x],
     ),
-    "IncreasePopulationOfNewCities": lambda x: Ability(
-        name="IncreasePopulationOfNewCities",
-        description=f"New cities you build start with an extra {x} population.",
-        numbers=[x],
-    ),
     "ExistingUnitsGainBonusStrength": lambda x: Ability(
         name="ExistingUnitsGainBonusStrength",
         description=f"All existing units gain +{x} strength.",
@@ -139,11 +134,6 @@ BUILDING_ABILITIES: dict[str, Callable] = {
     "ExtraVpPerAgeOfTechResearched": lambda x: Ability(
         name="ExtraVpPerAgeOfTechResearched",
         description=f"Receive {x} extra VP per age of tech you research.",
-        numbers=[x],
-    ),
-    "ExtraVpsForCityGrowth": lambda x: Ability(
-        name="ExtraVpsForCityGrowth",
-        description=f"Receive {x} VP each time your population grows.",
         numbers=[x],
     ),
     "ExtraVpsForCityCapture": lambda x: Ability(

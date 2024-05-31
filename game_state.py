@@ -341,13 +341,6 @@ class GameState:
                     new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                     setattr(hex.yields, numbers[0], new_value)
     
-        for wonder in self.wonders_built_to_civ_id:
-            if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := get_wonder_abilities_deprecated(wonder)):
-                for ability in abilities:
-                    if ability.name == "IncreasePopulationOfNewCities":
-                        for _ in range(ability.numbers[0]):
-                            city.grow_inner(self)
-
         self.refresh_foundability_by_civ()
         self.midturn_update() 
         city.hide_bad_buildings()

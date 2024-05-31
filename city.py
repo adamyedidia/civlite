@@ -355,16 +355,6 @@ class City:
     def grow_inner(self, game_state: 'GameState') -> None:
         self.population += 1
 
-        if self.civ.game_player:
-            for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := get_wonder_abilities_deprecated(wonder)):
-                    for ability in abilities:
-                        if ability.name == "ExtraVpsForCityGrowth":
-                            self.civ.game_player.score += ability.numbers[0]
-                            self.civ.score += ability.numbers[0]    
-                            self.civ.game_player.score_from_abilities += ability.numbers[0]
-
-
     def grow(self, game_state: 'GameState') -> None:
         while self.food >= self.growth_cost():
             self.food -= self.growth_cost()
