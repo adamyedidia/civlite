@@ -93,13 +93,11 @@ class WONDERS():
         on_build=BuildUnitsEffect(unit_template=UNITS.SIR_LANCELOT, num=1)
     )
     # 6th century
-    # UNTESTED
     HAGIA_SOPHIA = WonderTemplate(name="Hagia Sophia", age=3, on_build=GrowEffect(amount=8))
     # 4th century
-    # UNTESTED
     HIPPODROME = WonderTemplate(
         name="Hippodrome", age=3,
-        per_turn=BuildUnitsEffect(unit_template=UNITS.KNIGHT, num=1)
+        per_turn=BuildUnitsEffect(unit_template=UNITS.CHARIOT, num=2)
         )
 
     ########################## Age 4 ##########################
