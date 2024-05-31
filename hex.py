@@ -139,7 +139,8 @@ class Hex:
         for unit in self.units:
             unit.update_civ_by_id(game_state.civs_by_id)
             unit.hex = self
-            game_state.units.append(unit)
+            # Don't append here; they got added in GameState.init
+            # game_state.units.append(unit)
         if self.city:
             self.city.update_civ_by_id(game_state.civs_by_id)
             self.city.hex = self
