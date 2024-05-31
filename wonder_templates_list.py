@@ -152,25 +152,22 @@ class WONDERS():
     # * Empire State Building (1931)
 
     # 1886
-    # UNTESTED
     STATUE_OF_LIBERTY = WonderTemplate(
         name="Statue of Liberty", age=6,
         per_turn=StealPopEffect(num=1, cities=5)
     )
 
     # Eiffel Tower was 1889
-    # UNTESTED
     WORLDS_FAIR = WonderTemplate(
         name="World's Fair", age=6,
         on_build=ResetHappinessAllCitiesEffect()
     )
 
     # 1931
-    # UNTESTED
     CRISTO_REDENTOR = WonderTemplate(
         name="Cristo Redentor", age=6,
         on_build=BuildUnitsEffect(unit_template=UNITS.RIFLEMAN, num=8),
-        per_turn=GrowEffect(amount=4)
+        per_turn=GrowEffect(amount=3)
     )
 
     ########################## Age 7 ##########################

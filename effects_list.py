@@ -191,15 +191,14 @@ class StealPopEffect(CityTargetEffect):
     def apply(self, city: 'City', game_state: 'GameState'):
         all_cities = list(game_state.cities_by_id.values())
         all_cities.sort(key=lambda c: c.unhappiness, reverse=True)
-        for c in all_cities:
-            for _ in range(self.num):
-                city.grow_inner(game_state=game_state)
-                c.population -= 1
+        for c in all_cities[:self.cities]:
+            city.grow_inner(game_state=game_state)
+            c.population -= 1
         
 class ResetHappinessAllCitiesEffect(CityTargetEffect):
     @property
     def description(self) -> str:
-        return "Reset the happiness in all your cities to zero"
+        return "Reset the happiness in all your cities to zero (before income)"
     
     def apply(self, city: 'City', game_state: 'GameState'):
         for c in city.civ.get_my_cities(game_state=game_state):
