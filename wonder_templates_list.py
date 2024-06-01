@@ -184,7 +184,6 @@ class WONDERS():
     )
 
     # 1886
-    # UNTESTED
     NEUSCHWANSTEIN = WonderTemplate(
         name="Neuschwanstein", age=6,
         on_build=GetGreatPersonEffect(age_offset=2)
