@@ -121,12 +121,6 @@ class Unit:
 
             self.update_nearby_hexes_visibility(game_state)
 
-            if self.has_ability('HealAllies'):
-                for neighbor in self.hex.get_neighbors(game_state.hexes):
-                    for unit in neighbor.units:
-                        if unit.civ == self.civ and not unit.has_ability('HealAllies'):
-                            unit.health = ceil(unit.health / 100) * 100
-
             game_state.add_animation_frame(sess, {
                 "type": "UnitMovement",
                 "coords": coord_strs,
@@ -419,6 +413,19 @@ class Unit:
             self.hex.remove_unit(self)
         self.hex = hex
         hex.units.append(self)
+
+    def turn_end(self, game_state: 'GameState') -> None:
+        self.has_moved = False
+        self.attacks_used = 0
+
+        if self.has_ability('HealAllies') and self.hex is not None:
+            for neighbor in self.hex.get_neighbors(game_state.hexes):
+                for unit in neighbor.units:
+                    if unit.civ == self.civ and not unit.has_ability('HealAllies'):
+                        unit.health = ceil(unit.health / 100) * 100
+
+        if self.template.has_tag(UnitTag.WONDROUS):
+            self.take_damage(5, game_state, from_civ=None)
 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         self.civ = civs_by_id[self.civ_id]

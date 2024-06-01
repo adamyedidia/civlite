@@ -970,10 +970,7 @@ class GameState:
 
         print("Final refresh")
         for unit in units_copy:
-            unit.has_moved = False
-            unit.attacks_used = 0
-            if unit.template.has_tag(UnitTag.WONDROUS):
-                unit.take_damage(5 * unit.get_stack_size(), self, from_civ=None)
+            unit.turn_end(self)
 
         for game_player in self.game_player_by_player_num.values():
             game_player.decline_this_turn = False
