@@ -237,7 +237,6 @@ class GameState:
         self.civs_by_id: dict[str, Civ] = {self.barbarians.id: self.barbarians}
         self.turn_num = 1
         self.game_player_by_player_num: dict[int, GamePlayer] = {}
-        self.wonders_built_to_civ_id: dict[str, str] = {}  # TODO remove
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {}
         self.built_wonders: dict[WonderTemplate, WonderBuiltInfo] = {}
         self.wonder_cost_by_age: dict[int, int] = BASE_WONDER_COST.copy()
@@ -1095,14 +1094,12 @@ class GameState:
 
         sess.commit()
 
-    def handle_wonder_built(self, civ: Civ, wonder: WonderTemplate) -> None:
-        self.wonders_built_to_civ_id[wonder.name] = civ.id
-        player_num: int | None = civ.game_player.player_num if civ.game_player is not None else None
-        if wonder in self.built_wonders:
-            self.built_wonders[wonder].player_nums.append(player_num)
-            self.built_wonders[wonder].civs.append(civ)
-        else:
-            self.built_wonders[wonder] = WonderBuiltInfo([player_num], [civ], self.turn_num)
+    def handle_wonder_built(self, city: City, wonder: WonderTemplate) -> None:
+        civ = city.civ
+        if wonder not in self.built_wonders:
+            self.built_wonders[wonder] = WonderBuiltInfo(self.turn_num)
+        self.built_wonders[wonder].infos.append((city, civ))
+            
         
         if (game_player := civ.game_player) is not None:
             if civ.has_ability('ExtraVpsPerWonder'):
@@ -1193,7 +1190,6 @@ class GameState:
             "cities_by_id": {city_id: city.to_json(include_civ_details=include_city_civ_details) for city_id, city in self.cities_by_id.items()},
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
             "turn_num": self.turn_num,
-            "wonders_built_to_civ_id": self.wonders_built_to_civ_id.copy(),
             "wonders_by_age": {age: [wonder.name for wonder in wonders] for age, wonders in self.wonders_by_age.items()},
             "built_wonders": {wonder.name: built_wonder.to_json() for wonder, built_wonder in self.built_wonders.items()},
             "available_wonders": [w.name for w in self.available_wonders()],
@@ -1222,7 +1218,6 @@ class GameState:
         game_state.advancement_level = json["advancement_level"]
 
         game_state.turn_num = json["turn_num"]
-        game_state.wonders_built_to_civ_id = json["wonders_built_to_civ_id"].copy()
         game_state.wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["wonders_by_age"].items()}
         game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json, game_state) for wonder_name, wonder_json in json["built_wonders"].items()}
         game_state.wonder_cost_by_age = {int(age): cost for age, cost in json["wonder_cost_by_age"].items()}

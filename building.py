@@ -1,6 +1,7 @@
-from typing import Optional, Union
+from typing import Generator, Optional, Union
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
+from ability import Ability
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from wonder_template import WonderTemplate
@@ -60,17 +61,22 @@ class Building:
 
     def update_ruined_status(self, city, game_state: 'GameState') -> None:
         if isinstance(self.template, WonderTemplate):
-            builders = game_state.built_wonders[self.template].civs
-            self.ruined = not city.civ in builders
+            builders = [city for city, _civ in game_state.built_wonders[self.template].infos]
+            self.ruined = not city in builders
+
+    def get_ability(self, ability_name: str) -> list[Ability]:
+        if isinstance(self.template, UnitTemplate):
+            return []
+        if isinstance(self.template, WonderTemplate) and self.ruined:
+            return []
+        return [ability for ability in self.template.abilities if ability.name == ability_name]
 
     def has_ability(self, ability_name: str) -> bool:
-        if isinstance(self.template, UnitTemplate):
-            return False
-        if isinstance(self.template, WonderTemplate) and self.ruined:
-            return False
-        return any([ability.name == ability_name for ability in self.template.abilities])
+        # TODO remove this
+        return len(self.get_ability(ability_name)) > 0
 
     def numbers_of_ability(self, ability_name: str) -> list:
+        # TODO remove this
         assert isinstance(self.template, BuildingTemplate)
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
 

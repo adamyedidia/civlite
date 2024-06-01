@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, Optional, Union
+from typing import TYPE_CHECKING, Generator, Optional, Union
 from building import Building
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
@@ -21,6 +21,7 @@ import traceback
 if TYPE_CHECKING:
     from hex import Hex
     from game_state import GameState
+    from ability import Ability
 
 TRADE_HUB_CITY_POWER_PER_TURN = 20
 
@@ -640,11 +641,8 @@ class City:
             if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
                 unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
 
-        for wonder in game_state.wonders_built_to_civ_id:
-            if game_state.wonders_built_to_civ_id[wonder] == self.civ.id:
-                for ability in get_wonder_abilities_deprecated(wonder):
-                    if ability.name == 'NewUnitsGainBonusStrength':
-                        unit.strength += ability.numbers[0]
+        for ability in self.civ.built_buildings_with_passive('NewUnitsGainBonusStrength', game_state):
+            unit.strength += ability.numbers[0]
 
     def reinforce_unit(self, unit: Unit, stack_size=1) -> None:
         unit.health += 100 * stack_size
@@ -728,7 +726,7 @@ class City:
         if isinstance(building, WonderTemplate):
             for effect in building.on_build:
                 effect.apply(self, game_state)
-            game_state.handle_wonder_built(self.civ, building)
+            game_state.handle_wonder_built(self, building)
 
         if is_national_wonder:
             if self.civ.id not in game_state.national_wonders_built_by_civ_id:
@@ -751,6 +749,11 @@ class City:
 
         return None
     
+    def built_buildings_with_passive(self, ability_name: str, game_state: 'GameState') -> Generator[Ability, None, None]:
+        for building in self.buildings:
+            for ability in building.get_ability(ability_name):
+                yield ability
+
     def hide_bad_buildings(self):
         highest_unit_level = max([0] + [u.advancement_level() for u in self.civ.available_unit_buildings])
         for building in self.get_available_buildings():
@@ -855,15 +858,13 @@ class City:
                 for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
                     if hex.terrain == numbers[1]:
                         new_value = getattr(hex.yields, numbers[0]) + numbers[2]
-                        setattr(hex.yields, numbers[0], new_value)                
+                        setattr(hex.yields, numbers[0], new_value)
 
-            for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.civ.id and (abilities := get_wonder_abilities_deprecated(wonder)):
-                    for ability in abilities:
-                        if ability.name == "ExtraVpsForCityCapture":
-                            civ.game_player.score += ability.numbers[0]
-                            civ.score += ability.numbers[0]
-                            civ.game_player.score_from_abilities += ability.numbers[0]
+            for ability in self.civ.built_buildings_with_passive("ExtraVpsForCityCapture", game_state):
+                amount = ability.numbers[0]
+                civ.game_player.score += amount
+                civ.score += amount
+                civ.game_player.score_from_abilities += amount
 
         self.change_owner(civ, game_state)
 

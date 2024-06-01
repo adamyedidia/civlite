@@ -1,5 +1,5 @@
 import random
-from typing import TYPE_CHECKING, Optional, Dict
+from typing import TYPE_CHECKING, Any, Generator, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
 from wonder_template import get_wonder_abilities_deprecated
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from game_state import GameState
     from hex import Hex
     from city import City
+    from ability import Ability
 
 
 class Civ:
@@ -65,6 +66,11 @@ class Civ:
 
     def numbers_of_ability(self, ability_name: str) -> list:
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
+
+    def built_buildings_with_passive(self, ability_name: str, game_state: 'GameState') -> Generator[Ability, Any, None]:# -> Generator[Any, Any, None]:# -> Generator[Any, Any, None]:
+        for city in self.get_my_cities(game_state):
+            for ability in city.built_buildings_with_passive(ability_name, game_state):
+                yield ability
 
     def midturn_update(self, game_state):
         self.adjust_projected_yields(game_state)
@@ -369,14 +375,11 @@ class Civ:
             self.game_player.score_from_researching_techs += TECH_VP_REWARD
             self.score += TECH_VP_REWARD
 
-            for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := get_wonder_abilities_deprecated(wonder)):
-                    for ability in abilities:
-                        if ability.name == "ExtraVpPerAgeOfTechResearched":
-                            amount = ability.numbers[0] * tech.advancement_level
-                            self.game_player.score += amount    
-                            self.game_player.score_from_abilities += amount
-                            self.score += amount
+            for ability in self.built_buildings_with_passive("ExtraVpPerAgeOfTechResearched", game_state):
+                amount = ability.numbers[0] * tech.advancement_level
+                self.game_player.score += amount    
+                self.game_player.score_from_building_vps += amount
+                self.score += amount
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
