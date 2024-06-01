@@ -1,13 +1,13 @@
 from typing import Generator
 from abilities_list import BUILDING_ABILITIES
 from unit_templates_list import UNITS
-from effects_list import BuildUnitsEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect
+from effects_list import BuildUnitsEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GetGreatPersonEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect
 from wonder_template import WonderTemplate
 
 class WONDERS():
     ########################## Age 0 ##########################
     # Options:
-    # * Sphinx
+    # * SPHINX
 
     PYRAMIDS = WonderTemplate(
         name="Pyramids", age=0,
@@ -23,7 +23,6 @@ class WONDERS():
     # ZIGGURAT_OF_UR = WonderTemplate(name="Ziggurat of Ur", age=0)
 
     # 7th century BC
-    # UNTESTED
     HANGING_GARDENS = WonderTemplate(
         name="Hanging Gardens", age=0,
         on_build=PointsEffect(calculate_points=lambda city, _: 3 * city.population, description="+3 vp per population in this city")
@@ -38,7 +37,6 @@ class WONDERS():
     )
 
     # 5th century BC
-    # UNTESTED
     STATUE_OF_ZEUS = WonderTemplate(
         name="Statue of Zeus", age=1,
         on_build=BuildUnitsEffect(unit_template=UNITS.ZEUS, num=1)
@@ -50,11 +48,17 @@ class WONDERS():
         on_build=FreeRandomTechEffect(age=2)
     )
 
+    # UNTESTED
+    GREAT_BATH = WonderTemplate(
+        name="Great Bath", age=1,
+        on_build=RecruitBarbariansEffect(range=3)
+    )
+
     # 5th century BC
     # UNTESTED
     PARTHENON = WonderTemplate(
         name="Parthenon", age=1,
-        on_build=RecruitBarbariansEffect(range=3)
+        on_build=GetGreatPersonEffect(age_offset=1)
     )
 
     ########################## Age 2 ##########################
@@ -85,6 +89,13 @@ class WONDERS():
         on_build=PointsEffect(calculate_points=lambda city, game_state: len(city.civ.get_my_cities(game_state)) * 2, description="+2 vp per city you own")
     )
 
+    # 3rd century BC
+    PALACE_OF_DOMITIAN = WonderTemplate(
+        name="Palace of Domitian", age=2,
+        on_build=GetGreatPersonEffect(age_offset=1)
+    )
+    
+
     ########################## Age 3 ##########################
 
     CAMELOT = WonderTemplate(
@@ -109,7 +120,6 @@ class WONDERS():
     # * Taj Mahal (16th century)
 
     # 13th century
-    # UNTESTED
     NOTRE_DAME = WonderTemplate(name="Notre Dame", age=4, vp_reward=20)
     # 15th century
     # Gain city power & max territories?
@@ -117,11 +127,14 @@ class WONDERS():
     # 16th-17th century
     HIMEJI_CASTLE = WonderTemplate(name="Himeji Castle", age=4, on_build=StrengthAllUnitsEffect(amount=2))
     # 15th century
-    # UNTESTED
     SISTENE_CHAPEL = WonderTemplate(
         name="Sistene Chapel", age=4,
         on_build=BuildUnitsEffect(unit_template=UNITS.ARCHANGEL, num=2)
     )
+
+    # 17th century
+    # UNTESTED
+    VERSAILLES = WonderTemplate(name="Versailles", age=4, on_build=GetGreatPersonEffect(age_offset=2))
 
     ########################## Age 5 ##########################
     # Options:
@@ -168,6 +181,13 @@ class WONDERS():
         name="Cristo Redentor", age=6,
         on_build=BuildUnitsEffect(unit_template=UNITS.RIFLEMAN, num=8),
         per_turn=GrowEffect(amount=3)
+    )
+
+    # 1886
+    # UNTESTED
+    NEUSCHWANSTEIN = WonderTemplate(
+        name="Neuschwanstein", age=6,
+        on_build=GetGreatPersonEffect(age_offset=2)
     )
 
     ########################## Age 7 ##########################

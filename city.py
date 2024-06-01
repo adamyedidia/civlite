@@ -81,6 +81,9 @@ class City:
 
     def __repr__(self):
         return f"<City {self.name} @ {self.hex.coords if self.hex else None}>"
+    
+    def __hash__(self):
+        return hash(self.id)
 
     def has_building(self, building_name: str) -> bool:
         return building_name in [b.building_name for b in self.buildings]

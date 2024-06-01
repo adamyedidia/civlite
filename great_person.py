@@ -3,8 +3,8 @@ from __future__ import annotations
 import abc
 from collections import defaultdict
 import inflect
-import random
 from typing import TYPE_CHECKING, Optional
+from TechStatus import TechStatus
 
 from tech_templates_list import TECHS
 from tech_template import TechTemplate
@@ -13,6 +13,7 @@ from unit_templates_list import UNITS
 
 if TYPE_CHECKING:
     from city import City
+    from civ import Civ
 
 p = inflect.engine()
 
@@ -29,6 +30,9 @@ class GreatPerson(abc.ABC):
     @abc.abstractmethod
     def apply(self, game_state, city: City):
         raise NotImplementedError()
+    
+    def valid_for_civ(self, civ: Civ) -> bool:
+        return True
     
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.name}>"
@@ -95,6 +99,9 @@ class GreatScientist(GreatPerson):
         city.civ.gain_tech(game_state, self.tech_template)
         city.civ.science += self.extra_science
 
+    def valid_for_civ(self, civ: Civ) -> bool:
+        return civ.techs_status[self.tech_template] == TechStatus.RESEARCHED
+
 class GreatEngineer(GreatPerson):
     def __init__(self, name, unit_template: UnitTemplate, extra_wood: float):
         self.unit_template: UnitTemplate = unit_template
@@ -124,9 +131,9 @@ def _target_value_by_age(age: int) -> int:
         5: 320,
         6: 420,
         7: 560,
-        8: 800,
-        9: 1200,
-        10: 2400,
+        8: 900,
+        9: 1500,
+        10: 2500,
     }[age]
 
 merchant_names = {
@@ -217,8 +224,8 @@ if duplicate_names:
 
 _great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", UNITS.SWORDSMAN, 47))
 
-def random_great_people_by_age(age: int, n: int = 1) -> list[GreatPerson]:
-    return random.sample(_great_people_by_age[age], n)
+def great_people_by_age(age: int) -> list[GreatPerson]:
+    return _great_people_by_age[age]
 
 ###### unnamed great people #####
 num_placeholder = len([name for name in unique_names if name.startswith("[")])

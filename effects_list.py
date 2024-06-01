@@ -204,4 +204,13 @@ class ResetHappinessAllCitiesEffect(CityTargetEffect):
         for c in city.civ.get_my_cities(game_state=game_state):
             c.unhappiness = 0
 
+class GetGreatPersonEffect(CityTargetEffect):
+    def __init__(self, age_offset: int) -> None:
+        self.age_offset: int = age_offset
 
+    @property
+    def description(self) -> str:
+        return f"Get a great person from {p.number_to_words(self.age_offset)} {p.plural('age', self.age_offset)} ago."  # type: ignore
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        city.civ.get_great_person(game_state.advancement_level - self.age_offset, city)

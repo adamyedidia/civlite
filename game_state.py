@@ -11,7 +11,7 @@ from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
-from wonder_template import WonderTemplate, get_wonder_abilities_deprecated
+from wonder_template import WonderTemplate
 from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
@@ -24,14 +24,12 @@ import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
 from unit_template import UnitTag, UnitTemplate
 from utils import dream_key, staged_moves_key, deterministic_hash
-from great_person import random_great_people_by_age
 
 from sqlalchemy import and_, func
 
 from animation_frame import AnimationFrame
 
 from collections import defaultdict
-from itertools import cycle
 
 
 def get_all_units(hexes: dict[str, Hex]) -> list[Unit]:
@@ -470,7 +468,7 @@ class GameState:
         game_player.civ_id = civ.id
         game_player.decline_this_turn = True
         self.make_new_civ_from_the_ashes(city)
-        civ.great_people_choices = random_great_people_by_age(age=self.advancement_level, n=3)
+        civ.get_great_person(self.advancement_level, city)
         print(f"New civ {civ} great people choices: {civ.great_people_choices}")
 
         return from_civ_perspectives
