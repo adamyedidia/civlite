@@ -227,3 +227,12 @@ class ZigguratWarriorsEffect(CityTargetEffect):
                 unit.strength += 1
                 unit.take_damage(5 * unit.get_stack_size(), game_state=game_state, from_civ=None)
 
+class EndGameEffect(CityTargetEffect):
+    @property
+    def description(self) -> str:
+        return "End the game"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        game_state.game_over = True
+
+

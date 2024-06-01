@@ -1,6 +1,6 @@
 .wonder-card {
     border: 1px solid #ddd;
-    padding: 10px;
+    /* padding: 10px; */
     margin: 10px;
     border-radius: 5px;
     background-color: #b66dc0;
@@ -9,3 +9,22 @@
     overflow-y: auto;
     max-width: 30vw;
 }
+
+.wonder-card h2 {
+    padding: 5px;
+    margin: 0;
+}
+
+.wonder-card p {
+    padding: 5px;
+}
+
+.wonder-card-subtitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+}
+

@@ -7,11 +7,11 @@ def get_wonder_abilities_deprecated(wonder_name):
     return BUILDINGS.by_name(wonder_name).abilities if wonder_name in [b.name for b in BUILDINGS.all()] else []
 
 class WonderTemplate:
-    def __init__(self, name: str, age: int, on_build: CityTargetEffect | None = None, per_turn: CityTargetEffect | None = None, vp_reward: int = 5, abilities = []):
+    def __init__(self, name: str, age: int, on_build: CityTargetEffect | list[CityTargetEffect] = [], per_turn: CityTargetEffect | list[CityTargetEffect] = [], vp_reward: int = 5, abilities = []):
         self.name = name
         self.age = age
-        self.on_build: CityTargetEffect = on_build or NullEffect()
-        self.per_turn: CityTargetEffect = per_turn or NullEffect()
+        self.on_build: list[CityTargetEffect] = on_build if isinstance(on_build, list) else [on_build]
+        self.per_turn: list[CityTargetEffect] = per_turn if isinstance(per_turn, list) else [per_turn]
         self.vp_reward = vp_reward
         self.abilities = abilities
 
@@ -26,14 +26,10 @@ class WonderTemplate:
     def __hash__(self) -> int:
         return hash(self.name)
     
-    def description(self) -> str:
-        effect_descs = []
-        if self.on_build.description != "":
-            effect_descs.append(f"On build: {self.on_build.description}")
-        if self.per_turn.description != "":
-            effect_descs.append(f"Each turn: {self.per_turn.description}")
+    def description(self) -> list[str]:
+        effect_descs = [e.description for e in self.on_build + self.per_turn]
         effect_descs.extend([a.description for a in self.abilities])
-        return "\n ".join(effect_descs)
+        return effect_descs
     
     def hover_unit_name(self) -> str:
         for eff in [self.per_turn, self.on_build]:
