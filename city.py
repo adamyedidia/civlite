@@ -308,7 +308,6 @@ class City:
     def roll_wonders(self, game_state: 'GameState') -> None:
         for bldg in self.buildings:
             bldg.update_ruined_status(self, game_state)
-            print(bldg.ruined)
             if isinstance(bldg.template, WonderTemplate) and not bldg.ruined:
                 for effect in bldg.template.per_turn:
                     effect.apply(self, game_state)
@@ -814,7 +813,6 @@ class City:
 
         # Also build a handful of units out of the ruins of the city
         for u in self.available_units:
-            print(u)
             self.hex.city.build_unit(game_state, u)
 
         self.hex.city = None
@@ -859,7 +857,7 @@ class City:
                         new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                         setattr(hex.yields, numbers[0], new_value)
 
-            for ability in self.civ.built_buildings_with_passive("ExtraVpsForCityCapture", game_state):
+            for ability in civ.built_buildings_with_passive("ExtraVpsForCityCapture", game_state):
                 amount = ability.numbers[0]
                 civ.game_player.score += amount
                 civ.score += amount

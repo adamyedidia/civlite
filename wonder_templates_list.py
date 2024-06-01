@@ -65,7 +65,6 @@ class WONDERS():
     # * Terracotta army (2nd century BC)
 
     # 3rd century BC
-    # UNTESTED
     GREAT_LIBRARY = WonderTemplate(
         name="Great Library", age=2,
         on_build=GainResourceEffect(resource='science', amount=100)
@@ -145,7 +144,6 @@ class WONDERS():
     )
 
     # 1836
-    # UNTESTED, passive
     ARC_DE_TRIOMPHE = WonderTemplate(
         name="Arc de Triomphe", age=5,
         abilities=[BUILDING_ABILITIES["ExtraVpsForCityCapture"](5)]

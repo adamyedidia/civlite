@@ -24,8 +24,8 @@ class WonderTemplate:
         return hash(self.name)
     
     def description(self) -> list[str]:
-        effect_descs = [e.description for e in self.on_build + self.per_turn]
-        effect_descs.extend([a.description for a in self.abilities])
+        effect_descs = [f"On build: {e.description}" for e in self.on_build] + [f"Per turn: {e.description}" for e in self.per_turn]
+        effect_descs.extend([f"Passive: {a.description}" for a in self.abilities])
         return effect_descs
     
     def hover_unit_name(self) -> str:

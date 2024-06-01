@@ -1241,6 +1241,5 @@ class GameState:
             hex.from_json_postprocess(game_state)
             # That sets game_state.units and game_state.cities_by_id
         game_state.fresh_cities_from_json_postprocess()
-        print(game_state.cities_by_id, json["built_wonders"])
         game_state.midturn_update()
         return game_state
