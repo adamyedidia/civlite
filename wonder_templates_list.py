@@ -1,7 +1,7 @@
 from typing import Generator
 from abilities_list import BUILDING_ABILITIES
 from unit_templates_list import UNITS
-from effects_list import BuildUnitsEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GetGreatPersonEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect
+from effects_list import BuildUnitsEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GetGreatPersonEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
 from wonder_template import WonderTemplate
 
 class WONDERS():
@@ -19,8 +19,9 @@ class WONDERS():
         per_turn=BuildUnitsEffect(unit_template=UNITS.SLINGER, num=1)
     )
 
-    # Your warriors get +1 strength & -5 hp each turn?
-    # ZIGGURAT_OF_UR = WonderTemplate(name="Ziggurat of Ur", age=0)
+    # Untested
+    ZIGGURAT_OF_UR = WonderTemplate(name="Ziggurat of Ur", age=0,
+                                    on_build=ZigguratWarriorsEffect())
 
     # 7th century BC
     HANGING_GARDENS = WonderTemplate(

@@ -2,6 +2,7 @@ import random
 from typing import TYPE_CHECKING, Callable
 
 from TechStatus import TechStatus
+from unit_templates_list import UNITS
 from effect import CityTargetEffect
 from unit_template import UnitTemplate
 
@@ -214,3 +215,15 @@ class GetGreatPersonEffect(CityTargetEffect):
     
     def apply(self, city: 'City', game_state: 'GameState'):
         city.civ.get_great_person(game_state.advancement_level - self.age_offset, city)
+
+class ZigguratWarriorsEffect(CityTargetEffect):
+    @property
+    def description(self) -> str:
+        return "Your warriors get +1 strength & -5 health"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        for unit in game_state.units:
+            if unit.civ == city.civ and unit.template == UNITS.WARRIOR:
+                unit.strength += 1
+                unit.take_damage(5 * unit.get_stack_size(), game_state=game_state, from_civ=None)
+
