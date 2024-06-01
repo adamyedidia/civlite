@@ -2,7 +2,6 @@ import random
 from typing import TYPE_CHECKING, Any, Generator, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
-from wonder_template import get_wonder_abilities_deprecated
 from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_people_by_name
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
@@ -67,7 +66,7 @@ class Civ:
     def numbers_of_ability(self, ability_name: str) -> list:
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
 
-    def built_buildings_with_passive(self, ability_name: str, game_state: 'GameState') -> Generator[Ability, Any, None]:# -> Generator[Any, Any, None]:# -> Generator[Any, Any, None]:
+    def built_buildings_with_passive(self, ability_name: str, game_state: 'GameState') -> Generator['Ability', Any, None]:
         for city in self.get_my_cities(game_state):
             for ability in city.built_buildings_with_passive(ability_name, game_state):
                 yield ability

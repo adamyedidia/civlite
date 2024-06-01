@@ -1,4 +1,3 @@
-from collections import defaultdict
 from typing import TYPE_CHECKING, Generator, Optional, Union
 from building import Building
 from building_template import BuildingTemplate
@@ -10,7 +9,7 @@ from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_C
 from unit import Unit
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS, UNITS_BY_BUILDING_NAME
-from wonder_template import WonderTemplate, get_wonder_abilities_deprecated
+from wonder_template import WonderTemplate
 from wonder_templates_list import WONDERS
 from civ_templates_list import CIVS
 from utils import generate_unique_id
@@ -749,7 +748,7 @@ class City:
 
         return None
     
-    def built_buildings_with_passive(self, ability_name: str, game_state: 'GameState') -> Generator[Ability, None, None]:
+    def built_buildings_with_passive(self, ability_name: str, game_state: 'GameState') -> Generator['Ability', None, None]:
         for building in self.buildings:
             for ability in building.get_ability(ability_name):
                 yield ability

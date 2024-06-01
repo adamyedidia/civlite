@@ -1,11 +1,7 @@
 
-from building_templates_list import BUILDINGS
 from ability import Ability
-from effects_list import BuildUnitsEffect, NullEffect
+from effects_list import BuildUnitsEffect
 from effect import CityTargetEffect
-
-def get_wonder_abilities_deprecated(wonder_name):
-    return BUILDINGS.by_name(wonder_name).abilities if wonder_name in [b.name for b in BUILDINGS.all()] else []
 
 class WonderTemplate:
     def __init__(self, name: str, age: int, on_build: CityTargetEffect | list[CityTargetEffect] = [], per_turn: CityTargetEffect | list[CityTargetEffect] = [], vp_reward: int = 5, abilities: list[Ability] = []):

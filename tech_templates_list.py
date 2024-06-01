@@ -18,16 +18,6 @@ class TECHS():
         cost=20,
         advancement_level=1,
     )
-    CODE_OF_LAWS = TechTemplate(
-        name='Code of Laws',
-        cost=20,
-        advancement_level=1,
-    )
-    CALENDAR = TechTemplate(
-        name='Calendar',
-        cost=25,
-        advancement_level=1,
-    )
     THE_WHEEL = TechTemplate(
         name='The Wheel',
         cost=35,
