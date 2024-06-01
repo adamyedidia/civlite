@@ -623,7 +623,7 @@ class UNITS():
         name="Atomic Bomb",
         type="military",
         metal_cost=100,
-        strength=100,
+        strength=200,
         movement=1,
         range=6,
         tags=[UnitTag.WONDROUS],

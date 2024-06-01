@@ -44,9 +44,9 @@ BASE_WONDER_COST = {
     4: 120,
     5: 160,
     6: 200,
-    7: 250,
-    8: 300,
-    9: 600,
+    7: 25,
+    8: 30,
+    9: 60,
 }
 
 if os.path.exists('local_settings.py'):

@@ -2833,8 +2833,11 @@ export default function GamePage() {
     };
 
     const Camp = ({ camp, isUnitInHex }) => {
-        const primaryColor = 'red';
-        const secondaryColor = 'black';
+        const civ = gameState.civs_by_id[camp.civ_id];
+        const template = templates.CIVS[civ.name]
+
+        const primaryColor = template.primary_color;
+        const secondaryColor = template.secondary_color;
     
         return (
             <>

@@ -140,7 +140,8 @@ class Camp:
 
         for hex in [*self.hex.get_neighbors(hexes), self.hex]:
             for key in hex.is_foundable_by_civ:
-                hex.is_foundable_by_civ[key] = False
+                if key != self.civ.id or hex == self.hex:
+                    hex.is_foundable_by_civ[key] = False
 
     def clear(self, sess, civ: Civ, game_state: 'GameState') -> None:
         civ.city_power += CAMP_CLEAR_CITY_POWER_REWARD

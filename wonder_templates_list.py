@@ -149,7 +149,7 @@ class WONDERS():
     )
 
     # 1836
-    # UNTESTED
+    # UNTESTED, passive
     ARC_DE_TRIOMPHE = WonderTemplate(
         name="Arc de Triomphe", age=5,
         abilities=[BUILDING_ABILITIES["ExtraVpsForCityCapture"](5)]
@@ -193,19 +193,16 @@ class WONDERS():
 
     ########################## Age 7 ##########################
 
-    # UNTESTED
     FAST_FOOD_CHAINS = WonderTemplate(
         name="Fast Food Chains", age=7,
         on_build=GrowEffect(amount_fn=lambda city, _: city.population * 2, description="Triple city population")
     )
 
-    # UNTESTED
     MANHATTAN_PROJECT = WonderTemplate(
         name="Manhattan Project", age=7,
         on_build=BuildUnitsEffect(unit_template=UNITS.ATOMIC_BOMB, num=2, stacked=True)
     )
 
-    # UNTESTED
     UNITED_NATIONS = WonderTemplate(
         name="United Nations", age=7,
         on_build=RecruitBarbariansEffect(range=100)
@@ -213,16 +210,14 @@ class WONDERS():
 
     ########################## Age 8 ##########################
 
-    # UNTESTED
+    # UNTESTED, passive
     APOLLO_PROGRAM = WonderTemplate(
         name="Apollo Program", age=8,
         abilities=[BUILDING_ABILITIES["ExtraVpPerAgeOfTechResearched"](2)]
     )
 
-    # UNTESTED
     HUBBLE_SPACE_TELESCOPE = WonderTemplate(name="Hubble Space Telescope", age=8, on_build=FreeRandomTechEffect(age=9))
 
-    # UNTESTED
     AVENGERS_TOWER = WonderTemplate(
         name="Avengers Tower", age=8,
         on_build=BuildUnitsEffect(unit_template=UNITS.IRONMAN, num=1)

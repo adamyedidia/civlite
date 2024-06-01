@@ -48,7 +48,7 @@ class FreeRandomTechEffect(CityTargetEffect):
 
     @property
     def description(self) -> str:
-        return f"Learn a free age {self.age} tech"
+        return f"Learn a random age {self.age} tech for free"
     
     def apply(self, city: 'City', game_state: 'GameState'):
         civ = city.civ
@@ -144,7 +144,7 @@ class RecruitBarbariansEffect(CityTargetEffect):
     
     def apply(self, city: 'City', game_state: 'GameState'):
         assert city.hex
-        for hex in city.hex.get_hexes_within_range(game_state.hexes, self.range):
+        for hex in city.hex.get_hexes_within_range_expensive(game_state.hexes, self.range):
             if len(hex.units) > 0 and hex.units[0].civ == game_state.barbarians:
                 hex.units[0].civ = city.civ
             if hex.camp is not None and hex.camp.civ == game_state.barbarians:

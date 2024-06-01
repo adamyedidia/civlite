@@ -120,6 +120,9 @@ class Hex:
             return self.get_hexes_within_distance_3(hexes)
         else:
             raise Exception("Invalid range")
+    
+    def get_hexes_within_range_expensive(self, hexes: dict[str, "Hex"], range: int) -> list["Hex"]:
+        return [hex for hex in hexes.values() if hex.distance_to(self) <= range]
 
     def is_occupied(self, unit_type: str, civ: Civ) -> bool:
         """
