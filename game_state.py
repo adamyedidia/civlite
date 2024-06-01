@@ -292,11 +292,18 @@ class GameState:
         camp.hex.camp = None
         self.camps.remove(camp)
 
+    def _sample_wonders_for_age(self, age: int, target_number) -> list[WonderTemplate]:
+        all = list(WONDERS.all_by_age(age))
+        if len(all) <= target_number:
+            result = all
+        else:
+            result = random.sample(all, target_number)
+        return sorted(result, key=lambda w: w.name)
+
     def initialize_wonders(self):
         assert len(self.game_player_by_player_num) > 0, "Cannot initialize wonders without players"
         wonders_per_age: int = len(self.game_player_by_player_num) - 1
-        self.wonders_by_age: dict[int, list[WonderTemplate]] = {
-            age: sorted(random.sample(list(WONDERS.all_by_age(age)), wonders_per_age), key=lambda w: w.name) for age in range(0, 10)}
+        self.wonders_by_age: dict[int, list[WonderTemplate]] = {age: self._sample_wonders_for_age(age, wonders_per_age) for age in range(0, 10)}
 
     def update_wonder_cost_by_age(self) -> None:
         for age in self.wonders_by_age.keys():
