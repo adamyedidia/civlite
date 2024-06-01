@@ -44,8 +44,8 @@ class Civ:
         self.in_decline = False
         self.trade_hub_id: Optional[str] = None
         self.great_people_choices: list[GreatPerson] = []
-        self.great_people_choices_city: Optional['City'] = None
-        self.great_people_choices_queue: list[tuple[int, 'City']] = []
+        self._great_people_choices_city_id: Optional[str] = None
+        self._great_people_choices_queue: list[tuple[int, str]] = []  # age, city_id
         self.max_territories: int = 3
         self.vandetta_civ_id: Optional[str] = None
 
@@ -178,8 +178,8 @@ class Civ:
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
             "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],
-            "great_people_choices_queue": [(age, city.id) for age, city in self.great_people_choices_queue],
-            "great_people_choices_city": self.great_people_choices_city.id if self.great_people_choices_city else None,
+            "great_people_choices_queue": [(age, city_id) for age, city_id in self._great_people_choices_queue],
+            "great_people_choices_city_id": self._great_people_choices_city_id,
             "max_territories": self.max_territories,
             "vandetta_civ_id": self.vandetta_civ_id,
         }
@@ -409,33 +409,31 @@ class Civ:
         if self.target2_coords:
             self.target2 = game_state.hexes[self.target2_coords]
 
-        self.great_people_choices_queue = [(age, game_state.cities_by_id[city_id]) for age, city_id in self.great_people_choices_queue]  # type: ignore (we sneakily put an id in the City on from_json)
-        if self.great_people_choices_city:
-            self.great_people_choices_city = game_state.cities_by_id[self.great_people_choices_city]  # type: ignore (we sneakily put an id in the City on from_json)
     def capital_city(self, game_state) -> 'City':
         return next(city for city in game_state.cities_by_id.values() if city.civ == self and city.capital)
 
     def get_great_person(self, age: int, city: 'City'):
-        self.great_people_choices_queue.append((age, city))
+        self._great_people_choices_queue.append((age, city.id))
         self._pop_great_people_choices_queue_if_needed()
 
     def _pop_great_people_choices_queue_if_needed(self):
-        if len(self.great_people_choices) == 0 and len(self.great_people_choices_queue) > 0:
-            age, city = self.great_people_choices_queue.pop(0)
+        if len(self.great_people_choices) == 0 and len(self._great_people_choices_queue) > 0:
+            age, city_id = self._great_people_choices_queue.pop(0)
             all_great_people = great_people_by_age(age)
             valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_civ(self)]
             random.shuffle(valid_great_people)
             self.great_people_choices = valid_great_people[:3]
-            self.great_people_choices_city = city
+            self._great_people_choices_city_id = city_id
 
-    def select_great_person(self, game_state, great_person_name):
+    def select_great_person(self, game_state: 'GameState', great_person_name):
         assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
-        assert self.great_people_choices_city is not None
+        assert self._great_people_choices_city_id is not None
+        city = game_state.cities_by_id[self._great_people_choices_city_id]
         great_person: GreatPerson = great_people_by_name[great_person_name]
-        great_person.apply(city=self.great_people_choices_city, game_state=game_state)
+        great_person.apply(city=city, game_state=game_state)
         game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
         self.great_people_choices = []
-        self.great_people_choices_city = None
+        self._great_people_choices_city_id = None
         self._pop_great_people_choices_queue_if_needed()
 
     @staticmethod
@@ -458,8 +456,8 @@ class Civ:
         civ.in_decline = json["in_decline"]
         civ.trade_hub_id = json.get("trade_hub_id")
         civ.great_people_choices = [GreatPerson.from_json(great_person_json) for great_person_json in json.get("great_people_choices", [])]
-        civ.great_people_choices_queue = [(age, city_id) for age, city_id in json.get("great_people_choices_queue", [])]
-        civ.great_people_choices_city = json.get("great_people_choices_city")
+        civ._great_people_choices_queue = [(age, city_id) for age, city_id in json.get("great_people_choices_queue", [])]
+        civ._great_people_choices_city_id = json.get("great_people_choices_city_id")
         civ.max_territories = json.get("max_territories", 3)
         civ.vandetta_civ_id = json.get("vandetta_civ_id")
 

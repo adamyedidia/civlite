@@ -20,9 +20,8 @@ class WONDERS():
         per_turn=BuildUnitsEffect(unit_template=UNITS.SLINGER, num=1)
     )
 
-    # Untested
     ZIGGURAT_OF_UR = WonderTemplate(name="Ziggurat of Ur", age=0,
-                                    on_build=ZigguratWarriorsEffect())
+                                    per_turn=ZigguratWarriorsEffect())
 
     # 7th century BC
     HANGING_GARDENS = WonderTemplate(
@@ -50,14 +49,12 @@ class WONDERS():
         on_build=FreeRandomTechEffect(age=2)
     )
 
-    # UNTESTED
     GREAT_BATH = WonderTemplate(
         name="Great Bath", age=1,
         on_build=RecruitBarbariansEffect(range=3)
     )
 
     # 5th century BC
-    # UNTESTED
     PARTHENON = WonderTemplate(
         name="Parthenon", age=1,
         on_build=GetGreatPersonEffect(age_offset=1)
@@ -135,7 +132,6 @@ class WONDERS():
     )
 
     # 17th century
-    # UNTESTED
     VERSAILLES = WonderTemplate(name="Versailles", age=4, on_build=GetGreatPersonEffect(age_offset=2))
 
     ########################## Age 5 ##########################

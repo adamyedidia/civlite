@@ -334,7 +334,7 @@ class Unit:
     def currently_sieging(self):
         if not self.hex:
             return False
-        return (self.hex.city and self.hex.city.civ.id != self.civ.id) or self.hex.camp
+        return (self.hex.city and self.hex.city.civ != self.civ) or (self.hex.camp and self.hex.camp.civ != self.civ)
 
     def calculate_destination_hex(self, game_state):
         assert self.hex is not None  # Not sure how this could possibly happen.

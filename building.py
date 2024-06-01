@@ -61,8 +61,8 @@ class Building:
 
     def update_ruined_status(self, city, game_state: 'GameState') -> None:
         if isinstance(self.template, WonderTemplate):
-            builders = [city for city, _civ in game_state.built_wonders[self.template].infos]
-            self.ruined = not city in builders
+            builders = [city_id for city_id, _civ_id in game_state.built_wonders[self.template].infos]
+            self.ruined = not city.id in builders
 
     def get_ability(self, ability_name: str) -> list[Ability]:
         if isinstance(self.template, UnitTemplate):

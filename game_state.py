@@ -1105,7 +1105,7 @@ class GameState:
         civ = city.civ
         if wonder not in self.built_wonders:
             self.built_wonders[wonder] = WonderBuiltInfo(self.turn_num)
-        self.built_wonders[wonder].infos.append((city, civ))
+        self.built_wonders[wonder].infos.append((city.id, civ.id))
             
         
         if (game_player := civ.game_player) is not None:
@@ -1226,7 +1226,7 @@ class GameState:
 
         game_state.turn_num = json["turn_num"]
         game_state.wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["wonders_by_age"].items()}
-        game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json, game_state) for wonder_name, wonder_json in json["built_wonders"].items()}
+        game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json) for wonder_name, wonder_json in json["built_wonders"].items()}
         game_state.wonder_cost_by_age = {int(age): cost for age, cost in json["wonder_cost_by_age"].items()}
         game_state.national_wonders_built_by_civ_id = {k: v[:] for k, v in json["national_wonders_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
@@ -1241,5 +1241,6 @@ class GameState:
             hex.from_json_postprocess(game_state)
             # That sets game_state.units and game_state.cities_by_id
         game_state.fresh_cities_from_json_postprocess()
+        print(game_state.cities_by_id, json["built_wonders"])
         game_state.midturn_update()
         return game_state
