@@ -161,7 +161,7 @@ class City:
         return self.hex.city != self
 
     def puppet_distance_penalty(self) -> float:
-        bldg_factors: list[float] = [bldg.numbers_of_ability('ReducePuppetDistancePenalty')[0] for bldg in self.buildings if bldg.has_ability('ReducePuppetDistancePenalty')]
+        bldg_factors = [ability.numbers[0] for ability in self.passive_building_abilities_of_name('ReducePuppetDistancePenalty')]
         return min([.1] + bldg_factors)
 
     def toggle_discard(self, building_name: str, hidden=True) -> None:
@@ -226,10 +226,8 @@ class City:
             "science": 1,
         }
 
-        for building in self.buildings:
-            for ability in building.abilities:
-                if ability.name == 'IncreaseYieldsPerPopulation':
-                    yields_per_population[ability.numbers[0]] += ability.numbers[1]
+        for ability in self.passive_building_abilities_of_name('IncreaseYieldsPerPopulation'):
+            yields_per_population[ability.numbers[0]] += ability.numbers[1]
 
         for key in yields_per_population:
             yields[key] += self.population * yields_per_population[key] * vitality
@@ -249,11 +247,9 @@ class City:
         if self.civ.has_ability('IncreaseFocusYields'):
             bonus_resource, count = self.civ.numbers_of_ability('IncreaseFocusYields')
             yields[bonus_resource] += count
-        for building in self.buildings:
-            for ability in building.abilities:
-                if ability.name == 'IncreaseFocusYieldsPerPopulation':
-                    focus, amount_per_pop = ability.numbers
-                    yields[focus] += amount_per_pop * self.population * vitality
+        for ability in self.passive_building_abilities_of_name('IncreaseFocusYieldsPerPopulation'):
+            focus, amount_per_pop = ability.numbers
+            yields[focus] += amount_per_pop * self.population * vitality
 
         return yields
 
@@ -309,8 +305,8 @@ class City:
     def roll_wonders(self, game_state: 'GameState') -> None:
         for bldg in self.buildings:
             bldg.update_ruined_status(self, game_state)
-            if isinstance(bldg.template, WonderTemplate) and not bldg.ruined:
-                for effect in bldg.template.per_turn:
+            if isinstance(bldg._template, WonderTemplate) and not bldg.ruined:
+                for effect in bldg._template.per_turn:
                     effect.apply(self, game_state)
 
     def age(self, game_state) -> int:
@@ -328,16 +324,12 @@ class City:
         else:
             result += 2
 
-        for building in self.buildings:
-            for ability in building.abilities:
-                if ability.name == 'DecreaseFoodDemand':
-                    result -= ability.numbers[0]
+        for ability in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
+            result -= ability.numbers[0]
         parent = self.get_territory_parent(game_state)
         if parent is not None:
-            for building in parent.buildings:
-                for ability in building.abilities:
-                    if ability.name == 'DecreaseFoodDemandPuppets':
-                        result -= ability.numbers[0]
+            for ability in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
+                result -= ability.numbers[0]
         result = max(result, 0)
         return result
 
@@ -367,10 +359,8 @@ class City:
     def growth_cost(self) -> float:
         total_growth_cost_reduction = 0.0
 
-        for building in self.buildings:
-            for ability in building.abilities:
-                if ability.name == 'CityGrowthCostReduction':
-                    total_growth_cost_reduction += ability.numbers[0]
+        for ability in self.passive_building_abilities_of_name('CityGrowthCostReduction'):
+            total_growth_cost_reduction += ability.numbers[0]
 
         return (BASE_FOOD_COST_OF_POP + self.population * ADDITIONAL_PER_POP_FOOD_COST) * max(1 - total_growth_cost_reduction, 0.3)
 
@@ -641,7 +631,7 @@ class City:
             if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
                 unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
 
-        for ability in self.civ.built_buildings_with_passive('NewUnitsGainBonusStrength', game_state):
+        for ability in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
             unit.strength += ability.numbers[0]
 
     def reinforce_unit(self, unit: Unit, stack_size=1) -> None:
@@ -700,9 +690,9 @@ class City:
 
         return None
     
-    def built_buildings_with_passive(self, ability_name: str, game_state: 'GameState') -> Generator['Ability', None, None]:
+    def passive_building_abilities_of_name(self, ability_name: str) -> Generator['Ability', None, None]:
         for building in self.buildings:
-            for ability in building.get_ability(ability_name):
+            for ability in building.passive_building_abilities_of_name(ability_name):
                 yield ability
 
     def hide_bad_buildings(self):
@@ -784,10 +774,10 @@ class City:
         self.wood /= 2
         self.metal /= 2
 
-        military_bldgs = [building for building in self.buildings if isinstance(building.template, UnitTemplate)]
-        military_bldgs.sort(key=lambda unit: (-unit.template.advancement_level(), random.random()))  # type: ignore
+        military_bldgs = [building for building in self.buildings if isinstance(building._template, UnitTemplate)]
+        military_bldgs.sort(key=lambda unit: (-unit._template.advancement_level(), random.random()))  # type: ignore
         best_3 = military_bldgs[:3]
-        top_level = [building for building in military_bldgs if building.template.advancement_level() == military_bldgs[0].template.advancement_level()]  # type: ignore
+        top_level = [building for building in military_bldgs if building._template.advancement_level() == military_bldgs[0]._template.advancement_level()]  # type: ignore
         for building in military_bldgs:
             if building not in best_3 and building not in top_level:
                 self.buildings.remove(building)
@@ -810,7 +800,7 @@ class City:
                         new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                         setattr(hex.yields, numbers[0], new_value)
 
-            for ability in civ.built_buildings_with_passive("ExtraVpsForCityCapture", game_state):
+            for ability in civ.passive_building_abilities_of_name("ExtraVpsForCityCapture", game_state):
                 amount = ability.numbers[0]
                 civ.game_player.score += amount
                 civ.score += amount

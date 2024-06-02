@@ -9,6 +9,8 @@ class WONDERS():
     ########################## Age 0 ##########################
     # Options:
     # * SPHINX
+    # * Gilgamesh?
+    # * Beowulf?
 
     PYRAMIDS = WonderTemplate(
         name="Pyramids", age=0,
@@ -96,6 +98,8 @@ class WONDERS():
     
 
     ########################## Age 3 ##########################
+    # Options:
+    # * Some Viking saga? Valkyries would be cool. Give poins when friendly units die.
 
     CAMELOT = WonderTemplate(
         name="Camelot", age=3,
@@ -188,6 +192,8 @@ class WONDERS():
     )
 
     ########################## Age 7 ##########################
+    # Options
+    # * Pentagon
 
     FAST_FOOD_CHAINS = WonderTemplate(
         name="Fast Food Chains", age=7,
@@ -229,7 +235,7 @@ class WONDERS():
     MARS_COLONY = WonderTemplate(
         name="Mars Colony", age=9,
         on_build=[
-            PointsEffect(calculate_points=lambda city, _: int(city.civ.vitality / 0.1), description="+3 vp per 10% vitality"),
+            PointsEffect(calculate_points=lambda city, _: 3 * int(city.civ.vitality / 0.1), description="+3 vp per 10% vitality"),
             EndGameEffect()]
     )
     PANACEA = WonderTemplate(

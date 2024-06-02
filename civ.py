@@ -66,9 +66,9 @@ class Civ:
     def numbers_of_ability(self, ability_name: str) -> list:
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
 
-    def built_buildings_with_passive(self, ability_name: str, game_state: 'GameState') -> Generator['Ability', Any, None]:
+    def passive_building_abilities_of_name(self, ability_name: str, game_state: 'GameState') -> Generator['Ability', Any, None]:
         for city in self.get_my_cities(game_state):
-            for ability in city.built_buildings_with_passive(ability_name, game_state):
+            for ability in city.passive_building_abilities_of_name(ability_name):
                 yield ability
 
     def midturn_update(self, game_state):
@@ -152,7 +152,7 @@ class Civ:
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 2 + round(self.get_advancement_level() / 3)
         my_cities: list[City] = self.get_my_cities(game_state)
-        bonuses: int = sum([bldg.has_ability('ExtraTerritory') for city in my_cities for bldg in city.buildings])
+        bonuses: int = len([ability for ability in self.passive_building_abilities_of_name('ExtraTerritory', game_state)])
         self.max_territories = base + bonuses
 
     def to_json(self) -> dict:
@@ -374,7 +374,7 @@ class Civ:
             self.game_player.score_from_researching_techs += TECH_VP_REWARD
             self.score += TECH_VP_REWARD
 
-            for ability in self.built_buildings_with_passive("ExtraVpPerAgeOfTechResearched", game_state):
+            for ability in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
                 amount = ability.numbers[0] * tech.advancement_level
                 self.game_player.score += amount    
                 self.game_player.score_from_building_vps += amount

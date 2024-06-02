@@ -29,7 +29,7 @@ class WonderTemplate:
         return effect_descs
     
     def hover_unit_name(self) -> str:
-        for eff in [self.per_turn, self.on_build]:
+        for eff in self.per_turn + self.on_build:
             if isinstance(eff, BuildUnitsEffect):
                 return eff.unit_template.name
         return ""

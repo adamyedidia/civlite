@@ -16,84 +16,67 @@ if TYPE_CHECKING:
 
 class Building:
     def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate]) -> None:
-        self.template = template
-        self.unit_name = template.name if isinstance(template, UnitTemplate) else None
+        self._template = template  # TODO remove external calls to this
         self.ruined: bool = False
 
     def __repr__(self):
-        return f"<Building {self.template.name}>"
+        return f"<Building {self._template.name}>"
 
     @property
     def building_name(self) -> str:
-        if isinstance(self.template, UnitTemplate):
-            return self.template.building_name
+        if isinstance(self._template, UnitTemplate):
+            return self._template.building_name
         else:
-            return self.template.name
+            return self._template.name
  
     @property
     def type(self) -> str:
-        return "unit" if isinstance(self.template, UnitTemplate) else "building" if isinstance(self.template, BuildingTemplate) else "wonder"
+        return "unit" if isinstance(self._template, UnitTemplate) else "building" if isinstance(self._template, BuildingTemplate) else "wonder"
 
     @property
     def is_national_wonder(self) -> bool:
-        return isinstance(self.template, BuildingTemplate) and self.template.is_national_wonder
+        return isinstance(self._template, BuildingTemplate) and self._template.is_national_wonder
     
     @property
-    def abilities(self) -> list:
-        if isinstance(self.template, BuildingTemplate):
-            return self.template.abilities
-        return []
-
-    @property
     def prereq(self) -> Optional[TechTemplate]:
-        if isinstance(self.template, BuildingTemplate):
-            return self.template.prereq
-        elif isinstance(self.template, UnitTemplate):
-            return self.template.prereq
+        if isinstance(self._template, BuildingTemplate):
+            return self._template.prereq
+        elif isinstance(self._template, UnitTemplate):
+            return self._template.prereq
         return None
     
     @property
     def vp_reward(self) -> int:
-        if isinstance(self.template, BuildingTemplate):
-            return self.template.vp_reward or 0
-        if isinstance(self.template, WonderTemplate):
-            return self.template.vp_reward
+        if isinstance(self._template, BuildingTemplate):
+            return self._template.vp_reward or 0
+        if isinstance(self._template, WonderTemplate):
+            return self._template.vp_reward
         return 0
     
     @property
     def on_build(self) -> list[CityTargetEffect]:
-        if isinstance(self.template, BuildingTemplate):
-            return self.template.on_build
-        if isinstance(self.template, WonderTemplate):
-            return self.template.on_build
+        if isinstance(self._template, BuildingTemplate):
+            return self._template.on_build
+        if isinstance(self._template, WonderTemplate):
+            return self._template.on_build
         return []
 
     def update_ruined_status(self, city, game_state: 'GameState') -> None:
-        if isinstance(self.template, WonderTemplate):
-            self.ruined = (city.id, city.civ.id) not in game_state.built_wonders[self.template].infos
+        if isinstance(self._template, WonderTemplate):
+            self.ruined = (city.id, city.civ.id) not in game_state.built_wonders[self._template].infos
 
-    def get_ability(self, ability_name: str) -> list[Ability]:
-        if isinstance(self.template, UnitTemplate):
+    def passive_building_abilities_of_name(self, ability_name: str) -> list[Ability]:
+        if isinstance(self._template, UnitTemplate):
             return []
-        if isinstance(self.template, WonderTemplate) and self.ruined:
+        if isinstance(self._template, WonderTemplate) and self.ruined:
             return []
-        return [ability for ability in self.template.abilities if ability.name == ability_name]
-
-    def has_ability(self, ability_name: str) -> bool:
-        # TODO remove this
-        return len(self.get_ability(ability_name)) > 0
-
-    def numbers_of_ability(self, ability_name: str) -> list:
-        # TODO remove this
-        assert isinstance(self.template, BuildingTemplate)
-        return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
+        return [ability for ability in self._template.abilities if ability.name == ability_name]
 
     def to_json(self) -> dict:
         return {
             "type": self.type,
-            "template_name": self.template.name,
+            "template_name": self._template.name,
             "building_name": self.building_name,
-            "unit_name": self.unit_name,
             "ruined": self.ruined
         }
     
