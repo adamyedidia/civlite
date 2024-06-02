@@ -575,7 +575,7 @@ class UNITS():
         strength=50,
         movement=0,
         range=1,
-        tags=[UnitTag.WONDROUS, UnitTag.DEFENSIVE],
+        tags=[UnitTag.WONDROUS, UnitTag.DEFENSIVE, UnitTag.INFANTRY],
         abilities=[],
 
         building_name=None,
@@ -626,15 +626,14 @@ class UNITS():
         strength=200,
         movement=1,
         range=6,
-        tags=[UnitTag.WONDROUS],
+        tags=[UnitTag.WONDROUS, UnitTag.RANGED, UnitTag.SIEGE, UnitTag.GUNPOWDER],
         abilities=[{
             "name": "Splash",
             "numbers": [1.0],
         }, {
             "name": "Missile",
             "numbers": [],
-        }      ],
-
+        }],
         building_name=None,
         prereq=None,
         wood_cost=0,
@@ -647,7 +646,7 @@ class UNITS():
         strength=150,
         movement=2,
         range=3,
-        tags=[UnitTag.WONDROUS],
+        tags=[UnitTag.WONDROUS, UnitTag.RANGED, UnitTag.GUNPOWDER],
         abilities=[{
             "name": "MultipleAttack",
             "numbers": [4],

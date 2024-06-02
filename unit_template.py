@@ -8,13 +8,13 @@ from enum import Enum
 
 class UnitTag(Enum):
     INFANTRY = "infantry"
-    RANGED = "ranged"
+    RANGED = "ranged"  # target doesn't punch back
     MOUNTED = "mounted"
     SIEGE = "siege"
     ARMORED = "armored"
     GUNPOWDER = "gunpowder"
     DEFENSIVE = "defensive"
-    WONDROUS = "wondrous"
+    WONDROUS = "wondrous"  # Built from a wonder; Lose 5 hp per turn
 
 class UnitTemplate:
     def __init__(self, name: str, building_name: str | None, metal_cost: int, wood_cost: int, strength: int, tags: list[UnitTag], movement: int, range: int, abilities: list[dict[str, Union[str, list]]], type: str, prereq: Optional[TechTemplate], great_people_names: dict[str, str] = {}) -> None:
