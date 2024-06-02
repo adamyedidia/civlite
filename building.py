@@ -1,7 +1,8 @@
-from typing import Generator, Optional, Union
+from typing import Optional, Union
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from ability import Ability
+from effect import CityTargetEffect
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from wonder_template import WonderTemplate
@@ -58,6 +59,14 @@ class Building:
         if isinstance(self.template, WonderTemplate):
             return self.template.vp_reward
         return 0
+    
+    @property
+    def on_build(self) -> list[CityTargetEffect]:
+        if isinstance(self.template, BuildingTemplate):
+            return self.template.on_build
+        if isinstance(self.template, WonderTemplate):
+            return self.template.on_build
+        return []
 
     def update_ruined_status(self, city, game_state: 'GameState') -> None:
         if isinstance(self.template, WonderTemplate):

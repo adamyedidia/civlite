@@ -1,5 +1,6 @@
 from typing import Generator
 from building_template import BuildingTemplate
+from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity, ResetHappinessThisCityEffect
 from tech_templates_list import TECHS
 
 class BUILDINGS():
@@ -7,23 +8,14 @@ class BUILDINGS():
         name="Lumber Mill",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", 1, "forest"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", 1, "jungle"],
-        }],
+        on_build=IncreaseYieldsForTerrain("wood", 1, ["forest", "jungle"]),
         prereq=TECHS.FORESTRY,
     )
     GRANARY = BuildingTemplate(
         name="Granary",
         type="economy",
         cost=10,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 1, "plains"],
-        }],
+        on_build=IncreaseYieldsForTerrain("food", 1, "plains"),
         prereq=TECHS.POTTERY,
     )
     ROADS = BuildingTemplate(
@@ -40,39 +32,21 @@ class BUILDINGS():
         name="Library",
         type="science",
         cost=10,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", 1, "tundra"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", 1, "desert"],
-        }],
+        on_build=IncreaseYieldsForTerrain("science", 1, ["tundra", "desert"]),
         prereq=TECHS.WRITING,
     )
     MINE = BuildingTemplate(
         name="Mine",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 1, "hills"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 1, "mountain"],
-        }],
+        on_build=IncreaseYieldsForTerrain("metal", 1, ["hills", "mountain"]),
         prereq=TECHS.MINING,
     )
     PLANTATION = BuildingTemplate(
         name="Plantation",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 1, "grassland"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 1, "marsh"],
-        }],
+        on_build=IncreaseYieldsForTerrain("food", 1, ["grassland", "marsh"]),
         prereq=TECHS.IRRIGATION,
     )
     AQUEDUCT = BuildingTemplate(
@@ -107,10 +81,7 @@ class BUILDINGS():
         name="Workshop",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["metal", 4],
-        }],
+        on_build=IncreaseYieldsInCity("metal", 4),
         prereq=TECHS.MATHEMATICS,
     )
     MAGISTERIUM = BuildingTemplate(
@@ -151,20 +122,14 @@ class BUILDINGS():
         name="Observatory",
         type="science",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["science", 4],
-        }],
+        on_build=IncreaseYieldsInCity("science", 4),
         prereq=TECHS.COMPASS,
     )
     PAPER_MAKER = BuildingTemplate(
         name="Paper Maker",
         type="science",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["wood", 4],
-        }],
+        on_build=IncreaseYieldsInCity("wood", 4),
         prereq=TECHS.PRINTING_PRESS,
     )
     ZOO = BuildingTemplate(
@@ -210,62 +175,35 @@ class BUILDINGS():
         name="Windmill",
         type="economy",
         cost=30,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 2, "tundra"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 2, "grassland"],
-        }],
+        on_build=IncreaseYieldsForTerrain("food", 2, ["tundra", "grassland"]),
         prereq=TECHS.PHYSICS,
     )
     FORGE = BuildingTemplate(
         name="Forge",
         type="economy",
         cost=30,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 2, "mountain"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 2, "plains"],
-        }],
+        on_build=IncreaseYieldsForTerrain("metal", 2, ["mountain", "plains"]),
         prereq=TECHS.METALLURGY,
     )
     LUMBER_FARM = BuildingTemplate(
         name="Lumber Farm",
         type="economy",
         cost=30,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", 2, "forest"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", 2, "hills"],
-        }],
+        on_build=IncreaseYieldsForTerrain("wood", 2, ["forest", "hills"]),
         prereq=TECHS.ARCHITECTURE,
     )
     APOTHECARY = BuildingTemplate(
         name="Apothecary",
         type="economy",
         cost=30,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 2, "marsh"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 2, "jungle"],
-        }],
+        on_build=IncreaseYieldsForTerrain("food", 2, ["marsh", "jungle"]),
         prereq=TECHS.MEDICINE,
     )
     OUTPOST = BuildingTemplate(
         name="Outpost",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 2, 'desert'],
-        }],
+        on_build=IncreaseYieldsForTerrain("metal", 2, "desert"),
         prereq=TECHS.RIFLING,
     )
     CARAVANSERY = BuildingTemplate(
@@ -326,10 +264,7 @@ class BUILDINGS():
         name="Grand Palace",
         type="economy",
         cost=100,
-        abilities=[{
-            "name": "ResetCityUnhappiness",
-            "numbers": [],
-        }],
+        on_build=ResetHappinessThisCityEffect(),
         is_national_wonder=True,
         prereq=TECHS.RIFLING,
     )
@@ -337,13 +272,7 @@ class BUILDINGS():
         name="Industrial Farm",
         type="economy",
         cost=80,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["food", 30],
-        }, {
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["wood", 15],
-        }],
+        on_build=[IncreaseYieldsInCity("food", 30), IncreaseYieldsInCity("wood", 15)],
         prereq=TECHS.MECHANIZED_AGRICULTURE,
     )
     INTERNET = BuildingTemplate(

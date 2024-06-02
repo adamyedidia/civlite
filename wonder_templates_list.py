@@ -63,6 +63,7 @@ class WONDERS():
     ########################## Age 2 ##########################
     # Options:
     # * Terracotta army (2nd century BC)
+    # * Petra (2nd century BC)
 
     # 3rd century BC
     GREAT_LIBRARY = WonderTemplate(
@@ -134,8 +135,9 @@ class WONDERS():
     VERSAILLES = WonderTemplate(name="Versailles", age=4, on_build=GetGreatPersonEffect(age_offset=2))
 
     ########################## Age 5 ##########################
-    # Options:
-    # * Brandenburg Gate (1791)
+
+    # 1791
+    BRANDENBURG_GATE = WonderTemplate(name="Brandenburg Gate", age=5, abilities=[BUILDING_ABILITIES["NewUnitsGainBonusStrength"](4)])
 
     # 1849
     KREMLIN = WonderTemplate(
@@ -218,7 +220,6 @@ class WONDERS():
 
     ########################## Age 9 ##########################
 
-    # UNTESTED
     AGI = WonderTemplate(
         name="AGI", age=9,
         on_build=[

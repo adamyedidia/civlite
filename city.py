@@ -5,6 +5,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
+from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
@@ -423,16 +424,17 @@ class City:
                     total_yields += building_template.vp_reward
                     # AIs count points as worth 3 resources
                     total_pseudoyields += building_template.vp_reward * 2
+                for effect in building_template.on_build:
+                    if isinstance(effect, IncreaseYieldsForTerrain):
+                        is_economic_building = True
+                        for terrain in effect.terrain:
+                            total_yields += int(effect.amount * (self.terrains_dict.get(terrain) or 0))
+
+                    if isinstance(effect, IncreaseYieldsInCity):
+                        is_economic_building = True
+                        total_yields += int(effect.amount)
+
                 for ability in building_template.abilities:
-                    if ability.name == 'IncreaseYieldsForTerrain':
-                        is_economic_building = True
-                        terrain = ability.numbers[2]
-                        total_yields += int(ability.numbers[1] * (self.terrains_dict.get(terrain) or 0))
-
-                    if ability.name == 'IncreaseYieldsInCity':
-                        is_economic_building = True
-                        total_yields += int(ability.numbers[1])
-
                     if ability.name == 'IncreaseYieldsPerPopulation':
                         is_economic_building = True
                         total_yields += int(ability.numbers[1] * self.population)
@@ -666,41 +668,15 @@ class City:
 
         is_national_wonder: bool = isinstance(building, BuildingTemplate) and building.is_national_wonder
 
-        if new_building.has_ability('IncreaseYieldsForTerrain'):
-            for ability in new_building.abilities:
-                assert self.hex
-                numbers = ability.numbers
-                for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
-                    if hex.terrain == numbers[2]:
-                        new_value = getattr(hex.yields, numbers[0]) + numbers[1]
-                        setattr(hex.yields, numbers[0], new_value)
-
-        if new_building.has_ability('DoubleYieldsForTerrainInCity'):
-            assert self.hex
-            numbers = new_building.numbers_of_ability('DoubleYieldsForTerrainInCity')
-            for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
-                if hex.terrain == numbers[0]:
-                    for yield_name in ['food', 'metal', 'wood', 'science']:
-                        new_value = getattr(hex.yields, yield_name) * 2
-                        setattr(hex.yields, yield_name, new_value)
-
-        if new_building.has_ability('IncreaseYieldsInCity'):
-            assert self.hex
-            numbers = new_building.numbers_of_ability('IncreaseYieldsInCity')
-            new_value = getattr(self.hex.yields, numbers[0]) + numbers[1]
-            setattr(self.hex.yields, numbers[0], new_value)
-
         if self.civ.game_player:
             self.civ.game_player.score += new_building.vp_reward
             self.civ.score += new_building.vp_reward
             self.civ.game_player.score_from_building_vps += new_building.vp_reward
 
-        if new_building.has_ability('ResetCityUnhappiness'):
-            self.unhappiness = 0
-        
+        for effect in new_building.on_build:
+            effect.apply(self, game_state)
+
         if isinstance(building, WonderTemplate):
-            for effect in building.on_build:
-                effect.apply(self, game_state)
             game_state.handle_wonder_built(self, building)
 
         if is_national_wonder:

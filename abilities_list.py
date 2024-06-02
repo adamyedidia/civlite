@@ -61,16 +61,6 @@ CIV_ABILITIES: dict[str, Callable] = {
 }
 
 BUILDING_ABILITIES: dict[str, Callable] = {
-    "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
-        name="IncreaseYieldsForTerrain",
-        description=f"Increase {x} yields in {p.plural(z)} around the city by {y}.",
-        numbers=[x, y, z],
-    ),
-    "IncreaseYieldsInCity": lambda x, y: Ability(
-        name="IncreaseYieldsInCity",
-        description=f"Increase {x} yields in the city by {y}.",
-        numbers=[x, y],
-    ),
     "IncreaseYieldsPerPopulation": lambda x, y: Ability(
         name="IncreaseYieldsPerPopulation",
         description=f"Increase {x} yields per population in the city by {y}.",
@@ -111,11 +101,6 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"New units you build get +{x} extra strength.",
         numbers=[x],
     ),    
-    "DoubleYieldsForTerrainInCity": lambda x: Ability(
-        name="DoubleYieldsForTerrainInCity",
-        description=f"Double yields in {p.plural(x)} adjacent to and in the city.",
-        numbers=[x],
-    ),
     "ExtraVpPerAgeOfTechResearched": lambda x: Ability(
         name="ExtraVpPerAgeOfTechResearched",
         description=f"Receive {x} extra VP per age of tech you research.",
@@ -125,11 +110,6 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         name="ExtraVpsForCityCapture",
         description=f"Receive {x} extra VP for each city you capture.",
         numbers=[x],
-    ),
-    "ResetCityUnhappiness": lambda: Ability(
-        name="ResetCityUnhappiness",
-        description=f"Reset unhappiness to 0 upon completion.",
-        numbers=[],
     ),
 }
 

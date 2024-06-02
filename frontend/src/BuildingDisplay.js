@@ -67,8 +67,8 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
                 {templates.BUILDINGS[buildingName]?.vp_reward && <p>VP reward: {templates.BUILDINGS[buildingName]?.vp_reward}</p>}
                 {templates.BUILDINGS[buildingName]?.is_national_wonder && <p>National Wonder</p>}
                 <ul>
-                    {templates.BUILDINGS[buildingName]?.abilities.map((ability, index) => (
-                        <li key={index}>{ability.description}</li>
+                    {templates.BUILDINGS[buildingName]?.description.map((description, index) => (
+                        <li key={index}>{description}</li>
                     ))}
                 </ul>
             </div>

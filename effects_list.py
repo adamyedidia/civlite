@@ -196,6 +196,15 @@ class StealPopEffect(CityTargetEffect):
             city.grow_inner(game_state=game_state)
             c.population -= 1
         
+
+class ResetHappinessThisCityEffect(CityTargetEffect):
+    @property
+    def description(self) -> str:
+        return "Reset the happiness in this city to 0 (before income)"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        city.unhappiness = 0
+
 class ResetHappinessAllCitiesEffect(CityTargetEffect):
     @property
     def description(self) -> str:
@@ -235,4 +244,35 @@ class EndGameEffect(CityTargetEffect):
     def apply(self, city: 'City', game_state: 'GameState'):
         game_state.game_over = True
 
+class IncreaseYieldsForTerrain(CityTargetEffect):
+    def __init__(self, resource: str, amount: int, terrain: str | list[str]) -> None:
+        self.resource = resource
+        self.amount = amount
+        self.terrain: list[str] = [terrain] if isinstance(terrain, str) else terrain
 
+    @property
+    def description(self) -> str:
+        terrain_strs: list[str] = [p.plural(t) for t in self.terrain] # type: ignore
+        terrain_combined_str: str = " and ".join(terrain_strs)
+        return f"Increase {self.resource} yields in {terrain_combined_str} around the city by {self.amount}."
+
+    def apply(self, city: 'City', game_state: 'GameState'):
+        assert city.hex is not None
+        for hex in city.hex.get_neighbors(game_state.hexes) + [city.hex]:
+            if hex.terrain in self.terrain:
+                new_value = getattr(hex.yields, self.resource) + self.amount
+                setattr(hex.yields, self.resource, new_value)
+
+class IncreaseYieldsInCity(CityTargetEffect):
+    def __init__(self, resource: str, amount: int) -> None:
+        self.resource = resource
+        self.amount = amount
+
+    @property
+    def description(self) -> str:
+        return f"Increase {self.resource} yields in the city by {self.amount}"
+
+    def apply(self, city: 'City', game_state: 'GameState'):
+        assert city.hex is not None
+        new_value = getattr(city.hex.yields, self.resource) + self.amount
+        setattr(city.hex.yields, self.resource, new_value)
