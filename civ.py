@@ -369,7 +369,7 @@ class Civ:
 
         self.get_new_tech_choices()
 
-        if self.game_player:
+        if self.game_player and tech != TECHS.RENAISSANCE:
             self.game_player.score += TECH_VP_REWARD
             self.game_player.score_from_researching_techs += TECH_VP_REWARD
             self.score += TECH_VP_REWARD

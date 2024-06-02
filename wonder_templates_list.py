@@ -204,7 +204,6 @@ class WONDERS():
 
     ########################## Age 8 ##########################
 
-    # UNTESTED, passive
     APOLLO_PROGRAM = WonderTemplate(
         name="Apollo Program", age=8,
         abilities=[BUILDING_ABILITIES["ExtraVpPerAgeOfTechResearched"](2)]
@@ -226,22 +225,19 @@ class WONDERS():
             PointsEffect(calculate_points=lambda city, _: sum([t.advancement_level for t, status in city.civ.techs_status.items() if status == TechStatus.RESEARCHED]), description="+1 vp per age of tech you have researched"),
             EndGameEffect()]
     )
-    # UNTESTED
     MARS_COLONY = WonderTemplate(
         name="Mars Colony", age=9,
         on_build=[
-            PointsEffect(calculate_points=lambda city, _: int(city.civ.vitality / 0.05), description="+1 vp per 5% vitality"),
+            PointsEffect(calculate_points=lambda city, _: int(city.civ.vitality / 0.1), description="+3 vp per 10% vitality"),
             EndGameEffect()]
     )
-    # UNTESTED
     PANACEA = WonderTemplate(
         name="Panacea", age=9,
         on_build=[
-            PointsEffect(calculate_points=lambda city, game_state: sum([c.population for c in city.civ.get_my_cities(game_state)]), description="+1 point per population in your nation"),
+            PointsEffect(calculate_points=lambda city, game_state: int(sum([c.population / 2 for c in city.civ.get_my_cities(game_state)])), description="+1 point per two population in your nation"),
             EndGameEffect()]
     )
-    # UNTESTED
-    DYSON_SWARM = WonderTemplate(name="Dyson Swarm", age=9, vp_reward=50)
+    DYSON_SWARM = WonderTemplate(name="Dyson Swarm", age=9, vp_reward=70)
 
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
