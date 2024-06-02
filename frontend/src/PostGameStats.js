@@ -38,13 +38,23 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
         fetchData();
     }, []);
 
+    React.useEffect(() => {
+        switch (displayStat) {
+            case 'score_per_turn':
+                setSmoothing(50);
+                break;
+            // Add more cases as needed for other stats
+            default:
+                setSmoothing(0);
+        }
+    }, [displayStat]);
+
     if (loading) return <div>Loading...</div>;
     if (error) return <div>Error: {error}</div>;
 
     const activeData = stats[displayStat];
     const last_turn = gameState.turn_num;
     const playerNumPlotColors = ['red', 'green', 'blue', 'orange', 'purple', 'black', 'pink', 'brown'];
-
 
     const getColor = (civId) => {
         if (colorByCiv) {
