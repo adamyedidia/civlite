@@ -656,8 +656,6 @@ class City:
         if isinstance(building, UnitTemplate):
             self.infinite_queue_unit = building
 
-        is_national_wonder: bool = isinstance(building, BuildingTemplate) and building.is_national_wonder
-
         if self.civ.game_player:
             self.civ.game_player.score += new_building.vp_reward
             self.civ.score += new_building.vp_reward
@@ -669,13 +667,13 @@ class City:
         if isinstance(building, WonderTemplate):
             game_state.handle_wonder_built(self, building)
 
-        if is_national_wonder:
+        if new_building.is_national_wonder:
             if self.civ.id not in game_state.national_wonders_built_by_civ_id:
                 game_state.national_wonders_built_by_civ_id[self.civ.id] = [building.name]
             else:
                 game_state.national_wonders_built_by_civ_id[self.civ.id].append(building.name)
 
-        if is_national_wonder or isinstance(building, WonderTemplate):
+        if new_building.is_national_wonder or isinstance(building, WonderTemplate):
             # Clear it from any other cities immediately; you can't build two in one turn.
             for city in self.civ.get_my_cities(game_state):
                 city.buildings_queue = [b for b in city.buildings_queue if b.name != building.name]
