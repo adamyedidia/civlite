@@ -3164,7 +3164,7 @@ export default function GamePage() {
                         setSelectedCity={setSelectedCity}
                         centerMap={centerMap}
                         />}
-                    <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
+                    <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)', width: '400px', display: 'flex', justifyContent: 'center'}}>                             
                         {hoveredBuilding && (
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
                         )}
