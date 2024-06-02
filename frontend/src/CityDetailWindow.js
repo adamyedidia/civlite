@@ -255,7 +255,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
                     <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
                 </h1>
-                <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '60%' }}>
                     <span 
                         role="img" 
                         aria-label="Previous City" 
