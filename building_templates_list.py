@@ -33,7 +33,7 @@ class BUILDINGS():
         type="science",
         cost=10,
         on_build=IncreaseYieldsForTerrain("science", 1, ["tundra", "desert"]),
-        prereq=TECHS.WRITING,
+        prereq=TECHS.POTTERY,
     )
     MINE = BuildingTemplate(
         name="Mine",
@@ -82,7 +82,7 @@ class BUILDINGS():
         type="economy",
         cost=15,
         on_build=IncreaseYieldsInCity("metal", 4),
-        prereq=TECHS.MATHEMATICS,
+        prereq=TECHS.CURRENCY,
     )
     MAGISTERIUM = BuildingTemplate(
         name="Magisterium",
@@ -183,7 +183,7 @@ class BUILDINGS():
         type="economy",
         cost=30,
         on_build=IncreaseYieldsForTerrain("metal", 2, ["mountain", "plains"]),
-        prereq=TECHS.METALLURGY,
+        prereq=TECHS.ARCHITECTURE,
     )
     LUMBER_FARM = BuildingTemplate(
         name="Lumber Farm",
@@ -210,7 +210,7 @@ class BUILDINGS():
         name="Caravansery",
         type="economy",
         cost=20,
-        prereq=TECHS.ECONOMICS,
+        prereq=TECHS.PRINTING_PRESS,
         abilities=[{
             "name": "DecreaseFoodDemand",
             "numbers": [10],

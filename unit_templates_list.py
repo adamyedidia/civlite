@@ -101,7 +101,7 @@ class UNITS():
         strength=12,
         movement=0,
         range=1,
-        prereq=TECHS.MASONRY,
+        prereq=TECHS.MINING,
         tags=[UnitTag.DEFENSIVE],
         abilities=[],
         great_people_names={

@@ -38,16 +38,6 @@ class TECHS():
         cost=25,
         advancement_level=1,
     )
-    WRITING = TechTemplate(
-        name='Writing',
-        cost=30,
-        advancement_level=1,
-    )
-    MASONRY = TechTemplate(
-        name='Masonry',
-        cost=30,
-        advancement_level=1,
-    )
     MATHEMATICS = TechTemplate(
         name='Mathematics',
         cost=50,
@@ -137,11 +127,6 @@ class TECHS():
         name='Medicine',
         cost=110,
         advancement_level=5,
-    )
-    ECONOMICS = TechTemplate(
-        name='Economics',
-        cost=120,
-        advancement_level=4,
     )
     MILITARY_SCIENCE = TechTemplate(
         name='Military Science',
