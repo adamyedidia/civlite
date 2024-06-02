@@ -90,10 +90,10 @@ class Unit:
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
         if self.has_moved or self.hex is None:
             return
-        stack_count_not_acted: int = self.get_stack_size() - self.attacks_used
+        stack_count_not_acted: int = max(0, self.get_stack_size() - self.attacks_used)
         if stack_count_not_acted == 0:
             return
-        
+
         starting_hex = self.hex
         coord_strs = [starting_hex.coords]
         for _ in range(self.template.movement):

@@ -623,7 +623,7 @@ class City:
 
                 return self.build_unit(game_state, unit, give_up_if_still_impossible=True, stack_size=stack_size)
 
-        self.spawn_unit_on_hex(game_state, unit, best_hex)
+        self.spawn_unit_on_hex(game_state, unit, best_hex, stack_size=stack_size)
         return True
 
     def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', stack_size=1) -> None:
