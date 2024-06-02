@@ -100,7 +100,7 @@ class GreatScientist(GreatPerson):
         city.civ.science += self.extra_science
 
     def valid_for_civ(self, civ: Civ) -> bool:
-        return civ.techs_status[self.tech_template] == TechStatus.RESEARCHED
+        return civ.techs_status[self.tech_template] in (TechStatus.AVAILABLE, TechStatus.UNAVAILABLE)
 
 class GreatEngineer(GreatPerson):
     def __init__(self, name, unit_template: UnitTemplate, extra_wood: float):
@@ -147,8 +147,7 @@ scientist_names = {
     'Archery': 'Artemis',
     'Bronze Working': 'Hephaestus',
     'Pottery': 'The Potter of Mohenjo-Daro',
-    'Code of Laws': 'Hammurabi',
-    'Calendar': 'Sosigenes of Alexandria',
+    # 'Code of Laws': 'Hammurabi',
     'The Wheel': 'Daedalus',
     'Mining': 'Thoth',
     'Forestry': 'Johnny Appleseed',
