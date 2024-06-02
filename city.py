@@ -1184,5 +1184,5 @@ CITY_NAMES = {
 def generate_random_city_name(game_state: Optional['GameState'] = None) -> str:
     names = CITY_NAMES
     if game_state is not None:
-        names = CITY_NAMES - set(city.name for city in game_state.cities_by_id.values())
+        names = CITY_NAMES - set(city.name for city in list(game_state.cities_by_id.values()) + list(game_state.fresh_cities_for_decline.values()))
     return random.choice(list(names))
