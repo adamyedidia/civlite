@@ -111,24 +111,9 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"New units you build get +{x} extra strength.",
         numbers=[x],
     ),    
-    "GainCityPower": lambda x: Ability(
-        name="GainCityPower",
-        description=f"Gain {x} city power upon completion.",
-        numbers=[x],
-    ),
-    "GainFreeUnits": lambda x, y: Ability(
-        name="GainFreeUnits",
-        description=f"Gain {y} free {x} units upon completion.",
-        numbers=[x, y],
-    ),
     "DoubleYieldsForTerrainInCity": lambda x: Ability(
         name="DoubleYieldsForTerrainInCity",
         description=f"Double yields in {p.plural(x)} adjacent to and in the city.",
-        numbers=[x],
-    ),
-    "ExistingUnitsGainBonusStrength": lambda x: Ability(
-        name="ExistingUnitsGainBonusStrength",
-        description=f"All existing units gain +{x} strength.",
         numbers=[x],
     ),
     "ExtraVpPerAgeOfTechResearched": lambda x: Ability(
@@ -141,24 +126,9 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Receive {x} extra VP for each city you capture.",
         numbers=[x],
     ),
-    "EndTheGame": lambda: Ability(
-        name="EndTheGame",
-        description=f"The game ends when this building is completed, and the player with the most victory points wins.",
-        numbers=[],
-    ),
-    "TripleCityPopulation": lambda: Ability(
-        name="TripleCityPopulation",
-        description=f"Triple the population of the city upon completion.",
-        numbers=[],
-    ),
     "ResetCityUnhappiness": lambda: Ability(
         name="ResetCityUnhappiness",
         description=f"Reset unhappiness to 0 upon completion.",
-        numbers=[],
-    ),
-    "ResetCivUnhappiness": lambda: Ability(
-        name="ResetCivUnhappiness",
-        description=f"Reset unhappiness of all your cities to 0 upon completion.",
         numbers=[],
     ),
 }

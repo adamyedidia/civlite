@@ -684,11 +684,6 @@ class City:
                         new_value = getattr(hex.yields, yield_name) * 2
                         setattr(hex.yields, yield_name, new_value)
 
-        if new_building.has_ability('ExistingUnitsGainBonusStrength'):
-            for unit in game_state.units:
-                if unit.civ.id == self.civ.id:
-                    unit.strength += new_building.numbers_of_ability('ExistingUnitsGainBonusStrength')[0]
-
         if new_building.has_ability('IncreaseYieldsInCity'):
             assert self.hex
             numbers = new_building.numbers_of_ability('IncreaseYieldsInCity')
@@ -700,27 +695,9 @@ class City:
             self.civ.score += new_building.vp_reward
             self.civ.game_player.score_from_building_vps += new_building.vp_reward
 
-        if new_building.has_ability('GainCityPower'):
-            self.civ.city_power += new_building.numbers_of_ability('GainCityPower')[0]
-
-        if new_building.has_ability('GainFreeUnits'):
-            for _ in range(new_building.numbers_of_ability('GainFreeUnits')[1]):
-                self.build_unit(game_state, UNITS.by_name(new_building.numbers_of_ability('GainFreeUnits')[0]))
-
-        if new_building.has_ability('EndTheGame'):
-            game_state.game_over = True
-
-        if new_building.has_ability('TripleCityPopulation'):
-            self.population *= 3
-
         if new_building.has_ability('ResetCityUnhappiness'):
             self.unhappiness = 0
         
-        if new_building.has_ability('ResetCivUnhappiness'):
-            for city in game_state.cities_by_id.values():
-                if city.civ == self.civ:
-                    city.unhappiness = 0
-
         if isinstance(building, WonderTemplate):
             for effect in building.on_build:
                 effect.apply(self, game_state)
