@@ -7,7 +7,7 @@
     z-index: 1000;
     max-height: 90vh;
     overflow-y: auto;
-    max-width: 30vw;
+    width: 100%;
 }
 
 .wonder-card h2 {
