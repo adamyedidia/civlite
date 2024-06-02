@@ -264,8 +264,10 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     >
                         {puppet ? "⇧" : "◀"}
                     </span>
+                    <span style={{ textAlign: 'center' }}>
                     {selectedCity.name}
                     {declinePreviewMode ? " (preview)" : ""}
+                    </span>
                     <span 
                         role="img" 
                         aria-label="Previous City" 
