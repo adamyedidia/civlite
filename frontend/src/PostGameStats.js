@@ -100,14 +100,15 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     
         const isFirstCivForPlayer = Object.keys(civInfos).findIndex(id => civInfos[id].player_num === civInfos[civId].player_num) === Object.keys(civInfos).indexOf(civId);
         const showLegend = colorByCiv || isFirstCivForPlayer;
+        const name = colorByCiv ? 
+            gameState.civs_by_id[civId].name + ' (' + (gameState.game_player_by_player_num[civInfos[civId].player_num]?.username || 'Rebels') + ')' :
+            gameState.game_player_by_player_num[civInfos[civId].player_num]?.username || 'Rebels';
         // Solid line trace
         if (solidX.length > 0) {
             traces.push({
                 type: 'scatter',
                 mode: 'lines+markers',
-                name: colorByCiv ? 
-                    gameState.civs_by_id[civId].name + ' (' + (gameState.game_player_by_player_num[civInfos[civId].player_num]?.username || 'Rebels') + ')' :
-                    gameState.game_player_by_player_num[civInfos[civId].player_num]?.username || 'Rebels',
+                name: name,
                 x: solidX,
                 y: solidY,
                 marker: { size: 5, color: dot_color },
@@ -129,6 +130,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                 x: dotX,
                 y: dotY,
                 marker: { size: 3, color: dot_color },
+                name: name,
                 line: {
                     color: line_color,
                     shape: 'linear',
