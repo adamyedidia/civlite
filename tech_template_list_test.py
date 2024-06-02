@@ -4,11 +4,7 @@ from tech_templates_list import TECHS
 from unit_templates_list import UNITS
 from civ_templates_list import CIVS
 from building_templates_list import BUILDINGS
-from tech_template import TechTemplate
-from unit_template import UnitTemplate
-from civ_template import CivTemplate
-from building_template import BuildingTemplate
-
+from unit_template import UnitTag
 class TestConsistency:
     def test_units_tech_consistency(self):
         found_units = set()
@@ -19,7 +15,7 @@ class TestConsistency:
                 assert unit.prereq == tech_template, f"Unit {unit.name} is unlocked by tech {unit.prereq} but should be unlocked by {tech_template.name}"
 
         for unit in UNITS.all():
-            assert unit in [UNITS.WARRIOR, UNITS.SLINGER] or unit in found_units, f"Unit {unit.name} is not unlocked by any tech"
+            assert unit in [UNITS.WARRIOR, UNITS.SLINGER] or unit in found_units or unit.has_tag(UnitTag.WONDROUS), f"Unit {unit.name} is not unlocked by any tech"
 
     def test_bldgs_tech_consistency(self):
         found_bldgs = set()
