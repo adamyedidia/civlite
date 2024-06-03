@@ -171,7 +171,7 @@ def make_game_statistics_plots(sess, game_id: str):
             pop_by_civ[city.civ_id] += city.population
 
         for unit in game_state.units:
-            total_metal_value_by_civ[unit.civ_id] += unit.template.metal_cost
+            total_metal_value_by_civ[unit.civ_id] += unit.template.metal_cost * unit.get_stack_size()
 
         for civ_id, civ in game_state.civs_by_id.items():
             total_yields_by_turn[civ_id].append(yields_by_civ[civ_id])
