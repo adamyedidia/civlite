@@ -150,7 +150,7 @@ class UNITS():
         great_people_names={
             "engineer": "King Solomon",
             "general_advanced": "Alexander the Great",
-            "general_normal": "The Nazgul",  # Because there's 9 of them
+            # "general_normal": "The Nazgul",  # Because there's 9 of them  # Now there's 6
             "general_horde": "Gengis Khan",
         },
     )
@@ -258,7 +258,6 @@ class UNITS():
             "engineer": "Charlemagne",
             "general_advanced": "Roland and Oliver",
             "general_normal": "William of Orange",
-            "general_horde": "King Arthur",
         },
     )
     TREBUCHET = UnitTemplate(
@@ -296,7 +295,6 @@ class UNITS():
         prereq=TECHS.GUNPOWDER,
         abilities=[],
         great_people_names={
-            "general_advanced": "Alexandre Dumas",
             "general_normal": "Hernan Cortes",
             "general_horde": "George Washington",
         },
@@ -490,8 +488,8 @@ class UNITS():
             "numbers": [0.6],
         }],
         great_people_names={
-            "engineer": "Robert Oppenheimer",  # Issue: Tocket Launcher isn't really the same as Atomic Bomb
-            "general_advanced": "Douglas MacArthur",  # Issue: Tocket Launcher isn't really the same as Atomic Bomb
+            "engineer": "Robert Oppenheimer",  # Issue: Rocket Launcher isn't really the same as Atomic Bomb
+            "general_advanced": "Douglas MacArthur",  # Issue: Rocket Launcher isn't really the same as Atomic Bomb
         },
     )
     BAZOOKA = UnitTemplate(

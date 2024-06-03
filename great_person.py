@@ -229,23 +229,18 @@ def great_people_by_age(age: int) -> list[GreatPerson]:
 ###### unnamed great people #####
 num_placeholder = len([name for name in unique_names if name.startswith("[")])
 print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} great people")
+unnamed_list = []
 
 for age, people in _great_people_by_age.items():
     if 0 <= age <= 9:
-        print(f"======= Age {age} =======")
+        if __name__ == "__main__":
+            print(f"\n======= Age {age} =======")
         for person in people.copy():
+            if __name__ == "__main__":
+                print(f"{person.name}: {person.description()}")
             if person.name.startswith("["):
-                if isinstance(person, GreatGeneral):
-                    print(person.number, person.unit_template.name)
-                elif isinstance(person, GreatMerchant):
-                    print(person.amount, person.resource)
-                elif isinstance(person, GreatScientist):
-                    print(person.tech_template.name)
-                elif isinstance(person, GreatEngineer):
-                    print(f"{person.unit_template.building_name} ({person.unit_template.name})")
-                else:
-                    print(person.name)
                 people.remove(person)
+                unnamed_list.append(person)
     else:
         print(f"======= INVALID AGE {age}")
         for person in people:
@@ -254,7 +249,18 @@ for age, people in _great_people_by_age.items():
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 
 # Set some numbers to their correct values, even if it's not balanced.
-great_people_by_name["King Arthur"].number = 12  # Should be 11  #type: ignore
-great_people_by_name["Alexandre Dumas"].number = 3  # Should be 4  #type: ignore
-great_people_by_name["Achilles and Patroclus"].number = 2  # Should be 3.2  #type: ignore
-great_people_by_name["Roland and Oliver"].number = 2  # Should be 2.7  #type: ignore
+great_people_by_name["Achilles and Patroclus"].number = 2  # Should be 3  #type: ignore
+great_people_by_name["Roland and Oliver"].number = 2  # Should be 2  #type: ignore
+
+print(f"****************** Unnamed great people ({len(unnamed_list)}) ******************")
+for person in unnamed_list:
+    if isinstance(person, GreatGeneral):
+        print(person.number, person.unit_template.name)
+    elif isinstance(person, GreatMerchant):
+        print(person.amount, person.resource)
+    elif isinstance(person, GreatScientist):
+        print(person.tech_template.name)
+    elif isinstance(person, GreatEngineer):
+        print(f"{person.unit_template.building_name} ({person.unit_template.name})")
+    else:
+        print(person.name)
