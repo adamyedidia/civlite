@@ -16,7 +16,7 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
 from redis_utils import rget_json, rlock, rset_json, rdel, rset, rget
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY, BASE_WONDER_COST
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -302,8 +302,10 @@ class GameState:
 
     def initialize_wonders(self):
         assert len(self.game_player_by_player_num) > 0, "Cannot initialize wonders without players"
-        wonders_per_age: int = len(self.game_player_by_player_num) - 1
+        wonders_per_age: int = WONDER_COUNT_FOR_PLAYER_NUM[len(self.game_player_by_player_num)]
+        print(f"For {len(self.game_player_by_player_num)} players, sampling wonders to {wonders_per_age} per age.")
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {age: self._sample_wonders_for_age(age, wonders_per_age) for age in range(0, 10)}
+        print(f"Wonders by age: {self.wonders_by_age}")
 
     def update_wonder_cost_by_age(self) -> None:
         for age in self.wonders_by_age.keys():

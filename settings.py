@@ -49,5 +49,16 @@ BASE_WONDER_COST = {
     9: 1000,
 }
 
+WONDER_COUNT_FOR_PLAYER_NUM = {
+    1: 2,
+    2: 2,
+    3: 2,
+    4: 3,
+    5: 4,
+    6: 4,
+    7: 5,
+    8: 6,
+}
+
 if os.path.exists('local_settings.py'):
     from local_settings import *
