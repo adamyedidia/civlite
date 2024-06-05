@@ -244,7 +244,6 @@ class WONDERS():
             PointsEffect(calculate_points=lambda city, game_state: int(sum([c.population / 2 for c in city.civ.get_my_cities(game_state)])), description="+1 point per two population in your nation"),
             EndGameEffect()]
     )
-    DYSON_SWARM = WonderTemplate(name="Dyson Swarm", age=9, vp_reward=70)
 
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
