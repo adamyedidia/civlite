@@ -18,16 +18,6 @@ class TECHS():
         cost=20,
         advancement_level=1,
     )
-    CODE_OF_LAWS = TechTemplate(
-        name='Code of Laws',
-        cost=20,
-        advancement_level=1,
-    )
-    CALENDAR = TechTemplate(
-        name='Calendar',
-        cost=25,
-        advancement_level=1,
-    )
     THE_WHEEL = TechTemplate(
         name='The Wheel',
         cost=35,
@@ -46,16 +36,6 @@ class TECHS():
     IRRIGATION = TechTemplate(
         name='Irrigation',
         cost=25,
-        advancement_level=1,
-    )
-    WRITING = TechTemplate(
-        name='Writing',
-        cost=30,
-        advancement_level=1,
-    )
-    MASONRY = TechTemplate(
-        name='Masonry',
-        cost=30,
         advancement_level=1,
     )
     MATHEMATICS = TechTemplate(
@@ -147,11 +127,6 @@ class TECHS():
         name='Medicine',
         cost=110,
         advancement_level=5,
-    )
-    ECONOMICS = TechTemplate(
-        name='Economics',
-        cost=120,
-        advancement_level=4,
     )
     MILITARY_SCIENCE = TechTemplate(
         name='Military Science',

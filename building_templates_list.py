@@ -1,5 +1,6 @@
 from typing import Generator
 from building_template import BuildingTemplate
+from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity, ResetHappinessThisCityEffect
 from tech_templates_list import TECHS
 
 class BUILDINGS():
@@ -7,23 +8,14 @@ class BUILDINGS():
         name="Lumber Mill",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", 1, "forest"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", 1, "jungle"],
-        }],
+        on_build=IncreaseYieldsForTerrain("wood", 1, ["forest", "jungle"]),
         prereq=TECHS.FORESTRY,
     )
     GRANARY = BuildingTemplate(
         name="Granary",
         type="economy",
         cost=10,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 1, "plains"],
-        }],
+        on_build=IncreaseYieldsForTerrain("food", 1, "plains"),
         prereq=TECHS.POTTERY,
     )
     ROADS = BuildingTemplate(
@@ -40,39 +32,21 @@ class BUILDINGS():
         name="Library",
         type="science",
         cost=10,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", 1, "tundra"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", 1, "desert"],
-        }],
-        prereq=TECHS.WRITING,
+        on_build=IncreaseYieldsForTerrain("science", 1, ["tundra", "desert"]),
+        prereq=TECHS.POTTERY,
     )
     MINE = BuildingTemplate(
         name="Mine",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 1, "hills"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 1, "mountain"],
-        }],
+        on_build=IncreaseYieldsForTerrain("metal", 1, ["hills", "mountain"]),
         prereq=TECHS.MINING,
     )
     PLANTATION = BuildingTemplate(
         name="Plantation",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 1, "grassland"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 1, "marsh"],
-        }],
+        on_build=IncreaseYieldsForTerrain("food", 1, ["grassland", "marsh"]),
         prereq=TECHS.IRRIGATION,
     )
     AQUEDUCT = BuildingTemplate(
@@ -107,11 +81,8 @@ class BUILDINGS():
         name="Workshop",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["metal", 4],
-        }],
-        prereq=TECHS.MATHEMATICS,
+        on_build=IncreaseYieldsInCity("metal", 4),
+        prereq=TECHS.CURRENCY,
     )
     MAGISTERIUM = BuildingTemplate(
         name="Magisterium",
@@ -151,20 +122,14 @@ class BUILDINGS():
         name="Observatory",
         type="science",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["science", 4],
-        }],
+        on_build=IncreaseYieldsInCity("science", 4),
         prereq=TECHS.COMPASS,
     )
     PAPER_MAKER = BuildingTemplate(
         name="Paper Maker",
         type="science",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["wood", 4],
-        }],
+        on_build=IncreaseYieldsInCity("wood", 4),
         prereq=TECHS.PRINTING_PRESS,
     )
     ZOO = BuildingTemplate(
@@ -210,69 +175,42 @@ class BUILDINGS():
         name="Windmill",
         type="economy",
         cost=30,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 2, "tundra"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 2, "grassland"],
-        }],
+        on_build=IncreaseYieldsForTerrain("food", 2, ["tundra", "grassland"]),
         prereq=TECHS.PHYSICS,
     )
     FORGE = BuildingTemplate(
         name="Forge",
         type="economy",
         cost=30,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 2, "mountain"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 2, "plains"],
-        }],
-        prereq=TECHS.METALLURGY,
+        on_build=IncreaseYieldsForTerrain("metal", 2, ["mountain", "plains"]),
+        prereq=TECHS.ARCHITECTURE,
     )
     LUMBER_FARM = BuildingTemplate(
         name="Lumber Farm",
         type="economy",
         cost=30,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", 2, "forest"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", 2, "hills"],
-        }],
+        on_build=IncreaseYieldsForTerrain("wood", 2, ["forest", "hills"]),
         prereq=TECHS.ARCHITECTURE,
     )
     APOTHECARY = BuildingTemplate(
         name="Apothecary",
         type="economy",
         cost=30,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 2, "marsh"],
-        }, {
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", 2, "jungle"],
-        }],
+        on_build=IncreaseYieldsForTerrain("food", 2, ["marsh", "jungle"]),
         prereq=TECHS.MEDICINE,
     )
     OUTPOST = BuildingTemplate(
         name="Outpost",
         type="economy",
         cost=15,
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", 2, 'desert'],
-        }],
+        on_build=IncreaseYieldsForTerrain("metal", 2, "desert"),
         prereq=TECHS.RIFLING,
     )
     CARAVANSERY = BuildingTemplate(
         name="Caravansery",
         type="economy",
         cost=20,
-        prereq=TECHS.ECONOMICS,
+        prereq=TECHS.PRINTING_PRESS,
         abilities=[{
             "name": "DecreaseFoodDemand",
             "numbers": [10],
@@ -326,36 +264,15 @@ class BUILDINGS():
         name="Grand Palace",
         type="economy",
         cost=100,
-        abilities=[{
-            "name": "ResetCityUnhappiness",
-            "numbers": [],
-        }],
+        on_build=ResetHappinessThisCityEffect(),
         is_national_wonder=True,
         prereq=TECHS.RIFLING,
-    )
-    WORLDS_FAIR = BuildingTemplate(
-        name="World's Fair",
-        type="economy",
-        cost=200,
-        abilities=[{
-            "name": "ResetCivUnhappiness",
-            "numbers": [],
-        }],
-        is_wonder=True,
-        prereq=TECHS.RADIO,
-        vp_reward=5,
     )
     INDUSTRIAL_FARM = BuildingTemplate(
         name="Industrial Farm",
         type="economy",
         cost=80,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["food", 30],
-        }, {
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["wood", 15],
-        }],
+        on_build=[IncreaseYieldsInCity("food", 30), IncreaseYieldsInCity("wood", 15)],
         prereq=TECHS.MECHANIZED_AGRICULTURE,
     )
     INTERNET = BuildingTemplate(
@@ -376,239 +293,6 @@ class BUILDINGS():
             "numbers": ["science", 2],
         }],        
         prereq=TECHS.COMPUTERS,
-    )
-    HANGING_GARDENS = BuildingTemplate(
-        name="Hanging Gardens",
-        type="economy",
-        cost=50,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["food", 5],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.CODE_OF_LAWS,
-    )
-    PYRAMIDS = BuildingTemplate(
-        name="Pyramids",
-        type="wonder",
-        cost=50,
-        abilities=[
-            {
-                "name": "GainCityPower",
-                "numbers": [100],
-            },
-        ],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.MASONRY,
-    )
-    TEMPLE_OF_ARTEMIS = BuildingTemplate(
-        name="Temple of Artemis",
-        type="economy",
-        cost=50,
-        abilities=[{
-            "name": "GainFreeUnits",
-            "numbers": ["Archer", 3],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.CALENDAR,
-    )
-    COLOSUS = BuildingTemplate(
-        name="Colossus",
-        type="economy",
-        cost=60,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["metal", 5],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.IRON_WORKING,
-    )
-    STATUE_OF_ZEUS = BuildingTemplate(
-        name="Statue of Zeus",
-        type="economy",
-        cost=60,
-        abilities=[{
-            "name": "NewUnitsGainBonusStrength",
-            "numbers": [1],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.ENGINEERING,
-    )
-    GREAT_LIBRARY = BuildingTemplate(
-        name="Great Library",
-        type="science",
-        cost=60,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["science", 5],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.WRITING,
-    )
-    PETRA = BuildingTemplate(
-        name="Petra",
-        type="economy",
-        cost=70,
-        abilities=[{
-            "name": "DoubleYieldsForTerrainInCity",
-            "numbers": ["desert"],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.CURRENCY,
-    )
-    CHICHEN_ITZA = BuildingTemplate(
-        name="Chichen Itza",
-        type="economy",
-        cost=80,
-        abilities=[{
-            "name": "IncreasePopulationOfNewCities",
-            "numbers": [3],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.CIVIL_SERVICE,
-    )
-    GREAT_LIGHTHOUSE = BuildingTemplate(
-        name="Great Lighthouse",
-        type="economy",
-        cost=90,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["food", 10],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.COMPASS,
-    )
-    FORBIDDEN_PALACE = BuildingTemplate(
-        name="Forbidden Palace",
-        type="economy",
-        cost=100,
-        abilities=[{
-            "name": "GainCityPower",
-            "numbers": [200],
-        }, {
-            "name": "ExtraTerritory",
-            "numbers": [],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.PRINTING_PRESS,
-    )
-    HIMEJI_CASTLE = BuildingTemplate(
-        name="Himeji Castle",
-        type="economy",
-        cost=110,
-        abilities=[{
-            "name": "ExistingUnitsGainBonusStrength",
-            "numbers": [2],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.GUNPOWDER,
-    )
-    NOTRE_DAME = BuildingTemplate(
-        name="Notre Dame",
-        type="economy",
-        cost=120,
-        abilities=[{
-            "name": "IncreaseYieldsInCity",
-            "numbers": ["wood", 15],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.ARCHITECTURE,
-    )
-    PORCELAIN_TOWER = BuildingTemplate(
-        name="Porcelain Tower",
-        type="science",
-        cost=140,
-        abilities=[{
-            "name": "ExtraVpsForTechs",
-            "numbers": [1],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.ECONOMICS,
-    )
-    BRANDEMBURG_GATE = BuildingTemplate(
-        name="Brandenburg Gate",
-        type="economy",
-        cost=150,
-        abilities=[{
-            "name": "NewUnitsGainBonusStrength",
-            "numbers": [3],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.MILITARY_SCIENCE,
-    )
-    STATUE_OF_LIBERTY = BuildingTemplate(
-        name="Statue of Liberty",
-        type="economy",
-        cost=250,
-        abilities=[{
-            "name": "ExtraVpsForCityGrowth",
-            "numbers": [1],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.RADIO,
-    )
-    KREMLIN = BuildingTemplate(
-        name="Kremlin",
-        type="economy",
-        cost=300,
-        abilities=[{
-            "name": "ExtraVpsForCityCapture",
-            "numbers": [10],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.COMBINED_ARMS,
-    )
-    FAST_FOOD_CHAINS = BuildingTemplate(
-        name="Fast Food Chains",
-        type="economy",
-        cost=350,
-        abilities=[{
-            "name": "TripleCityPopulation",
-            "numbers": [],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.MECHANIZED_AGRICULTURE,
-    )
-    APOLLO_PROGRAM = BuildingTemplate(
-        name="Apollo Program",
-        type="economy",
-        cost=400,
-        abilities=[{
-            "name": "ExtraVpsForTechs",
-            "numbers": [5],
-        }],
-        is_wonder=True,
-        vp_reward=5,
-        prereq=TECHS.ROCKETRY,
-    )
-    AGI = BuildingTemplate(
-        name="AGI",
-        type="economy",
-        cost=750,
-        abilities=[{
-            "name": "EndTheGame",
-            "numbers": [],
-        }],
-        is_wonder=True,
-        vp_reward=10,
-        prereq=TECHS.MEGAROBOTICS,
     )
 
     # all & by_name are copy-pasted methods to all template lists.

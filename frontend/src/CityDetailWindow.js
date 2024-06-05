@@ -116,10 +116,10 @@ const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
 }
 
 const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
-    selectedCityBuildingChoices, selectedCityBuildingQueue, selectedCityBuildings, 
+    selectedCityBuildingChoices, selectedCityBuildingQueue, 
     selectedCityUnitChoices, selectedCity,
     unitTemplatesByBuildingName, templates, descriptions,
-    setHoveredUnit, setHoveredBuilding, setSelectedCity, centerMap
+    setHoveredUnit, setHoveredBuilding, setHoveredWonder, setSelectedCity, centerMap
      }) => {
 
     const canBuild = !declinePreviewMode && !puppet;
@@ -245,7 +245,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const woodAvailable = selectedCity.wood + projectedIncome['wood'];
 
     const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / templates.UNITS[selectedCity.infinite_queue_unit].metal_cost) : 0;
-    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => templates.BUILDINGS[item] ? templates.BUILDINGS[item].cost : unitTemplatesByBuildingName[item].wood_cost);
+    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => templates.BUILDINGS[item] ? templates.BUILDINGS[item].cost : templates.WONDERS[item] ? gameState.wonder_cost_by_age[templates.WONDERS[item].age] : unitTemplatesByBuildingName[item] ? unitTemplatesByBuildingName[item].wood_cost : 0);
 
 
     return (
@@ -255,7 +255,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
                     <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
                 </h1>
-                <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '60%' }}>
                     <span 
                         role="img" 
                         aria-label="Previous City" 
@@ -264,8 +264,10 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     >
                         {puppet ? "⇧" : "◀"}
                     </span>
+                    <span style={{ textAlign: 'center' }}>
                     {selectedCity.name}
                     {declinePreviewMode ? " (preview)" : ""}
+                    </span>
                     <span 
                         role="img" 
                         aria-label="Previous City" 
@@ -303,7 +305,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                         border: '2px solid black',
                                         borderRadius: '50%',
                                     }}/>
-                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
+                                    <BriefBuildingDisplay buildingName={buildingName} wonderCostsByAge={gameState.wonder_cost_by_age} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
                                 </div>
                             })}
                         </div>
@@ -315,12 +317,12 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCityBuildingQueue.map((buildingName, index) => (
                                 <div key={index} className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
+                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
                                 </div>
                             ))}
                         </div>
                     )}               
-                    {selectedCityBuildings && (
+                    {selectedCity?.buildings && (
                         <div>
                             {canBuild ? <button 
                                 className="collapse-expand-button" 
@@ -334,8 +336,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
 
                             {(isBuildingListExpanded || !canBuild) && (
                                 <div className="existing-buildings-container">
-                                    {selectedCityBuildings.map((buildingName, index) => (
-                                        <BriefBuildingDisplay key={index} buildingName={buildingName} clickable={false} hideCost={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} descriptions={descriptions}/>
+                                    {selectedCity?.buildings.map((building, index) => (
+                                        <BriefBuildingDisplay key={index} buildingName={building.building_name} buildingObj={building} clickable={false} hideCost={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} descriptions={descriptions}/>
                                     ))}
                                 </div>
                             )}

@@ -1,8 +1,8 @@
 import random
-from enum import Enum
-from typing import TYPE_CHECKING, Optional, Dict
+from typing import TYPE_CHECKING, Any, Generator, Optional, Dict
 from collections import defaultdict
-from great_person import GreatGeneral, GreatPerson, great_people_by_name
+from TechStatus import TechStatus
+from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_people_by_name
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
 from game_player import GamePlayer
@@ -21,14 +21,8 @@ if TYPE_CHECKING:
     from game_state import GameState
     from hex import Hex
     from city import City
+    from ability import Ability
 
-
-class TechStatus(Enum):
-    RESEARCHED = 'researched'
-    UNAVAILABLE = 'unavailable'
-    DISCARDED = 'discarded'
-    AVAILABLE = 'available'
-    RESEARCHING = 'researching'
 
 class Civ:
     def __init__(self, civ_template: CivTemplate, game_player: Optional[GamePlayer]):
@@ -50,6 +44,8 @@ class Civ:
         self.in_decline = False
         self.trade_hub_id: Optional[str] = None
         self.great_people_choices: list[GreatPerson] = []
+        self._great_people_choices_city_id: Optional[str] = None
+        self._great_people_choices_queue: list[tuple[int, str]] = []  # age, city_id
         self.max_territories: int = 3
         self.vandetta_civ_id: Optional[str] = None
 
@@ -69,6 +65,11 @@ class Civ:
 
     def numbers_of_ability(self, ability_name: str) -> list:
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
+
+    def passive_building_abilities_of_name(self, ability_name: str, game_state: 'GameState') -> Generator['Ability', Any, None]:
+        for city in self.get_my_cities(game_state):
+            for ability in city.passive_building_abilities_of_name(ability_name):
+                yield ability
 
     def midturn_update(self, game_state):
         self.adjust_projected_yields(game_state)
@@ -151,7 +152,7 @@ class Civ:
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 2 + round(self.get_advancement_level() / 3)
         my_cities: list[City] = self.get_my_cities(game_state)
-        bonuses: int = sum([bldg.has_ability('ExtraTerritory') for city in my_cities for bldg in city.buildings])
+        bonuses: int = len([ability for ability in self.passive_building_abilities_of_name('ExtraTerritory', game_state)])
         self.max_territories = base + bonuses
 
     def to_json(self) -> dict:
@@ -177,6 +178,8 @@ class Civ:
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
             "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],
+            "great_people_choices_queue": [(age, city_id) for age, city_id in self._great_people_choices_queue],
+            "great_people_choices_city_id": self._great_people_choices_city_id,
             "max_territories": self.max_territories,
             "vandetta_civ_id": self.vandetta_civ_id,
         }
@@ -184,13 +187,11 @@ class Civ:
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
         self.available_buildings = [building for building in BUILDINGS.all() if (
             (building.prereq is None or self.has_tech(building.prereq))
-            and (not building.is_wonder or not game_state.wonders_built_to_civ_id.get(building.name))
             and (not building.is_national_wonder or not building.name in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
         )]
         self.available_unit_buildings: list[UnitTemplate] = [
             unit for unit in UNITS.all() 
-            if ((unit.prereq is None or self.has_tech(unit.prereq)) and 
-                unit.building_name is not None)
+            if unit.buildable and (unit.prereq is None or self.has_tech(unit.prereq))
             ]
 
 
@@ -368,18 +369,16 @@ class Civ:
 
         self.get_new_tech_choices()
 
-        if self.game_player:
+        if self.game_player and tech != TECHS.RENAISSANCE:
             self.game_player.score += TECH_VP_REWARD
             self.game_player.score_from_researching_techs += TECH_VP_REWARD
             self.score += TECH_VP_REWARD
 
-            for wonder in game_state.wonders_built_to_civ_id:
-                if game_state.wonders_built_to_civ_id[wonder] == self.id and (abilities := BUILDINGS.by_name(wonder).abilities):
-                    for ability in abilities:
-                        if ability.name == "ExtraVpsForTechs":
-                            self.game_player.score += ability.numbers[0]    
-                            self.game_player.score_from_abilities += ability.numbers[0]
-                            self.score += ability.numbers[0]
+            for ability in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
+                amount = ability.numbers[0] * tech.advancement_level
+                self.game_player.score += amount    
+                self.game_player.score_from_building_vps += amount
+                self.score += amount
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
@@ -413,13 +412,29 @@ class Civ:
     def capital_city(self, game_state) -> 'City':
         return next(city for city in game_state.cities_by_id.values() if city.civ == self and city.capital)
 
-    def select_great_person(self, game_state, great_person_name):
-        assert self.great_people_choices is not None
+    def get_great_person(self, age: int, city: 'City'):
+        self._great_people_choices_queue.append((age, city.id))
+        self._pop_great_people_choices_queue_if_needed()
+
+    def _pop_great_people_choices_queue_if_needed(self):
+        if len(self.great_people_choices) == 0 and len(self._great_people_choices_queue) > 0:
+            age, city_id = self._great_people_choices_queue.pop(0)
+            all_great_people = great_people_by_age(age)
+            valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_civ(self)]
+            random.shuffle(valid_great_people)
+            self.great_people_choices = valid_great_people[:3]
+            self._great_people_choices_city_id = city_id
+
+    def select_great_person(self, game_state: 'GameState', great_person_name):
         assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
+        assert self._great_people_choices_city_id is not None
+        city = game_state.cities_by_id[self._great_people_choices_city_id]
         great_person: GreatPerson = great_people_by_name[great_person_name]
-        great_person.apply(city=self.capital_city(game_state), game_state=game_state)
+        great_person.apply(city=city, game_state=game_state)
         game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
         self.great_people_choices = []
+        self._great_people_choices_city_id = None
+        self._pop_great_people_choices_queue_if_needed()
 
     @staticmethod
     def from_json(json: dict) -> "Civ":
@@ -441,6 +456,8 @@ class Civ:
         civ.in_decline = json["in_decline"]
         civ.trade_hub_id = json.get("trade_hub_id")
         civ.great_people_choices = [GreatPerson.from_json(great_person_json) for great_person_json in json.get("great_people_choices", [])]
+        civ._great_people_choices_queue = [(age, city_id) for age, city_id in json.get("great_people_choices_queue", [])]
+        civ._great_people_choices_city_id = json.get("great_people_choices_city_id")
         civ.max_territories = json.get("max_territories", 3)
         civ.vandetta_civ_id = json.get("vandetta_civ_id")
 

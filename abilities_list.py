@@ -61,16 +61,6 @@ CIV_ABILITIES: dict[str, Callable] = {
 }
 
 BUILDING_ABILITIES: dict[str, Callable] = {
-    "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
-        name="IncreaseYieldsForTerrain",
-        description=f"Increase {x} yields in {p.plural(z)} around the city by {y}.",
-        numbers=[x, y, z],
-    ),
-    "IncreaseYieldsInCity": lambda x, y: Ability(
-        name="IncreaseYieldsInCity",
-        description=f"Increase {x} yields in the city by {y}.",
-        numbers=[x, y],
-    ),
     "IncreaseYieldsPerPopulation": lambda x, y: Ability(
         name="IncreaseYieldsPerPopulation",
         description=f"Increase {x} yields per population in the city by {y}.",
@@ -111,65 +101,15 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"New units you build get +{x} extra strength.",
         numbers=[x],
     ),    
-    "GainCityPower": lambda x: Ability(
-        name="GainCityPower",
-        description=f"Gain {x} city power upon completion.",
-        numbers=[x],
-    ),
-    "GainFreeUnits": lambda x, y: Ability(
-        name="GainFreeUnits",
-        description=f"Gain {y} free {x} units upon completion.",
-        numbers=[x, y],
-    ),
-    "DoubleYieldsForTerrainInCity": lambda x: Ability(
-        name="DoubleYieldsForTerrainInCity",
-        description=f"Double yields in {p.plural(x)} adjacent to and in the city.",
-        numbers=[x],
-    ),
-    "IncreasePopulationOfNewCities": lambda x: Ability(
-        name="IncreasePopulationOfNewCities",
-        description=f"New cities you build start with an extra {x} population.",
-        numbers=[x],
-    ),
-    "ExistingUnitsGainBonusStrength": lambda x: Ability(
-        name="ExistingUnitsGainBonusStrength",
-        description=f"All existing units gain +{x} strength.",
-        numbers=[x],
-    ),
-    "ExtraVpsForTechs": lambda x: Ability(
-        name="ExtraVpsForTechs",
-        description=f"Receive {x} extra VP for each tech you research.",
-        numbers=[x],
-    ),
-    "ExtraVpsForCityGrowth": lambda x: Ability(
-        name="ExtraVpsForCityGrowth",
-        description=f"Receive {x} VP each time your population grows.",
+    "ExtraVpPerAgeOfTechResearched": lambda x: Ability(
+        name="ExtraVpPerAgeOfTechResearched",
+        description=f"Receive {x} extra VP per age of tech you research.",
         numbers=[x],
     ),
     "ExtraVpsForCityCapture": lambda x: Ability(
         name="ExtraVpsForCityCapture",
         description=f"Receive {x} extra VP for each city you capture.",
         numbers=[x],
-    ),
-    "EndTheGame": lambda: Ability(
-        name="EndTheGame",
-        description=f"The game ends when this building is completed, and the player with the most victory points wins.",
-        numbers=[],
-    ),
-    "TripleCityPopulation": lambda: Ability(
-        name="TripleCityPopulation",
-        description=f"Triple the population of the city upon completion.",
-        numbers=[],
-    ),
-    "ResetCityUnhappiness": lambda: Ability(
-        name="ResetCityUnhappiness",
-        description=f"Reset unhappiness to 0 upon completion.",
-        numbers=[],
-    ),
-    "ResetCivUnhappiness": lambda: Ability(
-        name="ResetCivUnhappiness",
-        description=f"Reset unhappiness of all your cities to 0 upon completion.",
-        numbers=[],
     ),
 }
 
@@ -192,6 +132,21 @@ UNIT_ABILITIES: dict[str, Callable] = {
     "ConvertKills": lambda: Ability(
         name="ConvertKills",
         description=f"Converts killed enemy units into more copies of itself.",
+        numbers=[],
+    ),
+    "HealAllies": lambda: Ability(
+        name="HealAllies",
+        description=f"Heal all adjacent allies after moving.",
+        numbers=[],
+    ),
+    "MultipleAttack": lambda x: Ability(
+        name="MultipleAttack",
+        description=f"Attack {x} times per turn.",
+        numbers=[x],
+    ),
+    "Missile": lambda: Ability(
+        name="Missile",
+        description=f"Dies after attacking.",
         numbers=[],
     ),
 }

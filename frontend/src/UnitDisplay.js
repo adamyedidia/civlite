@@ -42,7 +42,7 @@ export const IconUnitDisplay = ({ unitName, templates, style, onClick, setHovere
     );
 };
 
-const UnitDisplay = ({ unit, hover }) => {
+const UnitDisplay = ({ unit }) => {
     if (!unit) {
         return null;
     }
@@ -54,7 +54,7 @@ const UnitDisplay = ({ unit, hover }) => {
             <h2>{unit?.name || unit?.template?.name}</h2>
             {/* <p>Type: {unit.type}</p> */}
             <p>Costs {unit?.metal_cost || unit?.template?.metal_cost} metal</p>
-            <p>Building: {unit?.building_name || unit?.template?.building_name} (costs {unit?.wood_cost || unit?.template?.wood_cost} wood)</p>
+            {unit?.building_name && <p>Building: {unit?.building_name || unit?.template?.building_name} (costs {unit?.wood_cost || unit?.template?.wood_cost} wood)</p>}
             <p>Strength: {unit?.strength || unit?.template?.strength}</p>
             <p>Movement: {unit?.movement || unit?.template?.movement}</p>
             <p>Range: {unit?.range || unit?.template?.range}</p>

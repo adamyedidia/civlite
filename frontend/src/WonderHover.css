@@ -1,0 +1,30 @@
+.wonder-card {
+    border: 1px solid #ddd;
+    /* padding: 10px; */
+    margin: 10px;
+    border-radius: 5px;
+    background-color: #b66dc0;
+    z-index: 1000;
+    max-height: 90vh;
+    overflow-y: auto;
+    width: 100%;
+}
+
+.wonder-card h2 {
+    padding: 5px;
+    margin: 0;
+}
+
+.wonder-card p {
+    padding: 5px;
+}
+
+.wonder-card-subtitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 5px;
+    border-bottom: 1px solid #ddd;
+    border-top: 1px solid #ddd;
+}
+

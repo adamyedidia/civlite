@@ -101,7 +101,7 @@ class UNITS():
         strength=12,
         movement=0,
         range=1,
-        prereq=TECHS.MASONRY,
+        prereq=TECHS.MINING,
         tags=[UnitTag.DEFENSIVE],
         abilities=[],
         great_people_names={
@@ -150,7 +150,7 @@ class UNITS():
         great_people_names={
             "engineer": "King Solomon",
             "general_advanced": "Alexander the Great",
-            "general_normal": "The Nazgul",  # Because there's 9 of them
+            # "general_normal": "The Nazgul",  # Because there's 9 of them  # Now there's 6
             "general_horde": "Gengis Khan",
         },
     )
@@ -258,7 +258,6 @@ class UNITS():
             "engineer": "Charlemagne",
             "general_advanced": "Roland and Oliver",
             "general_normal": "William of Orange",
-            "general_horde": "King Arthur",
         },
     )
     TREBUCHET = UnitTemplate(
@@ -296,7 +295,6 @@ class UNITS():
         prereq=TECHS.GUNPOWDER,
         abilities=[],
         great_people_names={
-            "general_advanced": "Alexandre Dumas",
             "general_normal": "Hernan Cortes",
             "general_horde": "George Washington",
         },
@@ -490,8 +488,8 @@ class UNITS():
             "numbers": [0.6],
         }],
         great_people_names={
-            "engineer": "Robert Oppenheimer",  # Issue: Tocket Launcher isn't really the same as Atomic Bomb
-            "general_advanced": "Douglas MacArthur",  # Issue: Tocket Launcher isn't really the same as Atomic Bomb
+            "engineer": "Robert Oppenheimer",  # Issue: Rocket Launcher isn't really the same as Atomic Bomb
+            "general_advanced": "Douglas MacArthur",  # Issue: Rocket Launcher isn't really the same as Atomic Bomb
         },
     )
     BAZOOKA = UnitTemplate(
@@ -551,6 +549,113 @@ class UNITS():
             "engineer": "Ray Kurzweil",
             "general_normal": "Ender Wiggin",  # Doesn't really fit but he's a good character.
         }
+    )
+
+    ZEUS = UnitTemplate(
+        name="Zeus",
+        type="military",
+        metal_cost=40,
+        strength=25,
+        movement=1,
+        range=3,
+        tags=[UnitTag.WONDROUS, UnitTag.RANGED],
+        abilities=[],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    COLOSSUS = UnitTemplate(
+        name="Colossus",
+        type="military",
+        metal_cost=50,
+        strength=50,
+        movement=0,
+        range=1,
+        tags=[UnitTag.WONDROUS, UnitTag.DEFENSIVE, UnitTag.INFANTRY],
+        abilities=[],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    SIR_LANCELOT = UnitTemplate(
+        name="Sir Lancelot",
+        type="military",
+        metal_cost=80,
+        strength=40,
+        movement=3,
+        range=1,
+        tags=[UnitTag.WONDROUS, UnitTag.MOUNTED],
+        abilities=[{
+            "name": "MultipleAttack",
+            "numbers": [2],
+        }],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    ARCHANGEL = UnitTemplate(
+        name="Archangel",
+        type="military",
+        metal_cost=60,
+        strength=35,
+        movement=2,
+        range=1,
+        tags=[UnitTag.WONDROUS],
+        abilities=[{
+            "name": "HealAllies",
+            "numbers": [],
+        }],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    ATOMIC_BOMB = UnitTemplate(
+        name="Atomic Bomb",
+        type="military",
+        metal_cost=100,
+        strength=200,
+        movement=1,
+        range=6,
+        tags=[UnitTag.WONDROUS, UnitTag.RANGED, UnitTag.SIEGE, UnitTag.GUNPOWDER],
+        abilities=[{
+            "name": "Splash",
+            "numbers": [1.0],
+        }, {
+            "name": "Missile",
+            "numbers": [],
+        }],
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    IRONMAN = UnitTemplate(
+        name="Ironman",
+        type="military",
+        metal_cost=300,
+        strength=150,
+        movement=2,
+        range=3,
+        tags=[UnitTag.WONDROUS, UnitTag.RANGED, UnitTag.GUNPOWDER],
+        abilities=[{
+            "name": "MultipleAttack",
+            "numbers": [4],
+        }, {
+            "name": "Splash",
+            "numbers": [0.6],
+        }],
+
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
     )
 
     # all & by_name are copy-pasted methods to all template lists.

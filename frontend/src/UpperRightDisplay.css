@@ -321,3 +321,83 @@ h2.tech-name {
     border-color: #b8209e;
     background-color: #eeaee4;
 }
+
+
+/*
+==========================================
+=============== WONDERS AREA =============
+==========================================
+*/
+
+.wonders-area .panel-content {
+    background-color: #e098d4;
+    border-color: #b8209e;
+    overflow-x: scroll;
+    scrollbar-width: thin;
+    scrollbar-color: #b8209e #e098d4;
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory;
+    padding: 0;
+}
+
+/* For Webkit browsers. Dunno what this is, GPT put it here */
+.wonders-area .panel-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.wonders-area .panel-content::-webkit-scrollbar-track {
+    background: #e098d4;
+}
+
+.wonders-area .panel-content::-webkit-scrollbar-thumb {
+    background-color: #b8209e;
+    border-radius: 10px;
+}
+
+.wonder-list-display {
+    display: flex;
+}
+
+.wonder-age-display {
+    width: 100px;
+    min-width: 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 5px;
+}
+
+.wonder-age-display.locked {
+    background-color: #ac86a5;
+}
+.wonder-age-display.unlocked {
+    background-color: #e098d4;
+}
+.wonder-age-display.locked .wonder-display {
+    background-color: #d6a7ce;
+}
+
+.wonder-age-display .wonder-age {
+    text-align: center;
+    font-weight: bold;
+}
+
+.wonder-age-display .wonder-cost {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: center;
+}
+
+.wonder-display {
+    border: 2px solid black;
+    border-radius: 5px;
+    padding: 5px;
+    background-color: #eed1e9;
+    overflow-x: hidden;
+    white-space: nowrap;
+}
+
+.wonder-display.built {
+    opacity: 0.3;
+}

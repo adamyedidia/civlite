@@ -28,9 +28,15 @@ class Unit:
         self.attacks_used = 0
         self.destination = None
 
+    def num_attacks(self) -> int:
+        num_units = self.get_stack_size()
+        if self.has_ability('MultipleAttack'):
+            return num_units * self.numbers_of_ability('MultipleAttack')[0]
+        return num_units
+
     @property
     def done_attacking(self):
-        return self.attacks_used >= self.get_stack_size()
+        return self.attacks_used >= self.num_attacks()
 
     def __repr__(self):
         return f"<Unit {self.civ.moniker()} {self.template.name} @ {self.hex.coords if self.hex is not None else None}"
@@ -84,10 +90,10 @@ class Unit:
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
         if self.has_moved or self.hex is None:
             return
-        stack_count_not_acted: int = self.get_stack_size() - self.attacks_used
+        stack_count_not_acted: int = max(0, self.get_stack_size() - self.attacks_used)
         if stack_count_not_acted == 0:
             return
-        
+
         starting_hex = self.hex
         coord_strs = [starting_hex.coords]
         for _ in range(self.template.movement):
@@ -165,15 +171,22 @@ class Unit:
         if self.hex is None or self.done_attacking:
             return
 
-        for _ in range(self.get_stack_size()):
+        while not self.done_attacking:
             if self.hex is None:
                 return
 
-            hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
+            if self.template.range <= 3:
+                hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
+            else:
+                print(f"Unit {self} has long range ({self.template.range}), this is computationally expensive!")
+                hexes_to_check = self.hex.get_hexes_within_range_expensive(game_state.hexes, self.template.range)
 
             best_target = self.get_best_target(hexes_to_check)
 
-            if best_target is not None:
+            if best_target is None:
+                break
+
+            else:
                 self.fight(sess, game_state, best_target)
                 self.attacks_used += 1
 
@@ -231,27 +244,28 @@ class Unit:
         return bonus_strength
 
     def punch(self, game_state: 'GameState', target: 'Unit', damage_reduction_factor: float = 1.0) -> None:
-        target_original_stack_size = target.get_stack_size()
-
         self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
         target.effective_strength = target.strength + target.compute_bonus_strength(game_state, self)
+        target.take_damage(self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength), from_civ=self.civ, game_state=game_state)
 
-        target.health = max(0, target.health - self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength))
+    def take_damage(self, amount: float, game_state: 'GameState', from_civ: Civ | None, from_unit: 'Unit | None' = None):
+        original_stack_size = self.get_stack_size()
+        self.health = max(0, self.health - amount)
+        final_stack_size = self.get_stack_size()
 
-        target_final_stack_size = target.get_stack_size()
+        if self.health == 0:
+            self.die(game_state, from_unit)
 
-        if target.health == 0:
-            target.die(game_state, self)
-
-        for _ in range(target_original_stack_size - target_final_stack_size):
-            if (game_player := self.civ.game_player) is not None:
+        if from_civ is not None and from_civ.game_player is not None:
+            game_player = from_civ.game_player
+            for _ in range(original_stack_size - final_stack_size):
                 game_player.score += UNIT_KILL_REWARD
                 game_player.score_from_killing_units += UNIT_KILL_REWARD
 
-                if self.civ.has_ability('ExtraVpsPerUnitKilled'):
-                    game_player.score += self.civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
-                    game_player.score_from_abilities += self.civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
-                    self.civ.score += self.civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
+                if from_civ.has_ability('ExtraVpsPerUnitKilled'):
+                    game_player.score += from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
+                    game_player.score_from_abilities += from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
+                    from_civ.score += from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
 
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
@@ -269,7 +283,7 @@ class Unit:
         if self.has_ability('Splash'):
             for neighboring_hex in target_hex.get_neighbors(game_state.hexes):
                 for unit in neighboring_hex.units:
-                    if unit.civ.id != self.civ.id:
+                    if unit.civ != self.civ:
                         self.punch(game_state, unit, self.numbers_of_ability('Splash')[0])
 
         if self.template.has_tag(UnitTag.RANGED):
@@ -287,6 +301,15 @@ class Unit:
             "end_coords": target_hex_coords,
         }, hexes_must_be_visible=[self_hex, target_hex], no_commit=True)
 
+        if self.has_ability('Missile'):
+            print(f"Missile depleting")
+            print(self.health)
+            self.take_damage(100, game_state, from_civ=None)
+            print(self.health)
+            # Only one attack from a stack of missiles per turn
+            self.attacks_used += 1000
+            print(self.health, self.attacks_used)
+
     def remove_from_game(self, game_state: 'GameState') -> None:
         if self.hex is None:
             return        
@@ -294,7 +317,7 @@ class Unit:
         game_state.units = [unit for unit in game_state.units if unit.id != self.id]
         self.hex = None        
 
-    def die(self, game_state: 'GameState', killer: 'Unit'):
+    def die(self, game_state: 'GameState', killer: 'Unit | None'):
         if self.hex is None:
             return
 
@@ -302,7 +325,7 @@ class Unit:
 
         self.remove_from_game(game_state)
 
-        if killer.has_ability('ConvertKills'):
+        if killer is not None and killer.has_ability('ConvertKills'):
             new_unit = Unit(killer.template, killer.civ)
             new_unit.hex = my_hex
             my_hex.units.append(new_unit)
@@ -311,7 +334,7 @@ class Unit:
     def currently_sieging(self):
         if not self.hex:
             return False
-        return (self.hex.city and self.hex.city.civ.id != self.civ.id) or self.hex.camp
+        return (self.hex.city and self.hex.city.civ != self.civ) or (self.hex.camp and self.hex.camp.civ != self.civ)
 
     def calculate_destination_hex(self, game_state):
         assert self.hex is not None  # Not sure how this could possibly happen.
@@ -349,7 +372,7 @@ class Unit:
                 return self.destination
 
             # Attack neighboring camps
-            if neighboring_hex.camp and not (len(neighboring_hex.units) > 0 and neighboring_hex.units[0].civ.id == self.civ.id):
+            if neighboring_hex.camp and neighboring_hex.camp.civ != self.civ and not (len(neighboring_hex.units) > 0 and neighboring_hex.units[0].civ.id == self.civ.id):
                 self.destination = neighboring_hex
                 return self.destination
 
@@ -397,6 +420,19 @@ class Unit:
             self.hex.remove_unit(self)
         self.hex = hex
         hex.units.append(self)
+
+    def turn_end(self, game_state: 'GameState') -> None:
+        self.has_moved = False
+        self.attacks_used = 0
+
+        if self.has_ability('HealAllies') and self.hex is not None:
+            for neighbor in self.hex.get_neighbors(game_state.hexes):
+                for unit in neighbor.units:
+                    if unit.civ == self.civ and not unit.has_ability('HealAllies'):
+                        unit.health = ceil(unit.health / 100) * 100
+
+        if self.template.has_tag(UnitTag.WONDROUS):
+            self.take_damage(5, game_state, from_civ=None)
 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         self.civ = civs_by_id[self.civ_id]

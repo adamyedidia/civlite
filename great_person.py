@@ -3,8 +3,8 @@ from __future__ import annotations
 import abc
 from collections import defaultdict
 import inflect
-import random
 from typing import TYPE_CHECKING, Optional
+from TechStatus import TechStatus
 
 from tech_templates_list import TECHS
 from tech_template import TechTemplate
@@ -13,6 +13,7 @@ from unit_templates_list import UNITS
 
 if TYPE_CHECKING:
     from city import City
+    from civ import Civ
 
 p = inflect.engine()
 
@@ -29,6 +30,9 @@ class GreatPerson(abc.ABC):
     @abc.abstractmethod
     def apply(self, game_state, city: City):
         raise NotImplementedError()
+    
+    def valid_for_civ(self, civ: Civ) -> bool:
+        return True
     
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.name}>"
@@ -95,6 +99,9 @@ class GreatScientist(GreatPerson):
         city.civ.gain_tech(game_state, self.tech_template)
         city.civ.science += self.extra_science
 
+    def valid_for_civ(self, civ: Civ) -> bool:
+        return civ.techs_status[self.tech_template] in (TechStatus.AVAILABLE, TechStatus.UNAVAILABLE)
+
 class GreatEngineer(GreatPerson):
     def __init__(self, name, unit_template: UnitTemplate, extra_wood: float):
         self.unit_template: UnitTemplate = unit_template
@@ -116,17 +123,17 @@ _great_people_by_age: dict[int, list[GreatPerson]] = defaultdict(list)
 
 def _target_value_by_age(age: int) -> int:
     return {
-        0: 45,
-        1: 90,
-        2: 135,
+        0: 40,
+        1: 80,
+        2: 120,
         3: 180,
-        4: 300,
-        5: 375,
-        6: 450,
-        7: 600,
+        4: 240,
+        5: 320,
+        6: 420,
+        7: 560,
         8: 900,
-        9: 1200,
-        10: 2400,
+        9: 1500,
+        10: 2500,
     }[age]
 
 merchant_names = {
@@ -140,19 +147,18 @@ scientist_names = {
     'Archery': 'Artemis',
     'Bronze Working': 'Hephaestus',
     'Pottery': 'The Potter of Mohenjo-Daro',
-    'Code of Laws': 'Hammurabi',
-    'Calendar': 'Sosigenes of Alexandria',
+    # 'Code of Laws': 'Hammurabi',
     'The Wheel': 'Daedalus',
     'Mining': 'Thoth',
     'Forestry': 'Johnny Appleseed',
     'Irrigation': 'King Yu the Great',
-    'Writing': 'Socrates',
-    'Masonry': 'Imhotep',
+    # 'Writing': 'Socrates',
+    # 'Masonry': 'Imhotep',
     'Mathematics': "Euclid",
     'Horseback Riding': 'Xenophon',
     'Iron Working': 'Ashurbanipal',
     'Currency': 'Alyattes of Lydia',
-    'Engineering': 'Qin Shi Huang',  # This is the great wall guy. If we add a Great Wall, we should put it here or move him to it.
+    'Engineering': 'Qin Shi Huang',
     'Construction': 'Emperor Vespasian',
     'Education': 'Robert of Sorbon',
     'Machinery': 'Heron of Alexandria',
@@ -165,7 +171,7 @@ scientist_names = {
     # 'Metallurgy': 'TODO',
     'Architecture': 'Michelangelo',
     "Medicine": 'Louis Pasteur',
-    'Economics': 'Adam Smith',
+    # 'Economics': 'Adam Smith',
     'Military Science': 'Frederick the Great',
     'Rifling': 'Oliver Winchester',
     'Industrialization': 'James Watt',
@@ -217,29 +223,24 @@ if duplicate_names:
 
 _great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", UNITS.SWORDSMAN, 47))
 
-def random_great_people_by_age(age: int, n: int = 1) -> list[GreatPerson]:
-    return random.sample(_great_people_by_age[age], n)
+def great_people_by_age(age: int) -> list[GreatPerson]:
+    return _great_people_by_age[age]
 
 ###### unnamed great people #####
 num_placeholder = len([name for name in unique_names if name.startswith("[")])
 print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} great people")
+unnamed_list = []
 
 for age, people in _great_people_by_age.items():
     if 0 <= age <= 9:
-        print(f"======= Age {age} =======")
+        if __name__ == "__main__":
+            print(f"\n======= Age {age} =======")
         for person in people.copy():
+            if __name__ == "__main__":
+                print(f"{person.name}: {person.description()}")
             if person.name.startswith("["):
-                if isinstance(person, GreatGeneral):
-                    print(person.number, person.unit_template.name)
-                elif isinstance(person, GreatMerchant):
-                    print(person.amount, person.resource)
-                elif isinstance(person, GreatScientist):
-                    print(person.tech_template.name)
-                elif isinstance(person, GreatEngineer):
-                    print(f"{person.unit_template.building_name} ({person.unit_template.name})")
-                else:
-                    print(person.name)
                 people.remove(person)
+                unnamed_list.append(person)
     else:
         print(f"======= INVALID AGE {age}")
         for person in people:
@@ -248,7 +249,18 @@ for age, people in _great_people_by_age.items():
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 
 # Set some numbers to their correct values, even if it's not balanced.
-great_people_by_name["King Arthur"].number = 12  # Should be 11  #type: ignore
-great_people_by_name["Alexandre Dumas"].number = 3  # Should be 4  #type: ignore
-great_people_by_name["Achilles and Patroclus"].number = 2  # Should be 3.2  #type: ignore
-great_people_by_name["Roland and Oliver"].number = 2  # Should be 2.7  #type: ignore
+great_people_by_name["Achilles and Patroclus"].number = 2  # Should be 3  #type: ignore
+great_people_by_name["Roland and Oliver"].number = 2  # Should be 2  #type: ignore
+
+print(f"****************** Unnamed great people ({len(unnamed_list)}) ******************")
+for person in unnamed_list:
+    if isinstance(person, GreatGeneral):
+        print(person.number, person.unit_template.name)
+    elif isinstance(person, GreatMerchant):
+        print(person.amount, person.resource)
+    elif isinstance(person, GreatScientist):
+        print(person.tech_template.name)
+    elif isinstance(person, GreatEngineer):
+        print(f"{person.unit_template.building_name} ({person.unit_template.name})")
+    else:
+        print(person.name)

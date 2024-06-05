@@ -120,6 +120,9 @@ class Hex:
             return self.get_hexes_within_distance_3(hexes)
         else:
             raise Exception("Invalid range")
+    
+    def get_hexes_within_range_expensive(self, hexes: dict[str, "Hex"], range: int) -> list["Hex"]:
+        return [hex for hex in hexes.values() if hex.distance_to(self) <= range]
 
     def is_occupied(self, unit_type: str, civ: Civ) -> bool:
         """
@@ -139,7 +142,8 @@ class Hex:
         for unit in self.units:
             unit.update_civ_by_id(game_state.civs_by_id)
             unit.hex = self
-            game_state.units.append(unit)
+            # Don't append here; they got added in GameState.init
+            # game_state.units.append(unit)
         if self.city:
             self.city.update_civ_by_id(game_state.civs_by_id)
             self.city.hex = self

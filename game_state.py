@@ -9,28 +9,27 @@ from city import City, generate_random_city_name
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
+from wonder_templates_list import WONDERS
+from wonder_built_info import WonderBuiltInfo
+from wonder_template import WonderTemplate
 from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
 from redis_utils import rget_json, rlock, rset_json, rdel, rset, rget
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
-from unit_template import UnitTemplate
+from unit_template import UnitTag, UnitTemplate
 from utils import dream_key, staged_moves_key, deterministic_hash
-from great_person import random_great_people_by_age
 
 from sqlalchemy import and_, func
-
-from threading import Thread
 
 from animation_frame import AnimationFrame
 
 from collections import defaultdict
-from itertools import cycle
 
 
 def get_all_units(hexes: dict[str, Hex]) -> list[Unit]:
@@ -172,7 +171,7 @@ def make_game_statistics_plots(sess, game_id: str):
             pop_by_civ[city.civ_id] += city.population
 
         for unit in game_state.units:
-            total_metal_value_by_civ[unit.civ_id] += unit.template.metal_cost
+            total_metal_value_by_civ[unit.civ_id] += unit.template.metal_cost * unit.get_stack_size()
 
         for civ_id, civ in game_state.civs_by_id.items():
             total_yields_by_turn[civ_id].append(yields_by_civ[civ_id])
@@ -238,7 +237,9 @@ class GameState:
         self.civs_by_id: dict[str, Civ] = {self.barbarians.id: self.barbarians}
         self.turn_num = 1
         self.game_player_by_player_num: dict[int, GamePlayer] = {}
-        self.wonders_built_to_civ_id: dict[str, str] = {}
+        self.wonders_by_age: dict[int, list[WonderTemplate]] = {}
+        self.built_wonders: dict[WonderTemplate, WonderBuiltInfo] = {}
+        self.wonder_cost_by_age: dict[int, int] = BASE_WONDER_COST.copy()
         self.national_wonders_built_by_civ_id: dict[str, list[str]] = {}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
@@ -279,6 +280,7 @@ class GameState:
         city = City(civ, name=city_name, id=city_id)
         city.hex = hex
         city.populate_terrains_dict(self)
+        city.refresh_available_wonders(self)
         return city
 
     def register_camp(self, camp, hex):
@@ -290,7 +292,34 @@ class GameState:
         camp.hex.camp = None
         self.camps.remove(camp)
 
-    def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str) -> None:
+    def _sample_wonders_for_age(self, age: int, target_number) -> list[WonderTemplate]:
+        all = list(WONDERS.all_by_age(age))
+        if len(all) <= target_number:
+            result = all
+        else:
+            result = random.sample(all, target_number)
+        return sorted(result, key=lambda w: w.name)
+
+    def initialize_wonders(self):
+        assert len(self.game_player_by_player_num) > 0, "Cannot initialize wonders without players"
+        wonders_per_age: int = WONDER_COUNT_FOR_PLAYER_NUM[len(self.game_player_by_player_num)]
+        print(f"For {len(self.game_player_by_player_num)} players, sampling wonders to {wonders_per_age} per age.")
+        self.wonders_by_age: dict[int, list[WonderTemplate]] = {age: self._sample_wonders_for_age(age, wonders_per_age) for age in range(0, 10)}
+        print(f"Wonders by age: {self.wonders_by_age}")
+
+    def update_wonder_cost_by_age(self) -> None:
+        for age in self.wonders_by_age.keys():
+            self.wonder_cost_by_age[age] = self._wonder_cost(age)
+
+    def _wonder_cost(self, age: int) -> int:
+        base: int = BASE_WONDER_COST[age]
+        num_built: int = len([w for w in self.built_wonders if w.age == age])
+        total_num: int = len(self.wonders_by_age[age])
+        # The first one costs base, the last one 2 * base
+        cost = int(base * (1 + num_built / max(total_num - 1, 1)))
+        return cost
+
+    def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str | None) -> City:
         civ.city_power -= 100
         city = self.new_city(civ, hex, city_id)
         self.register_city(city)
@@ -318,16 +347,10 @@ class GameState:
                     new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                     setattr(hex.yields, numbers[0], new_value)
     
-        for wonder in self.wonders_built_to_civ_id:
-            if self.wonders_built_to_civ_id[wonder] == civ.id and (abilities := BUILDINGS.by_name(wonder).abilities):
-                for ability in abilities:
-                    if ability.name == "IncreasePopulationOfNewCities":
-                        for _ in range(ability.numbers[0]):
-                            city.grow_inner(self)
-
         self.refresh_foundability_by_civ()
         self.midturn_update() 
         city.hide_bad_buildings()
+        return city
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have entered decline!')                
@@ -351,7 +374,7 @@ class GameState:
 
         # Start with prereqs for the buildings we have
         for building in city.buildings:
-            prereq = building.template.prereq
+            prereq = building.prereq
             if prereq is not None:
                 chosen_techs.add(prereq)
                 chosen_techs_by_advancement[prereq.advancement_level] += 1
@@ -410,6 +433,7 @@ class GameState:
 
         city.refresh_available_buildings()
         city.refresh_available_units()
+        city.refresh_available_wonders(self)
         self.midturn_update()
 
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
@@ -452,7 +476,7 @@ class GameState:
         game_player.civ_id = civ.id
         game_player.decline_this_turn = True
         self.make_new_civ_from_the_ashes(city)
-        civ.great_people_choices = random_great_people_by_age(age=self.advancement_level, n=3)
+        civ.get_great_person(self.advancement_level, city)
         print(f"New civ {civ} great people choices: {civ.great_people_choices}")
 
         return from_civ_perspectives
@@ -585,8 +609,12 @@ class GameState:
 
                 if building_name in UNITS_BY_BUILDING_NAME:
                     building = UNITS_BY_BUILDING_NAME[building_name]
-                else:
+                elif building_name in {b.name for b in BUILDINGS.all()}:
                     building = BUILDINGS.by_name(building_name)
+                elif building_name in {w.name for w in WONDERS.all()}:
+                    building = WONDERS.by_name(building_name)
+                else:
+                    raise ValueError(f"Unknown building name {building_name}")
                 city.buildings_queue.append(building)
                 game_player_to_return = game_player
 
@@ -950,8 +978,7 @@ class GameState:
 
         print("Final refresh")
         for unit in units_copy:
-            unit.has_moved = False
-            unit.attacks_used = 0
+            unit.turn_end(self)
 
         for game_player in self.game_player_by_player_num.values():
             game_player.decline_this_turn = False
@@ -963,12 +990,14 @@ class GameState:
 
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
+        self.update_wonder_cost_by_age()
 
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
         for city in self.cities_by_id.values():
-            city.refresh_available_buildings()       
+            city.refresh_available_buildings()     
+            city.refresh_available_wonders(self)
 
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= self.game_end_score():
@@ -1073,16 +1102,13 @@ class GameState:
         ))
 
         sess.commit()
- 
-    def handle_wonder_built(self, civ: Civ, building_template: BuildingTemplate, national: bool = False) -> None:
-        if national:
-            if civ.id not in self.national_wonders_built_by_civ_id:
-                self.national_wonders_built_by_civ_id[civ.id] = [building_template.name]
-            else:
-                self.national_wonders_built_by_civ_id[civ.id].append(building_template.name)
-        else:
-            self.wonders_built_to_civ_id[building_template.name] = civ.id
 
+    def handle_wonder_built(self, city: City, wonder: WonderTemplate) -> None:
+        civ = city.civ
+        if wonder not in self.built_wonders:
+            self.built_wonders[wonder] = WonderBuiltInfo(self.turn_num)
+        self.built_wonders[wonder].infos.append((city.id, civ.id))
+            
         
         if (game_player := civ.game_player) is not None:
             if civ.has_ability('ExtraVpsPerWonder'):
@@ -1090,15 +1116,7 @@ class GameState:
                 game_player.score_from_abilities += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
                 civ.score += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
 
-        for city in self.cities_by_id.values():
-            for i, building in enumerate(city.buildings_queue):
-                if building.name == building_template.name:
-                    if city.civ.id == civ.id or not national:
-                        city.buildings_queue = [building for building in city.buildings_queue if building.name != building_template.name]
-                        break
-
-        if not national:
-            self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={building_template.name}>{building_template.name}<wonder>!')
+        self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={wonder.name}>{wonder.name}<wonder>!')
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:
         if data['type'] not in ['UnitAttack', 'UnitMovement', 'StartOfNewTurn']:
@@ -1151,6 +1169,18 @@ class GameState:
         if not no_commit:
             sess.commit()
 
+    def wonder_buildable(self, wonder) -> bool:
+        if wonder.age > self.advancement_level:
+            # Can't build it yet
+            return False
+        if wonder in self.built_wonders:
+            return False
+        return True
+
+    def available_wonders(self) -> list[WonderTemplate]:
+        # This only gets called after the game has fully rolled, so it wont' prevent the 2nd player building the wonder in the same turn
+        # To make ties be generous.
+        return [wonder for wonders in self.wonders_by_age.values() for wonder in wonders if self.wonder_buildable(wonder)]
 
     def get_civ_by_name(self, civ_name: str) -> Civ:
         for civ in self.civs_by_id.values():
@@ -1169,7 +1199,9 @@ class GameState:
             "cities_by_id": {city_id: city.to_json(include_civ_details=include_city_civ_details) for city_id, city in self.cities_by_id.items()},
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
             "turn_num": self.turn_num,
-            "wonders_built_to_civ_id": self.wonders_built_to_civ_id.copy(),
+            "wonders_by_age": {age: [wonder.name for wonder in wonders] for age, wonders in self.wonders_by_age.items()},
+            "built_wonders": {wonder.name: built_wonder.to_json() for wonder, built_wonder in self.built_wonders.items()},
+            "available_wonders": [w.name for w in self.available_wonders()],
             "national_wonders_built_by_civ_id": {k: v[:] for k, v in self.national_wonders_built_by_civ_id.items()},
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
@@ -1180,6 +1212,7 @@ class GameState:
             "fresh_cities_for_decline": {coords: city.to_json(include_civ_details=True) for coords, city in self.fresh_cities_for_decline.items()},
             "unhappiness_threshold": self.unhappiness_threshold,
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
+            "wonder_cost_by_age": self.wonder_cost_by_age,
         }
 
     @staticmethod
@@ -1194,7 +1227,9 @@ class GameState:
         game_state.advancement_level = json["advancement_level"]
 
         game_state.turn_num = json["turn_num"]
-        game_state.wonders_built_to_civ_id = json["wonders_built_to_civ_id"].copy()
+        game_state.wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["wonders_by_age"].items()}
+        game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json) for wonder_name, wonder_json in json["built_wonders"].items()}
+        game_state.wonder_cost_by_age = {int(age): cost for age, cost in json["wonder_cost_by_age"].items()}
         game_state.national_wonders_built_by_civ_id = {k: v[:] for k, v in json["national_wonders_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}

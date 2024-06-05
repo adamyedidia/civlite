@@ -19,7 +19,6 @@ from game_player import GamePlayer
 from game_state import GameState, make_game_statistics_plots
 from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
 from player import Player
-
 from utils import dream_key, dream_key_from_civ_perspectives, generate_unique_id, moves_processing_key
 
 
@@ -35,6 +34,7 @@ from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
+from wonder_templates_list import WONDERS
 from user import User, add_or_get_user, add_bot_users, BOT_USERNAMES
 from redis_utils import rget_json, rset_json, rset, rget, CodeBlockCounter, await_empty_counter
 
@@ -253,6 +253,8 @@ def _launch_game_inner(sess, game: Game) -> None:
     starting_civs_for_players = {}
 
     game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
+
+    game_state.initialize_wonders()
 
     for player_num, civ_options_tups in starting_civ_options_for_players.items():
         game_player = game_state.game_player_by_player_num[player_num]
@@ -788,6 +790,7 @@ def get_all_templates(sess):
         'UNITS': {unit_template.name: unit_template.to_json() for unit_template in UNITS.all()},
         'TECHS': {tech.name: tech.to_json() for tech in TECHS.all()},
         'BUILDINGS': {building_template.name: building_template.to_json() for building_template in BUILDINGS.all()},
+        'WONDERS': {wonder_template.name: wonder_template.to_json() for wonder_template in WONDERS.all()},
     })
 
 @socketio.on('connect')

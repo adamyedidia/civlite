@@ -8,17 +8,19 @@ from enum import Enum
 
 class UnitTag(Enum):
     INFANTRY = "infantry"
-    RANGED = "ranged"
+    RANGED = "ranged"  # target doesn't punch back
     MOUNTED = "mounted"
     SIEGE = "siege"
     ARMORED = "armored"
     GUNPOWDER = "gunpowder"
     DEFENSIVE = "defensive"
+    WONDROUS = "wondrous"  # Built from a wonder; Lose 5 hp per turn
 
 class UnitTemplate:
-    def __init__(self, name: str, building_name: str, metal_cost: int, wood_cost: int, strength: int, tags: list[UnitTag], movement: int, range: int, abilities: list[dict[str, Union[str, list]]], type: str, prereq: Optional[TechTemplate], great_people_names: dict[str, str] = {}) -> None:
+    def __init__(self, name: str, building_name: str | None, metal_cost: int, wood_cost: int, strength: int, tags: list[UnitTag], movement: int, range: int, abilities: list[dict[str, Union[str, list]]], type: str, prereq: Optional[TechTemplate], great_people_names: dict[str, str] = {}) -> None:
         self.name = name
-        self.building_name = building_name
+        self.building_name: str = building_name or ""
+        self.buildable: bool = building_name is not None
         self.metal_cost = metal_cost
         self.wood_cost = wood_cost
         self.strength = strength

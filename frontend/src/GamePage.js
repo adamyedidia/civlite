@@ -24,6 +24,7 @@ import TechDisplay from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
 import BuildingDisplay from './BuildingDisplay';
 import UnitDisplay from './UnitDisplay';
+import WonderHover from './WonderHover';
 import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
 import LowerRightDisplay from './LowerRightDisplay.js';
@@ -373,6 +374,7 @@ export default function GamePage() {
     const [hoveredUnit, setHoveredUnit] = useState(null);
     const [hoveredBuilding, setHoveredBuilding] = useState(null);
     const [hoveredTech, setHoveredTech] = useState(null);
+    const [hoveredWonder, setHoveredWonder] = useState(null);
 
     const [hoveredCity, setHoveredCity] = useState(null);
 
@@ -2167,12 +2169,12 @@ export default function GamePage() {
         selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices?.sort((buildingName1, buildingName2) => {
             const description1 = descriptions[buildingName1];
             const description2 = descriptions[buildingName2];
-        
+            
             const getTypeOrder = (type) => {
                 switch (type) {
                     case 'yield':
                         return 1;
-                    case 'wonder_cost':
+                    case 'wonder':
                         return 2;
                     case 'strength':
                         return 3;
@@ -2196,7 +2198,6 @@ export default function GamePage() {
     }
 
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
-    const selectedCityBuildings = selectedCity?.buildings?.map(building => building.name);
 
     const selectedCityUnitChoices = selectedCity?.available_units;
 
@@ -2210,6 +2211,7 @@ export default function GamePage() {
         if (!!hoveredBuilding) {
             setHoveredUnit(null);
             setHoveredTech(null);
+            setHoveredWonder(null);
         }
     }, [hoveredBuilding])
 
@@ -2217,6 +2219,7 @@ export default function GamePage() {
         if (!!hoveredUnit) {
             setHoveredBuilding(null);
             setHoveredTech(null);
+            setHoveredWonder(null);
         }
     }, [hoveredUnit])
 
@@ -2224,8 +2227,17 @@ export default function GamePage() {
         if (!!hoveredTech) {
             setHoveredBuilding(null);
             setHoveredUnit(null);
+            setHoveredWonder(null);
         }
     }, [hoveredTech])
+
+    useEffect(() => {
+        if (!!hoveredWonder) {
+            setHoveredBuilding(null);
+            setHoveredUnit(null);
+            setHoveredTech(null);
+        }
+    }, [hoveredWonder])
 
     const toggleFoundingCity = () => {
         setFoundingCity(!foundingCity);
@@ -2821,8 +2833,11 @@ export default function GamePage() {
     };
 
     const Camp = ({ camp, isUnitInHex }) => {
-        const primaryColor = 'red';
-        const secondaryColor = 'black';
+        const civ = gameState.civs_by_id[camp.civ_id];
+        const template = templates.CIVS[civ.name]
+
+        const primaryColor = template.primary_color;
+        const secondaryColor = template.secondary_color;
     
         return (
             <>
@@ -3104,6 +3119,7 @@ export default function GamePage() {
                         setHoveredBuilding={setHoveredBuilding} 
                         setHoveredTech={setHoveredTech}
                         setHoveredCiv={setHoveredCiv}
+                        setHoveredWonder={setHoveredWonder}
                         setTechChoiceDialogOpen={setTechChoiceDialogOpen}
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
@@ -3137,7 +3153,6 @@ export default function GamePage() {
                         refreshSelectedCity={refreshSelectedCity}
                         selectedCityBuildingChoices={selectedCityBuildingChoices} 
                         selectedCityBuildingQueue={selectedCityBuildingQueue}
-                        selectedCityBuildings={selectedCityBuildings}
                         selectedCityUnitChoices={selectedCityUnitChoices}
                         selectedCity={selectedCity} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName}
@@ -3145,20 +3160,24 @@ export default function GamePage() {
                         descriptions={descriptions}
                         setHoveredUnit={setHoveredUnit}
                         setHoveredBuilding={setHoveredBuilding}
+                        setHoveredWonder={setHoveredWonder}
                         setSelectedCity={setSelectedCity}
                         centerMap={centerMap}
                         />}
-                    <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)'}}>                             
+                    <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center'}}>                             
                         {hoveredBuilding && (
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
                         )}
                         {hoveredUnit && (
                             <UnitDisplay unit={hoveredUnit} />
                         )}
+                        {hoveredWonder && (
+                            <WonderHover wonder={hoveredWonder} templates={templates} />
+                        )}
                         {hoveredTech && (
                             <TechDisplay tech={hoveredTech} civ={myCiv} templates={templates}  unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
                         )}
-                        {!hoveredBuilding && !hoveredUnit && !hoveredTech && <div className='turn-num-card'>
+                        {!hoveredBuilding && !hoveredUnit && !hoveredTech && !hoveredWonder && <div className='turn-num-card'>
                             <Typography variant="h4">
                                 Turn {gameState?.turn_num}
                             </Typography>

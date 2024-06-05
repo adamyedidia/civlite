@@ -36,5 +36,29 @@ SURVIVAL_BONUS = 25
 
 MULLIGAN_PENALTY = 5
 
+BASE_WONDER_COST = {
+    0: 20,
+    1: 40,
+    2: 60,
+    3: 90,
+    4: 120,
+    5: 160,
+    6: 200,
+    7: 250,
+    8: 400,
+    9: 1000,
+}
+
+WONDER_COUNT_FOR_PLAYER_NUM = {
+    1: 2,
+    2: 2,
+    3: 2,
+    4: 3,
+    5: 4,
+    6: 4,
+    7: 5,
+    8: 6,
+}
+
 if os.path.exists('local_settings.py'):
     from local_settings import *
