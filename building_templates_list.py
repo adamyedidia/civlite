@@ -108,7 +108,7 @@ class BUILDINGS():
     FACTORY = BuildingTemplate(
         name="Factory",
         type="economy",
-        cost=50,
+        cost=75,
         abilities=[{
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["metal", 1],
