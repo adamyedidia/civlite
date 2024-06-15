@@ -23,24 +23,31 @@ class NullEffect(CityTargetEffect):
         pass
 
 class BuildUnitsEffect(CityTargetEffect):
-    def __init__(self, unit_template: UnitTemplate, num: int, stacked: bool=False) -> None:
+    def __init__(self, unit_template: UnitTemplate, num: int, stacked: bool=False, extra_str: int=0) -> None:
         self.unit_template = unit_template
         self.num = num
         self.stacked = stacked
+        self.extra_str = extra_str
 
     @property
     def description(self) -> str:
         name = self.unit_template.name
         if self.num == 1:
-            return f"Build a free {name}"
-        return f"Build {self.num} free {p.plural(name)}"  # type: ignore
+            desc =  f"Build a free {name}"
+        else:
+            desc = f"Build {self.num} free {p.plural(name)}"  # type: ignore
+        if self.extra_str > 0:
+            desc += f" with +{self.extra_str} strength"
+        return desc
 
     def apply(self, city: 'City', game_state: 'GameState'):
         stack_size = self.num if self.stacked else 1
         num_stacks = 1 if self.stacked else self.num
 
         for _ in range(num_stacks):
-            city.build_unit(unit=self.unit_template, game_state=game_state, stack_size=stack_size)
+            unit = city.build_unit(unit=self.unit_template, game_state=game_state, stack_size=stack_size)
+            if unit is not None:
+                unit.strength += self.extra_str
 
 class FreeRandomTechEffect(CityTargetEffect):
     def __init__(self, age) -> None:

@@ -110,7 +110,7 @@ class WONDERS():
     # 4th century
     HIPPODROME = WonderTemplate(
         name="Hippodrome", age=3,
-        per_turn=BuildUnitsEffect(unit_template=UNITS.CHARIOT, num=2)
+        per_turn=BuildUnitsEffect(unit_template=UNITS.CHARIOT, num=2, extra_str=5)
         )
 
     ########################## Age 4 ##########################

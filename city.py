@@ -512,7 +512,7 @@ class City:
         if self.infinite_queue_unit:
             while self.metal >= self.infinite_queue_unit.metal_cost:
                 if self.metal >= self.infinite_queue_unit.metal_cost:
-                    if self.build_unit(game_state, self.infinite_queue_unit):
+                    if self.build_unit(game_state, self.infinite_queue_unit) is not None:
                         self.metal -= self.infinite_queue_unit.metal_cost
                     else:
                         break
@@ -539,13 +539,12 @@ class City:
             return target2
 
 
-    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1) -> bool:
+    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1) -> Unit | None:
         if not self.hex:
-            return False
+            return None
 
         if not self.hex.is_occupied(unit.type, self.civ):
-            self.spawn_unit_on_hex(game_state, unit, self.hex, stack_size=stack_size)
-            return True
+            return self.spawn_unit_on_hex(game_state, unit, self.hex, stack_size=stack_size)
 
         best_hex = None
         best_hex_distance_from_target = 10000
@@ -581,11 +580,11 @@ class City:
         if best_hex is None:
             if best_unit_to_reinforce:
                 self.reinforce_unit(best_unit_to_reinforce, stack_size=stack_size)
-                return True
+                return best_unit_to_reinforce
             
             else:
                 if give_up_if_still_impossible:
-                    return False
+                    return None
                 num_merges = 0
 
                 # Try merging friendly units
@@ -615,12 +614,11 @@ class City:
 
                 return self.build_unit(game_state, unit, give_up_if_still_impossible=True, stack_size=stack_size)
 
-        self.spawn_unit_on_hex(game_state, unit, best_hex, stack_size=stack_size)
-        return True
+        return self.spawn_unit_on_hex(game_state, unit, best_hex, stack_size=stack_size)
 
-    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', stack_size=1) -> None:
+    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', stack_size=1) -> Unit | None:
         if self.hex is None:
-            return
+            return None
         unit = Unit(unit_template, self.civ)
         unit.health *= stack_size
         unit.hex = hex
@@ -633,6 +631,8 @@ class City:
 
         for ability in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
             unit.strength += ability.numbers[0]
+
+        return unit
 
     def reinforce_unit(self, unit: Unit, stack_size=1) -> None:
         unit.health += 100 * stack_size
