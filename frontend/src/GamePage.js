@@ -46,6 +46,7 @@ import vitalityImg from './images/heart.png';
 import declineImg from './images/phoenix.png';
 import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
+import { WithTooltip } from './WithTooltip.js';
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -3181,10 +3182,16 @@ export default function GamePage() {
                             <Typography variant="h4">
                                 Turn {gameState?.turn_num}
                             </Typography>
-                            <Typography variant="h5">
-                                Age {romanNumeral(gameState.advancement_level)}
-                            </Typography>
-                        </div>}
+                            <WithTooltip tooltip={`${Math.round(gameState.advancement_level_progress * 100)}% progress to age ${gameState.advancement_level + 1}`}>
+                            <div className='advancement-level-card'>
+                                <div className='advancement-level-progress-bar' style={{width: `${gameState.advancement_level_progress * 100}%`}}/>
+                                <Typography variant="h5" style={{zIndex: 1}}>
+                                    Age {romanNumeral(gameState.advancement_level)}
+                                </Typography>
+                            </div>
+                            </WithTooltip>
+                            </div>
+                        }
                     </div>
                     {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons} civsById={civsById}/>}
                     {<div style={{

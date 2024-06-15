@@ -243,6 +243,7 @@ class GameState:
         self.national_wonders_built_by_civ_id: dict[str, list[str]] = {}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
+        self.advancement_level_progress = 0.0
         self.game_over = False  # TODO delete
         self.announcements = []
         self.fresh_cities_for_decline: dict[str, City] = {}
@@ -823,11 +824,12 @@ class GameState:
         return (None, self.to_json(), self.to_json(), should_stage_moves, decline_eviction_player)
 
     def sync_advancement_level(self) -> None:
-        # Population-wieghted average civ advancement level.
-        weighted_levels = [(c.population, c.civ.get_advancement_level()) for c in self.cities_by_id.values()]
+        # Population-weighted average civ advancement level.
+        weighted_levels = [(c.population, c.civ.get_advancement_level(fractional=True)) for c in self.cities_by_id.values()]
         total_population = sum(level[0] for level in weighted_levels)
         weighted_average = sum(level[0] / total_population * level[1] for level in weighted_levels)
-        self.advancement_level = math.ceil(weighted_average)
+        self.advancement_level = math.floor(weighted_average)
+        self.advancement_level_progress = weighted_average - self.advancement_level
 
     def refresh_visibility_by_civ(self, short_sighted: bool = False) -> None:
         for hex in self.hexes.values():
@@ -1206,6 +1208,7 @@ class GameState:
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
             "advancement_level": self.advancement_level,
+            "advancement_level_progress": self.advancement_level_progress,
             "game_over": self.game_over,
             "game_end_score": self.game_end_score(),
             "announcements": self.announcements[:],
@@ -1225,6 +1228,7 @@ class GameState:
         # game_state.cities_by_id set from the other entries, to ensure references are all good.
         game_state.barbarians = [civ for civ in game_state.civs_by_id.values() if civ.template == CIVS.BARBARIAN][0]
         game_state.advancement_level = json["advancement_level"]
+        game_state.advancement_level_progress = json["advancement_level_progress"]
 
         game_state.turn_num = json["turn_num"]
         game_state.wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["wonders_by_age"].items()}

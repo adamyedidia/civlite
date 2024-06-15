@@ -139,12 +139,32 @@ class Civ:
             # We've teched to too many things, time for a Renaissance
             self.techs_status[TECHS.RENAISSANCE] = TechStatus.AVAILABLE
 
-    def get_advancement_level(self) -> int:
+    def get_advancement_level(self, fractional=False) -> float:
         num_techs = len(self.researched_techs)
         if num_techs == 0:
-            return 0
+            age = 0
+            techs_progress_towards_next_age = 0
+            needed_for_next_age = 1
+        elif num_techs <=2:
+            age = 1
+            techs_progress_towards_next_age = num_techs - 1
+            needed_for_next_age = 2
         else:
-            return min(9, 1 + num_techs // 3)
+            age = 1 + num_techs // 3
+            techs_progress_towards_next_age = num_techs % 3
+            needed_for_next_age = 3
+        
+        if not fractional:
+            return age
+        else:
+            available_techs = self._available_techs()
+            average_available_tech_cost = sum([tech.cost for tech in available_techs]) / len(available_techs) if available_techs else 1
+            partial_tech_progress: float = self.science / average_available_tech_cost
+            clipped_partial_tech_progress: float = min(partial_tech_progress, 0.9)
+
+            partial_age_progress = (techs_progress_towards_next_age + clipped_partial_tech_progress) / needed_for_next_age
+
+            return age + partial_age_progress
 
     def get_my_cities(self, game_state: 'GameState') -> list['City']:
         return [city for city in game_state.cities_by_id.values() if city.civ == self]
@@ -155,6 +175,9 @@ class Civ:
         bonuses: int = len([ability for ability in self.passive_building_abilities_of_name('ExtraTerritory', game_state)])
         self.max_territories = base + bonuses
 
+    def _available_techs(self) -> list[TechTemplate]:
+        return [tech for tech, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)]
+
     def to_json(self) -> dict:
         return {
             "id": self.id,
@@ -164,7 +187,7 @@ class Civ:
             "techs_status": {tech.name: status.value for tech, status in self.techs_status.items()},
             "num_researched_techs": len(self.researched_techs),
             "researching_tech_name": self.researching_tech.name if self.researching_tech is not None else None,
-            "current_tech_choices": [tech.name for tech, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)],
+            "current_tech_choices": [tech.name for tech in self._available_techs()],
             "vitality": self.vitality,
             "city_power": self.city_power,
             "available_buildings": [b.name for b in self.available_buildings],
@@ -329,7 +352,7 @@ class Civ:
         for city in my_cities:
             city.bot_move(game_state)
 
-    def renaissance_cost(self):
+    def renaissance_cost(self) -> float:
         base_cost = 100 * self.get_advancement_level()
         if self.game_player is None:
             # Something very odd hsa happened, because renaiissance isn't offered to declined civs.
@@ -350,7 +373,7 @@ class Civ:
         if tech == TECHS.RENAISSANCE:
             print(f"Renaissance for civ {self.moniker()}")
             game_state.add_announcement(f"The <civ id={self.id}>{self.moniker()}</civ> have completed a Renaissance.")
-            cost: int = self.renaissance_cost()
+            cost: float = self.renaissance_cost()
             self.science -= cost
             for other_tech, status in self.techs_status.items():
                 if status == TechStatus.DISCARDED:

@@ -102,8 +102,6 @@ body {
 }
 
 .turn-num-card {
-  border: 1px solid #ddd;
-  padding: 5px;
   margin: 5px;
   border-radius: 5px;
   background-color: #ffffff;
@@ -114,7 +112,19 @@ body {
   font-size: 1.2em; /* Smaller font size */
   font-weight: bold; /* Make the text bold */
 }
+.advancement-level-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 150px;
+}
 
+.advancement-level-progress-bar {
+  height: 100%;
+  background-color: #ddd;
+  position: absolute;
+  left: 0;
+}
 
 .flag-arrows-container {
   position: absolute;
