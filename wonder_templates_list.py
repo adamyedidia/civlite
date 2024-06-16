@@ -207,7 +207,7 @@ class WONDERS():
 
     UNITED_NATIONS = WonderTemplate(
         name="United Nations", age=7,
-        on_build=RecruitBarbariansEffect(range=100)
+        override_description = "Civs not controlled by a player will follow your flags and give you 25% fo their VPs from killing units."
     )
 
     ########################## Age 8 ##########################

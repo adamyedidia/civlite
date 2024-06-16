@@ -2,6 +2,7 @@ from math import sqrt, ceil
 from random import random, shuffle
 from typing import TYPE_CHECKING, Generator, Optional
 from civ import Civ
+from wonder_templates_list import WONDERS
 from settings import UNIT_KILL_REWARD
 from unit_template import UnitTemplate, UnitTag
 from unit_templates_list import UNITS
@@ -260,6 +261,10 @@ class Unit:
 
                 if from_civ.has_ability('ExtraVpsPerUnitKilled'):
                     from_civ.gain_vps(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0], from_civ.template.name)
+
+            if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders:
+                for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos:
+                    game_state.civs_by_id[civ_id].gain_vps(UNIT_KILL_REWARD * 0.25, f"United Nations")
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
         if self.hex is None or target.hex is None:
