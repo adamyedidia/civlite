@@ -1,6 +1,6 @@
 from math import sqrt, ceil
 from random import random, shuffle
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Generator, Optional
 from civ import Civ
 from settings import UNIT_KILL_REWARD
 from unit_template import UnitTemplate, UnitTag
@@ -77,12 +77,10 @@ class Unit:
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
             return
-        self.hex.visibility_by_civ[self.civ.id] = True
-
         if short_sighted:
             neighbors = self.hex.get_neighbors(game_state.hexes)
         else:
-            neighbors = self.hex.get_hexes_within_distance_2(game_state.hexes)
+            neighbors = self.hex.get_hexes_within_range(game_state.hexes, 2)
 
         for nearby_hex in neighbors:
             nearby_hex.visibility_by_civ[self.civ.id] = True
@@ -207,9 +205,9 @@ class Unit:
 
     def valid_attack(self, target: 'Unit') -> bool:
         visible: bool = target.hex is not None and target.hex.visible_to_civ(self.civ)
-        return visible and target.civ.id != self.civ.id
+        return visible and target.civ != self.civ
 
-    def get_best_target(self, hexes_to_check: list['Hex']) -> Optional['Unit']:
+    def get_best_target(self, hexes_to_check: Generator['Hex', None, None]) -> Optional['Unit']:
         if self.hex is None:
             return None
 
@@ -386,7 +384,7 @@ class Unit:
         best_hex = None
         best_distance = self.hex.distance_to(self.destination) if not sensitive else self.hex.sensitive_distance_to(self.destination)
 
-        neighbors = self.hex.get_neighbors(game_state.hexes)
+        neighbors = list(self.hex.get_neighbors(game_state.hexes))
         shuffle(neighbors)
 
         for neighboring_hex in neighbors:

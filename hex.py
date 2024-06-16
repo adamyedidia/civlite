@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Generator, Optional
 from camp import Camp
 from civ import Civ
 from unit import Unit
@@ -41,24 +41,26 @@ class Hex:
     def remove_unit(self, unit: Unit) -> None:
         self.units = [u for u in self.units if u.id != unit.id]
 
-    def get_neighbors(self, hexes: dict[str, "Hex"]) -> list["Hex"]:
-        neighbors = []
-        for (delta_q, delta_r, delta_s) in [
+    def hexes_at_offsets(self, offsets: list[tuple[int, int, int]], hexes: dict[str, "Hex"]) -> Generator["Hex", None, None]:
+        for (delta_q, delta_r, delta_s) in offsets:
+            neighbor = hexes.get(coords_str((self.q + delta_q, self.r + delta_r, self.s + delta_s)))
+            if neighbor:
+                yield neighbor
+
+    def get_neighbors(self, hexes: dict[str, "Hex"], include_self=False) -> Generator["Hex", None, None]:
+        yield from self.hexes_at_offsets([
             (1, 0, -1),
             (1, -1, 0),
             (0, -1, 1),
             (-1, 0, 1),
             (-1, 1, 0),
             (0, 1, -1),
-        ]:
-            neighbor = hexes.get(coords_str((self.q + delta_q, self.r + delta_r, self.s + delta_s)))
-            if neighbor:
-                neighbors.append(neighbor)
-        return neighbors
+        ], hexes)
+        if include_self:
+            yield self
 
-    def get_distance_2_hexes(self, hexes: dict[str, "Hex"]) -> list["Hex"]:
-        neighbors = []
-        for (delta_q, delta_r, delta_s) in [
+    def get_distance_2_hexes(self, hexes: dict[str, "Hex"]) -> Generator["Hex", None, None]:
+        yield from self.hexes_at_offsets([
             (2, 0, -2),
             (2, -2, 0),
             (0, -2, 2),
@@ -71,15 +73,10 @@ class Hex:
             (-2, 1, 1),
             (-1, 2, -1),
             (1, 1, -2),
-        ]:
-            neighbor = hexes.get(coords_str((self.q + delta_q, self.r + delta_r, self.s + delta_s)))
-            if neighbor:
-                neighbors.append(neighbor)
-        return neighbors
+        ], hexes)
     
-    def get_distance_3_hexes(self, hexes: dict[str, "Hex"]) -> list["Hex"]:
-        neighbors = []
-        for (delta_q, delta_r, delta_s) in [
+    def get_distance_3_hexes(self, hexes: dict[str, "Hex"]) -> Generator["Hex", None, None]:
+        yield from self.hexes_at_offsets([
             (3, 0, -3),
             (3, -3, 0),
             (0, -3, 3),
@@ -98,31 +95,23 @@ class Hex:
             (-1, 3, -2),
             (1, 2, -3),
             (2, 1, -3),
-        ]:
-            neighbor = hexes.get(coords_str((self.q + delta_q, self.r + delta_r, self.s + delta_s)))
-            if neighbor:
-                neighbors.append(neighbor)
-        return neighbors
+        ], hexes)
 
-    def get_hexes_within_distance_2(self, hexes: dict[str, "Hex"]) -> list["Hex"]:
-        return [*self.get_neighbors(hexes), *self.get_distance_2_hexes(hexes)]
-    
-    def get_hexes_within_distance_3(self, hexes: dict[str, "Hex"]) -> list["Hex"]:
-        return [*self.get_neighbors(hexes), *self.get_distance_2_hexes(hexes), *self.get_distance_3_hexes(hexes)]
-    
-    def get_hexes_within_range(self, hexes: dict[str, "Hex"], range: int) -> list["Hex"]:
+    def get_hexes_within_range(self, hexes: dict[str, "Hex"], range: int) -> Generator["Hex", None, None]:
         assert range > 0 and range <= 3
-        if range == 1:
-            return self.get_neighbors(hexes)
-        elif range == 2:
-            return self.get_hexes_within_distance_2(hexes)
-        elif range == 3:
-            return self.get_hexes_within_distance_3(hexes)
+        if range >= 1:
+            yield from self.get_neighbors(hexes, include_self=True)
+        if range >= 2:
+            yield from self.get_distance_2_hexes(hexes)
+        if range >= 3:
+            yield from self.get_distance_3_hexes(hexes)
         else:
             raise Exception("Invalid range")
     
-    def get_hexes_within_range_expensive(self, hexes: dict[str, "Hex"], range: int) -> list["Hex"]:
-        return [hex for hex in hexes.values() if hex.distance_to(self) <= range]
+    def get_hexes_within_range_expensive(self, hexes: dict[str, "Hex"], range: int) -> Generator["Hex", None, None]:
+        for hex in hexes.values():
+            if hex.distance_to(self) <= range:
+                yield hex
 
     def is_occupied(self, unit_type: str, civ: Civ) -> bool:
         """
