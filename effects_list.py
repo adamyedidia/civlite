@@ -129,7 +129,7 @@ class FreeNearbyCityEffect(CityTargetEffect):
                 return False
             if len(hex.units) > 0 and hex.units[0].civ != my_civ:
                 return False
-            for neighbor in hex.get_neighbors(game_state.hexes):
+            for neighbor in hex.get_neighbors(game_state.hexes, include_self=True):
                 if neighbor.city is not None:
                     return False
             return True
@@ -263,7 +263,7 @@ class IncreaseYieldsForTerrain(CityTargetEffect):
 
     def apply(self, city: 'City', game_state: 'GameState'):
         assert city.hex is not None
-        for hex in city.hex.get_neighbors(game_state.hexes) + [city.hex]:
+        for hex in city.hex.get_neighbors(game_state.hexes, include_self=True):
             if hex.terrain in self.terrain:
                 new_value = getattr(hex.yields, self.resource) + self.amount
                 setattr(hex.yields, self.resource, new_value)

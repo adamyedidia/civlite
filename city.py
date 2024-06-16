@@ -213,7 +213,7 @@ class City:
 
         assert self.hex
 
-        for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+        for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
             yields["food"] += hex.yields.food * vitality
             yields["metal"] += hex.yields.metal * vitality
             yields["wood"] += hex.yields.wood * vitality
@@ -268,10 +268,8 @@ class City:
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
             return
-        self.hex.visibility_by_civ[self.civ.id] = True
-
         # Always let cities have sight 2, even in decline mode (short_sighted = True)
-        neighbors = self.hex.get_hexes_within_distance_2(game_state.hexes)
+        neighbors = self.hex.get_hexes_within_range(game_state.hexes, 2)
 
         for nearby_hex in neighbors:
             nearby_hex.visibility_by_civ[self.civ.id] = True
@@ -280,7 +278,7 @@ class City:
         if self.hex is None:
             return
 
-        for hex in [*self.hex.get_neighbors(hexes), self.hex]:
+        for hex in self.hex.get_neighbors(hexes, include_self=True):
             for key in hex.is_foundable_by_civ:
                 hex.is_foundable_by_civ[key] = False            
 
@@ -379,7 +377,7 @@ class City:
         if self.hex is None:
             return
 
-        for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+        for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
             if not hex.terrain in self.terrains_dict:
                 self.terrains_dict[hex.terrain] = 1
             else:
@@ -568,7 +566,7 @@ class City:
             #             best_hex = hex
             #             best_hex_distance_from_target = distance_from_target            
 
-            for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+            for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
                 if hex.is_occupied(unit.type, self.civ):
                     unit_to_possibly_reinforce = hex.units[0]
                     if unit_to_possibly_reinforce.civ.id == self.civ.id and unit_to_possibly_reinforce.template.name == unit.name and unit_to_possibly_reinforce.hex:
@@ -588,7 +586,7 @@ class City:
                 num_merges = 0
 
                 # Try merging friendly units
-                for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
                     if hex.units and hex.units[0].civ.id == self.civ.id:
                         if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
                             num_merges += 1
@@ -597,7 +595,7 @@ class City:
 
                 # If that doesn't work, try merging enemy units, so long as they aren't on the city itself
                 if num_merges == 0:
-                    for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                    for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
                         if hex.units and not hex.city:
                             if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
                                 num_merges += 1
@@ -607,7 +605,7 @@ class City:
 
                 # If that doesn't work, and we have a lot of metal to spend, try removing friendly units altogether
                 if num_merges == 0 and self.metal > 75:
-                    for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                    for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
                         if hex.units and hex.units[0].civ.id == self.civ.id and hex.units[0].health < 300:
                             hex.units[0].remove_from_game(game_state)
                             break
@@ -787,7 +785,7 @@ class City:
             if civ.has_ability('IncreaseYieldsForTerrain'):
                 assert self.hex
                 numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
-                for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+                for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
                     if hex.terrain == numbers[1]:
                         new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                         setattr(hex.yields, numbers[0], new_value)
@@ -832,7 +830,7 @@ class City:
         if civ.has_ability('IncreaseYieldsForTerrain'):
             assert self.hex
             numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
-            for hex in [self.hex, *self.hex.get_neighbors(game_state.hexes)]:
+            for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
                 if hex.terrain == numbers[1]:
                     new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                     setattr(hex.yields, numbers[0], new_value)

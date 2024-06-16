@@ -56,7 +56,7 @@ def create_hex_map(map_size: int) -> dict[str, Hex]:
 
     for _ in range(MAP_HOMOGENEITY_LEVEL):
         hex_to_propagate = random.choice(list(hexes.values()))
-        random_neighbor_of_hex = random.choice(hex_to_propagate.get_neighbors(hexes))
+        random_neighbor_of_hex = random.choice(list(hex_to_propagate.get_neighbors(hexes)))
         random_neighbor_of_hex.terrain = hex_to_propagate.terrain
         random_neighbor_of_hex.yields = hex_to_propagate.yields.copy()
 
@@ -77,7 +77,7 @@ def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
     while len(starting_locations) < n:
         starting_location = random.choice(list(hexes.values()))
 
-        if len(starting_location.get_neighbors(hexes)) >= 6:
+        if len(list(starting_location.get_neighbors(hexes))) >= 6:
             too_close = False
 
             for other_starting_location in starting_locations:
@@ -105,7 +105,7 @@ def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], othe
             return False
         if any([unit.civ.game_player for unit in hex.units]):
             return False
-    if len([hex for hex in decline_location.get_neighbors(hexes)]) < 6:
+    if len(list(decline_location.get_neighbors(hexes))) < 6:
         return False
 
     for other_decline_location in other_decline_locations:

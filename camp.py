@@ -45,12 +45,10 @@ class Camp:
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
             return
-        self.hex.visibility_by_civ[self.civ.id] = True
-
         if short_sighted:
-            neighbors = self.hex.get_neighbors(game_state.hexes)
+            neighbors = self.hex.get_neighbors(game_state.hexes, include_self=True)
         else:
-            neighbors = self.hex.get_hexes_within_distance_2(game_state.hexes)
+            neighbors = self.hex.get_hexes_within_range(game_state.hexes, 2)
 
         for nearby_hex in neighbors:
             nearby_hex.visibility_by_civ[self.civ.id] = True
@@ -138,7 +136,7 @@ class Camp:
         if self.hex is None:
             return
 
-        for hex in [*self.hex.get_neighbors(hexes), self.hex]:
+        for hex in self.hex.get_neighbors(hexes, include_self=True):
             for key in hex.is_foundable_by_civ:
                 if key != self.civ.id or hex == self.hex:
                     hex.is_foundable_by_civ[key] = False
