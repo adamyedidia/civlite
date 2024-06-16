@@ -327,8 +327,8 @@ class Civ:
                 # If only one person has UN, follow them for first and second flag
                 un_owner_ids = [un_owner_ids[0], un_owner_ids[0]]
             un_owner_civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in un_owner_ids]
-            self.target_1 = un_owner_civs[0].target1
-            self.target_2 = un_owner_civs[1].target2
+            self.target1 = un_owner_civs[0].target1
+            self.target2 = un_owner_civs[1].target2
         elif random.random() < 0.2 or self.target1 is None or self.target2 is None:
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             vandetta_cities: list[City] = [city for city in enemy_cities if city.civ.id == self.vandetta_civ_id]
