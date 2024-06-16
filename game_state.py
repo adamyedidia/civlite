@@ -280,6 +280,9 @@ class GameState:
     def new_city(self, civ: Civ, hex: Hex, city_id: Optional[str] = None) -> City:
         city_name = generate_random_city_name(game_state=self)
         city = City(civ, name=city_name, id=city_id)
+        assert hex.city is None, f"Creting city at {hex.coords} but it already has a city {hex.city.name}!"
+        for h in hex.get_neighbors(self.hexes):
+            assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
         city.hex = hex
         city.populate_terrains_dict(self)
         city.refresh_available_wonders(self)
