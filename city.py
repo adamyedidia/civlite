@@ -408,10 +408,6 @@ class City:
                 total_yields: float = 0
                 total_pseudoyields: float = 0
                 is_economic_building = False
-                if building_template.vp_reward is not None:
-                    total_yields += building_template.vp_reward
-                    # AIs count points as worth 3 resources
-                    total_pseudoyields += building_template.vp_reward * 2
                 for effect in building_template.on_build:
                     if isinstance(effect, IncreaseYieldsForTerrain):
                         is_economic_building = True
@@ -455,7 +451,20 @@ class City:
                         yields = sum(sum(puppets_incomes.values()) for puppets_incomes in self.projected_income_puppets.values())
                         total_yields += round(yields * (self.puppet_distance_penalty() - ability.numbers[0]), ndigits=1)
 
-                if is_economic_building:
+                if building_template.is_national_wonder:
+                    self.available_buildings_to_descriptions[building_template.name] = {
+                        "type": "national-wonder",
+                        "value": 0,
+                    }
+
+                elif building_template.vp_reward is not None and building_template.vp_reward > 0:
+                    self.available_buildings_to_descriptions[building_template.name] = {
+                        "type": "vp",
+                        "value": building_template.vp_reward,
+                        "value_for_ai": building_template.vp_reward * 3 + total_yields + total_pseudoyields,
+                    }
+
+                elif is_economic_building:
                     self.available_buildings_to_descriptions[building_template.name] = {
                         "type": "yield",
                         "value": total_yields,
@@ -852,8 +861,8 @@ class City:
         national_wonders = [building for building in choices if building.is_national_wonder]
         nonwonders = [building for building in choices if not building.is_national_wonder]
 
-        existing_national_wonders: list[BuildingTemplate] = [building for building in self.buildings if isinstance(building, BuildingTemplate) and building.is_national_wonder]
-        if len(national_wonders) > 0 and len(existing_national_wonders) == 0 and self.population >= 8:
+        existing_national_wonders: bool = any([building.is_national_wonder for building in self.buildings])
+        if len(national_wonders) > 0 and not existing_national_wonders and self.population >= 4:
             return random.choice(national_wonders)
 
         if len(nonwonders) > 0:
@@ -862,7 +871,7 @@ class City:
             inverse_payoff_turns: dict[BuildingTemplate, float] = {
                 building: float(self.available_buildings_to_descriptions[building.name].get('value_for_ai', 0)) / building.cost
                 for building in nonwonders
-                if building.name in self.available_buildings_to_descriptions and self.available_buildings_to_descriptions[building.name]['type'] == 'yield'
+                if building.name in self.available_buildings_to_descriptions and 'value_for_ai' in self.available_buildings_to_descriptions[building.name]
             }
             print(f"    {inverse_payoff_turns=}")
             if len(nonwonders) > len(inverse_payoff_turns):

@@ -2172,14 +2172,18 @@ export default function GamePage() {
             
             const getTypeOrder = (type) => {
                 switch (type) {
-                    case 'yield':
+                    case 'national-wonder':
+                        return 0;
+                    case 'vp':
                         return 1;
-                    case 'wonder':
+                    case 'yield':
                         return 2;
-                    case 'strength':
+                    case 'wonder':
                         return 3;
-                    default:
+                    case 'strength':
                         return 4;
+                    default:
+                        return 5;
                 }
             };
         
