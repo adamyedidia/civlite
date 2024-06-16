@@ -105,8 +105,6 @@ class Hex:
             yield from self.get_distance_2_hexes(hexes)
         if range >= 3:
             yield from self.get_distance_3_hexes(hexes)
-        else:
-            raise Exception("Invalid range")
     
     def get_hexes_within_range_expensive(self, hexes: dict[str, "Hex"], range: int) -> Generator["Hex", None, None]:
         for hex in hexes.values():
