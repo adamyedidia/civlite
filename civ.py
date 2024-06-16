@@ -2,6 +2,7 @@ import random
 from typing import TYPE_CHECKING, Any, Generator, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
+from wonder_templates_list import WONDERS
 from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_people_by_name
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
@@ -316,7 +317,19 @@ class Civ:
         if len(unhappy_cities) > 0:
             self.trade_hub_id = max(unhappy_cities, key=trade_hub_priority).id
 
-        if random.random() < 0.2 or self.target1 is None or self.target2 is None:
+        if WONDERS.UNITED_NATIONS in game_state.built_wonders:
+            un_owner_ids: list[str] = [civ_id for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos]
+            if len(un_owner_ids) > 1:
+                # If lots fo people have UN, follow a random one for first flag and a random one for second flag
+                random.shuffle(un_owner_ids)
+                un_owner_ids = un_owner_ids[:2]
+            else:
+                # If only one person has UN, follow them for first and second flag
+                un_owner_ids = [un_owner_ids[0], un_owner_ids[0]]
+            un_owner_civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in un_owner_ids]
+            self.target1 = un_owner_civs[0].target1
+            self.target2 = un_owner_civs[1].target2
+        elif random.random() < 0.2 or self.target1 is None or self.target2 is None:
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             vandetta_cities: list[City] = [city for city in enemy_cities if city.civ.id == self.vandetta_civ_id]
             if len(vandetta_cities) > 0:

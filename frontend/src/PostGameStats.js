@@ -11,8 +11,9 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     const [movieData, setMovieData] = React.useState(null);
     const [movieFrame, setMovieFrame] = React.useState(0);
     const [displayStat, setDisplayStat] = React.useState('total_yields');
-    const [colorByCiv, setColorByCiv] = React.useState(true);
+    const [colorByCiv, setColorByCiv] = React.useState(false);
     const [showDeclines, setShowDeclines] = React.useState(true);
+    const [showAges, setShowAges] = React.useState(true);
     const [smoothing, setSmoothing] = React.useState(0);
     const [loading, setLoading] = React.useState(true);
     const [error, setError] = React.useState(null);
@@ -55,6 +56,8 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
     const activeData = stats[displayStat];
     const last_turn = gameState.turn_num;
     const playerNumPlotColors = ['red', 'green', 'blue', 'orange', 'purple', 'black', 'pink', 'brown'];
+
+    const gameAges = stats.game_ages;
 
     const getColor = (civId) => {
         if (colorByCiv) {
@@ -154,6 +157,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
         return traces;
     });
     const frameTurnNum = movieData[movieFrame].turn_num;
+    const plotAnnotations = [];
     const plotShapes = [
         {
             type: 'line',
@@ -168,6 +172,42 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
             },
         }
     ];
+    if (showAges) {
+        let currentAge = gameAges[1];
+        let ageStartIndex = 1;
+        for (let i = 2; i <= gameAges.length; i++) {
+            if (i >= gameAges.length || gameAges[i] !== currentAge) {
+                plotShapes.push({
+                    type: 'rect',
+                    x0: ageStartIndex,
+                    x1: i,
+                    y0: 0,
+                    y1: 1,
+                    yref: 'paper',
+                    fillcolor: currentAge % 2 === 0 ? 'white' : 'grey',
+                    opacity: 0.5,
+                    line: {
+                        width: 0,
+                    },
+                    layer: 'below',
+                });
+                plotAnnotations.push({
+                    x: (ageStartIndex + i) / 2,
+                    y: 1.07,
+                    xref: 'x',
+                    yref: 'paper',
+                    text: `Age ${currentAge}`,
+                    showarrow: false,
+                    font: {
+                        size: 16,
+                        color: 'black'
+                    },
+                });
+                currentAge = gameAges[i];
+                ageStartIndex = i;
+            }
+        }
+    }
     if (showDeclines) {
         Object.keys(civInfos).forEach(civId => {
             const startTurn = civInfos[civId].start_turn;
@@ -236,6 +276,17 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                             }
                             label="Show Declines"
                         />
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={showAges}
+                                    onChange={(e) => setShowAges(e.target.checked)}
+                                    name="showAgesToggle"
+                                    color="primary"
+                                />
+                            }
+                            label="Show Ages"
+                        />
                     </FormGroup>
                 </FormControl>
                 <FormControl fullWidth>
@@ -266,6 +317,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                     rangemode: 'tozero'
                 },
                 shapes: plotShapes,
+                annotations: plotAnnotations,
                 width: 850,
                 height: 600,
             }}
