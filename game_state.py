@@ -93,7 +93,7 @@ def make_game_statistics_plots(sess, game_id: str):
 
     civ_ids_by_player = None
 
-    turn_nums = []
+    game_ages = [None, 0]  # No age on turn 0, age 0 on turn 1
     decline_turns = defaultdict(list)
     decline_turns_for_civs: dict[str, int] = {}
     start_turns_for_civs = defaultdict(lambda: 1)
@@ -101,7 +101,7 @@ def make_game_statistics_plots(sess, game_id: str):
 
     # In all the following, we initialize to a list with one entry.
     # Because the first time we notice you is the start of the turn AFTER you were born
-    # So the plots are more intuitive if we prepend one tur of data from the turn you were born.
+    # So the plots are more intuitive if we prepend one turn of data from the turn you were born.
     total_yields_by_turn = defaultdict(lambda: [0.0])
     military_strength_by_turn = defaultdict(lambda: [0.0])
     civ_scores_by_turn = defaultdict(lambda: [0.0])
@@ -121,7 +121,8 @@ def make_game_statistics_plots(sess, game_id: str):
             cum_scores_by_turn[player.username].append(player_score_excluding_survival)
             actual_cum_scores_by_turn[player.username].append(player.score)
 
-        turn_nums.append(frame.turn_num)
+        assert game_state.turn_num == len(game_ages), f"Turn num {frame.turn_num} != game_ages length {len(game_ages)}"
+        game_ages.append(game_state.advancement_level)
 
         old_civ_ids_by_player = (civ_ids_by_player or {}).copy()
 
@@ -223,6 +224,7 @@ def make_game_statistics_plots(sess, game_id: str):
         'military_strength': military_strength_by_turn,
         'population': population,
         'vitality': vitality,
+        'game_ages': game_ages,
     }
 
     return civ_infos, stats, movie_frames
