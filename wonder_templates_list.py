@@ -28,7 +28,7 @@ class WONDERS():
     # 7th century BC
     HANGING_GARDENS = WonderTemplate(
         name="Hanging Gardens", age=0,
-        on_build=PointsEffect(calculate_points=lambda city, _: 3 * city.population, description="+3 vp per population in this city")
+        on_build=PointsEffect(calculate_points=lambda city, _: 3 * city.population, description="+3 vp per population in this city", label="Hanging Gardens")
     )
 
     ########################## Age 1 ##########################
@@ -87,7 +87,7 @@ class WONDERS():
     # 4th century BC
     MAUSOLEUM = WonderTemplate(
         name="Mausoleum", age=2,
-        on_build=PointsEffect(calculate_points=lambda city, game_state: len(city.civ.get_my_cities(game_state)) * 2, description="+2 vp per city you own")
+        on_build=PointsEffect(calculate_points=lambda city, game_state: len(city.civ.get_my_cities(game_state)) * 2, description="+2 vp per city you own", label="Mausoleum")
     )
 
     # 3rd century BC
@@ -146,7 +146,7 @@ class WONDERS():
     # 1849
     KREMLIN = WonderTemplate(
         name="Kremlin", age=5,
-        on_build=PointsEffect(calculate_points=lambda city, _: int(city.civ.city_power / 25), description="+1 vp per 25 city power you have stored")
+        on_build=PointsEffect(calculate_points=lambda city, _: int(city.civ.city_power / 25), description="+1 vp per 25 city power you have stored", label="Kremlin")
     )
 
     # 1836
@@ -158,7 +158,7 @@ class WONDERS():
     # 1859
     BIG_BEN = WonderTemplate(
         name="Big Ben", age=5,
-        per_turn=PointsEffect(calculate_points=lambda city, _: 2, description="+2 vp per turn")
+        per_turn=PointsEffect(calculate_points=lambda city, _: 2, description="+2 vp per turn", label="Big Ben")
     )
 
     ########################## Age 6 ##########################
@@ -229,19 +229,19 @@ class WONDERS():
     AGI = WonderTemplate(
         name="AGI", age=9,
         on_build=[
-            PointsEffect(calculate_points=lambda city, _: sum([t.advancement_level for t, status in city.civ.techs_status.items() if status == TechStatus.RESEARCHED]), description="+1 vp per age of tech you have researched"),
+            PointsEffect(calculate_points=lambda city, _: sum([t.advancement_level for t, status in city.civ.techs_status.items() if status == TechStatus.RESEARCHED]), description="+1 vp per age of tech you have researched", label="AGI"),
             EndGameEffect()]
     )
     MARS_COLONY = WonderTemplate(
         name="Mars Colony", age=9,
         on_build=[
-            PointsEffect(calculate_points=lambda city, _: 3 * int(city.civ.vitality / 0.1), description="+3 vp per 10% vitality"),
+            PointsEffect(calculate_points=lambda city, _: 3 * int(city.civ.vitality / 0.1), description="+3 vp per 10% vitality", label="Mars Colony"),
             EndGameEffect()]
     )
     PANACEA = WonderTemplate(
         name="Panacea", age=9,
         on_build=[
-            PointsEffect(calculate_points=lambda city, game_state: int(sum([c.population / 2 for c in city.civ.get_my_cities(game_state)])), description="+1 point per two population in your nation"),
+            PointsEffect(calculate_points=lambda city, game_state: int(sum([c.population / 2 for c in city.civ.get_my_cities(game_state)])), description="+1 point per two population in your nation", label="Panacea"),
             EndGameEffect()]
     )
 

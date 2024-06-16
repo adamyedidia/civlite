@@ -256,17 +256,12 @@ class Unit:
         if self.health == 0:
             self.die(game_state, from_unit)
 
-        if from_civ is not None and from_civ.game_player is not None:
-            game_player = from_civ.game_player
+        if from_civ is not None:
             for _ in range(original_stack_size - final_stack_size):
-                game_player.score += UNIT_KILL_REWARD
-                game_player.score_from_killing_units += UNIT_KILL_REWARD
+                from_civ.gain_vps(UNIT_KILL_REWARD, f"Unit Kill ({UNIT_KILL_REWARD}/unit)")
 
                 if from_civ.has_ability('ExtraVpsPerUnitKilled'):
-                    game_player.score += from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
-                    game_player.score_from_abilities += from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
-                    from_civ.score += from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]
-
+                    from_civ.gain_vps(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0], from_civ.template.name)
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
         if self.hex is None or target.hex is None:

@@ -26,7 +26,7 @@ from settings import (
     LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, 
     BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, 
     NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, 
-    SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY
+    SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER
 )
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
@@ -269,6 +269,7 @@ def _launch_game_inner(sess, game: Game) -> None:
             civ.vitality = STARTING_CIV_VITALITY
             starting_civs_for_players[player_num] = [civ]
             game_player.civ_id = civ.id
+            game_player.all_civ_ids.append(civ.id)
 
         else:
             starting_civs_for_players[player_num] = []
@@ -778,7 +779,6 @@ def get_game_constants(sess):
         'extra_game_end_score_per_player': EXTRA_GAME_END_SCORE_PER_PLAYER,
         'base_city_power_income': BASE_CITY_POWER_INCOME,
         'survival_bonus': SURVIVAL_BONUS,
-        'mulligan_penalty': MULLIGAN_PENALTY,
     })
 
 

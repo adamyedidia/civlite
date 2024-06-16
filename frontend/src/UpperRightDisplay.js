@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './UpperRightDisplay.css';
-import { Grid, Typography } from '@mui/material';
+import { Grid, Typography, Table, TableBody, TableRow, TableCell, TableContainer, MenuItem, FormControl, InputLabel, Select } from '@mui/material';
 import { romanNumeral } from './TechListDialog.js';
 import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
@@ -237,41 +237,51 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap,
     </CivDetailPanel>
 }
 
-const ScoreDisplay = ({ myGamePlayer, gameEndScore }) => {
+const ScoreDisplay = ({ myGamePlayer, gameEndScore, gameState }) => {
+    const [civId, setCivId] = useState("Total");
     const score = myGamePlayer?.score;
+    const playerScoreDict = myGamePlayer?.score_dict;
+    const myCivIds = myGamePlayer?.all_civ_ids;
+    const activeScoreDict = civId === "Total" ? playerScoreDict : gameState.civs_by_id[civId].score_dict;
     return <CivDetailPanel icon={vpImg} title='score' bignum={score} iconTooltip={`${gameEndScore} points to win`}>
+        {myCivIds.length > 1 && <FormControl style={{ width: '50%', marginleft: '50%', marginTop: '10px'}}>
+            <InputLabel id="select-civ-label">Select Civilization</InputLabel>
+            <Select
+                labelId="select-civ-label"
+                id="select-civ"
+                value={civId}
+                label="Select Civilization"
+                onChange={(event) => setCivId(event.target.value)}
+                sx={{
+                    '.MuiSelect-select': {
+                        paddingTop: '5px',
+                        paddingBottom: '5px',
+                        paddingLeft: '10px',
+                        paddingRight: '10px'
+                    }
+                }}
+            >
+                <MenuItem value="Total">Total</MenuItem>
+                {[...myCivIds].reverse().map((civId) => (
+                    <MenuItem key={civId} value={civId}>{gameState.civs_by_id[civId].name}</MenuItem>
+                ))}
+            </Select>
+        </FormControl>}
         <Grid container direction="column" spacing={0}>
             <Grid item>
-                <Typography>
-                    {myGamePlayer?.sfku || 0} killing units (1/kill)
-                </Typography>
+                <TableContainer>
+                    <Table size="small">
+                        <TableBody>
+                            {Object.entries(playerScoreDict).sort((a, b) => b[1] - a[1]).map(([label, score]) => (
+                                <TableRow key={label} style={{ borderBottom: 'none' }}>
+                                    <TableCell align="right" style={{ border: 'none', padding: '2px 0px' }}>{activeScoreDict[label] ? activeScoreDict[label] : '-'}</TableCell>
+                                    <TableCell style={{ border: 'none', padding: '2px 2px 2px 10px' }}>{label}</TableCell>
+                                </TableRow>
+                            ))}
+                        </TableBody>
+                    </Table>
+                </TableContainer>
             </Grid>
-            <Grid item>
-                <Typography>
-                    {myGamePlayer?.sfccac || 0} camp/city captures (5/capture)
-                </Typography>
-            </Grid>
-            <Grid item>
-                <Typography>
-                    {myGamePlayer?.sfrt || 0} research (2/tech)
-                </Typography>
-            </Grid>
-            <Grid item>
-                <Typography>
-                    {myGamePlayer?.sfbv || 0} buildings and wonders
-                </Typography>
-            </Grid>
-            <Grid item>
-                <Typography>
-                    {myGamePlayer?.sfa || 0} abilities
-                </Typography>
-            </Grid>
-            <Grid item>
-                <Typography>
-                    {myGamePlayer?.sfs || 0} survival  (25/decline)
-                </Typography>
-            </Grid>
-                                                            
         </Grid>
     </CivDetailPanel>
 }
@@ -318,7 +328,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
                 declineViewGameState={declineViewGameState} mainGameState={mainGameState} templates={templates}
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
                 civsById={civsById}/>}
-            {myGamePlayer && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={mainGameState.game_end_score}/>}
+            {myGamePlayer?.score > 0 && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={mainGameState.game_end_score} gameState={mainGameState}/>}
         </div>
     );
 };

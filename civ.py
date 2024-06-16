@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from hex import Hex
     from city import City
     from ability import Ability
+    from building import Building
 
 
 class Civ:
@@ -49,8 +50,7 @@ class Civ:
         self.max_territories: int = 3
         self.vandetta_civ_id: Optional[str] = None
 
-        # Not used in gameplay, just for graphs
-        self.score = 0
+        self.score_dict: dict[str, float] = {}
 
     def __eq__(self, other: 'Civ') -> bool:
         # TODO(dfarhi) clean up all remaining instances of (civ1.id == civ2.id)
@@ -66,10 +66,24 @@ class Civ:
     def numbers_of_ability(self, ability_name: str) -> list:
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
 
-    def passive_building_abilities_of_name(self, ability_name: str, game_state: 'GameState') -> Generator['Ability', Any, None]:
+    @property
+    def score(self) -> float:
+        return sum(self.score_dict.values())
+
+    def gain_vps(self, vps: float, type: str):
+        if self.game_player is None:
+            return
+        if type not in self.score_dict:
+            self.score_dict[type] = 0
+        self.score_dict[type] += vps
+        if type not in self.game_player.score_dict:
+            self.game_player.score_dict[type] = 0
+        self.game_player.score_dict[type] += vps
+
+    def passive_building_abilities_of_name(self, ability_name: str, game_state: 'GameState') -> Generator[tuple['Ability', 'Building'], Any, None]:
         for city in self.get_my_cities(game_state):
-            for ability in city.passive_building_abilities_of_name(ability_name):
-                yield ability
+            for ability, building in city.passive_building_abilities_of_name(ability_name):
+                yield ability, building
 
     def midturn_update(self, game_state):
         self.adjust_projected_yields(game_state)
@@ -157,8 +171,8 @@ class Civ:
         if not fractional:
             return age
         else:
-            available_techs = self._available_techs()
-            average_available_tech_cost = sum([tech.cost for tech in available_techs]) / len(available_techs) if available_techs else 1
+            available_techs = [t for t in self._available_techs() if t is not TECHS.RENAISSANCE]
+            average_available_tech_cost = sum([tech.cost for tech in available_techs]) / len(available_techs) if len(available_techs) > 0 else 1
             partial_tech_progress: float = self.science / average_available_tech_cost
             clipped_partial_tech_progress: float = min(partial_tech_progress, 0.9)
 
@@ -172,7 +186,7 @@ class Civ:
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 2 + round(self.get_advancement_level() / 3)
         my_cities: list[City] = self.get_my_cities(game_state)
-        bonuses: int = len([ability for ability in self.passive_building_abilities_of_name('ExtraTerritory', game_state)])
+        bonuses: int = len([ability for ability, _ in self.passive_building_abilities_of_name('ExtraTerritory', game_state)])
         self.max_territories = base + bonuses
 
     def _available_techs(self) -> list[TechTemplate]:
@@ -205,6 +219,7 @@ class Civ:
             "great_people_choices_city_id": self._great_people_choices_city_id,
             "max_territories": self.max_territories,
             "vandetta_civ_id": self.vandetta_civ_id,
+            "score_dict": self.score_dict,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -378,10 +393,8 @@ class Civ:
             for other_tech, status in self.techs_status.items():
                 if status == TechStatus.DISCARDED:
                     self.techs_status[other_tech] = TechStatus.UNAVAILABLE
+            self.gain_vps(RENAISSANCE_VP_REWARD, f"Renaissance ({RENAISSANCE_VP_REWARD}/research)")
             if self.game_player is not None:
-                self.game_player.score_from_researching_techs += RENAISSANCE_VP_REWARD
-                self.game_player.score += RENAISSANCE_VP_REWARD
-                self.score += RENAISSANCE_VP_REWARD
                 self.game_player.renaissances += 1
         else:
             self.science -= tech.cost
@@ -392,16 +405,12 @@ class Civ:
 
         self.get_new_tech_choices()
 
-        if self.game_player and tech != TECHS.RENAISSANCE:
-            self.game_player.score += TECH_VP_REWARD
-            self.game_player.score_from_researching_techs += TECH_VP_REWARD
-            self.score += TECH_VP_REWARD
+        if tech != TECHS.RENAISSANCE:
+            self.gain_vps(TECH_VP_REWARD, f"Research ({TECH_VP_REWARD}/tech)")
 
-            for ability in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
+            for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
                 amount = ability.numbers[0] * tech.advancement_level
-                self.game_player.score += amount    
-                self.game_player.score_from_building_vps += amount
-                self.score += amount
+                self.gain_vps(amount, building.building_name)
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
@@ -483,6 +492,7 @@ class Civ:
         civ._great_people_choices_city_id = json.get("great_people_choices_city_id")
         civ.max_territories = json.get("max_territories", 3)
         civ.vandetta_civ_id = json.get("vandetta_civ_id")
+        civ.score_dict = json["score_dict"]
 
         return civ
 

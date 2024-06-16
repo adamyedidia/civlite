@@ -158,20 +158,18 @@ class RecruitBarbariansEffect(CityTargetEffect):
                 hex.camp.civ = city.civ
 
 class PointsEffect(CityTargetEffect):
-    def __init__(self, calculate_points: Callable[['City', 'GameState'], int], description: str) -> None:
+    def __init__(self, calculate_points: Callable[['City', 'GameState'], int], description: str, label: str) -> None:
         self.calculate_points = calculate_points
         self._description = description
+        self._label = label
 
     @property
     def description(self) -> str:
         return self._description
     
     def apply(self, city: 'City', game_state: 'GameState'):
-        if city.civ.game_player is not None:
-            value = self.calculate_points(city, game_state)
-            city.civ.game_player.score += value
-            city.civ.score += value
-            city.civ.game_player.score_from_building_vps += value
+        value = self.calculate_points(city, game_state)
+        city.civ.gain_vps(value, self._label)
 
 
 class StrengthAllUnitsEffect(CityTargetEffect):

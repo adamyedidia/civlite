@@ -16,13 +16,12 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
 from redis_utils import rget_json, rlock, rset_json, rdel, rset, rget
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, MULLIGAN_PENALTY, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
 import random
 from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
-from unit_template import UnitTag, UnitTemplate
 from utils import dream_key, staged_moves_key, deterministic_hash
 
 from sqlalchemy import and_, func
@@ -31,6 +30,8 @@ from animation_frame import AnimationFrame
 
 from collections import defaultdict
 
+
+SURVIVAL_SCORE_LABEL = f"Survival ({SURVIVAL_BONUS}/decline)"
 
 def get_all_units(hexes: dict[str, Hex]) -> list[Unit]:
     units = []
@@ -115,7 +116,7 @@ def make_game_statistics_plots(sess, game_id: str):
         game_state = GameState.from_json(frame.game_state)
         for player_num in game_state.game_player_by_player_num:
             player = game_state.game_player_by_player_num[player_num]
-            player_score_excluding_survival = player.score - player.score_from_survival
+            player_score_excluding_survival = player.score - player.score_dict.get(SURVIVAL_SCORE_LABEL, 0)
             scores_by_turn[player.username].append(player_score_excluding_survival - (cum_scores_by_turn[player.username][-1] if cum_scores_by_turn[player.username] else 0))
             cum_scores_by_turn[player.username].append(player_score_excluding_survival)
             actual_cum_scores_by_turn[player.username].append(player.score)
@@ -326,10 +327,7 @@ class GameState:
         self.register_city(city)
         city.set_territory_parent_if_needed(game_state=self)
 
-        if civ.game_player:
-            civ.game_player.score += 2
-            civ.game_player.score_from_capturing_cities_and_camps += 2
-            civ.score += 2
+        civ.gain_vps(2, "Founded Cities (2/city)")
 
         if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
             if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
@@ -361,9 +359,7 @@ class GameState:
 
         for other_civ in self.civs_by_id.values():
             if other_civ.id != civ.id:
-                if other_civ.game_player:
-                    other_civ.game_player.score += SURVIVAL_BONUS
-                    other_civ.game_player.score_from_survival += SURVIVAL_BONUS
+                other_civ.gain_vps(SURVIVAL_BONUS, SURVIVAL_SCORE_LABEL)
 
     def choose_techs_for_new_civ(self, city: City) -> set[TechTemplate]:
         print("Calculating starting techs!")
@@ -475,6 +471,7 @@ class GameState:
 
         civ.game_player = game_player
         game_player.civ_id = civ.id
+        game_player.all_civ_ids.append(civ.id)
         game_player.decline_this_turn = True
         self.make_new_civ_from_the_ashes(city)
         civ.get_great_person(self.advancement_level, city)
@@ -567,6 +564,7 @@ class GameState:
                             game_player.decline_this_turn = True
                             game_player_to_return = game_player
                             game_player_to_return.civ_id = city.civ.id
+                            game_player_to_return.all_civ_ids.append(city.civ.id)
                             self.game_player_by_player_num[player_num].civ_id = city.civ.id
                             city.civ.vitality = STARTING_CIV_VITALITY
 
@@ -892,11 +890,6 @@ class GameState:
                 else:
                     civ.bot_move(self)
 
-        for player_num, game_player in self.game_player_by_player_num.items():
-            if game_player.civ_id is None:
-                game_player.score -= MULLIGAN_PENALTY
-                game_player.score_from_survival -= MULLIGAN_PENALTY
-
         print(f'GameState ending turn {self.turn_num}')
 
         self.roll_turn(sess)
@@ -1112,11 +1105,8 @@ class GameState:
         self.built_wonders[wonder].infos.append((city.id, civ.id))
             
         
-        if (game_player := civ.game_player) is not None:
-            if civ.has_ability('ExtraVpsPerWonder'):
-                game_player.score += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
-                game_player.score_from_abilities += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
-                civ.score += civ.numbers_of_ability('ExtraVpsPerWonder')[0]
+        if civ.has_ability('ExtraVpsPerWonder'):
+            civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerWonder')[0], civ.template.name)
 
         self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={wonder.name}>{wonder.name}<wonder>!')
 

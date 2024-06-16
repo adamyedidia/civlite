@@ -161,7 +161,7 @@ class City:
         return self.hex.city != self
 
     def puppet_distance_penalty(self) -> float:
-        bldg_factors = [ability.numbers[0] for ability in self.passive_building_abilities_of_name('ReducePuppetDistancePenalty')]
+        bldg_factors = [ability.numbers[0] for ability, _ in self.passive_building_abilities_of_name('ReducePuppetDistancePenalty')]
         return min([.1] + bldg_factors)
 
     def toggle_discard(self, building_name: str, hidden=True) -> None:
@@ -226,7 +226,7 @@ class City:
             "science": 1,
         }
 
-        for ability in self.passive_building_abilities_of_name('IncreaseYieldsPerPopulation'):
+        for ability, _ in self.passive_building_abilities_of_name('IncreaseYieldsPerPopulation'):
             yields_per_population[ability.numbers[0]] += ability.numbers[1]
 
         for key in yields_per_population:
@@ -247,7 +247,7 @@ class City:
         if self.civ.has_ability('IncreaseFocusYields'):
             bonus_resource, count = self.civ.numbers_of_ability('IncreaseFocusYields')
             yields[bonus_resource] += count
-        for ability in self.passive_building_abilities_of_name('IncreaseFocusYieldsPerPopulation'):
+        for ability, _ in self.passive_building_abilities_of_name('IncreaseFocusYieldsPerPopulation'):
             focus, amount_per_pop = ability.numbers
             yields[focus] += amount_per_pop * self.population * vitality
 
@@ -324,11 +324,11 @@ class City:
         else:
             result += 2
 
-        for ability in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
+        for ability, _ in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
             result -= ability.numbers[0]
         parent = self.get_territory_parent(game_state)
         if parent is not None:
-            for ability in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
+            for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
                 result -= ability.numbers[0]
         result = max(result, 0)
         return result
@@ -359,7 +359,7 @@ class City:
     def growth_cost(self) -> float:
         total_growth_cost_reduction = 0.0
 
-        for ability in self.passive_building_abilities_of_name('CityGrowthCostReduction'):
+        for ability, _ in self.passive_building_abilities_of_name('CityGrowthCostReduction'):
             total_growth_cost_reduction += ability.numbers[0]
 
         return (BASE_FOOD_COST_OF_POP + self.population * ADDITIONAL_PER_POP_FOOD_COST) * max(1 - total_growth_cost_reduction, 0.3)
@@ -629,7 +629,7 @@ class City:
             if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
                 unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
 
-        for ability in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
+        for ability, _ in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
             unit.strength += ability.numbers[0]
 
         return unit
@@ -656,10 +656,8 @@ class City:
         if isinstance(building, UnitTemplate):
             self.infinite_queue_unit = building
 
-        if self.civ.game_player:
-            self.civ.game_player.score += new_building.vp_reward
-            self.civ.score += new_building.vp_reward
-            self.civ.game_player.score_from_building_vps += new_building.vp_reward
+        if new_building.vp_reward > 0:
+            self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
 
         for effect in new_building.on_build:
             effect.apply(self, game_state)
@@ -688,10 +686,10 @@ class City:
 
         return None
     
-    def passive_building_abilities_of_name(self, ability_name: str) -> Generator['Ability', None, None]:
+    def passive_building_abilities_of_name(self, ability_name: str) -> Generator[tuple['Ability', 'Building'], None, None]:
         for building in self.buildings:
             for ability in building.passive_building_abilities_of_name(ability_name):
-                yield ability
+                yield ability, building
 
     def hide_bad_buildings(self):
         highest_unit_level = max([0] + [u.advancement_level() for u in self.civ.available_unit_buildings])
@@ -780,15 +778,11 @@ class City:
             if building not in best_3 and building not in top_level:
                 self.buildings.remove(building)
 
-        if civ.game_player and civ.id not in self.ever_controlled_by_civ_ids:
-            civ.game_player.score += CITY_CAPTURE_REWARD
-            civ.score += CITY_CAPTURE_REWARD
-            civ.game_player.score_from_capturing_cities_and_camps += CITY_CAPTURE_REWARD
+        if civ.id not in self.ever_controlled_by_civ_ids:
+            civ.gain_vps(CITY_CAPTURE_REWARD, "City Capture (5/city)")
 
             if civ.has_ability('ExtraVpsPerCityCaptured'):
-                civ.game_player.score += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
-                civ.score += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
-                civ.game_player.score_from_abilities += civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0]
+                civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0], civ.template.name)
 
             if civ.has_ability('IncreaseYieldsForTerrain'):
                 assert self.hex
@@ -798,11 +792,9 @@ class City:
                         new_value = getattr(hex.yields, numbers[0]) + numbers[2]
                         setattr(hex.yields, numbers[0], new_value)
 
-            for ability in civ.passive_building_abilities_of_name("ExtraVpsForCityCapture", game_state):
+            for ability, building in civ.passive_building_abilities_of_name("ExtraVpsForCityCapture", game_state):
                 amount = ability.numbers[0]
-                civ.game_player.score += amount
-                civ.score += amount
-                civ.game_player.score_from_abilities += amount
+                civ.gain_vps(amount, building.building_name)
 
         self.change_owner(civ, game_state)
 
