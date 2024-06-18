@@ -465,7 +465,7 @@ the_machine_intelligence_cities = [
 ]
 
 
-CITIES_BY_CIV = {
+CITY_NAMES_BY_CIV = {
     "Barbarians": [],
     "Pueblo": pueblo_cities,
     "Egypt": egypt_cities,

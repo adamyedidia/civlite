@@ -5,7 +5,7 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
 from collections import defaultdict
-from city import City, generate_random_city_name
+from city import City, get_city_name_for_civ
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
@@ -280,7 +280,7 @@ class GameState:
         self.cities_by_id[city.id] = city
 
     def new_city(self, civ: Civ, hex: Hex, city_id: Optional[str] = None) -> City:
-        city_name = generate_random_city_name(game_state=self)
+        city_name = get_city_name_for_civ(civ=civ, game_state=self)
         city = City(civ, name=city_name, id=city_id)
         assert hex.city is None, f"Creting city at {hex.coords} but it already has a city {hex.city.name}!"
         for h in hex.get_neighbors(self.hexes):

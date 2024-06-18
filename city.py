@@ -17,6 +17,7 @@ from utils import generate_unique_id
 import random
 from typing import Dict
 import traceback
+from city_names import CITY_NAMES_BY_CIV
 
 if TYPE_CHECKING:
     from hex import Hex
@@ -1180,8 +1181,16 @@ CITY_NAMES = {
 }
 
 
-def generate_random_city_name(game_state: Optional['GameState'] = None) -> str:
-    names = CITY_NAMES
-    if game_state is not None:
-        names = CITY_NAMES - set(city.name for city in list(game_state.cities_by_id.values()) + list(game_state.fresh_cities_for_decline.values()))
+def generate_random_city_name(already_taken_names: set[str]) -> str:
+    names = CITY_NAMES - already_taken_names
     return random.choice(list(names))
+
+def get_city_name_for_civ(civ: Civ, game_state: 'GameState') -> str:
+    already_taken_names = set(city.name for city in list(game_state.cities_by_id.values()) + list(game_state.fresh_cities_for_decline.values()))
+    city_names = CITY_NAMES_BY_CIV[civ.template.name]
+
+    for city_name in city_names:
+        if city_name not in already_taken_names:
+            return city_name
+
+    return generate_random_city_name(already_taken_names)

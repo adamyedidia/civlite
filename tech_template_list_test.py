@@ -5,7 +5,7 @@ from unit_templates_list import UNITS
 from civ_templates_list import CIVS
 from building_templates_list import BUILDINGS
 from unit_template import UnitTag
-from city_names import CITIES_BY_CIV
+from city_names import CITY_NAMES_BY_CIV
 
 class TestConsistency:
     def test_units_tech_consistency(self):
@@ -44,6 +44,6 @@ class TestConsistency:
 
     def test_city_names_exist_for_every_civ(self):
         for civ_template in CIVS.all():
-            assert civ_template.name in CITIES_BY_CIV, f"Civ {civ_template.name} does not have cities"
+            assert civ_template.name in CITY_NAMES_BY_CIV, f"Civ {civ_template.name} does not have cities"
 
 
