@@ -153,7 +153,7 @@ function RulesDialog({open, onClose, gameConstants}) {
                         <li>{gameConstants.camp_clear_reward} VP per barbarian camp cleared</li>
                         <li>{gameConstants.tech_vp_reward} VP per tech researched</li>
                         <li>Some buildings give you VPs for building them (almost all wonders give 5 VP, and a few basic buildings give you 1 VP and have no other abilities)</li>
-                        <li>Whenever a player enters decline, all other players get {gameConstants.survival_bonus} VP</li>
+                        <li>Whenever a player enters decline, all other players get {gameConstants.base_survival_bonus} VP + {gameConstants.survival_bonus_per_age} VP per age (max 24).</li>
                         <li>When a player's city "revolts" and becomes part of a new player's civilization, that player is compensated with a pile of victory points; 5 VP + 1 VP per (between 5 and 20ish depending on turn number) city base yields + 1 VP per unit stolen</li>
                     </ul>
                 </DialogContentText>

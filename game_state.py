@@ -16,7 +16,7 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
 from redis_utils import rget_json, rlock, rset_json, rdel, rset, rget
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, SURVIVAL_BONUS, EXTRA_GAME_END_SCORE_PER_PLAYER, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, BASE_SURVIVAL_BONUS, SURVIVAL_BONUS_PER_AGE, EXTRA_GAME_END_SCORE_PER_PLAYER, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -31,7 +31,7 @@ from animation_frame import AnimationFrame
 from collections import defaultdict
 
 
-SURVIVAL_SCORE_LABEL = f"Survival ({SURVIVAL_BONUS}/decline)"
+SURVIVAL_SCORE_LABEL = f"Survival"
 
 def get_all_units(hexes: dict[str, Hex]) -> list[Unit]:
     units = []
@@ -364,7 +364,7 @@ class GameState:
 
         for other_civ in self.civs_by_id.values():
             if other_civ.id != civ.id:
-                other_civ.gain_vps(SURVIVAL_BONUS, SURVIVAL_SCORE_LABEL)
+                other_civ.gain_vps(min(BASE_SURVIVAL_BONUS + SURVIVAL_BONUS_PER_AGE * (self.advancement_level), 24), SURVIVAL_SCORE_LABEL)
 
     def choose_techs_for_new_civ(self, city: City) -> set[TechTemplate]:
         print("Calculating starting techs!")
