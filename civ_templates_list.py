@@ -229,7 +229,7 @@ class CIVS():
         }],
         advancement_level=0,
     )
-    YANGS = CivTemplate(
+    YANGSHAO = CivTemplate(
         name="Yangshao",
         abilities=[{
             "name": "ExtraVpsPerUnitKilled",
@@ -1182,7 +1182,7 @@ class CIVS():
         advancement_level=9,
     )
     GREATER_EURO_ZONE = CivTemplate(
-        name="Greater Euro Zone",
+        name="Greater EuroZone",
         abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["wood", 30],
