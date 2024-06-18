@@ -177,7 +177,7 @@ class CIVS():
         name="Caralans",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Warrior", 3]
+            "numbers": ["Warrior", 2]
         }],
         advancement_level=0,
     )
@@ -185,7 +185,7 @@ class CIVS():
         name="Troy",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Slinger", 2]
+            "numbers": ["Slinger", 1]
         }],
         advancement_level=0,
     )    
@@ -193,7 +193,7 @@ class CIVS():
         name="Elamites",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Archer", 2]
+            "numbers": ["Archer", 1]
         }],
         advancement_level=0,
     )
@@ -201,7 +201,7 @@ class CIVS():
         name="Teotihuacan",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Spearman", 2]
+            "numbers": ["Spearman", 1]
         }],
         advancement_level=0,
     )
