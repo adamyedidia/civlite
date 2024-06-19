@@ -426,7 +426,7 @@ class Unit:
         if self.has_ability('HealAllies') and self.hex is not None:
             for neighbor in self.hex.get_neighbors(game_state.hexes):
                 for unit in neighbor.units:
-                    if unit.civ == self.civ and not unit.has_ability('HealAllies'):
+                    if unit.civ == self.civ and not unit.template.has_tag(UnitTag.WONDROUS):
                         unit.health = ceil(unit.health / 100) * 100
 
         if self.template.has_tag(UnitTag.WONDROUS):

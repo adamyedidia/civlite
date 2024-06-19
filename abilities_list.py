@@ -136,7 +136,7 @@ UNIT_ABILITIES: dict[str, Callable] = {
     ),
     "HealAllies": lambda: Ability(
         name="HealAllies",
-        description=f"Heal all adjacent allies after moving.",
+        description=f"Heal all adjacent allies after moving (non wondrous).",
         numbers=[],
     ),
     "MultipleAttack": lambda x: Ability(
