@@ -244,7 +244,7 @@ const ScoreDisplay = ({ myGamePlayer, gameEndScore, gameState }) => {
     const myCivIds = myGamePlayer?.all_civ_ids;
     const activeScoreDict = civId === "Total" ? playerScoreDict : gameState.civs_by_id[civId].score_dict;
     return <CivDetailPanel icon={vpImg} title='score' bignum={score} iconTooltip={`${gameEndScore} points to win`}>
-        {myCivIds.length > 1 && <FormControl style={{ width: '50%', marginleft: '50%', marginTop: '10px'}}>
+        {myCivIds.length > 1 && <FormControl style={{marginTop: '10px'}}>
             <InputLabel id="select-civ-label">Select Civilization</InputLabel>
             <Select
                 labelId="select-civ-label"
@@ -252,6 +252,7 @@ const ScoreDisplay = ({ myGamePlayer, gameEndScore, gameState }) => {
                 value={civId}
                 label="Select Civilization"
                 onChange={(event) => setCivId(event.target.value)}
+                autoWidth
                 sx={{
                     '.MuiSelect-select': {
                         paddingTop: '5px',
@@ -261,10 +262,12 @@ const ScoreDisplay = ({ myGamePlayer, gameEndScore, gameState }) => {
                     }
                 }}
             >
-                <MenuItem value="Total">Total</MenuItem>
-                {[...myCivIds].reverse().map((civId) => (
-                    <MenuItem key={civId} value={civId}>{gameState.civs_by_id[civId].name}</MenuItem>
-                ))}
+                <MenuItem value="Total">Total ({score})</MenuItem>
+                {[...myCivIds].reverse().map((civId) => {
+                    const civ = gameState.civs_by_id[civId];
+                    const totalScore = Object.values(civ.score_dict).reduce((acc, current) => acc + current, 0);
+                    return <MenuItem key={civId} value={civId}>{civ.name} ({totalScore})</MenuItem>
+                })}
             </Select>
         </FormControl>}
         <Grid container direction="column" spacing={0}>
