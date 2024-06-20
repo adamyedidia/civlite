@@ -34,7 +34,7 @@ export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wond
         descriptionStr = ` (+${description.value})`;
     }
 
-    const building_class = building_type == 'WONDER' ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : building_type == 'UNIT' ? 'military' : 'economic';
+    const building_class = building_type == 'WONDER' ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : building_type == 'UNIT' ? 'military' : building?.exclusion_group ? 'core-economic' : 'economic';
     const cost = !hideCost && (building_type == 'UNIT' ? building.wood_cost : building_type == 'BUILDING' ? building.cost : building_type == 'WONDER' ? wonderCostsByAge[building.age] : null);
     return (
         <div 

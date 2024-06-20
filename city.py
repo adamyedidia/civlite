@@ -89,6 +89,11 @@ class City:
 
     def has_building(self, building_name: str) -> bool:
         return building_name in [b.building_name for b in self.buildings]
+    
+    def has_building_exclusion_group(self, exclusion_group: str | None) -> bool:
+        if exclusion_group is None:
+            return False
+        return any(b.exclusion_group == exclusion_group for b in self.buildings)
 
     def orphan_territory_children(self, game_state: 'GameState', make_new_territory=True):
         """
@@ -509,10 +514,16 @@ class City:
             return []
         if include_in_queue:
             building_names_in_queue = {}
+            exclusion_groups_in_queue = {}
         else:
             building_names_in_queue = {building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue}  # type: ignore
+            exclusion_groups_in_queue = {building.exclusion_group for building in self.buildings_queue if isinstance(building, BuildingTemplate) and building.exclusion_group is not None}
         wonders: list[WonderTemplate] = [wonder for wonder in self.available_wonders if wonder.name not in building_names_in_queue]
-        buildings: list[BuildingTemplate] = [building for building in self.available_buildings if not building.name in building_names_in_queue and not self.has_building(building.name)]
+        buildings: list[BuildingTemplate] = [building for building in self.available_buildings if 
+                                             not building.name in building_names_in_queue and 
+                                             not building.exclusion_group in exclusion_groups_in_queue and
+                                             not self.has_building(building.name) and
+                                             not self.has_building_exclusion_group(building.exclusion_group)]
         unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
         return [*wonders, *buildings, *unit_buildings]
 

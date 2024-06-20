@@ -173,7 +173,7 @@ scientist_names = {
     "Medicine": 'Louis Pasteur',
     # 'Economics': 'Adam Smith',
     'Military Science': 'Frederick the Great',
-    'Rifling': 'Oliver Winchester',
+    # 'Rifling': 'Oliver Winchester',
     'Industrialization': 'James Watt',
     'Dynamite': 'Alfred Nobel',
     'Radio': 'Nikola Tesla',
