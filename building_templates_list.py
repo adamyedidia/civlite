@@ -98,7 +98,7 @@ class BUILDINGS():
     UNIVERSITY = BuildingTemplate(
         name="University",
         type="science",
-        cost=20,
+        cost=15,
         abilities=[{
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["science", 1],
@@ -109,7 +109,7 @@ class BUILDINGS():
     HARBOR = BuildingTemplate(
         name="Harbor",
         type="economy",
-        cost=20,
+        cost=15,
         abilities=[{
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["wood", 1],
@@ -120,7 +120,7 @@ class BUILDINGS():
     CONSCRIPTION_POST = BuildingTemplate(
         name="Conscription Post",
         type="economy",
-        cost=20,
+        cost=15,
         abilities=[{
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["metal", 1],
