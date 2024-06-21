@@ -213,6 +213,18 @@ class City:
             for key, puppets_dict in self.projected_income_puppets.items():
                 self.projected_income[key] += sum(puppet_income for puppet_income in puppets_dict.values())
 
+    def _yields_per_population(self) -> dict[str, int]:
+        yields_per_population = {
+            "food": 0,
+            "metal": 0,
+            "wood": 0,
+            "science": 1,
+        }
+
+        for ability, _ in self.passive_building_abilities_of_name('IncreaseYieldsPerPopulation'):
+            yields_per_population[ability.numbers[0]] += ability.numbers[1]
+        return yields_per_population
+
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
         yields = resourcedict()
@@ -225,16 +237,7 @@ class City:
             yields["wood"] += hex.yields.wood * vitality
             yields["science"] += hex.yields.science * vitality
         
-        yields_per_population = {
-            "food": 0,
-            "metal": 0,
-            "wood": 0,
-            "science": 1,
-        }
-
-        for ability, _ in self.passive_building_abilities_of_name('IncreaseYieldsPerPopulation'):
-            yields_per_population[ability.numbers[0]] += ability.numbers[1]
-
+        yields_per_population = self._yields_per_population()
         for key in yields_per_population:
             yields[key] += self.population * yields_per_population[key] * vitality
 
@@ -1021,6 +1024,7 @@ class City:
             "projected_income_base": self.projected_income_base,
             "projected_income_focus": self.projected_income_focus,
             "projected_income_puppets": self.projected_income_puppets,
+            "yields_per_population": self._yields_per_population(),
             "growth_cost": self.growth_cost(),
             "terrains_dict": self.terrains_dict,
             "hidden_building_names": self.hidden_building_names,
