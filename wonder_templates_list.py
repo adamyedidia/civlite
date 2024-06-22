@@ -110,7 +110,8 @@ class WONDERS():
     # 4th century
     HIPPODROME = WonderTemplate(
         name="Hippodrome", age=3,
-        per_turn=BuildUnitsEffect(unit_template=UNITS.CHARIOT, num=2, extra_str=5)
+        per_turn=BuildUnitsEffect(unit_template=UNITS.CHARIOT, num=2, extra_str=4),
+        abilities=[BUILDING_ABILITIES["DecreaseFoodDemand"](20), BUILDING_ABILITIES["DecreaseFoodDemandPuppets"](20)]
         )
 
     ########################## Age 4 ##########################
