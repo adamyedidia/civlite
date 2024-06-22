@@ -251,10 +251,11 @@ class EndGameEffect(CityTargetEffect):
         game_state.game_over = True
 
 class IncreaseYieldsForTerrain(CityTargetEffect):
-    def __init__(self, resource: str, amount: int, terrain: TerrainTemplate | list[TerrainTemplate]) -> None:
+    def __init__(self, resource: str, amount: int, terrain: TerrainTemplate | list[TerrainTemplate], buff_type: str) -> None:
         self.resource = resource
         self.amount = amount
         self.terrain: list[TerrainTemplate] = [terrain] if isinstance(terrain, TerrainTemplate) else terrain
+        self.buff_type = buff_type
 
     @property
     def description(self) -> str:
@@ -268,6 +269,7 @@ class IncreaseYieldsForTerrain(CityTargetEffect):
             if hex.terrain in self.terrain:
                 new_value = getattr(hex.yields, self.resource) + self.amount
                 setattr(hex.yields, self.resource, new_value)
+                hex.buff_counts[self.buff_type] += 1
 
 class IncreaseYieldsInCity(CityTargetEffect):
     def __init__(self, resource: str, amount: int) -> None:

@@ -21,7 +21,7 @@ import {
 import EngineStates from './EngineStates';
 import CivDisplay from './CivDisplay';
 import TechDisplay from './TechDisplay';
-import HexDisplay, { YieldImages } from './HexDisplay';
+import HexDisplay, { YieldImages, HexBuffIcons } from './HexDisplay';
 import BuildingDisplay from './BuildingDisplay';
 import UnitDisplay from './UnitDisplay';
 import WonderHover from './WonderHover';
@@ -3055,6 +3055,7 @@ export default function GamePage() {
                                         ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
                                         style={{visibility: 'hidden'}}
                                     />
+                                    {hex.buff_counts && !hex.city ? <HexBuffIcons buff_counts={hex.buff_counts} hex_based_seed={(13 * hex.q + 17 * hex.r + 19 * hex.s) / 971} /> : null}
                                     {hex.yields ? <YieldImages yields={hex.yields} /> : null}
                                 </Hexagon>
                             );

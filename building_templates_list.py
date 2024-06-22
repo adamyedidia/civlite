@@ -9,7 +9,7 @@ class BUILDINGS():
         name="Lumber Mill",
         type="economy",
         cost=15,
-        on_build=IncreaseYieldsForTerrain("wood", 1, TERRAINS.FOREST),
+        on_build=IncreaseYieldsForTerrain("wood", 1, TERRAINS.FOREST, buff_type='small'),
         prereq=TECHS.FORESTRY,
         exclusion_group="a1",
     )
@@ -17,7 +17,7 @@ class BUILDINGS():
         name="Granary",
         type="economy",
         cost=10,
-        on_build=IncreaseYieldsForTerrain("food", 1, TERRAINS.PLAINS),
+        on_build=IncreaseYieldsForTerrain("food", 1, TERRAINS.PLAINS, buff_type='small'),
         prereq=TECHS.POTTERY,
     )
     ROADS = BuildingTemplate(
@@ -42,7 +42,7 @@ class BUILDINGS():
         name="Mine",
         type="economy",
         cost=15,
-        on_build=IncreaseYieldsForTerrain("metal", 1, TERRAINS.HILLS),
+        on_build=IncreaseYieldsForTerrain("metal", 1, TERRAINS.HILLS, buff_type='small'),
         prereq=TECHS.MINING,
         exclusion_group="a1",
     )
@@ -215,21 +215,21 @@ class BUILDINGS():
         name="Windmill",
         type="economy",
         cost=30,
-        on_build=IncreaseYieldsForTerrain("food", 2, TERRAINS.PLAINS),
+        on_build=IncreaseYieldsForTerrain("food", 2, TERRAINS.PLAINS, buff_type='large'),
         prereq=TECHS.PHYSICS,
     )
     FORGE = BuildingTemplate(
         name="Forge",
         type="economy",
         cost=30,
-        on_build=IncreaseYieldsForTerrain("metal", 2, TERRAINS.HILLS),
+        on_build=IncreaseYieldsForTerrain("metal", 2, TERRAINS.HILLS, buff_type='large'),
         prereq=TECHS.ARCHITECTURE,
     )
     LUMBER_FARM = BuildingTemplate(
         name="Lumber Farm",
         type="economy",
         cost=30,
-        on_build=IncreaseYieldsForTerrain("wood", 2, TERRAINS.FOREST),
+        on_build=IncreaseYieldsForTerrain("wood", 2, TERRAINS.FOREST, buff_type='large'),
         prereq=TECHS.ARCHITECTURE,
     )
     # APOTHECARY = BuildingTemplate(
@@ -243,7 +243,7 @@ class BUILDINGS():
         name="Outpost",
         type="economy",
         cost=30,
-        on_build=IncreaseYieldsForTerrain("science", 4, [TERRAINS.MOUNTAINS, TERRAINS.DESERT, TERRAINS.TUNDRA]),
+        on_build=IncreaseYieldsForTerrain("science", 4, [TERRAINS.MOUNTAINS, TERRAINS.DESERT, TERRAINS.TUNDRA], buff_type='large'),
         prereq=TECHS.METALLURGY,
     )
     CARAVANSERY = BuildingTemplate(

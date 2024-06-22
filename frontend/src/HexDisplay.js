@@ -6,6 +6,10 @@ import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
 import scienceImg from './images/science.png';
+import smallBldgImg from './images/smallbldg.png';
+import largeBldgImg from './images/largebldg.png';
+
+import { shuffle } from 'lodash';
 
 export const YieldImages = ({ yields }) => {
     let imageCounter = 0; // Counter to track the total number of images
@@ -40,6 +44,52 @@ export const YieldImages = ({ yields }) => {
             {renderImages(woodImg, yields.wood)}
             {renderImages(metalImg, yields.metal)}
             {renderImages(scienceImg, yields.science)}
+        </g>
+    );
+};
+
+export const HexBuffIcons = ({ buff_counts, hex_based_seed }) => {
+    const BLDG_LOCATIONS = [
+        {x: -2, y: -2},
+        {x: -0.8, y: -2.4},
+        {x: 0.3, y: -2.4},
+        {x: 0.8, y: -1.9},
+        {x: 1.7, y: -0.3},
+        {x: 1.4, y: 0.3},
+        {x: 1.1, y: 1.2},
+        {x: 0, y: 0.9},
+        {x: -0.6, y: 1.5},
+        {x: -1.5, y: 1.5},
+        {x: -2.0, y: 1.0},
+        {x: -2.8, y: -0.5},
+    ];
+    // shuffle them
+    BLDG_LOCATIONS.sort((a, b) => (Math.sin(a.x * hex_based_seed * 1000) - Math.sin(b.x * hex_based_seed * 1000)));
+
+    let imageCounter = 0; // Counter to track the total number of images
+    const renderImages = (img, count) => {
+        let images = [];
+        for (let i = 0; i < count && imageCounter < BLDG_LOCATIONS.length; i++) {
+            images.push(
+                <image 
+                    key={`${img}-${imageCounter}`} 
+                    href={img} 
+                    x={BLDG_LOCATIONS[imageCounter].x}
+                    y={BLDG_LOCATIONS[imageCounter].y}
+                    height={1} 
+                    width={1}
+                />
+            );
+            imageCounter++; // Increment counter for each image
+        }
+        images.sort((a, b) => a.props.y - b.props.y);
+        return images;
+    };
+
+    return (
+        <g>
+            {renderImages(smallBldgImg, buff_counts.small)}
+            {renderImages(largeBldgImg, buff_counts.large)}
         </g>
     );
 };
