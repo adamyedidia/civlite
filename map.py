@@ -31,7 +31,7 @@ def create_hex_map(map_size: int) -> dict[str, Hex]:
         terrain = _pick_random_terrain()
         hexes[coords_str((q, r, s))] = Hex(q, r, s, terrain, terrain.yields.copy())
 
-    for _ in range(MAP_HOMOGENEITY_LEVEL):
+    for _ in range(int(MAP_HOMOGENEITY_LEVEL * len(coords))):
         hex_to_propagate = random.choice(list(hexes.values()))
         random_neighbor_of_hex = random.choice(list(hex_to_propagate.get_neighbors(hexes)))
         random_neighbor_of_hex.terrain = hex_to_propagate.terrain
