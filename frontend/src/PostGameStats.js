@@ -244,6 +244,7 @@ const PostGameStats = ({ gameState, gameId, URL, templates }) => {
                         onChange={(e) => setDisplayStat(e.target.value)}
                     >
                     {Object.keys(stats).map((statKey) => (
+                        statKey !== 'game_ages' &&
                         <MenuItem key={statKey} value={statKey}>
                             {statKey}
                         </MenuItem>
