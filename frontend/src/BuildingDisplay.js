@@ -51,6 +51,20 @@ export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wond
 };
 
 const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName, onClick }) => {
+    let building_type = '';
+    let building;
+    if (templates.BUILDINGS?.[buildingName]) {
+        building_type = 'BUILDING';
+        building = templates.BUILDINGS?.[buildingName];
+    } else if (templates.WONDERS?.[buildingName]) {
+        building_type = 'WONDER';
+        building = templates.WONDERS?.[buildingName];
+    } else if (unitTemplatesByBuildingName?.[buildingName]) {
+        building_type = 'UNIT';
+        building = unitTemplatesByBuildingName?.[buildingName];
+    }
+    const building_class = building_type == 'WONDER' ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : building_type == 'UNIT' ? 'military' : building?.exclusion_group ? 'core-economic' : 'economic';
+
     return (
         unitTemplatesByBuildingName[buildingName] ? 
             <div className="building-card" onClick={onClick}>
@@ -61,7 +75,7 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
                 </div>
             </div>
             :
-            <div className={`building-card`} onClick={onClick}>
+            <div className={`building-card ${building_class}`} onClick={onClick}>
                 <h2>{templates.BUILDINGS[buildingName]?.name}</h2>
                 <p>Cost: {templates.BUILDINGS[buildingName]?.cost} wood</p>
                 {templates.BUILDINGS[buildingName]?.vp_reward && <p>VP reward: {templates.BUILDINGS[buildingName]?.vp_reward}</p>}

@@ -334,15 +334,6 @@ class GameState:
 
         civ.gain_vps(2, "Founded Cities (2/city)")
 
-        if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
-            if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
-                assert city.hex
-                numbers = civ.numbers_of_ability('IncreaseYieldsForTerrainNextToSecondCity')
-                for hex in city.hex.get_neighbors(self.hexes, include_self=True):
-                    if hex.terrain == numbers[1]:
-                        new_value = getattr(hex.yields, numbers[0]) + numbers[2]
-                        setattr(hex.yields, numbers[0], new_value)
-
         if civ.has_ability('IncreaseYieldsForTerrain'):
             assert city.hex
             numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')

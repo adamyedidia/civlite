@@ -5,7 +5,9 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
-from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity
+from terrain_templates_list import TERRAINS
+from terrain_template import TerrainTemplate
+from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity, IncreaseYieldsPerTerrainType
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
@@ -68,7 +70,7 @@ class City:
         self.projected_income_base = resourcedict()  # income without focus
         self.projected_income_focus = resourcedict()  # income from focus
         self.projected_income_puppets: dict[str, dict[str, float]] = {'wood': {}, 'metal': {}}
-        self.terrains_dict = {}
+        self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
         self.hidden_building_names: list[str] = []
 
@@ -426,6 +428,10 @@ class City:
                     if isinstance(effect, IncreaseYieldsInCity):
                         is_economic_building = True
                         total_yields += int(effect.amount)
+
+                    if isinstance(effect, IncreaseYieldsPerTerrainType):
+                        is_economic_building = True
+                        total_yields += int(effect.amount * len(self.terrains_dict))
 
                 for ability in building_template.abilities:
                     if ability.name == 'IncreaseYieldsPerPopulation':
@@ -1026,7 +1032,7 @@ class City:
             "projected_income_puppets": self.projected_income_puppets,
             "yields_per_population": self._yields_per_population(),
             "growth_cost": self.growth_cost(),
-            "terrains_dict": self.terrains_dict,
+            "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
             "hidden_building_names": self.hidden_building_names,
 
             "territory_parent_id": self._territory_parent_id,
@@ -1069,7 +1075,7 @@ class City:
         city.projected_income = json["projected_income"]
         city.projected_income_base = json["projected_income_base"]
         city.projected_income_focus = json["projected_income_focus"]
-        city.terrains_dict = json.get("terrains_dict") or {}
+        city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
         city.hidden_building_names = json.get("hidden_building_names") or []
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]

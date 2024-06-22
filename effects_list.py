@@ -2,6 +2,7 @@ import random
 from typing import TYPE_CHECKING, Callable
 
 from TechStatus import TechStatus
+from terrain_template import TerrainTemplate
 from unit_templates_list import UNITS
 from effect import CityTargetEffect
 from unit_template import UnitTemplate
@@ -250,14 +251,14 @@ class EndGameEffect(CityTargetEffect):
         game_state.game_over = True
 
 class IncreaseYieldsForTerrain(CityTargetEffect):
-    def __init__(self, resource: str, amount: int, terrain: str | list[str]) -> None:
+    def __init__(self, resource: str, amount: int, terrain: TerrainTemplate | list[TerrainTemplate]) -> None:
         self.resource = resource
         self.amount = amount
-        self.terrain: list[str] = [terrain] if isinstance(terrain, str) else terrain
+        self.terrain: list[TerrainTemplate] = [terrain] if isinstance(terrain, TerrainTemplate) else terrain
 
     @property
     def description(self) -> str:
-        terrain_strs: list[str] = [p.plural(t) for t in self.terrain] # type: ignore
+        terrain_strs: list[str] = [p.plural(t.name) for t in self.terrain] # type: ignore
         terrain_combined_str: str = " and ".join(terrain_strs)
         return f"Increase {self.resource} yields in {terrain_combined_str} around the city by {self.amount}."
 
@@ -280,4 +281,19 @@ class IncreaseYieldsInCity(CityTargetEffect):
     def apply(self, city: 'City', game_state: 'GameState'):
         assert city.hex is not None
         new_value = getattr(city.hex.yields, self.resource) + self.amount
+        setattr(city.hex.yields, self.resource, new_value)
+
+class IncreaseYieldsPerTerrainType(CityTargetEffect):
+    def __init__(self, resource: str, amount: int) -> None:
+        self.resource = resource
+        self.amount = amount
+
+    @property
+    def description(self) -> str:
+        return f"Increase {self.resource} yields in the city by {self.amount} for each unique terrain type."
+
+    def apply(self, city: 'City', game_state: 'GameState'):
+        assert city.hex is not None
+        num = len(set([hex.terrain for hex in city.hex.get_neighbors(game_state.hexes, include_self=True)]))
+        new_value = getattr(city.hex.yields, self.resource) + self.amount * num
         setattr(city.hex.yields, self.resource, new_value)

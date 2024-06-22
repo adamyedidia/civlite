@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING, Generator, Optional
 from camp import Camp
 from civ import Civ
+from terrain_templates_list import TERRAINS
+from terrain_template import TerrainTemplate
 from unit import Unit
 from utils import coords_str
 from yields import Yields
@@ -11,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class Hex:
-    def __init__(self, q: int, r: int, s: int, terrain: str, yields: Yields) -> None:
+    def __init__(self, q: int, r: int, s: int, terrain: TerrainTemplate, yields: Yields) -> None:
         assert not (q + r + s)
         self.q = q
         self.r = r
@@ -144,7 +146,7 @@ class Hex:
             "q": self.q,
             "r": self.r,
             "s": self.s,
-            "terrain": self.terrain,
+            "terrain": self.terrain.name,
             **({
                 "yields": self.yields.to_json(),
                 "units": [unit.to_json() for unit in self.units],
@@ -161,7 +163,7 @@ class Hex:
             q=json["q"],
             r=json["r"],
             s=json["s"],
-            terrain=json["terrain"],
+            terrain=TERRAINS.by_name(json["terrain"]),
             yields=Yields.from_json(json_yields if (json_yields := json.get("yields")) else {"food": 0, "wood": 0, "metal": 0, "science": 0}),
         )
         hex.units = [Unit.from_json(unit_json) for unit_json in json.get("units") or []]

@@ -23,7 +23,7 @@ export const YieldImages = ({ yields }) => {
                 <image 
                     key={`${img}-${imageCounter}`} 
                     href={img} 
-                    x={(1.5 * (imageCounter * (totalCount / (totalCount - 1)) + 0.1) - totalCount * 1.5) / (totalCount * 0.7)} 
+                    x={totalCount > 1 ? 1.5 / 0.7 * (imageCounter / (totalCount - 1) + 0.1 / totalCount - 1) : -1} 
                     y={-1} 
                     height={2} 
                     width={2}

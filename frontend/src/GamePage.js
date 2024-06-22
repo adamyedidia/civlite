@@ -2192,8 +2192,15 @@ export default function GamePage() {
         
             if (typeOrder1 !== typeOrder2) {
                 return typeOrder1 - typeOrder2;
-            } else {
+            } else if (description1?.value !== description2?.value) {
                 return description2?.value - description1?.value;
+            } else {
+                const template1 = templates.BUILDINGS[buildingName1];
+                const template2 = templates.BUILDINGS[buildingName2];
+                if ((template1?.exclusion_group === null) != (template2?.exclusion_group === null)) {
+                    return template1?.exclusion_group === null ? -1 : 1;
+                }
+                return template1?.cost - template2?.cost;
             }
         });
     }
@@ -2856,14 +2863,14 @@ export default function GamePage() {
         );
     };
 
-    const Unit = ({ unit, isCityInHex }) => {
+    const Unit = ({ unit, small }) => {
         const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
 
         const primaryColor = unitCivTemplate?.primary_color;
         const secondaryColor = unitCivTemplate?.secondary_color;
         const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
     
-        const scale = isCityInHex ? 0.95 : 1.4;
+        const scale = small ? 0.95 : 1.4;
         let healthPercentage = (unit.health / 100) % 1; // Calculate health as a percentage
         if (healthPercentage === 0) {
             healthPercentage = 1;
@@ -2875,7 +2882,7 @@ export default function GamePage() {
         const buffedUnit = unit.strength > templates.UNITS[unit.name].strength;
 
         return (
-            <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (isCityInHex ? 1 : 0)}>
+            <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (small ? 1 : 0)}>
                 <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.3} />
                 {buffedUnit && <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${1*scale}`} cy={`${3*scale}`} r={`${0.4 * scale}`} fill={finalPrimaryColor} stroke={finalSecondaryColor} strokeWidth={0.15} />}
                 {buffedUnit && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1*scale}`} y={`${3*scale}`} style={{ fontSize: `${scale}px`, textAnchor: "middle", dominantBaseline: "middle" }}> + </text>}
@@ -2938,10 +2945,10 @@ export default function GamePage() {
             'plains': '#CBC553',
             'hills': '#9B9553',
             'mountain': '#8B4513',
-            'grassland': '#AAFF77',
+            // 'grassland': '#AAFF77',
             'tundra': '#BBAABB',
-            'jungle': '#00BB00',
-            'marsh': '#00FFFF',
+            // 'jungle': '#00BB00',
+            // 'marsh': '#00FFFF',
         }
 
         return { fill: inFog ? greyOutHexColor(terrainToColor[terrain], '#AAAAAA') : terrainToColor[terrain], fillOpacity: '0.8', ...(pointer ? {cursor: 'pointer'} : {})}; // example color for forest
@@ -3075,7 +3082,7 @@ export default function GamePage() {
                                     />}
                                     {hex?.units?.length > 0 && <Unit
                                         unit={hex.units[0]}
-                                        isCityInHex={hex?.city || hex?.camp}
+                                        small={hex?.city || hex?.camp || foundingCity}
                                     />}
                                     {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
                                     {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}

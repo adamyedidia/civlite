@@ -61,18 +61,18 @@
     margin-top: 10px;
 }
 
-.brief-building-card.wonder {
+.brief-building-card.wonder, .building-card.wonder {
     background-color: #b66dc0;
 }
-.brief-building-card.national-wonder {
+.brief-building-card.national-wonder, .building-card.national-wonder {
     background-color: #eeaaee;
 }
-.brief-building-card.military {
+.brief-building-card.military, .building-card.military {
     background-color: #bbbbbb;
 }
-.brief-building-card.economic {
+.brief-building-card.economic, .building-card.economic {
     background-color: #e0b096;
 }
-.brief-building-card.core-economic {
+.brief-building-card.core-economic, .building-card.core-economic {
     background-color: #bae096;
 }
