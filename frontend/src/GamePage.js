@@ -2531,7 +2531,7 @@ export default function GamePage() {
     }
 
     const sciencePopupIfNeeded = (civ) => {
-        if (civ?.researching_tech_name === null) {
+        if (civ?.researching_tech_name === null && !gameState.game_over) {
             setTechChoiceDialogOpen(true);
         }
     }
