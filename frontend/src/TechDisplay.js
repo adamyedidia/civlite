@@ -38,9 +38,9 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
                     />
                 ))}
             </div>
-            <div style={{opacity: breakthroughs_left > 0 ? 1 : 0.3}}>
+            {tech.breakthrough_effect && <div style={{opacity: breakthroughs_left > 0 ? 1 : 0.3}}>
                 <p>Breakthrough: {tech.breakthrough_effect}</p>
-            </div>
+            </div>}
             {tech.name == "Renaissance" && <>
                 <p>Re-enable all discarded technologies</p>
                 <p>Gain 25 VPs</p>
