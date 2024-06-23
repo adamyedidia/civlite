@@ -133,11 +133,6 @@ class TECHS():
         cost=130,
         advancement_level=5,
     )
-    RIFLING = TechTemplate(
-        name='Rifling',
-        cost=140,
-        advancement_level=5,
-    )
     INDUSTRIALIZATION = TechTemplate(
         name='Industrialization',
         cost=150,

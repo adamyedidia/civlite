@@ -1,6 +1,7 @@
 from typing import Generator
 from building_template import BuildingTemplate
-from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity, ResetHappinessThisCityEffect
+from terrain_templates_list import TERRAINS
+from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity, IncreaseYieldsPerTerrainType, ResetHappinessThisCityEffect
 from tech_templates_list import TECHS
 
 class BUILDINGS():
@@ -8,14 +9,15 @@ class BUILDINGS():
         name="Lumber Mill",
         type="economy",
         cost=15,
-        on_build=IncreaseYieldsForTerrain("wood", 1, ["forest", "jungle"]),
+        on_build=IncreaseYieldsForTerrain("wood", 1, TERRAINS.FOREST, buff_type='small'),
         prereq=TECHS.FORESTRY,
+        exclusion_group="a1",
     )
     GRANARY = BuildingTemplate(
         name="Granary",
         type="economy",
         cost=10,
-        on_build=IncreaseYieldsForTerrain("food", 1, "plains"),
+        on_build=IncreaseYieldsForTerrain("food", 1, TERRAINS.PLAINS, buff_type='small'),
         prereq=TECHS.POTTERY,
     )
     ROADS = BuildingTemplate(
@@ -31,23 +33,18 @@ class BUILDINGS():
     LIBRARY = BuildingTemplate(
         name="Library",
         type="science",
-        cost=10,
-        on_build=IncreaseYieldsForTerrain("science", 1, ["tundra", "desert"]),
+        cost=15,
+        on_build=IncreaseYieldsPerTerrainType("science", 1),
         prereq=TECHS.POTTERY,
+        exclusion_group="a1",
     )
     MINE = BuildingTemplate(
         name="Mine",
         type="economy",
         cost=15,
-        on_build=IncreaseYieldsForTerrain("metal", 1, ["hills", "mountain"]),
+        on_build=IncreaseYieldsForTerrain("metal", 1, TERRAINS.HILLS, buff_type='small'),
         prereq=TECHS.MINING,
-    )
-    PLANTATION = BuildingTemplate(
-        name="Plantation",
-        type="economy",
-        cost=15,
-        on_build=IncreaseYieldsForTerrain("food", 1, ["grassland", "marsh"]),
-        prereq=TECHS.IRRIGATION,
+        exclusion_group="a1",
     )
     AQUEDUCT = BuildingTemplate(
         name="Aqueduct",
@@ -98,45 +95,88 @@ class BUILDINGS():
     UNIVERSITY = BuildingTemplate(
         name="University",
         type="science",
-        cost=25,
+        cost=20,
         abilities=[{
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["science", 1],
         }],
         prereq=TECHS.EDUCATION,
+        exclusion_group="a3",
+    )
+    HARBOR = BuildingTemplate(
+        name="Harbor",
+        type="economy",
+        cost=20,
+        abilities=[{
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["wood", 1],
+        }],
+        prereq=TECHS.COMPASS,
+        exclusion_group="a3",
+    )
+    CONSCRIPTION_POST = BuildingTemplate(
+        name="Conscription Post",
+        type="economy",
+        cost=20,
+        abilities=[{
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["metal", 1],
+        }],
+        prereq=TECHS.CIVIL_SERVICE,
+        exclusion_group="a3",
     )
     FACTORY = BuildingTemplate(
         name="Factory",
         type="economy",
-        cost=75,
+        cost=40,
         abilities=[{
-            "name": "IncreaseYieldsPerPopulation",
-            "numbers": ["metal", 1],
-        }, {
             "name": "IncreaseYieldsPerPopulation",
             "numbers": ["wood", 1],
         }],
         prereq=TECHS.INDUSTRIALIZATION,
+        exclusion_group="factory",
+    )
+    INDUSTRIAL_MINE = BuildingTemplate(
+        name="Industrial Mine",
+        type="economy",
+        cost=40,
+        abilities=[{
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["metal", 1],
+        }],
+        prereq=TECHS.MILITARY_SCIENCE,
+        exclusion_group="factory",
+    )
+    LABORATORY = BuildingTemplate(
+        name="Laboratory",
+        type="economy",
+        cost=40,
+        abilities=[{
+            "name": "IncreaseYieldsPerPopulation",
+            "numbers": ["science", 1],
+        }],
+        prereq=TECHS.MEDICINE,
+        exclusion_group="factory",
     )
     OBSERVATORY = BuildingTemplate(
         name="Observatory",
         type="science",
         cost=15,
         on_build=IncreaseYieldsInCity("science", 4),
-        prereq=TECHS.COMPASS,
+        prereq=TECHS.PHYSICS,
     )
     PAPER_MAKER = BuildingTemplate(
         name="Paper Maker",
         type="science",
         cost=15,
         on_build=IncreaseYieldsInCity("wood", 4),
-        prereq=TECHS.PRINTING_PRESS,
+        prereq=TECHS.CIVIL_SERVICE,
     )
     ZOO = BuildingTemplate(
         name="Zoo",
         type="economy",
         cost=20,
-        prereq=TECHS.MEDICINE,
+        prereq=TECHS.PRINTING_PRESS,
         abilities=[],
         vp_reward=1,
     )
@@ -175,36 +215,36 @@ class BUILDINGS():
         name="Windmill",
         type="economy",
         cost=30,
-        on_build=IncreaseYieldsForTerrain("food", 2, ["tundra", "grassland"]),
+        on_build=IncreaseYieldsForTerrain("food", 2, TERRAINS.PLAINS, buff_type='large'),
         prereq=TECHS.PHYSICS,
     )
     FORGE = BuildingTemplate(
         name="Forge",
         type="economy",
         cost=30,
-        on_build=IncreaseYieldsForTerrain("metal", 2, ["mountain", "plains"]),
+        on_build=IncreaseYieldsForTerrain("metal", 2, TERRAINS.HILLS, buff_type='large'),
         prereq=TECHS.ARCHITECTURE,
     )
     LUMBER_FARM = BuildingTemplate(
         name="Lumber Farm",
         type="economy",
         cost=30,
-        on_build=IncreaseYieldsForTerrain("wood", 2, ["forest", "hills"]),
+        on_build=IncreaseYieldsForTerrain("wood", 2, TERRAINS.FOREST, buff_type='large'),
         prereq=TECHS.ARCHITECTURE,
     )
-    APOTHECARY = BuildingTemplate(
-        name="Apothecary",
-        type="economy",
-        cost=30,
-        on_build=IncreaseYieldsForTerrain("food", 2, ["marsh", "jungle"]),
-        prereq=TECHS.MEDICINE,
-    )
+    # APOTHECARY = BuildingTemplate(
+    #     name="Apothecary",
+    #     type="economy",
+    #     cost=30,
+    #     on_build=IncreaseYieldsForTerrain("food", 2, ["marsh", "jungle"]),
+    #     prereq=TECHS.GUNPOWDER,
+    # )
     OUTPOST = BuildingTemplate(
         name="Outpost",
         type="economy",
-        cost=15,
-        on_build=IncreaseYieldsForTerrain("metal", 2, "desert"),
-        prereq=TECHS.RIFLING,
+        cost=30,
+        on_build=IncreaseYieldsForTerrain("science", 4, [TERRAINS.MOUNTAINS, TERRAINS.DESERT, TERRAINS.TUNDRA], buff_type='large'),
+        prereq=TECHS.METALLURGY,
     )
     CARAVANSERY = BuildingTemplate(
         name="Caravansery",
@@ -266,7 +306,7 @@ class BUILDINGS():
         cost=100,
         on_build=ResetHappinessThisCityEffect(),
         is_national_wonder=True,
-        prereq=TECHS.RIFLING,
+        prereq=TECHS.MILITARY_SCIENCE,
     )
     INDUSTRIAL_FARM = BuildingTemplate(
         name="Industrial Farm",

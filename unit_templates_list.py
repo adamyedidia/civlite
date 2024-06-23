@@ -370,7 +370,7 @@ class UNITS():
         movement=1,
         range=1,
         tags=[UnitTag.INFANTRY, UnitTag.GUNPOWDER],
-        prereq=TECHS.RIFLING,
+        prereq=TECHS.MEDICINE,
         abilities=[],
         great_people_names={
             "general_normal": "Robert E Lee",

@@ -1,34 +1,10 @@
 import random
-from typing import Optional
+from terrain_template import TerrainTemplate
+from terrain_templates_list import TERRAINS
 from hex import Hex
 from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY
 from utils import coords_str, get_all_coords_up_to_n
 from yields import Yields
-
-TERRAIN_CHANCES: dict[str, float] = {
-    "plains": 0.15,
-    "forest": 0.15,
-    "hills": 0.15,
-    "grassland": 0.15,
-    "desert": 0.08,
-    "jungle": 0.08,
-    "mountain": 0.08,
-    "tundra": 0.08,
-    "marsh": 0.08,
-}
-
-TERRAIN_TO_YIELDS: dict[str, Yields] = {
-    "plains": Yields(food=1, metal=1, wood=0, science=0),
-    "forest": Yields(food=0, metal=0, wood=2, science=0),
-    "hills": Yields(food=0, metal=1, wood=1, science=0),
-    "grassland": Yields(food=2, metal=0, wood=0, science=0),
-    "desert": Yields(food=0, metal=1, wood=0, science=1),
-    "jungle": Yields(food=1, metal=0, wood=1, science=0),
-    "mountain": Yields(food=0, metal=2, wood=0, science=0),
-    "tundra": Yields(food=0, metal=0, wood=1, science=1),
-    "marsh": Yields(food=1, metal=0, wood=0, science=1),
-}
-
 
 def infer_map_size_from_num_players(num_players: int) -> int:
     for map_size in range(100):
@@ -40,8 +16,9 @@ def infer_map_size_from_num_players(num_players: int) -> int:
     raise Exception('Uh oh')
 
 
-def pick_random_terrain() -> str:
-    terrain = random.choices(list(TERRAIN_CHANCES.keys()), list(TERRAIN_CHANCES.values()))[0]
+def _pick_random_terrain() -> TerrainTemplate:
+    all_terrains = list(TERRAINS.all())
+    terrain = random.choices(all_terrains, weights=[terrain.frequency for terrain in all_terrains]).pop()
     return terrain
 
 
@@ -51,10 +28,10 @@ def create_hex_map(map_size: int) -> dict[str, Hex]:
     hexes: dict[str, Hex] = {}
 
     for q, r, s in coords:
-        terrain = pick_random_terrain()
-        hexes[coords_str((q, r, s))] = Hex(q, r, s, terrain, TERRAIN_TO_YIELDS[terrain].copy())
+        terrain = _pick_random_terrain()
+        hexes[coords_str((q, r, s))] = Hex(q, r, s, terrain, terrain.yields.copy())
 
-    for _ in range(MAP_HOMOGENEITY_LEVEL):
+    for _ in range(int(MAP_HOMOGENEITY_LEVEL * len(coords))):
         hex_to_propagate = random.choice(list(hexes.values()))
         random_neighbor_of_hex = random.choice(list(hex_to_propagate.get_neighbors(hexes)))
         random_neighbor_of_hex.terrain = hex_to_propagate.terrain
@@ -62,10 +39,7 @@ def create_hex_map(map_size: int) -> dict[str, Hex]:
 
     for hex in hexes.values():
         if random.random() < GOOD_HEX_PROBABILITY:
-            hex.yields.food *= 2
-            hex.yields.wood *= 2
-            hex.yields.metal *= 2
-            hex.yields.science *= 2
+            hex.yields = hex.terrain.bonus_yields.copy()
 
     return hexes
 

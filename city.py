@@ -5,7 +5,9 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
-from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity
+from terrain_templates_list import TERRAINS
+from terrain_template import TerrainTemplate
+from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity, IncreaseYieldsPerTerrainType
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
@@ -68,7 +70,7 @@ class City:
         self.projected_income_base = resourcedict()  # income without focus
         self.projected_income_focus = resourcedict()  # income from focus
         self.projected_income_puppets: dict[str, dict[str, float]] = {'wood': {}, 'metal': {}}
-        self.terrains_dict = {}
+        self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
         self.hidden_building_names: list[str] = []
 
@@ -89,6 +91,11 @@ class City:
 
     def has_building(self, building_name: str) -> bool:
         return building_name in [b.building_name for b in self.buildings]
+    
+    def has_building_exclusion_group(self, exclusion_group: str | None) -> bool:
+        if exclusion_group is None:
+            return False
+        return any(b.exclusion_group == exclusion_group for b in self.buildings)
 
     def orphan_territory_children(self, game_state: 'GameState', make_new_territory=True):
         """
@@ -208,6 +215,18 @@ class City:
             for key, puppets_dict in self.projected_income_puppets.items():
                 self.projected_income[key] += sum(puppet_income for puppet_income in puppets_dict.values())
 
+    def _yields_per_population(self) -> dict[str, int]:
+        yields_per_population = {
+            "food": 0,
+            "metal": 0,
+            "wood": 0,
+            "science": 1,
+        }
+
+        for ability, _ in self.passive_building_abilities_of_name('IncreaseYieldsPerPopulation'):
+            yields_per_population[ability.numbers[0]] += ability.numbers[1]
+        return yields_per_population
+
     def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
         vitality = self.civ.vitality
         yields = resourcedict()
@@ -220,16 +239,7 @@ class City:
             yields["wood"] += hex.yields.wood * vitality
             yields["science"] += hex.yields.science * vitality
         
-        yields_per_population = {
-            "food": 0,
-            "metal": 0,
-            "wood": 0,
-            "science": 1,
-        }
-
-        for ability, _ in self.passive_building_abilities_of_name('IncreaseYieldsPerPopulation'):
-            yields_per_population[ability.numbers[0]] += ability.numbers[1]
-
+        yields_per_population = self._yields_per_population()
         for key in yields_per_population:
             yields[key] += self.population * yields_per_population[key] * vitality
 
@@ -419,6 +429,10 @@ class City:
                         is_economic_building = True
                         total_yields += int(effect.amount)
 
+                    if isinstance(effect, IncreaseYieldsPerTerrainType):
+                        is_economic_building = True
+                        total_yields += int(effect.amount * len(self.terrains_dict))
+
                 for ability in building_template.abilities:
                     if ability.name == 'IncreaseYieldsPerPopulation':
                         is_economic_building = True
@@ -509,10 +523,16 @@ class City:
             return []
         if include_in_queue:
             building_names_in_queue = {}
+            exclusion_groups_in_queue = {}
         else:
             building_names_in_queue = {building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue}  # type: ignore
+            exclusion_groups_in_queue = {building.exclusion_group for building in self.buildings_queue if isinstance(building, BuildingTemplate) and building.exclusion_group is not None}
         wonders: list[WonderTemplate] = [wonder for wonder in self.available_wonders if wonder.name not in building_names_in_queue]
-        buildings: list[BuildingTemplate] = [building for building in self.available_buildings if not building.name in building_names_in_queue and not self.has_building(building.name)]
+        buildings: list[BuildingTemplate] = [building for building in self.available_buildings if 
+                                             not building.name in building_names_in_queue and 
+                                             not building.exclusion_group in exclusion_groups_in_queue and
+                                             not self.has_building(building.name) and
+                                             not self.has_building_exclusion_group(building.exclusion_group)]
         unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
         return [*wonders, *buildings, *unit_buildings]
 
@@ -1010,8 +1030,9 @@ class City:
             "projected_income_base": self.projected_income_base,
             "projected_income_focus": self.projected_income_focus,
             "projected_income_puppets": self.projected_income_puppets,
+            "yields_per_population": self._yields_per_population(),
             "growth_cost": self.growth_cost(),
-            "terrains_dict": self.terrains_dict,
+            "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
             "hidden_building_names": self.hidden_building_names,
 
             "territory_parent_id": self._territory_parent_id,
@@ -1054,7 +1075,7 @@ class City:
         city.projected_income = json["projected_income"]
         city.projected_income_base = json["projected_income_base"]
         city.projected_income_focus = json["projected_income_focus"]
-        city.terrains_dict = json.get("terrains_dict") or {}
+        city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
         city.hidden_building_names = json.get("hidden_building_names") or []
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]

@@ -247,13 +247,22 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / templates.UNITS[selectedCity.infinite_queue_unit].metal_cost) : 0;
     const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => templates.BUILDINGS[item] ? templates.BUILDINGS[item].cost : templates.WONDERS[item] ? gameState.wonder_cost_by_age[templates.WONDERS[item].age] : unitTemplatesByBuildingName[item] ? unitTemplatesByBuildingName[item].wood_cost : 0);
 
+    const per_population_tooltip = Object.entries(selectedCity.yields_per_population).map(([name, amount]) => amount > 0 ? `+${amount} ${name}` : '').filter(s => s).join(', ');
 
     return (
         <div className="city-detail-window" 
             style={{borderColor: myCivTemplate?.secondary_color}}>
             <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate?.primary_color}e0`}}>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
-                    <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
+                    <WithTooltip tooltip={`${selectedCity.population} population, each making ${per_population_tooltip}`} alignBottom={true} alignLeft={true}><div style={{ display: 'flex', alignItems: 'center' }}>
+                            <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
+                            {Object.entries(selectedCity.yields_per_population).map(([name, amount]) => (
+                    Array.from({ length: amount }).map((_, index) => {
+                        const img = name === 'food' ? foodImg : name === 'wood' ? woodImg : name === 'metal' ? metalImg : name === 'science' ? scienceImg : null;
+                        return <img key={`${name}-${index}`} src={img} alt={name} style={{ margin: '2px', width: '30px', height: 'auto' }} />
+                    })
+                ))}
+                    </div></WithTooltip>
                 </h1>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '60%' }}>
                     <span 

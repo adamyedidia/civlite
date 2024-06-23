@@ -60,6 +60,12 @@ class Building:
         if isinstance(self._template, WonderTemplate):
             return self._template.on_build
         return []
+    
+    @property
+    def exclusion_group(self) -> str | None:
+        if isinstance(self._template, BuildingTemplate):
+            return self._template.exclusion_group
+        return None
 
     def update_ruined_status(self, city, game_state: 'GameState') -> None:
         if isinstance(self._template, WonderTemplate):

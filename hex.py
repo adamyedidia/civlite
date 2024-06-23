@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING, Generator, Optional
 from camp import Camp
 from civ import Civ
+from terrain_templates_list import TERRAINS
+from terrain_template import TerrainTemplate
 from unit import Unit
 from utils import coords_str
 from yields import Yields
@@ -11,7 +13,7 @@ if TYPE_CHECKING:
 
 
 class Hex:
-    def __init__(self, q: int, r: int, s: int, terrain: str, yields: Yields) -> None:
+    def __init__(self, q: int, r: int, s: int, terrain: TerrainTemplate, yields: Yields) -> None:
         assert not (q + r + s)
         self.q = q
         self.r = r
@@ -24,6 +26,7 @@ class Hex:
         self.coords = coords_str((q, r, s))
         self.visibility_by_civ: dict[str, bool] = {}
         self.is_foundable_by_civ: dict[str, bool] = {}
+        self.buff_counts: dict[str, int] = {'small': 0, 'large': 0}
 
     def visible_to_civ(self, civ: Civ) -> bool:
         return self.visibility_by_civ.get(civ.id, False)
@@ -144,7 +147,7 @@ class Hex:
             "q": self.q,
             "r": self.r,
             "s": self.s,
-            "terrain": self.terrain,
+            "terrain": self.terrain.name,
             **({
                 "yields": self.yields.to_json(),
                 "units": [unit.to_json() for unit in self.units],
@@ -152,6 +155,7 @@ class Hex:
                 "camp": self.camp.to_json() if self.camp else None,
                 "visibility_by_civ": self.visibility_by_civ,
                 "is_foundable_by_civ": self.is_foundable_by_civ,
+                "buff_counts": self.buff_counts,
             } if (from_civ_perspectives is None or any([self.visible_to_civ(from_civ_perspective) for from_civ_perspective in from_civ_perspectives])) and self.yields is not None else {}),
         }
     
@@ -161,7 +165,7 @@ class Hex:
             q=json["q"],
             r=json["r"],
             s=json["s"],
-            terrain=json["terrain"],
+            terrain=TERRAINS.by_name(json["terrain"]),
             yields=Yields.from_json(json_yields if (json_yields := json.get("yields")) else {"food": 0, "wood": 0, "metal": 0, "science": 0}),
         )
         hex.units = [Unit.from_json(unit_json) for unit_json in json.get("units") or []]
@@ -172,6 +176,7 @@ class Hex:
         hex.visibility_by_civ = (json.get("visibility_by_civ") or {}).copy()
         if json.get("is_foundable_by_civ"):
             hex.is_foundable_by_civ = (json.get("is_foundable_by_civ") or {}).copy()
+        hex.buff_counts = (json.get("buff_counts") or {'small': 0, 'large': 0}).copy()
 
         return hex
 

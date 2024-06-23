@@ -1,5 +1,6 @@
 from typing import Generator
 from civ_template import CivTemplate
+from terrain_templates_list import TERRAINS
 
 def player_civs(min_advancement_level=0, max_advancement_level=9) -> Generator[CivTemplate, None, None]:
     for civ_template in CIVS.all():
@@ -98,78 +99,6 @@ class CIVS():
         abilities=[{
             "name": "IncreaseFocusYields",
             "numbers": ["science", 2]
-        }],
-        advancement_level=0,
-    )
-    HITTITES = CivTemplate(
-        name="Hittites",
-        abilities=[{
-            "name": "IncreaseYieldsForTerrainNextToSecondCity",
-            "numbers": ["wood", "forest", 1]
-        }],
-        advancement_level=0,
-    )
-    PHOENICIA = CivTemplate(
-        name="Phoenicia",
-        abilities=[{
-            "name": "IncreaseYieldsForTerrainNextToSecondCity",
-            "numbers": ["metal", "hills", 1]
-        }],
-        advancement_level=0,
-    )
-    NAZCA = CivTemplate(
-        name="Nazca",
-        abilities=[{
-            "name": "IncreaseYieldsForTerrainNextToSecondCity",
-            "numbers": ["food", "plains", 1]
-        }],
-        advancement_level=0,
-    )
-    BANTU = CivTemplate(
-        name="Bantu",
-        abilities=[{
-            "name": "IncreaseYieldsForTerrainNextToSecondCity",
-            "numbers": ["food", "grassland", 1]
-        }],
-        advancement_level=0,
-    )
-    OLMICS = CivTemplate(
-        name="Olmecs",
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", "jungle", 1]
-        }],
-        advancement_level=0,
-    )
-    ZHOU = CivTemplate(
-        name="Zhou",
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", "desert", 1]
-        }],
-        advancement_level=0,
-    )
-    NUBIANS = CivTemplate(
-        name="Nubians",
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", "marsh", 1]
-        }],
-        advancement_level=0,
-    )
-    PAMA_NGUYAN = CivTemplate(
-        name="Pama-Nguyan",
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", "tundra", 1]
-        }],
-        advancement_level=0,
-    )
-    ASSYRIANS = CivTemplate(
-        name="Assyrians",
-        abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", "mountain", 1]
         }],
         advancement_level=0,
     )
@@ -395,7 +324,7 @@ class CIVS():
         name="Gupta",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", "grassland", 1],
+            "numbers": ["food", TERRAINS.PLAINS, 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Catapult", 3],
@@ -417,7 +346,7 @@ class CIVS():
         name="Sukhothai",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", "forest", 1],
+            "numbers": ["wood", TERRAINS.FOREST, 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 3],
@@ -428,7 +357,7 @@ class CIVS():
         name="Srivijaya",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", "hills", 1],
+            "numbers": ["wood", TERRAINS.HILLS, 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Garrison", 3],
@@ -439,7 +368,7 @@ class CIVS():
         name="Sassanids",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", "plains", 1],
+            "numbers": ["metal", TERRAINS.PLAINS, 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horseman", 3],
@@ -450,7 +379,7 @@ class CIVS():
         name="Abbasids",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", "hills", 1],
+            "numbers": ["metal", TERRAINS.HILLS, 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 3],
@@ -461,7 +390,7 @@ class CIVS():
         name="Umayyads",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", "plains", 1],
+            "numbers": ["food", TERRAINS.PLAINS, 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 3],
@@ -472,7 +401,7 @@ class CIVS():
         name="Xhosa",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", "grassland", 1],
+            "numbers": ["wood", TERRAINS.PLAINS, 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Archer", 3],
@@ -491,7 +420,7 @@ class CIVS():
         name="Aksum",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", "plains", 1],
+            "numbers": ["science", TERRAINS.PLAINS, 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Archer", 3],
@@ -502,7 +431,7 @@ class CIVS():
         name="Cumans",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", "forest", 1],
+            "numbers": ["metal", TERRAINS.FOREST, 1],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer", 3],
@@ -691,7 +620,7 @@ class CIVS():
         name="Burgundy",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", "plains", 2],
+            "numbers": ["metal", TERRAINS.PLAINS, 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
@@ -702,7 +631,7 @@ class CIVS():
         name="Bohemia",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", "grassland", 2],
+            "numbers": ["food", TERRAINS.PLAINS, 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Militia", 4],
@@ -713,7 +642,7 @@ class CIVS():
         name="England",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", "forest", 2],
+            "numbers": ["wood", TERRAINS.FOREST, 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman", 4],
@@ -724,7 +653,7 @@ class CIVS():
         name="Novgorod",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", "hills", 2],
+            "numbers": ["wood", TERRAINS.HILLS, 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
@@ -735,7 +664,7 @@ class CIVS():
         name="Castile",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", "plains", 2],
+            "numbers": ["food", TERRAINS.PLAINS, 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry", 4],
@@ -746,7 +675,7 @@ class CIVS():
         name="Venice",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", "grassland", 2],
+            "numbers": ["science", TERRAINS.PLAINS, 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
@@ -768,7 +697,7 @@ class CIVS():
         name="Mamluks",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", "plains", 2],
+            "numbers": ["science", TERRAINS.PLAINS, 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 4],
@@ -790,7 +719,7 @@ class CIVS():
         name="Bahmani",
         abilities=[{
             "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", "grassland", 2],
+            "numbers": ["wood", TERRAINS.PLAINS, 2],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 4],

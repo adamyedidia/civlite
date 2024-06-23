@@ -18,14 +18,9 @@ CIV_ABILITIES: dict[str, Callable] = {
         description=f"Each city with a {x} focus makes +{y} {x}.",
         numbers=[x, y],
     ),
-    "IncreaseYieldsForTerrainNextToSecondCity": lambda x, y, z: Ability(
-        name="IncreaseYieldsForTerrainNextToSecondCity",
-        description=f"Increase {x} yields in {p.plural(y)} around your second city by {z}.",
-        numbers=[x, y, z],
-    ),
     "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
         name="IncreaseYieldsForTerrain",
-        description=f"When you found or capture a city for the first time, increase {x} yields in {p.plural(y)} around it by {z}.",
+        description=f"When you found or capture a city for the first time, increase {x} yields in {p.plural(y.name)} around it by {z}.",
         numbers=[x, y, z],
     ),
     "IncreasedStrengthForUnit": lambda x, y: Ability(

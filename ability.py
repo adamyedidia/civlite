@@ -11,5 +11,5 @@ class Ability:
         return {
             "name": self.name,
             "description": self.description,
-            "numbers": self.numbers,
+            "numbers": [str(n) for n in self.numbers],
         }

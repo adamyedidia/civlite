@@ -1,7 +1,7 @@
 import React from 'react';
 import "./WithTooltip.css";
 
-export const WithTooltip = ({ tooltip, alignBottom, children }) => {
+export const WithTooltip = ({ tooltip, alignBottom, alignLeft, children }) => {
     const tooltipRef = React.useRef(null);
 
     const showTooltip = () => {
@@ -20,7 +20,7 @@ export const WithTooltip = ({ tooltip, alignBottom, children }) => {
 
     return <div className="tooltip-container" onMouseOver={showTooltip} onMouseOut={hideTooltip}>
         {children}
-        {tooltip && <div ref={tooltipRef} className={`tooltip ${alignBottom ? 'bottom' : ''}`}>
+        {tooltip && <div ref={tooltipRef} className={`tooltip ${alignBottom ? 'bottom' : ''} ${alignLeft ? 'left' : ''}`}>
             {tooltip}
         </div>}
     </div>;

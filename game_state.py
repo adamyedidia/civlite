@@ -106,6 +106,8 @@ def make_game_statistics_plots(sess, game_id: str):
     military_strength_by_turn = defaultdict(lambda: [0.0])
     civ_scores_by_turn = defaultdict(lambda: [0.0])
     civ_cumulative_scores_by_turn = defaultdict(list)
+    civ_cumulative_scores_wo_survival_by_turn = defaultdict(list)
+    civ_ages = defaultdict(list)
     vitality = defaultdict(list)
     population = defaultdict(lambda: [0.0])
     movie_frames = []
@@ -146,8 +148,9 @@ def make_game_statistics_plots(sess, game_id: str):
         for civ_id, civ in game_state.civs_by_id.items():
             if civ_id not in start_turns_for_civs and civ_id != game_state.barbarians.id:
                 start_turns_for_civs[civ_id] = frame.turn_num - 1
-                # Add vitality for the previous turn when we appeared
+                # Add vitality and age for the previous turn when we appeared
                 vitality[civ_id].append(civ.vitality / 0.92)
+                civ_ages[civ_id].append(civ.get_advancement_level())
                 if not civ.game_player:
                     # Rebels start declined
                     decline_turns_for_civs[civ_id] = frame.turn_num - 1
@@ -155,15 +158,19 @@ def make_game_statistics_plots(sess, game_id: str):
                     # Add cum score for the previous turn when we appeared
                     if frame.turn_num > 2:
                         civ_cumulative_scores_by_turn[civ_id].append(actual_cum_scores_by_turn[civ.game_player.username][-2])
+                        civ_cumulative_scores_wo_survival_by_turn[civ_id].append(cum_scores_by_turn[civ.game_player.username][-2])
                     else:
                         civ_cumulative_scores_by_turn[civ_id].append(0)
+                        civ_cumulative_scores_wo_survival_by_turn[civ_id].append(0)
 
             vitality[civ_id].append(civ.vitality)
+            civ_ages[civ_id].append(civ.get_advancement_level())
 
             if civ.game_player:
                 civs_that_have_ever_had_game_player[civ_id] = civ.game_player.player_num
                 civ_scores_by_turn[civ_id].append(scores_by_turn[civ.game_player.username][-1])
                 civ_cumulative_scores_by_turn[civ_id].append(actual_cum_scores_by_turn[civ.game_player.username][-1])
+                civ_cumulative_scores_wo_survival_by_turn[civ_id].append(cum_scores_by_turn[civ.game_player.username][-1])
 
         for city_id in game_state.cities_by_id:
             city = game_state.cities_by_id[city_id]
@@ -220,11 +227,13 @@ def make_game_statistics_plots(sess, game_id: str):
     stats = {
         'score_per_turn': civ_scores_by_turn,
         'cumulative_score': civ_cumulative_scores_by_turn,
+        'cumulative_score_wo_survival': civ_cumulative_scores_wo_survival_by_turn,
         'total_yields': total_yields_by_turn,
         'military_strength': military_strength_by_turn,
         'population': population,
         'vitality': vitality,
         'game_ages': game_ages,
+        'civ_ages': civ_ages,
     }
 
     return civ_infos, stats, movie_frames
@@ -333,15 +342,6 @@ class GameState:
         city.set_territory_parent_if_needed(game_state=self)
 
         civ.gain_vps(2, "Founded Cities (2/city)")
-
-        if civ.has_ability('IncreaseYieldsForTerrainNextToSecondCity'):
-            if len([city for city in self.cities_by_id.values() if city.civ.id == civ.id]) == 2:
-                assert city.hex
-                numbers = civ.numbers_of_ability('IncreaseYieldsForTerrainNextToSecondCity')
-                for hex in city.hex.get_neighbors(self.hexes, include_self=True):
-                    if hex.terrain == numbers[1]:
-                        new_value = getattr(hex.yields, numbers[0]) + numbers[2]
-                        setattr(hex.yields, numbers[0], new_value)
 
         if civ.has_ability('IncreaseYieldsForTerrain'):
             assert city.hex
