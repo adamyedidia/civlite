@@ -18,6 +18,7 @@ import { TextOnIcon } from './TextOnIcon.js';
 import { IconUnitDisplay } from './UnitDisplay.js';
 import { BriefBuildingDisplay } from './BuildingDisplay.js';
 import { WithTooltip } from './WithTooltip.js';
+import { TechNameWithStars } from './TechDisplay.js';
 
 const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
     const bignumCharLen = bignum.length;
@@ -297,9 +298,9 @@ const ScoreDisplay = ({ myGamePlayer, gameEndScore, gameState }) => {
     </CivDetailPanel>
 }
 
-const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTechChoiceDialogOpen, setHoveredTech, disableUI}) => {
+const ScienceDisplay = ({civ, myCities, gameState, templates, setTechListDialogOpen, setTechChoiceDialogOpen, setHoveredTech, disableUI}) => {
     const tech = templates.TECHS[civ.researching_tech_name];
-    const techCost = tech?.name  === "Renaissance" ? civ.renaissance_cost : tech?.cost;
+    const techCost = tech?.name  === "Renaissance" ? civ.renaissance_cost : gameState.tech_bonuses_remaining[tech?.name] > 0 ? tech?.breakthrough_cost : tech?.cost;
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income / techCost * 100 : 0;
     const iconTooltip = <table><tbody>
@@ -311,7 +312,7 @@ const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTec
         <h2 className="tech-name" 
             onMouseEnter={tech ? () => setHoveredTech(templates.TECHS[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}  
-        > {romanNumeral(tech?.advancement_level)}. {tech?.name} </h2>
+        > {romanNumeral(tech?.advancement_level)}{tech && `. ${TechNameWithStars(tech, gameState)}`} </h2>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={tech ? `${Math.floor(civ.science)} / ${techCost}` : `${Math.floor(civ.science)} / ???`}/>
         <Button variant="contained" color="primary" onClick={() => setTechListDialogOpen(true)}>
             Tech Tree
@@ -332,7 +333,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
     return (
         <div className="upper-right-display">
             {myCiv && <WonderListDisplay wonders_by_age={mainGameState.wonders_by_age} game_age={mainGameState.advancement_level} built_wonders={mainGameState.built_wonders} cost_by_age={mainGameState.wonder_cost_by_age} templates={templates} setHoveredWonder={setHoveredWonder}/>}
-            {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} templates={templates} disableUI={disableUI}/>}
+            {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} gameState={mainGameState} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} templates={templates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} templates={templates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay playerNum={myGamePlayer?.player_num} myCiv={myCiv} myGamePlayer={myGamePlayer} turnNum={turnNum}
                 disableUI={disableUI} centerMap={centerMap} declineOptionsView={declineOptionsView} setDeclineOptionsView={setDeclineOptionsView} 

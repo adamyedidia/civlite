@@ -2,7 +2,7 @@ from typing import Optional, Union
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from ability import Ability
-from effect import CityTargetEffect
+from effect import Effect
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from wonder_template import WonderTemplate
@@ -54,7 +54,7 @@ class Building:
         return 0
     
     @property
-    def on_build(self) -> list[CityTargetEffect]:
+    def on_build(self) -> list[Effect]:
         if isinstance(self._template, BuildingTemplate):
             return self._template.on_build
         if isinstance(self._template, WonderTemplate):

@@ -316,7 +316,7 @@ class City:
             bldg.update_ruined_status(self, game_state)
             if isinstance(bldg._template, WonderTemplate) and not bldg.ruined:
                 for effect in bldg._template.per_turn:
-                    effect.apply(self, game_state)
+                    effect.apply_to_city(self, game_state)
 
     def age(self, game_state) -> int:
         assert self.founded_turn is not None, "Can't get age of a fake city."
@@ -688,7 +688,7 @@ class City:
             self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
 
         for effect in new_building.on_build:
-            effect.apply(self, game_state)
+            effect.apply_to_city(self, game_state)
 
         if isinstance(building, WonderTemplate):
             game_state.handle_wonder_built(self, building)

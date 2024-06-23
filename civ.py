@@ -329,7 +329,7 @@ class Civ:
             un_owner_civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in un_owner_ids]
             self.target1 = un_owner_civs[0].target1
             self.target2 = un_owner_civs[1].target2
-        elif random.random() < 0.2 or self.target1 is None or self.target2 is None:
+        elif random.random() < 0.2 or self.target1 is None or self.target2 is None or (self.target1.city is not None and self.target1.city.civ == self) or (self.target2.city is not None and self.target2.city.civ == self):
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             vandetta_cities: list[City] = [city for city in enemy_cities if city.civ.id == self.vandetta_civ_id]
             if len(vandetta_cities) > 0:
@@ -349,25 +349,25 @@ class Civ:
                 self.target2 = possible_target_hexes_filtered[1]
                 self.target2_coords = self.target2.coords
 
-        if self.researching_tech is None:
-            special_tech = None
-            if self.has_ability('IncreasedStrengthForUnit'):
-                special_unit_name = self.numbers_of_ability('IncreasedStrengthForUnit')[0]
-                special_unit = UNITS.by_name(special_unit_name)
-                special_tech = special_unit.prereq
+        special_tech = None
+        if self.has_ability('IncreasedStrengthForUnit'):
+            special_unit_name = self.numbers_of_ability('IncreasedStrengthForUnit')[0]
+            special_unit = UNITS.by_name(special_unit_name)
+            special_tech = special_unit.prereq
 
-            available_techs: list[TechTemplate] = [tech for tech, status in self.techs_status.items() if status == TechStatus.AVAILABLE]
+        available_techs: list[TechTemplate] = [tech for tech, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)]
 
-            if special_tech and self.techs_status[special_tech] == TechStatus.AVAILABLE:
-                chosen_tech = special_tech
+        if special_tech and self.techs_status[special_tech] == TechStatus.AVAILABLE:
+            chosen_tech = special_tech
+        else:
+            if len(available_techs) > 0:
+                chosen_tech = sorted(available_techs, key=lambda tech: (game_state.tech_bonuses_remaining[tech] > 0, self.techs_status[tech] == TechStatus.RESEARCHING, random.random()), reverse=True)
+                chosen_tech = chosen_tech[0]
             else:
-                if len(available_techs) > 0:
-                    chosen_tech = random.choice(available_techs)
-                else:
-                    print(f"{self.moniker()} has no available techs")
-                    chosen_tech = None
-            self.select_tech(chosen_tech)
-            print(f"  {self.moniker()} chose tech {chosen_tech} from {available_techs}")
+                print(f"{self.moniker()} has no available techs")
+                chosen_tech = None
+        self.select_tech(chosen_tech)
+        print(f"  {self.moniker()} chose tech {chosen_tech} from {chosen_tech}")
 
         game_state.refresh_foundability_by_civ()
 
@@ -391,6 +391,13 @@ class Civ:
     def gain_tech(self, game_state: 'GameState', tech: TechTemplate) -> None:
         self.techs_status[tech] = TechStatus.RESEARCHED
         self.fill_out_available_buildings(game_state)
+        if game_state.tech_bonuses_remaining[tech] > 0:
+            tech.breakthrough_effect.apply_to_civ(self, game_state)
+        self.gain_vps(TECH_VP_REWARD, f"Research ({TECH_VP_REWARD}/tech)")
+
+        for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
+            amount = ability.numbers[0] * tech.advancement_level
+            self.gain_vps(amount, building.building_name)
 
     def complete_research(self, tech: TechTemplate, game_state: 'GameState'):
 
@@ -417,13 +424,6 @@ class Civ:
         self.techs_status[TECHS.RENAISSANCE] = TechStatus.UNAVAILABLE
 
         self.get_new_tech_choices()
-
-        if tech != TECHS.RENAISSANCE:
-            self.gain_vps(TECH_VP_REWARD, f"Research ({TECH_VP_REWARD}/tech)")
-
-            for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
-                amount = ability.numbers[0] * tech.advancement_level
-                self.gain_vps(amount, building.building_name)
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
@@ -454,8 +454,12 @@ class Civ:
         if self.target2_coords:
             self.target2 = game_state.hexes[self.target2_coords]
 
-    def capital_city(self, game_state) -> 'City':
-        return next(city for city in game_state.cities_by_id.values() if city.civ == self and city.capital)
+    def primary_city(self, game_state) -> 'City | None':
+        cities = self.get_my_cities(game_state)
+        if len(cities) == 0:
+            return None
+        ranked = sorted(cities, key=lambda city: (city.capital, city.population, random.random()), reverse=True)
+        return ranked[0]
 
     def get_great_person(self, age: int, city: 'City'):
         self._great_people_choices_queue.append((age, city.id))

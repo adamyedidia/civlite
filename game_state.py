@@ -261,6 +261,8 @@ class GameState:
         self.fresh_cities_for_decline: dict[str, City] = {}
         self.unhappiness_threshold: float = 0.0
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
+        self.tech_bonuses_remaining = {tech: 0 for tech in TECHS.all()}
+        self.tech_bonuses_start = {tech: 0 for tech in TECHS.all()}
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -307,6 +309,18 @@ class GameState:
     def unregister_camp(self, camp):
         camp.hex.camp = None
         self.camps.remove(camp)
+
+    def initialize_tech_bonuses(self):
+        num_players = len(self.game_player_by_player_num)
+        min_bonuses = num_players // 4
+        chance_bonues = (num_players % 4) / 4
+        for tech in TECHS.all():
+            self.tech_bonuses_remaining[tech] = min_bonuses + int(random.random() < chance_bonues)
+            self.tech_bonuses_start[tech] = self.tech_bonuses_remaining[tech]
+
+    def update_tech_bonuses_remaining(self):
+        for tech in TECHS.all():
+            self.tech_bonuses_remaining[tech] = self.tech_bonuses_start[tech] - len([c for c in self.civs_by_id.values() if c.has_tech(tech)])
 
     def _sample_wonders_for_age(self, age: int, target_number) -> list[WonderTemplate]:
         all = list(WONDERS.all_by_age(age))
@@ -990,6 +1004,7 @@ class GameState:
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
         self.update_wonder_cost_by_age()
+        self.update_tech_bonuses_remaining()
 
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
@@ -1210,6 +1225,8 @@ class GameState:
             "unhappiness_threshold": self.unhappiness_threshold,
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
             "wonder_cost_by_age": self.wonder_cost_by_age,
+            "tech_bonuses_remaining": {tech.name: self.tech_bonuses_remaining[tech] for tech in TECHS.all()},
+            "tech_bonuses_start": {tech.name: self.tech_bonuses_start[tech] for tech in TECHS.all()},
         }
 
     @staticmethod
@@ -1234,6 +1251,8 @@ class GameState:
         game_state.game_over = json["game_over"]
         game_state.announcements = json["announcements"][:]
         game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
+        game_state.tech_bonuses_remaining = {tech: json["tech_bonuses_remaining"][tech.name] for tech in TECHS.all()}
+        game_state.tech_bonuses_start = {tech: json["tech_bonuses_start"][tech.name] for tech in TECHS.all()}
 
         for civ in game_state.civs_by_id.values():
             civ.from_json_postprocess(game_state)

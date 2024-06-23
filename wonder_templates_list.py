@@ -1,9 +1,25 @@
-from typing import Generator
+from typing import Generator, TYPE_CHECKING
 from abilities_list import BUILDING_ABILITIES
 from TechStatus import TechStatus
+from effect import CivTargetEffect
 from unit_templates_list import UNITS
-from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GetGreatPersonEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
+from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GetGreatPersonEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect
 from wonder_template import WonderTemplate
+
+if TYPE_CHECKING:
+    from civ import Civ
+    from game_state import GameState
+
+class ZigguratWarriorsEffect(CivTargetEffect):
+    @property
+    def description(self) -> str:
+        return "Your warriors get +1 strength & -5 health"
+    
+    def apply_to_civ(self, civ: 'Civ', game_state: 'GameState'):
+        for unit in game_state.units:
+            if unit.civ == civ and unit.template == UNITS.WARRIOR:
+                unit.strength += 1
+                unit.take_damage(5 * unit.get_stack_size(), game_state=game_state, from_civ=None)
 
 class WONDERS():
     ########################## Age 0 ##########################

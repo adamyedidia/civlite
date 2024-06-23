@@ -3,29 +3,38 @@ from typing import TYPE_CHECKING, Callable
 
 from TechStatus import TechStatus
 from terrain_template import TerrainTemplate
-from unit_templates_list import UNITS
-from effect import CityTargetEffect
-from unit_template import UnitTemplate
+from effect import Effect, CityTargetEffect, CivTargetEffect
 
 import inflect
 p = inflect.engine()
 
 if TYPE_CHECKING:
+    from unit_template import UnitTemplate
     from city import City
+    from civ import Civ
     from game_state import GameState
     from hex import Hex
+    from building_template import BuildingTemplate
 
-class NullEffect(CityTargetEffect):
+class NullEffect(Effect):
     @property
     def description(self) -> str:
         return ""
 
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
+        pass
+
+    def apply_to_civ(self, civ: 'Civ', game_state: 'GameState'):
         pass
 
 class BuildUnitsEffect(CityTargetEffect):
-    def __init__(self, unit_template: UnitTemplate, num: int, stacked: bool=False, extra_str: int=0) -> None:
-        self.unit_template = unit_template
+    def __init__(self, unit_template: 'UnitTemplate | str', num: int, stacked: bool=False, extra_str: int=0) -> None:
+        if isinstance(unit_template, str):
+            # Hack to let us use a string in tech_template_list.py
+            # without having to import UNITS and cause a circular reference.
+            self.unit_template_temp_str: str = unit_template
+        else:
+            self.unit_template = unit_template
         self.num = num
         self.stacked = stacked
         self.extra_str = extra_str
@@ -41,7 +50,7 @@ class BuildUnitsEffect(CityTargetEffect):
             desc += f" with +{self.extra_str} strength"
         return desc
 
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         stack_size = self.num if self.stacked else 1
         num_stacks = 1 if self.stacked else self.num
 
@@ -50,7 +59,41 @@ class BuildUnitsEffect(CityTargetEffect):
             if unit is not None:
                 unit.strength += self.extra_str
 
-class FreeRandomTechEffect(CityTargetEffect):
+class BuildUnitBuildingEffect(CityTargetEffect):
+    def __init__(self, unit_template: 'UnitTemplate | str') -> None:
+        if isinstance(unit_template, str):
+            # Hack to let us use a string in tech_template_list.py
+            # without having to import UNITS and cause a circular reference.
+            self.unit_template_temp_str: str = unit_template
+        else:
+            self.unit_template = unit_template
+
+    @property
+    def description(self) -> str:
+        name = self.unit_template.building_name
+        return f"Build a free {name}"
+
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
+        city.build_building(game_state=game_state, building=self.unit_template)
+
+class BuildBuildingEffect(CityTargetEffect):
+    def __init__(self, building_template: 'BuildingTemplate | str') -> None:
+        if isinstance(building_template, str):
+            # Hack to let us use a string in tech_template_list.py
+            # without having to import BUILDINGS and cause a circular reference.
+            self.building_template_temp_str: str = building_template
+        else:
+            self.building_template = building_template
+
+    @property
+    def description(self) -> str:
+        name = self.building_template.name
+        return f"Build a free {name}"
+
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
+        city.build_building(game_state=game_state, building=self.building_template)
+
+class FreeRandomTechEffect(CivTargetEffect):
     def __init__(self, age) -> None:
         self.age = age
 
@@ -58,9 +101,7 @@ class FreeRandomTechEffect(CityTargetEffect):
     def description(self) -> str:
         return f"Learn a random age {self.age} tech for free"
     
-    def apply(self, city: 'City', game_state: 'GameState'):
-        civ = city.civ
-
+    def apply_to_civ(self, civ: 'Civ', game_state: 'GameState'):
         # try at the right age, but if none available, go down to age below.
         for a in range(self.age, 0, -1):
             available_techs = [tech for tech, status in civ.techs_status.items() if status in {TechStatus.UNAVAILABLE, TechStatus.AVAILABLE} and tech.advancement_level == a]
@@ -68,6 +109,7 @@ class FreeRandomTechEffect(CityTargetEffect):
                 chosen = random.choice(available_techs)
                 civ.gain_tech(tech=chosen, game_state=game_state)
                 return
+
 
 class GainResourceEffect(CityTargetEffect):
     def __init__(self, resource: str, amount: int) -> None:
@@ -79,7 +121,7 @@ class GainResourceEffect(CityTargetEffect):
     def description(self) -> str:
         return f"Gain {self.amount} {self.resource}"
 
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         if self.resource == 'food':
             city.food += self.amount
         elif self.resource == 'wood':
@@ -114,7 +156,7 @@ class GrowEffect(CityTargetEffect):
     def description(self) -> str:
         return self._description
 
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         for _ in range(self.get_amount(city, game_state)):
             city.grow_inner(game_state=game_state)
 
@@ -123,7 +165,7 @@ class FreeNearbyCityEffect(CityTargetEffect):
     def description(self) -> str:
         return f"Build a free nearby city with 20 unhappiness"
 
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         my_civ = city.civ
         def valid_spot(hex: 'Hex') -> bool:
             if hex.camp is not None:
@@ -150,7 +192,7 @@ class RecruitBarbariansEffect(CityTargetEffect):
     def description(self) -> str:
         return f"Recruit all barbarians within {self.range} tiles (including camps)"
     
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         assert city.hex
         for hex in city.hex.get_hexes_within_range_expensive(game_state.hexes, self.range):
             if len(hex.units) > 0 and hex.units[0].civ == game_state.barbarians:
@@ -168,12 +210,12 @@ class PointsEffect(CityTargetEffect):
     def description(self) -> str:
         return self._description
     
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         value = self.calculate_points(city, game_state)
         city.civ.gain_vps(value, self._label)
 
 
-class StrengthAllUnitsEffect(CityTargetEffect):
+class StrengthAllUnitsEffect(CivTargetEffect):
     def __init__(self, amount: int) -> None:
         self.amount = amount
 
@@ -181,9 +223,9 @@ class StrengthAllUnitsEffect(CityTargetEffect):
     def description(self) -> str:
         return f"All your existing units gain {self.amount} strength"
     
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_civ(self, civ: 'Civ', game_state: 'GameState'):
         for unit in game_state.units:
-            if unit.civ == city.civ:
+            if unit.civ == civ:
                 unit.strength += self.amount
 
 class StealPopEffect(CityTargetEffect):
@@ -195,7 +237,7 @@ class StealPopEffect(CityTargetEffect):
     def description(self) -> str:
         return f"Steal {self.num} population from the {self.cities} unhappiest cities"
     
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         all_cities = list(game_state.cities_by_id.values())
         all_cities.sort(key=lambda c: c.unhappiness, reverse=True)
         for c in all_cities[:self.cities]:
@@ -208,16 +250,16 @@ class ResetHappinessThisCityEffect(CityTargetEffect):
     def description(self) -> str:
         return "Reset the happiness in this city to 0 (before income)"
     
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         city.unhappiness = 0
 
-class ResetHappinessAllCitiesEffect(CityTargetEffect):
+class ResetHappinessAllCitiesEffect(CivTargetEffect):
     @property
     def description(self) -> str:
         return "Reset the happiness in all your cities to zero (before income)"
     
-    def apply(self, city: 'City', game_state: 'GameState'):
-        for c in city.civ.get_my_cities(game_state=game_state):
+    def apply_to_civ(self, civ: 'Civ', game_state: 'GameState'):
+        for c in civ.get_my_cities(game_state=game_state):
             c.unhappiness = 0
 
 class GetGreatPersonEffect(CityTargetEffect):
@@ -228,26 +270,15 @@ class GetGreatPersonEffect(CityTargetEffect):
     def description(self) -> str:
         return f"Get a great person from {p.number_to_words(self.age_offset)} {p.plural('age', self.age_offset)} ago."  # type: ignore
     
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         city.civ.get_great_person(game_state.advancement_level - self.age_offset, city)
 
-class ZigguratWarriorsEffect(CityTargetEffect):
-    @property
-    def description(self) -> str:
-        return "Your warriors get +1 strength & -5 health"
-    
-    def apply(self, city: 'City', game_state: 'GameState'):
-        for unit in game_state.units:
-            if unit.civ == city.civ and unit.template == UNITS.WARRIOR:
-                unit.strength += 1
-                unit.take_damage(5 * unit.get_stack_size(), game_state=game_state, from_civ=None)
-
-class EndGameEffect(CityTargetEffect):
+class EndGameEffect(CivTargetEffect):
     @property
     def description(self) -> str:
         return "End the game"
     
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_civ(self, civ: 'Civ', game_state: 'GameState'):
         game_state.game_over = True
 
 class IncreaseYieldsForTerrain(CityTargetEffect):
@@ -263,7 +294,7 @@ class IncreaseYieldsForTerrain(CityTargetEffect):
         terrain_combined_str: str = " and ".join(terrain_strs)
         return f"Increase {self.resource} yields in {terrain_combined_str} around the city by {self.amount}."
 
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         assert city.hex is not None
         for hex in city.hex.get_neighbors(game_state.hexes, include_self=True):
             if hex.terrain in self.terrain:
@@ -280,7 +311,7 @@ class IncreaseYieldsInCity(CityTargetEffect):
     def description(self) -> str:
         return f"Increase {self.resource} yields in the city by {self.amount}"
 
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         assert city.hex is not None
         new_value = getattr(city.hex.yields, self.resource) + self.amount
         setattr(city.hex.yields, self.resource, new_value)
@@ -294,7 +325,7 @@ class IncreaseYieldsPerTerrainType(CityTargetEffect):
     def description(self) -> str:
         return f"Increase {self.resource} yields in the city by {self.amount} for each unique terrain type."
 
-    def apply(self, city: 'City', game_state: 'GameState'):
+    def apply_to_city(self, city: 'City', game_state: 'GameState'):
         assert city.hex is not None
         num = len(set([hex.terrain for hex in city.hex.get_neighbors(game_state.hexes, include_self=True)]))
         new_value = getattr(city.hex.yields, self.resource) + self.amount * num
