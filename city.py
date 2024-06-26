@@ -111,7 +111,7 @@ class City:
             new_territory_capital = None
         for child in children:
             if child != new_territory_capital:
-                child.set_territory_parent_if_needed(game_state)
+                child.set_territory_parent_if_needed(game_state, adopt_focus=False)
 
     def _remove_income_from_parent(self, game_state: 'GameState') -> None:
         parent: City | None = self.get_territory_parent(game_state)
@@ -125,7 +125,7 @@ class City:
         self._territory_parent_id = None
         self._territory_parent_coords = None
 
-    def set_territory_parent_if_needed(self, game_state: 'GameState') -> None:
+    def set_territory_parent_if_needed(self, game_state: 'GameState', adopt_focus: bool) -> None:
         my_territories: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self.civ and city.is_territory_capital and city != self]
         choices: list[City] = [city for city in my_territories]
         if len(my_territories) < self.civ.max_territories:
@@ -137,6 +137,8 @@ class City:
             self._remove_income_from_parent(game_state)
             self._territory_parent_id = choice.id
             self._territory_parent_coords = choice.hex.coords  # type: ignore
+            if adopt_focus:
+                self.focus = choice.focus
 
     @property
     def is_territory_capital(self) -> bool:
@@ -752,7 +754,7 @@ class City:
 
         # Fix territory parent lines
         self.orphan_territory_children(game_state)
-        self.set_territory_parent_if_needed(game_state)
+        self.set_territory_parent_if_needed(game_state, adopt_focus=True)
 
         # Reset various properties
         self.hidden_building_names = []

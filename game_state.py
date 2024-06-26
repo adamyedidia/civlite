@@ -339,7 +339,7 @@ class GameState:
         civ.city_power -= 100
         city = self.new_city(civ, hex, city_id)
         self.register_city(city)
-        city.set_territory_parent_if_needed(game_state=self)
+        city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
 
         civ.gain_vps(2, "Founded Cities (2/city)")
 
@@ -735,7 +735,7 @@ class GameState:
                     print(f"{instead_of_city_id=}")
                     if instead_of_city_id is not None:
                         instead_of_city: City = self.cities_by_id[instead_of_city_id]
-                        instead_of_city.set_territory_parent_if_needed(self)
+                        instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False)
                         instead_of_city.orphan_territory_children(self, make_new_territory=False)
                         print(f"{instead_of_city._territory_parent_id=}")
                     if previous_parent is not None and previous_parent.id != instead_of_city_id:
