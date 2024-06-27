@@ -247,22 +247,12 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / templates.UNITS[selectedCity.infinite_queue_unit].metal_cost) : 0;
     const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => templates.BUILDINGS[item] ? templates.BUILDINGS[item].cost : templates.WONDERS[item] ? gameState.wonder_cost_by_age[templates.WONDERS[item].age] : unitTemplatesByBuildingName[item] ? unitTemplatesByBuildingName[item].wood_cost : 0);
 
-    const per_population_tooltip = Object.entries(selectedCity.yields_per_population).map(([name, amount]) => amount > 0 ? `+${amount} ${name}` : '').filter(s => s).join(', ');
-
     return (
         <div className="city-detail-window" 
             style={{borderColor: myCivTemplate?.secondary_color}}>
             <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate?.primary_color}e0`}}>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
-                    <WithTooltip tooltip={`${selectedCity.population} population, each making ${per_population_tooltip}`} alignBottom={true} alignLeft={true}><div style={{ display: 'flex', alignItems: 'center' }}>
-                            <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
-                            {Object.entries(selectedCity.yields_per_population).map(([name, amount]) => (
-                    Array.from({ length: amount }).map((_, index) => {
-                        const img = name === 'food' ? foodImg : name === 'wood' ? woodImg : name === 'metal' ? metalImg : name === 'science' ? scienceImg : null;
-                        return <img key={`${name}-${index}`} src={img} alt={name} style={{ margin: '2px', width: '30px', height: 'auto' }} />
-                    })
-                ))}
-                    </div></WithTooltip>
+                    <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
                 </h1>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '60%' }}>
                     <span 
@@ -346,7 +336,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             {(isBuildingListExpanded || !canBuild) && (
                                 <div className="existing-buildings-container">
                                     {selectedCity?.buildings.map((building, index) => (
-                                        <BriefBuildingDisplay key={index} buildingName={building.building_name} buildingObj={building} clickable={false} hideCost={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} descriptions={descriptions}/>
+                                        (!unitTemplatesByBuildingName[building.building_name] && 
+                                        <BriefBuildingDisplay key={index} buildingName={building.building_name} buildingObj={building} clickable={false} hideCost={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} descriptions={descriptions}/>)
                                     ))}
                                 </div>
                             )}
@@ -391,12 +382,12 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                         </div>
                         <div className="unhappiness-income-area">
                             <WithTooltip tooltip={projectedIncome['food'] >= foodDemanded ? 
-                                `income exceeds demand; city produces city power ${projectedIncome['city-power'].toFixed(2)}` : 
+                                `income exceeds demand; city produces city power ${projectedIncome['city_power'].toFixed(2)}` : 
                                 `demand exceds income; city is gaining unhappiness ${projectedIncome['unhappiness'].toFixed(2)}`}
                             >
                                 <div className="unhappiness-income-value">
-                                    +{projectedIncome['city-power'] > 0 ? Math.floor(projectedIncome['city-power']) : Math.floor(projectedIncome['unhappiness'])}
-                                    <img src={projectedIncome['city-power'] > 0 ? cityImg : sadImg}  alt="" height="30px"/>
+                                    +{projectedIncome['city_power'] > 0 ? Math.floor(projectedIncome['city_power']) : Math.floor(projectedIncome['unhappiness'])}
+                                    <img src={projectedIncome['city_ppower'] > 0 ? cityImg : sadImg}  alt="" height="30px"/>
                                 </div>
                             </WithTooltip>
                             <WithTooltip tooltip={foodDemandTooltip}>

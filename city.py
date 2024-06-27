@@ -7,7 +7,6 @@ from civ import Civ
 from camp import Camp
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
-from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity, IncreaseYieldsPerTerrainType
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
 from unit import Unit
 from unit_template import UnitTemplate
@@ -20,6 +19,7 @@ import random
 from typing import Dict
 import traceback
 from city_names import CITY_NAMES_BY_CIV
+from yields import Yields
 
 if TYPE_CHECKING:
     from hex import Hex
@@ -28,15 +28,6 @@ if TYPE_CHECKING:
 
 TRADE_HUB_CITY_POWER_PER_TURN = 20
 
-def resourcedict() -> Dict[str, float]:
-    return {
-        "food": 0.0,
-        "wood": 0.0,
-        "metal": 0.0,
-        "science": 0.0,
-        "city-power": 0.0,
-        "unhappiness": 0.0,
-    }
 
 class City:
     def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
@@ -66,10 +57,10 @@ class City:
         self._territory_parent_id: Optional[str] = None
         self._territory_parent_coords: Optional[str] = None
         self.available_units: list[UnitTemplate] = []
-        self.projected_income = resourcedict()
-        self.projected_income_base = resourcedict()  # income without focus
-        self.projected_income_focus = resourcedict()  # income from focus
-        self.projected_income_puppets: dict[str, dict[str, float]] = {'wood': {}, 'metal': {}}
+        self.projected_income = Yields()
+        self.projected_income_base = Yields()  # income without focus
+        self.projected_income_focus = Yields()  # income from focus
+        self.projected_income_puppets: dict[str, dict[str, tuple[float, int]]] = {'wood': {}, 'metal': {}} # (amount, distance)
         self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
         self.hidden_building_names: list[str] = []
@@ -182,26 +173,25 @@ class City:
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
-            self.projected_income = resourcedict()
-            self.projected_income_base = resourcedict()
-            self.projected_income_focus = resourcedict()
+            self.projected_income = Yields()
+            self.projected_income_base = Yields()
+            self.projected_income_focus = Yields()
         self.projected_income_base = self._get_projected_yields_without_focus(game_state)
         self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
         self.food_demand: float = self._calculate_food_demand(game_state)
 
-        self.projected_income = self.projected_income_base.copy()
-        self.projected_income[self.focus] += self.projected_income_focus[self.focus]
+        self.projected_income = self.projected_income_base + {self.focus: self.projected_income_focus[self.focus]}
  
-        self.projected_income['unhappiness'] = max(0, self.food_demand - self.projected_income['food'])
-        self.projected_income['city-power'] = max(0, self.projected_income['food'] - self.food_demand)
+        self.projected_income.unhappiness = max(0, self.food_demand - self.projected_income.food)
+        self.projected_income.city_power = max(0, self.projected_income.food - self.food_demand)
 
         if self.is_trade_hub():
             city_power_to_consume: float = min(
                 TRADE_HUB_CITY_POWER_PER_TURN, 
                 self.civ.city_power, 
-                2 * (self.unhappiness + self.projected_income['unhappiness']))
-            self.projected_income["unhappiness"] -= 0.5 * city_power_to_consume
-            self.projected_income['city-power'] -= city_power_to_consume
+                2 * (self.unhappiness + self.projected_income.unhappiness))
+            self.projected_income.unhappiness -= 0.5 * city_power_to_consume
+            self.projected_income.city_power -= city_power_to_consume
 
         # If I'm a puppet, give my yields to my parent.
         parent: City | None = self.get_territory_parent(game_state)
@@ -210,72 +200,47 @@ class City:
             assert parent.hex is not None
             distance: int = self.hex.distance_to(parent.hex)
             distance_penalty: float = parent.puppet_distance_penalty() * distance
-            parent.projected_income_puppets['wood'][self.name] = self.projected_income['wood'] * (1 - distance_penalty)
-            parent.projected_income_puppets['metal'][self.name] = self.projected_income['metal'] * (1 - distance_penalty)
+            parent.projected_income_puppets['wood'][self.name] = (self.projected_income.wood * (1 - distance_penalty), distance)
+            parent.projected_income_puppets['metal'][self.name] = (self.projected_income.metal * (1 - distance_penalty), distance)
             parent.adjust_projected_yields(game_state)
         else:
-            for key, puppets_dict in self.projected_income_puppets.items():
-                self.projected_income[key] += sum(puppet_income for puppet_income in puppets_dict.values())
+            self.projected_income += {key: sum(amnt for amnt, distance in puppet_vals.values()) for key, puppet_vals in self.projected_income_puppets.items()}
 
-    def _yields_per_population(self) -> dict[str, int]:
-        yields_per_population = {
-            "food": 0,
-            "metal": 0,
-            "wood": 0,
-            "science": 1,
-        }
-
-        for ability, _ in self.passive_building_abilities_of_name('IncreaseYieldsPerPopulation'):
-            yields_per_population[ability.numbers[0]] += ability.numbers[1]
-        return yields_per_population
-
-    def _get_projected_yields_without_focus(self, game_state) -> dict[str, float]:
-        vitality = self.civ.vitality
-        yields = resourcedict()
+    def _get_projected_yields_without_focus(self, game_state) -> Yields:
+        yields = Yields(food=2, science=self.population)
 
         assert self.hex
 
         for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
-            yields["food"] += hex.yields.food * vitality
-            yields["metal"] += hex.yields.metal * vitality
-            yields["wood"] += hex.yields.wood * vitality
-            yields["science"] += hex.yields.science * vitality
-        
-        yields_per_population = self._yields_per_population()
-        for key in yields_per_population:
-            yields[key] += self.population * yields_per_population[key] * vitality
+            yields += hex.yields
 
+        for bldg in self.buildings:
+            yields += bldg.calculate_yields(self, game_state)
 
-        yields["food"] += 2 * vitality
-        return yields
+        return yields * self.civ.vitality
 
-    def _get_projected_yields_from_focus(self, game_state) -> dict[str, float]:
-        vitality = self.civ.vitality
-        yields = resourcedict()
-        yields["food"] += self.population * vitality
-        yields["metal"] += self.population * vitality
-        yields["wood"] += self.population * vitality
-        yields["science"] += self.population * vitality
+    def _get_projected_yields_from_focus(self, game_state) -> Yields:
+        yields = Yields(metal=1, wood=1, science=1, food=1) * self.population
 
         if self.civ.has_ability('IncreaseFocusYields'):
             bonus_resource, count = self.civ.numbers_of_ability('IncreaseFocusYields')
-            yields[bonus_resource] += count
+            yields += {bonus_resource: count}
         for ability, _ in self.passive_building_abilities_of_name('IncreaseFocusYieldsPerPopulation'):
             focus, amount_per_pop = ability.numbers
-            yields[focus] += amount_per_pop * self.population * vitality
+            yields += {focus: amount_per_pop * self.population}
 
-        return yields
+        return yields * self.civ.vitality
 
     def harvest_yields(self, game_state: 'GameState') -> None:
         self.adjust_projected_yields(game_state)  # TODO(dfarhi) this probably shouldn't be neessary since it should be called whenever teh state changes?
-        self.food += self.projected_income["food"]
-        self.civ.science += self.projected_income["science"]
-        self.civ.city_power += self.projected_income["food"]
-        self.unhappiness += self.projected_income['unhappiness']
+        self.food += self.projected_income.food
+        self.civ.science += self.projected_income.science
+        self.civ.city_power += self.projected_income.city_power
+        self.unhappiness += self.projected_income.unhappiness
 
         if self.is_territory_capital:
-            self.wood += self.projected_income["wood"]
-            self.metal += self.projected_income["metal"]
+            self.wood += self.projected_income.wood
+            self.metal += self.projected_income.metal
 
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
@@ -418,28 +383,11 @@ class City:
         for template in new_available_bldgs:
             building_template = template if isinstance(template, BuildingTemplate) else None
             if building_template is not None:
-                total_yields: float = 0
                 total_pseudoyields: float = 0
                 is_economic_building = False
-                for effect in building_template.on_build:
-                    if isinstance(effect, IncreaseYieldsForTerrain):
-                        is_economic_building = True
-                        for terrain in effect.terrain:
-                            total_yields += int(effect.amount * (self.terrains_dict.get(terrain) or 0))
-
-                    if isinstance(effect, IncreaseYieldsInCity):
-                        is_economic_building = True
-                        total_yields += int(effect.amount)
-
-                    if isinstance(effect, IncreaseYieldsPerTerrainType):
-                        is_economic_building = True
-                        total_yields += int(effect.amount * len(self.terrains_dict))
+                building_yields = building_template.calculate_yields.calculate(self) if building_template.calculate_yields is not None else Yields()
 
                 for ability in building_template.abilities:
-                    if ability.name == 'IncreaseYieldsPerPopulation':
-                        is_economic_building = True
-                        total_yields += int(ability.numbers[1] * self.population)
-
                     if ability.name == "CityGrowthCostReduction":
                         is_economic_building = True
                         ratio = ability.numbers[0]
@@ -448,9 +396,8 @@ class City:
                         total_pseudoyields += int(effective_income_bonus / self.civ.vitality)
 
                     if ability.name == "DecreaseFoodDemand":
-                        is_economic_building = True
                         unhappiness_saved: float = min(ability.numbers[0], self.food_demand)
-                        total_yields += unhappiness_saved  # Display the raw number to humans
+                        building_yields.unhappiness = unhappiness_saved
 
                         # Decide how much AI cares
                         if self.civ_to_revolt_into is not None:
@@ -464,9 +411,16 @@ class City:
                             total_pseudoyields -= 0.5 * unhappiness_saved
 
                     if ability.name == "ReducePuppetDistancePenalty":
-                        is_economic_building = True
-                        yields = sum(sum(puppets_incomes.values()) for puppets_incomes in self.projected_income_puppets.values())
-                        total_yields += round(yields * (self.puppet_distance_penalty() - ability.numbers[0]), ndigits=1)
+                        building_yields += {
+                            resource: sum(
+                                amount / (1 - self.puppet_distance_penalty() * distance) * (self.puppet_distance_penalty() - ability.numbers[0]) * distance
+                                for amount, distance in puppet_infos.values()
+                            ) * (self.puppet_distance_penalty() - ability.numbers[0])
+                            for resource, puppet_infos in self.projected_income_puppets.items()}
+                        
+                total_yields = building_yields.total()
+                is_economic_building = total_yields > 0 or is_economic_building
+                print(building_template, building_yields, total_yields, total_pseudoyields)
 
                 if building_template.is_national_wonder:
                     self.available_buildings_to_descriptions[building_template.name] = {
@@ -1028,11 +982,10 @@ class City:
             "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
             "capital": self.capital,
             "available_units": [u.name for u in self.available_units],
-            "projected_income": self.projected_income,
-            "projected_income_base": self.projected_income_base,
-            "projected_income_focus": self.projected_income_focus,
+            "projected_income": self.projected_income.to_json(),
+            "projected_income_base": self.projected_income_base.to_json(),
+            "projected_income_focus": self.projected_income_focus.to_json(),
             "projected_income_puppets": self.projected_income_puppets,
-            "yields_per_population": self._yields_per_population(),
             "growth_cost": self.growth_cost(),
             "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
             "hidden_building_names": self.hidden_building_names,
@@ -1074,9 +1027,9 @@ class City:
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
         city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UNITS.by_name(json["infinite_queue_unit"])
         city.focus = json["focus"]
-        city.projected_income = json["projected_income"]
-        city.projected_income_base = json["projected_income_base"]
-        city.projected_income_focus = json["projected_income_focus"]
+        city.projected_income = Yields(**json["projected_income"])
+        city.projected_income_base = Yields(**json["projected_income_base"])
+        city.projected_income_focus = Yields(**json["projected_income_focus"])
         city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
         city.hidden_building_names = json.get("hidden_building_names") or []
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None

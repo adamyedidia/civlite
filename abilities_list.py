@@ -56,11 +56,6 @@ CIV_ABILITIES: dict[str, Callable] = {
 }
 
 BUILDING_ABILITIES: dict[str, Callable] = {
-    "IncreaseYieldsPerPopulation": lambda x, y: Ability(
-        name="IncreaseYieldsPerPopulation",
-        description=f"Increase {x} yields per population in the city by {y}.",
-        numbers=[x, y],
-    ),
     "CityGrowthCostReduction": lambda x: Ability(
         name="CityGrowthCostReduction",
         description=f"Reduce the cost of city growth by {'{:.0%}'.format(x)}.",

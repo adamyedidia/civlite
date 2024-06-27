@@ -11,8 +11,11 @@ from tech_template import TechTemplate
 
 from typing import TYPE_CHECKING
 
+from yields import Yields
+
 if TYPE_CHECKING:
     from game_state import GameState
+    from city import City
 
 class Building:
     def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate]) -> None:
@@ -77,6 +80,11 @@ class Building:
         if isinstance(self._template, WonderTemplate) and self.ruined:
             return []
         return [ability for ability in self._template.abilities if ability.name == ability_name]
+
+    def calculate_yields(self, city: 'City', game_state: 'GameState') -> Yields:
+        if isinstance(self._template, BuildingTemplate) and self._template.calculate_yields is not None:
+            return self._template.calculate_yields.calculate(city)
+        return Yields()
 
     def to_json(self) -> dict:
         return {

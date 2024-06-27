@@ -3055,7 +3055,6 @@ export default function GamePage() {
                                         ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
                                         style={{visibility: 'hidden'}}
                                     />
-                                    {hex.buff_counts && !hex.city ? <HexBuffIcons buff_counts={hex.buff_counts} hex_based_seed={(13 * hex.q + 17 * hex.r + 19 * hex.s) / 971} /> : null}
                                     {hex.yields ? <YieldImages yields={hex.yields} /> : null}
                                 </Hexagon>
                             );
