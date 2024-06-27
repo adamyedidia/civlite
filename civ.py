@@ -226,12 +226,15 @@ class Civ:
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
         self.available_buildings = [building for building in BUILDINGS.all() if (
             (building.prereq is None or self.has_tech(building.prereq))
-            and (not building.is_national_wonder or not building.name in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
+            and (not building.name in game_state.one_per_civs_built_by_civ_id.get(self.id, []))
         )]
         self.available_unit_buildings: list[UnitTemplate] = [
             unit for unit in UNITS.all() 
             if unit.buildable and (unit.prereq is None or self.has_tech(unit.prereq))
+            and (not unit.building_name in game_state.one_per_civs_built_by_civ_id.get(self.id, []))
             ]
+        
+        print(self.moniker(), self.available_buildings)
 
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:

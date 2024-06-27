@@ -16,7 +16,6 @@ class BuildingTemplate:
                  cost: int, 
                  on_build: CityTargetEffect | list[CityTargetEffect] = [],
                  abilities: list[dict[str, Union[str, list]]] = [], 
-                 is_national_wonder: bool = False, 
                  vp_reward: Optional[int] = None, 
                  prereq: Optional[TechTemplate] = None,
                  exclusion_group: Optional[str] = None,
@@ -27,7 +26,6 @@ class BuildingTemplate:
         self.cost = cost
         self.on_build: list[CityTargetEffect] = on_build if isinstance(on_build, list) else [on_build]
         self.abilities: list[Ability] = [BUILDING_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
-        self.is_national_wonder = is_national_wonder
         self.vp_reward: int | None = vp_reward
         self.prereq: TechTemplate | None = prereq
         self.exclusion_group: str | None = exclusion_group
@@ -45,7 +43,6 @@ class BuildingTemplate:
             "cost": self.cost,
             "description": [f"On build: {effect.description}" for effect in self.on_build] + [f"Passive: {ability.description}" for ability in self.abilities] + ([f"Yields: {self.calculate_yields.description}"] if self.calculate_yields else []),
             "vp_reward": self.vp_reward,
-            "is_national_wonder": self.is_national_wonder,
             "prereq": self.prereq.name if self.prereq else None,
             "exclusion_group": self.exclusion_group,
         }

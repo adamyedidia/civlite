@@ -90,7 +90,6 @@ class BUILDINGS():
             "name": "ExtraTerritory",
             "numbers": [],
         }],
-        is_national_wonder=True,
         prereq=TECHS.MATHEMATICS,
     )
     UNIVERSITY = BuildingTemplate(
@@ -240,7 +239,6 @@ class BUILDINGS():
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["metal", 2],
         }],
-        is_national_wonder=True,
         prereq=TECHS.MACHINERY,
     )
     NATIONAL_COLLEGE = BuildingTemplate(
@@ -251,7 +249,6 @@ class BUILDINGS():
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["science", 2],
         }],
-        is_national_wonder=True,
         prereq=TECHS.EDUCATION,
     )
     TIMBERWORKS = BuildingTemplate(
@@ -262,7 +259,6 @@ class BUILDINGS():
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["wood", 2],
         }],
-        is_national_wonder=True,
         prereq=TECHS.ENGINEERING,
     )
     HUSBANDRY_CENTER = BuildingTemplate(
@@ -273,7 +269,6 @@ class BUILDINGS():
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["food", 2],
         }],
-        is_national_wonder=True,
         prereq=TECHS.IRRIGATION,
     )
     GRAND_PALACE = BuildingTemplate(
@@ -281,7 +276,6 @@ class BUILDINGS():
         type="economy",
         cost=100,
         on_build=ResetHappinessThisCityEffect(),
-        is_national_wonder=True,
         prereq=TECHS.MILITARY_SCIENCE,
     )
     INDUSTRIAL_FARM = BuildingTemplate(

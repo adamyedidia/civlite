@@ -2172,8 +2172,6 @@ export default function GamePage() {
             
             const getTypeOrder = (type) => {
                 switch (type) {
-                    case 'national-wonder':
-                        return 0;
                     case 'vp':
                         return 1;
                     case 'yield':

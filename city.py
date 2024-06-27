@@ -375,6 +375,7 @@ class City:
         if not self.hex:
             return
         
+        print(self.civ.available_buildings)
         new_available_bldgs = self.get_available_buildings(include_in_queue=True)
 
         # Validate queue
@@ -422,13 +423,7 @@ class City:
                 is_economic_building = total_yields > 0 or is_economic_building
                 print(building_template, building_yields, total_yields, total_pseudoyields)
 
-                if building_template.is_national_wonder:
-                    self.available_buildings_to_descriptions[building_template.name] = {
-                        "type": "national-wonder",
-                        "value": 0,
-                    }
-
-                elif building_template.vp_reward is not None and building_template.vp_reward > 0:
+                if building_template.vp_reward is not None and building_template.vp_reward > 0:
                     self.available_buildings_to_descriptions[building_template.name] = {
                         "type": "vp",
                         "value": building_template.vp_reward,
@@ -649,16 +644,17 @@ class City:
         if isinstance(building, WonderTemplate):
             game_state.handle_wonder_built(self, building)
 
-        if new_building.is_national_wonder:
-            if self.civ.id not in game_state.national_wonders_built_by_civ_id:
-                game_state.national_wonders_built_by_civ_id[self.civ.id] = [building.name]
+        if new_building.one_per_civ:
+            if self.civ.id not in game_state.one_per_civs_built_by_civ_id:
+                game_state.one_per_civs_built_by_civ_id[self.civ.id] = [new_building.building_name]
             else:
-                game_state.national_wonders_built_by_civ_id[self.civ.id].append(building.name)
+                game_state.one_per_civs_built_by_civ_id[self.civ.id].append(new_building.building_name)
 
-        if new_building.is_national_wonder or isinstance(building, WonderTemplate):
             # Clear it from any other cities immediately; you can't build two in one turn.
             for city in self.civ.get_my_cities(game_state):
                 city.buildings_queue = [b for b in city.buildings_queue if b.name != building.name]
+
+        print(self.civ.moniker(), game_state.one_per_civs_built_by_civ_id[self.civ.id])
 
     def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
         if self.hex is None:
@@ -679,8 +675,6 @@ class City:
         highest_unit_level = max([0] + [u.advancement_level() for u in self.civ.available_unit_buildings])
         for building in self.get_available_buildings():
             if isinstance(building, BuildingTemplate):
-                if building.is_national_wonder:
-                    continue
                 desc = self.available_buildings_to_descriptions[building.name]
                 if desc.get('type') == 'yield' and desc.get('value') == 0 and desc.get('value_for_ai') == 0:
                     self.toggle_discard(building.name, hidden=True)
@@ -699,9 +693,9 @@ class City:
 
         # Re-assign global wonders, and remove national wonders.
         for building in self.buildings:
-            if building.is_national_wonder:
-                game_state.national_wonders_built_by_civ_id[self.civ.id].remove(building.building_name)
-        self.buildings = [b for b in self.buildings if not b.is_national_wonder]
+            if building.one_per_civ:
+                game_state.one_per_civs_built_by_civ_id[self.civ.id].remove(building.building_name)
+        self.buildings = [b for b in self.buildings if not b.destroy_on_owner_change]
 
         # Change the civ
         self.civ = civ
@@ -835,24 +829,17 @@ class City:
         return max(affordable_choices, key=lambda x: (x.age, random.random()))
 
     def bot_pick_economic_building(self, choices: list[BuildingTemplate]) -> Optional[BuildingTemplate]:
-        national_wonders = [building for building in choices if building.is_national_wonder]
-        nonwonders = [building for building in choices if not building.is_national_wonder]
-
-        existing_national_wonders: bool = any([building.is_national_wonder for building in self.buildings])
-        if len(national_wonders) > 0 and not existing_national_wonders and self.population >= 4:
-            return random.choice(national_wonders)
-
-        if len(nonwonders) > 0:
+        if len(choices) > 0:
             # print(f"    Choosing nonwonder; {self.available_buildings_to_descriptions=}")
             ACCEPTABLE_PAYOFF_TURNS = 8
             inverse_payoff_turns: dict[BuildingTemplate, float] = {
                 building: float(self.available_buildings_to_descriptions[building.name].get('value_for_ai', 0)) / building.cost
-                for building in nonwonders
+                for building in choices
                 if building.name in self.available_buildings_to_descriptions and 'value_for_ai' in self.available_buildings_to_descriptions[building.name]
             }
             print(f"    {inverse_payoff_turns=}")
-            if len(nonwonders) > len(inverse_payoff_turns):
-                print(f"**** didn't consider these non-yield buildings: {set(nonwonders) - set(inverse_payoff_turns.keys() )}")
+            if len(choices) > len(inverse_payoff_turns):
+                print(f"**** didn't consider these non-yield buildings: {set(choices) - set(inverse_payoff_turns.keys() )}")
             if len(inverse_payoff_turns) > 0:
                 # calulcate the argmin of the payoff turns
                 best_building = max(inverse_payoff_turns, key=lambda x: inverse_payoff_turns.get(x, 0))
@@ -943,8 +930,6 @@ class City:
             focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
             if len(focuses_with_best_yields) == 1:
                 self.focus = focuses_with_best_yields[0]
-            elif len(production_city.buildings_queue) > 0 and isinstance(production_city.buildings_queue[0], BuildingTemplate) and production_city.buildings_queue[0].is_national_wonder:
-                self.focus = 'wood'
             elif self.population < 3 and 'food' in focuses_with_best_yields:
                 self.focus = 'food'
             elif production_city.infinite_queue_unit is not None and 'metal' in focuses_with_best_yields:

@@ -37,8 +37,12 @@ class Building:
         return "unit" if isinstance(self._template, UnitTemplate) else "building" if isinstance(self._template, BuildingTemplate) else "wonder"
 
     @property
-    def is_national_wonder(self) -> bool:
-        return isinstance(self._template, BuildingTemplate) and self._template.is_national_wonder
+    def one_per_civ(self) -> bool:
+        return True
+    
+    @property
+    def destroy_on_owner_change(self) -> bool:
+        return isinstance(self._template, BuildingTemplate)
     
     @property
     def prereq(self) -> Optional[TechTemplate]:
