@@ -1,7 +1,7 @@
 from typing import Generator
 from building_template import BuildingTemplate
 from terrain_templates_list import TERRAINS
-from effects_list import IncreaseYieldsForTerrain, IncreaseYieldsInCity, IncreaseYieldsPerTerrainType, ResetHappinessThisCityEffect
+from effects_list import BuildBuildingEffect, IncreaseYieldsForTerrain, IncreaseYieldsInCity, IncreaseYieldsPerTerrainType, ResetHappinessThisCityEffect
 from tech_templates_list import TECHS
 
 class BUILDINGS():
@@ -349,3 +349,8 @@ class BUILDINGS():
             if item.name == name:
                 return item
         raise KeyError(f'No item with name {name}')
+    
+# Hack to set up circular references without importing BUILDINGS in TECHS.
+for tech in TECHS.all():
+    if isinstance(tech.breakthrough_effect, BuildBuildingEffect):
+        tech.breakthrough_effect.building_template = BUILDINGS.by_name(tech.breakthrough_effect.building_template_temp_str)

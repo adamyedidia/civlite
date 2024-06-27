@@ -5,6 +5,7 @@ import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from "@mui
 import { IconUnitDisplay } from "./UnitDisplay";
 import { BriefBuildingDisplay } from "./BuildingDisplay";
 import scienceImg from './images/science.png';
+import { TechNameWithStars } from "./TechDisplay";
 
 const TechColumn = ({children}) => {
     return <div className="tech-column">{children}</div>
@@ -42,7 +43,7 @@ const TechCard = ({tech, gameState, templates, myCiv, setHoveredTech, handleClic
     onClick={() => myCiv.techs_status[tech.name] === 'available' && handleClickTech(tech)}
 
     >
-        <div className="tech-tree-card-title">{tech.name}</div>
+        <div className="tech-tree-card-title">{TechNameWithStars(tech, gameState)}</div>
         <div className="tech-tree-card-effects">
             <div className="tech-tree-card-units">
                 {tech.unlocks_units.map((unitName, index) => {

@@ -1,4 +1,5 @@
 from typing import Generator
+from effects_list import BuildUnitBuildingEffect, BuildUnitsEffect
 from unit_template import UnitTemplate, UnitTag
 from tech_templates_list import TECHS
 
@@ -676,3 +677,8 @@ class UNITS():
 UNITS_BY_BUILDING_NAME = {
     unit.building_name: unit for unit in UNITS.all() if unit.building_name is not None
 }
+
+# Hack to set up circular references without importing UNITS in TECHS.
+for tech in TECHS.all():
+    if isinstance(tech.breakthrough_effect, BuildUnitsEffect) or isinstance(tech.breakthrough_effect, BuildUnitBuildingEffect):
+        tech.breakthrough_effect.unit_template = UNITS.by_name(tech.breakthrough_effect.unit_template_temp_str)

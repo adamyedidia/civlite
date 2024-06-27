@@ -1,7 +1,7 @@
 from typing import Optional, Union
 from abilities_list import BUILDING_ABILITIES
 from ability import Ability
-from effect import CityTargetEffect
+from effect import Effect
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 
@@ -10,7 +10,7 @@ class BuildingTemplate:
                  name: str, 
                  type: str, 
                  cost: int, 
-                 on_build: CityTargetEffect | list[CityTargetEffect] = [],
+                 on_build: Effect | list[Effect] = [],
                  abilities: list[dict[str, Union[str, list]]] = [], 
                  is_national_wonder: bool = False, 
                  vp_reward: Optional[int] = None, 
@@ -19,7 +19,7 @@ class BuildingTemplate:
         self.name = name
         self.type = type
         self.cost = cost
-        self.on_build: list[CityTargetEffect] = on_build if isinstance(on_build, list) else [on_build]
+        self.on_build: list[Effect] = on_build if isinstance(on_build, list) else [on_build]
         self.abilities: list[Ability] = [BUILDING_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
         self.is_national_wonder = is_national_wonder
         self.vp_reward: int | None = vp_reward
