@@ -73,3 +73,7 @@
 .brief-building-card.core-economic, .building-card.core-economic {
     background-color: #e08b5e;
 }
+
+.brief-building-card.faded {
+    opacity: 0.5;
+}

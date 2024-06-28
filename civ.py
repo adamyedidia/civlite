@@ -37,6 +37,7 @@ class Civ:
         self.city_power = 0.0
         self.available_buildings: list[BuildingTemplate] = []
         self.available_unit_buildings: list[UnitTemplate] = []
+        self.buildings_in_all_queues: list[str] = []
         self.target1: Optional['Hex'] = None
         self.target2: Optional['Hex'] = None
         self.target1_coords: Optional[str] = None
@@ -88,6 +89,7 @@ class Civ:
 
     def midturn_update(self, game_state):
         self.adjust_projected_yields(game_state)
+        self.refresh_queues_cache(game_state)
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         self.projected_science_income = 0.0
@@ -207,6 +209,7 @@ class Civ:
             "city_power": self.city_power,
             "available_buildings": [b.name for b in self.available_buildings],
             "available_unit_buildings": [u.name for u in self.available_unit_buildings],
+            "buildings_in_all_queues": self.buildings_in_all_queues,
             "target1": self.target1.coords if self.target1 else None,
             "target2": self.target2.coords if self.target2 else None,
             "projected_science_income": self.projected_science_income,
@@ -236,6 +239,11 @@ class Civ:
         
         print(self.moniker(), self.available_buildings)
 
+    def refresh_queues_cache(self, game_state: 'GameState'):
+        self.buildings_in_all_queues = [b.building_name if isinstance(b, UnitTemplate) else b.name for city in self.get_my_cities(game_state) for b in city.buildings_queue]
+        print(self.moniker(), self.buildings_in_all_queues)
+        for city in self.get_my_cities(game_state):
+            print(city.name, city.buildings_queue)
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
         """
@@ -497,6 +505,7 @@ class Civ:
         civ.city_power = json["city_power"]
         civ.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
         civ.available_unit_buildings = [UNITS.by_name(u) for u in json["available_unit_buildings"]]
+        civ.buildings_in_all_queues = json["buildings_in_all_queues"]
         civ.target1_coords = json["target1"]
         civ.target2_coords = json["target2"]
         civ.projected_science_income = json["projected_science_income"]

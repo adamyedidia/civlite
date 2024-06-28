@@ -13,7 +13,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions }) => {
+export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -38,7 +38,7 @@ export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wond
     const cost = !hideCost && (building_type == 'UNIT' ? building.wood_cost : building_type == 'BUILDING' ? building.cost : building_type == 'WONDER' ? wonderCostsByAge[building.age] : null);
     return (
         <div 
-            className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''}`} 
+            className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''} ${faded ? 'faded' : ''}`} 
             onClick={onClick}
             onMouseEnter={() => building_type == 'WONDER' ? setHoveredWonder(building) : setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : setHoveredBuilding(null)} // clear on mouse leave

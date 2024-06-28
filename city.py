@@ -375,7 +375,6 @@ class City:
         if not self.hex:
             return
         
-        print(self.civ.available_buildings)
         new_available_bldgs = self.get_available_buildings(include_in_queue=True)
 
         # Validate queue
@@ -654,8 +653,6 @@ class City:
             for city in self.civ.get_my_cities(game_state):
                 city.buildings_queue = [b for b in city.buildings_queue if b.name != building.name]
 
-        print(self.civ.moniker(), game_state.one_per_civs_built_by_civ_id[self.civ.id])
-
     def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
         if self.hex is None:
             return None
@@ -818,7 +815,7 @@ class City:
                 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         self.civ = civs_by_id[self.civ_id]
-        self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None                                    
+        self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
 
     def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
         affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost_by_age[age] <= self.wood + self.projected_income['wood']}
@@ -956,7 +953,7 @@ class City:
             "metal": self.metal,
             "wood": self.wood,
             "focus": self.focus,
-            "under_siege_by_civ": self.under_siege_by_civ.to_json() if self.under_siege_by_civ else None,
+            "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
             "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
             "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
@@ -1003,7 +1000,7 @@ class City:
         city.food = json["food"]
         city.metal = json["metal"]
         city.wood = json["wood"]
-        city.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
+        city.under_siege_by_civ = json["under_siege_by_civ_id"]
         city.capital = json["capital"]
         city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BUILDINGS.by_name(building) if building in [b.name for b in BUILDINGS.all()] else WONDERS.by_name(building) for building in json["buildings_queue"]]
         city.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
@@ -1030,6 +1027,8 @@ class City:
 
         return city
 
+    def from_json_postprocess(self, game_state: 'GameState'):
+        self.under_siege_by_civ = game_state.civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
 
 CITY_NAMES = {
     "Miami",

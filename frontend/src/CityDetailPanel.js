@@ -47,7 +47,7 @@ const PuppetIncomeTooltip = ({projectedIncomePuppets, projectedIncomePuppetsTota
     return (<>
         <b>{projectedIncomePuppetsTotal.toFixed(2)} {title} from puppets:</b>
         <table><tbody>
-            {Object.entries(projectedIncomePuppets).map(([puppetId, income]) => <tr key={puppetId}><td>+{income.toFixed(2)}</td><td>{puppetId}</td></tr>)}
+            {Object.entries(projectedIncomePuppets).map(([puppetId, incomeAndDistance]) => <tr key={puppetId}><td>+{incomeAndDistance[0].toFixed(2)}</td><td>{puppetId}</td></tr>)}
         </tbody></table>
     </>);
 }
@@ -70,7 +70,7 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
     const projectedIncomePuppets = selectedCity?.projected_income_puppets?.[title];
     const hasPuppetsEvenIfNoIncome = Object.keys(selectedCity?.projected_income_puppets?.["wood"] || {}).length > 0;
     const hasPuppets = projectedIncomePuppets && Object.keys(projectedIncomePuppets).length > 0;
-    const projectedIncomePuppetsTotal = hasPuppets ? Object.values(projectedIncomePuppets).reduce((total, puppetIncome) => total + puppetIncome, 0) : null;
+    const projectedIncomePuppetsTotal = hasPuppets ? Object.values(projectedIncomePuppets).reduce((total, puppetIncomeAndDistance) => total + puppetIncomeAndDistance[0], 0) : null;
     const projectedIncomePuppetsTooltip = hasPuppets ? <PuppetIncomeTooltip title={title} projectedIncomePuppets={projectedIncomePuppets} projectedIncomePuppetsTotal={projectedIncomePuppetsTotal} /> : null;
     return (
         <div className={`city-detail-panel ${title}-area`}>

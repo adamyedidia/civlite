@@ -619,9 +619,12 @@ class GameState:
                 else:
                     raise ValueError(f"Unknown building name {building_name}")
                 city.buildings_queue.append(building)
+                for other_city in city.civ.get_my_cities(self):
+                    if other_city != city and other_city.buildings_queue:
+                        other_city.buildings_queue = [b for b in other_city.buildings_queue if b != building]
                 game_player_to_return = game_player
 
-                city.refresh_available_buildings()
+                self.midturn_update()
 
             if move['move_type'] == 'cancel_building':
                 building_name = move['building_name']
@@ -638,7 +641,7 @@ class GameState:
 
                 game_player_to_return = game_player
 
-                city.refresh_available_buildings()
+                self.midturn_update()
 
             if move['move_type'] == 'hide_building':
                 building_name = move['building_name']

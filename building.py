@@ -38,7 +38,7 @@ class Building:
 
     @property
     def one_per_civ(self) -> bool:
-        return True
+        return self._template != UNITS.WARRIOR
     
     @property
     def destroy_on_owner_change(self) -> bool:

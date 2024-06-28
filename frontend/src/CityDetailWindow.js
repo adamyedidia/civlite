@@ -299,12 +299,21 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                 if (!showHiddenBuildings && hidden) {
                                     return null;
                                 }
+                                const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
                                 return <div key={index} className={`building-choices-row ${hidden ? 'hidden' : ''}`}>
                                     <img src={hidden ? closedEyeImg : eyeImg} alt="" height="20px" className="clickable" onClick={() => handleHideBuilding(buildingName, !hidden)} style={{
                                         border: '2px solid black',
                                         borderRadius: '50%',
                                     }}/>
-                                    <BriefBuildingDisplay buildingName={buildingName} wonderCostsByAge={gameState.wonder_cost_by_age} clickable={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} onClick={() => handleClickBuildingChoice(buildingName)} descriptions={descriptions} />
+                                    <BriefBuildingDisplay 
+                                        buildingName={buildingName}
+                                        faded={inOtherQueue}
+                                        wonderCostsByAge={gameState.wonder_cost_by_age}
+                                        clickable={true}
+                                        unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates}
+                                        setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder}
+                                        onClick={() => handleClickBuildingChoice(buildingName)}
+                                        descriptions={descriptions} />
                                 </div>
                             })}
                         </div>
@@ -387,7 +396,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             >
                                 <div className="unhappiness-income-value">
                                     +{projectedIncome['city_power'] > 0 ? Math.floor(projectedIncome['city_power']) : Math.floor(projectedIncome['unhappiness'])}
-                                    <img src={projectedIncome['city_ppower'] > 0 ? cityImg : sadImg}  alt="" height="30px"/>
+                                    <img src={projectedIncome['city_power'] > 0 ? cityImg : sadImg}  alt="" height="30px"/>
                                 </div>
                             </WithTooltip>
                             <WithTooltip tooltip={foodDemandTooltip}>
