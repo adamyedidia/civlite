@@ -252,7 +252,7 @@ class GameState:
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {}
         self.built_wonders: dict[WonderTemplate, WonderBuiltInfo] = {}
         self.wonder_cost_by_age: dict[int, int] = BASE_WONDER_COST.copy()
-        self.one_per_civs_built_by_civ_id: dict[str, list[str]] = {}
+        self.one_per_civs_built_by_civ_id: dict[str, dict[str, str]] = {}  # civ_id: {building_name: city_id}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
         self.advancement_level_progress = 0.0
@@ -479,7 +479,7 @@ class GameState:
         game_player.all_civ_ids.append(civ.id)
         game_player.decline_this_turn = True
         self.make_new_civ_from_the_ashes(city)
-        civ.get_great_person(self.advancement_level, city)
+        civ.get_great_person(self.advancement_level, city, self)
         print(f"New civ {civ} great people choices: {civ.great_people_choices}")
 
         return from_civ_perspectives
@@ -1201,7 +1201,7 @@ class GameState:
             "wonders_by_age": {age: [wonder.name for wonder in wonders] for age, wonders in self.wonders_by_age.items()},
             "built_wonders": {wonder.name: built_wonder.to_json() for wonder, built_wonder in self.built_wonders.items()},
             "available_wonders": [w.name for w in self.available_wonders()],
-            "one_per_civs_built_by_civ_id": {k: v[:] for k, v in self.one_per_civs_built_by_civ_id.items()},
+            "one_per_civs_built_by_civ_id": {civ_id: {building_name: city_id for building_name, city_id in v.items()} for civ_id, v in self.one_per_civs_built_by_civ_id.items()},
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
             "advancement_level": self.advancement_level,
@@ -1231,7 +1231,7 @@ class GameState:
         game_state.wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["wonders_by_age"].items()}
         game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json) for wonder_name, wonder_json in json["built_wonders"].items()}
         game_state.wonder_cost_by_age = {int(age): cost for age, cost in json["wonder_cost_by_age"].items()}
-        game_state.one_per_civs_built_by_civ_id = {k: v[:] for k, v in json["one_per_civs_built_by_civ_id"].items()}
+        game_state.one_per_civs_built_by_civ_id = {civ_id: {building_name: city_id for building_name, city_id in v.items()} for civ_id, v in json["one_per_civs_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}
         game_state.game_over = json["game_over"]

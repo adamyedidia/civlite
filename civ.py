@@ -237,13 +237,8 @@ class Civ:
             and (not unit.building_name in game_state.one_per_civs_built_by_civ_id.get(self.id, []))
             ]
         
-        print(self.moniker(), self.available_buildings)
-
     def refresh_queues_cache(self, game_state: 'GameState'):
         self.buildings_in_all_queues = [b.building_name if isinstance(b, UnitTemplate) else b.name for city in self.get_my_cities(game_state) for b in city.buildings_queue]
-        print(self.moniker(), self.buildings_in_all_queues)
-        for city in self.get_my_cities(game_state):
-            print(city.name, city.buildings_queue)
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
         """
@@ -468,18 +463,20 @@ class Civ:
     def capital_city(self, game_state) -> 'City':
         return next(city for city in game_state.cities_by_id.values() if city.civ == self and city.capital)
 
-    def get_great_person(self, age: int, city: 'City'):
+    def get_great_person(self, age: int, city: 'City', game_state: 'GameState'):
         self._great_people_choices_queue.append((age, city.id))
-        self._pop_great_people_choices_queue_if_needed()
+        self._pop_great_people_choices_queue_if_needed(game_state)
 
-    def _pop_great_people_choices_queue_if_needed(self):
+    def _pop_great_people_choices_queue_if_needed(self, game_state):
         if len(self.great_people_choices) == 0 and len(self._great_people_choices_queue) > 0:
             age, city_id = self._great_people_choices_queue.pop(0)
+            city = game_state.cities_by_id[city_id]
             all_great_people = great_people_by_age(age)
-            valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_civ(self)]
+            valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_city(city)]
             random.shuffle(valid_great_people)
             self.great_people_choices = valid_great_people[:3]
             self._great_people_choices_city_id = city_id
+            print(f"Civ {self.moniker()} earned a great person. Chose {self.great_people_choices} from valid options: {valid_great_people}")
 
     def select_great_person(self, game_state: 'GameState', great_person_name):
         assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
@@ -490,7 +487,7 @@ class Civ:
         game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
         self.great_people_choices = []
         self._great_people_choices_city_id = None
-        self._pop_great_people_choices_queue_if_needed()
+        self._pop_great_people_choices_queue_if_needed(game_state)
 
     @staticmethod
     def from_json(json: dict) -> "Civ":

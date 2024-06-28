@@ -229,7 +229,7 @@ class GetGreatPersonEffect(CityTargetEffect):
         return f"Get a great person from {p.number_to_words(self.age_offset)} {p.plural('age', self.age_offset)} ago."  # type: ignore
     
     def apply(self, city: 'City', game_state: 'GameState'):
-        city.civ.get_great_person(game_state.advancement_level - self.age_offset, city)
+        city.civ.get_great_person(game_state.advancement_level - self.age_offset, city, game_state)
 
 class ZigguratWarriorsEffect(CityTargetEffect):
     @property

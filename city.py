@@ -388,6 +388,12 @@ class City:
                 building_yields = building_template.calculate_yields.calculate(self) if building_template.calculate_yields is not None else Yields()
 
                 for ability in building_template.abilities:
+                    if ability.name == "IncreaseFocusYieldsPerPopulation":
+                        is_economic_building = True
+                        resource: str = ability.numbers[0]
+                        amount: int = ability.numbers[1]
+                        building_yields += Yields(**{resource: self.population * amount})
+
                     if ability.name == "CityGrowthCostReduction":
                         is_economic_building = True
                         ratio = ability.numbers[0]
@@ -420,7 +426,6 @@ class City:
                         
                 total_yields = building_yields.total()
                 is_economic_building = total_yields > 0 or is_economic_building
-                print(building_template, building_yields, total_yields, total_pseudoyields)
 
                 if building_template.vp_reward is not None and building_template.vp_reward > 0:
                     self.available_buildings_to_descriptions[building_template.name] = {
@@ -645,9 +650,9 @@ class City:
 
         if new_building.one_per_civ:
             if self.civ.id not in game_state.one_per_civs_built_by_civ_id:
-                game_state.one_per_civs_built_by_civ_id[self.civ.id] = [new_building.building_name]
+                game_state.one_per_civs_built_by_civ_id[self.civ.id] = {new_building.building_name: self.id}
             else:
-                game_state.one_per_civs_built_by_civ_id[self.civ.id].append(new_building.building_name)
+                game_state.one_per_civs_built_by_civ_id[self.civ.id][new_building.building_name] = self.id
 
             # Clear it from any other cities immediately; you can't build two in one turn.
             for city in self.civ.get_my_cities(game_state):
@@ -690,8 +695,8 @@ class City:
 
         # Re-assign global wonders, and remove national wonders.
         for building in self.buildings:
-            if building.one_per_civ:
-                game_state.one_per_civs_built_by_civ_id[self.civ.id].remove(building.building_name)
+            if building.one_per_civ and game_state.one_per_civs_built_by_civ_id.get(self.civ.id, {}).get(building.building_name) == self.id:
+                del game_state.one_per_civs_built_by_civ_id[self.civ.id][building.building_name]
         self.buildings = [b for b in self.buildings if not b.destroy_on_owner_change]
 
         # Change the civ
