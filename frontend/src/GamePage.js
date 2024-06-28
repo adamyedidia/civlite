@@ -2783,7 +2783,7 @@ export default function GamePage() {
             <>
                 {isHovered && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="white" strokeWidth="0.2"/>}
                 {isSelected && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="black" strokeWidth="0.2"/>}
-                {city.under_siege_by_civ && <svg width="6" height="6" viewBox="0 0 6 6" x={-3} y={isUnitInHex ? -4 : -3}>
+                {city.under_siege_by_civ_id && <svg width="6" height="6" viewBox="0 0 6 6" x={-3} y={isUnitInHex ? -4 : -3}>
                         <image href="/images/fire.svg" x="0" y="0" height="6" width="6" />
                     </svg>
                 }
@@ -2850,7 +2850,7 @@ export default function GamePage() {
     
         return (
             <>
-                {camp.under_siege_by_civ && <svg width="5" height="5" viewBox="0 0 5 5" x={-2.5} y={isUnitInHex ? -3.5 : -2.5}>
+                {camp.under_siege_by_civ_id && <svg width="5" height="5" viewBox="0 0 5 5" x={-2.5} y={isUnitInHex ? -3.5 : -2.5}>
                         <image href="/images/fire.svg" x="0" y="0" height="5" width="5" />
                     </svg>
                 }
