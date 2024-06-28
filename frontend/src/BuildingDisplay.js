@@ -13,7 +13,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions }) => {
+export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -34,11 +34,11 @@ export const BriefBuildingDisplay = ({ buildingName, buildingObj, hideCost, wond
         descriptionStr = ` (+${description.value})`;
     }
 
-    const building_class = building_type == 'WONDER' ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : building_type == 'UNIT' ? 'military' : building?.exclusion_group ? 'core-economic' : 'economic';
+    const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.exclusion_group ? 'core-economic' : 'economic';
     const cost = !hideCost && (building_type == 'UNIT' ? building.wood_cost : building_type == 'BUILDING' ? building.cost : building_type == 'WONDER' ? wonderCostsByAge[building.age] : null);
     return (
         <div 
-            className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''}`} 
+            className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''} ${faded ? 'faded' : ''}`} 
             onClick={onClick}
             onMouseEnter={() => building_type == 'WONDER' ? setHoveredWonder(building) : setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : setHoveredBuilding(null)} // clear on mouse leave
@@ -63,7 +63,7 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
         building_type = 'UNIT';
         building = unitTemplatesByBuildingName?.[buildingName];
     }
-    const building_class = building_type == 'WONDER' ? 'wonder' : building?.is_national_wonder ? 'national-wonder' : building_type == 'UNIT' ? 'military' : building?.exclusion_group ? 'core-economic' : 'economic';
+    const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.exclusion_group ? 'core-economic' : 'economic';
 
     return (
         unitTemplatesByBuildingName[buildingName] ? 
@@ -79,7 +79,6 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
                 <h2>{templates.BUILDINGS[buildingName]?.name}</h2>
                 <p>Cost: {templates.BUILDINGS[buildingName]?.cost} wood</p>
                 {templates.BUILDINGS[buildingName]?.vp_reward && <p>VP reward: {templates.BUILDINGS[buildingName]?.vp_reward}</p>}
-                {templates.BUILDINGS[buildingName]?.is_national_wonder && <p>National Wonder</p>}
                 <ul>
                     {templates.BUILDINGS[buildingName]?.description.map((description, index) => (
                         <li key={index}>{description}</li>

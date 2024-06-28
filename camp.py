@@ -159,7 +159,7 @@ class Camp:
 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         self.civ = civs_by_id[self.civ_id]
-        self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ.id] if self.under_siege_by_civ else None            
+        self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.handle_siege(sess, game_state)
@@ -169,7 +169,7 @@ class Camp:
     def to_json(self):
         return {
             "id": self.id,
-            "under_siege_by_civ": self.under_siege_by_civ.to_json() if self.under_siege_by_civ else None,
+            "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
             "civ_id": self.civ.id,
             "unit": self.unit.name
@@ -180,8 +180,7 @@ class Camp:
         camp = Camp(civ=None)  # type: ignore
         camp.id = json["id"]
         camp.civ_id = json["civ_id"]
-        camp.under_siege_by_civ = Civ.from_json(json["under_siege_by_civ"]) if json["under_siege_by_civ"] else None
+        camp.under_siege_by_civ = json["under_siege_by_civ_id"]
         camp.unit = UNITS.by_name(json["unit"])
         return camp
-
 

@@ -64,9 +64,6 @@
 .brief-building-card.wonder, .building-card.wonder {
     background-color: #b66dc0;
 }
-.brief-building-card.national-wonder, .building-card.national-wonder {
-    background-color: #eeaaee;
-}
 .brief-building-card.military, .building-card.military {
     background-color: #bbbbbb;
 }
@@ -75,4 +72,8 @@
 }
 .brief-building-card.core-economic, .building-card.core-economic {
     background-color: #e08b5e;
+}
+
+.brief-building-card.faded {
+    opacity: 0.5;
 }

@@ -51,7 +51,7 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     const iconTooltip = <table><tbody>
         <tr><td> +10 </td><td> base </td></tr>
         {myCities?.map((city, index) => {
-            const amount = Math.floor(city.projected_income['city-power']);
+            const amount = Math.floor(city.projected_income['city_power']);
             return amount !== 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
         })}
     </tbody></table>
@@ -140,14 +140,6 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
             <TextOnIcon image={workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
                 <b>{city.population}</b>
             </TextOnIcon>
-            <div style={{ display: 'flex', alignItems: 'center', width: '30px' }}>
-                {Object.entries(city.yields_per_population).map(([name, amount]) => (
-                        Array.from({ length: amount }).map((_, index) => {
-                            const img = name === 'food' ? foodImg : name === 'wood' ? woodImg : name === 'metal' ? metalImg : name === 'science' ? scienceImg : null;
-                            return <img key={`${name}-${index}`} src={img} alt={name} style={{ width: '10px', height: 'auto' }} />
-                        })
-                    ))}
-            </div>
             <div className="unit-count" style={{visibility: city.revolt_unit_count > 0 ? "visible" : "hidden" }}>
                 {city.revolt_unit_count}
             </div>

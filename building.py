@@ -11,8 +11,11 @@ from tech_template import TechTemplate
 
 from typing import TYPE_CHECKING
 
+from yields import Yields
+
 if TYPE_CHECKING:
     from game_state import GameState
+    from city import City
 
 class Building:
     def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate]) -> None:
@@ -34,8 +37,12 @@ class Building:
         return "unit" if isinstance(self._template, UnitTemplate) else "building" if isinstance(self._template, BuildingTemplate) else "wonder"
 
     @property
-    def is_national_wonder(self) -> bool:
-        return isinstance(self._template, BuildingTemplate) and self._template.is_national_wonder
+    def one_per_civ(self) -> bool:
+        return self._template != UNITS.WARRIOR
+    
+    @property
+    def destroy_on_owner_change(self) -> bool:
+        return isinstance(self._template, BuildingTemplate)
     
     @property
     def prereq(self) -> Optional[TechTemplate]:
@@ -77,6 +84,11 @@ class Building:
         if isinstance(self._template, WonderTemplate) and self.ruined:
             return []
         return [ability for ability in self._template.abilities if ability.name == ability_name]
+
+    def calculate_yields(self, city: 'City', game_state: 'GameState') -> Yields:
+        if isinstance(self._template, BuildingTemplate) and self._template.calculate_yields is not None:
+            return self._template.calculate_yields.calculate(city)
+        return Yields()
 
     def to_json(self) -> dict:
         return {

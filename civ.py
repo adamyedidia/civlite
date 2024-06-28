@@ -37,6 +37,7 @@ class Civ:
         self.city_power = 0.0
         self.available_buildings: list[BuildingTemplate] = []
         self.available_unit_buildings: list[UnitTemplate] = []
+        self.buildings_in_all_queues: list[str] = []
         self.target1: Optional['Hex'] = None
         self.target2: Optional['Hex'] = None
         self.target1_coords: Optional[str] = None
@@ -88,6 +89,7 @@ class Civ:
 
     def midturn_update(self, game_state):
         self.adjust_projected_yields(game_state)
+        self.refresh_queues_cache(game_state)
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         self.projected_science_income = 0.0
@@ -95,8 +97,8 @@ class Civ:
 
         for city in game_state.cities_by_id.values():
             if city.civ.id == self.id:
-                self.projected_science_income += city.projected_income['science']
-                self.projected_city_power_income += city.projected_income['city-power']
+                self.projected_science_income += city.projected_income.science
+                self.projected_city_power_income += city.projected_income.city_power
 
     def has_tech(self, tech: TechTemplate) -> bool:
         return self.techs_status[tech] == TechStatus.RESEARCHED
@@ -207,6 +209,7 @@ class Civ:
             "city_power": self.city_power,
             "available_buildings": [b.name for b in self.available_buildings],
             "available_unit_buildings": [u.name for u in self.available_unit_buildings],
+            "buildings_in_all_queues": self.buildings_in_all_queues,
             "target1": self.target1.coords if self.target1 else None,
             "target2": self.target2.coords if self.target2 else None,
             "projected_science_income": self.projected_science_income,
@@ -226,13 +229,16 @@ class Civ:
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
         self.available_buildings = [building for building in BUILDINGS.all() if (
             (building.prereq is None or self.has_tech(building.prereq))
-            and (not building.is_national_wonder or not building.name in (game_state.national_wonders_built_by_civ_id.get(self.id) or []))
+            and (not building.name in game_state.one_per_civs_built_by_civ_id.get(self.id, []))
         )]
         self.available_unit_buildings: list[UnitTemplate] = [
             unit for unit in UNITS.all() 
             if unit.buildable and (unit.prereq is None or self.has_tech(unit.prereq))
+            and (not unit.building_name in game_state.one_per_civs_built_by_civ_id.get(self.id, []))
             ]
-
+        
+    def refresh_queues_cache(self, game_state: 'GameState'):
+        self.buildings_in_all_queues = [b.building_name if isinstance(b, UnitTemplate) else b.name for city in self.get_my_cities(game_state) for b in city.buildings_queue]
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
         """
@@ -457,18 +463,20 @@ class Civ:
     def capital_city(self, game_state) -> 'City':
         return next(city for city in game_state.cities_by_id.values() if city.civ == self and city.capital)
 
-    def get_great_person(self, age: int, city: 'City'):
+    def get_great_person(self, age: int, city: 'City', game_state: 'GameState'):
         self._great_people_choices_queue.append((age, city.id))
-        self._pop_great_people_choices_queue_if_needed()
+        self._pop_great_people_choices_queue_if_needed(game_state)
 
-    def _pop_great_people_choices_queue_if_needed(self):
+    def _pop_great_people_choices_queue_if_needed(self, game_state):
         if len(self.great_people_choices) == 0 and len(self._great_people_choices_queue) > 0:
             age, city_id = self._great_people_choices_queue.pop(0)
+            city = game_state.cities_by_id[city_id]
             all_great_people = great_people_by_age(age)
-            valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_civ(self)]
+            valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_city(city)]
             random.shuffle(valid_great_people)
             self.great_people_choices = valid_great_people[:3]
             self._great_people_choices_city_id = city_id
+            print(f"Civ {self.moniker()} earned a great person. Chose {self.great_people_choices} from valid options: {valid_great_people}")
 
     def select_great_person(self, game_state: 'GameState', great_person_name):
         assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
@@ -479,7 +487,7 @@ class Civ:
         game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
         self.great_people_choices = []
         self._great_people_choices_city_id = None
-        self._pop_great_people_choices_queue_if_needed()
+        self._pop_great_people_choices_queue_if_needed(game_state)
 
     @staticmethod
     def from_json(json: dict) -> "Civ":
@@ -494,6 +502,7 @@ class Civ:
         civ.city_power = json["city_power"]
         civ.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
         civ.available_unit_buildings = [UNITS.by_name(u) for u in json["available_unit_buildings"]]
+        civ.buildings_in_all_queues = json["buildings_in_all_queues"]
         civ.target1_coords = json["target1"]
         civ.target2_coords = json["target2"]
         civ.projected_science_income = json["projected_science_income"]
