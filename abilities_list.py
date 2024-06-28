@@ -87,7 +87,7 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         numbers=[x],
     ),
     "NewUnitsGainBonusStrength": lambda x: Ability(
-        name="UnitsHaveExtraStrength",
+        name="NewUnitsGainBonusStrength",
         description=f"New units you build get +{x} extra strength.",
         numbers=[x],
     ),    
