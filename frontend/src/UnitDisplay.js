@@ -29,15 +29,19 @@ export const BriefUnitDisplay = ({ unitName, templates, onClick, setHoveredUnit 
 };
 
 export const IconUnitDisplay = ({ unitName, templates, style, onClick, setHoveredUnit }) => {
-    const unit = templates.UNITS[unitName];
-    const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
+    let unit;
+    if (unitName) {
+        unit = templates.UNITS[unitName];
+        const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
+        style = { ...style, backgroundImage: `url(${unitImage})`}
+    }
     return (
         <div 
             className="unit-icon" 
             onClick={onClick}
-            onMouseEnter={() => setHoveredUnit && setHoveredUnit(unit)} // set on mouse enter
+            onMouseEnter={() => setHoveredUnit && unit && setHoveredUnit(unit)} // set on mouse enter
             onMouseLeave={() => setHoveredUnit && setHoveredUnit(null)} // clear on mouse leave
-            style={{ ...style, backgroundImage: `url(${unitImage})`}}
+            style={style}
         />
     );
 };

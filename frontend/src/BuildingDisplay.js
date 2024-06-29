@@ -31,7 +31,8 @@ export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCos
     let descriptionStr = null;
 
     if (description?.type === 'yield' && !(description.value_for_ai > description.value)) {
-        descriptionStr = ` (+${description.value})`;
+        const rounded_val = Number.isInteger(description.value) ? description.value : description.value.toFixed(1);
+        descriptionStr = ` (+${rounded_val})`;
     }
 
     const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.exclusion_group ? 'core-economic' : 'economic';

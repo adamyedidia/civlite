@@ -24,8 +24,7 @@ import ProgressBar from './ProgressBar.js';
 import { WithTooltip } from './WithTooltip.js';
 
 const UnitQueueOption = ({unitName, isCurrentIQUnit, canBuild, templates, setHoveredUnit, handleSetInfiniteQueue}) => {
-    return <WithTooltip tooltip={canBuild ? "Toggle infinite queue." : "Cannot build units here."}>
-    <div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''} ${canBuild ? 'enabled' : 'disabled'}`}
+    let content = <div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''} ${canBuild ? 'enabled' : 'disabled'}`}
         onClick={(event) => {
             if (!canBuild) return;
             // click to toggle infinite queue
@@ -41,12 +40,17 @@ const UnitQueueOption = ({unitName, isCurrentIQUnit, canBuild, templates, setHov
             setHoveredUnit={setHoveredUnit} 
             style={{borderRadius: '25%'}} 
         />
-        <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px"}}>
+        {unitName && <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px"}}>
             {templates.UNITS[unitName].metal_cost}
             <img src={metalImg} alt="" height="10px"/>
+            </div>}
         </div>
-    </div>
-    </WithTooltip>;
+    if (unitName) {
+        content = <WithTooltip tooltip={canBuild ? "Toggle infinite queue." : "Cannot build units here."}>
+            {content}
+        </WithTooltip>
+    }
+    return content;
 }
 
 const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
@@ -440,6 +444,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                     isCurrentIQUnit={canBuild && selectedCity.infinite_queue_unit === unitName} 
                                     templates={templates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue}/>
                             ))}
+                        {Array.from({ length: 3 - selectedCityUnitChoices.length }).map((_, index) => (
+                            <UnitQueueOption key={`empty-${index}`} unitName={null} canBuild={false} isCurrentIQUnit={false}/>
+                        ))}
                         </div>
                     )}
                     {canBuild && <div>

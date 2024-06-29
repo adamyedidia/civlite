@@ -36,6 +36,9 @@ class BuildingTemplate:
     def __repr__(self):
         return f"<BuildingTemplate {self.name})>"
 
+    def advancement_level(self) -> int:
+        return self.prereq.advancement_level if self.prereq else 0
+
     def to_json(self) -> dict:
         return {
             "name": self.name,

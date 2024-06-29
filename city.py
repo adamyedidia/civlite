@@ -463,7 +463,7 @@ class City:
 
     def refresh_available_units(self) -> None:
         self.available_units = [unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
-        self.available_units.sort(key=lambda unit: (unit.advancement_level(), unit.metal_cost, unit.name))
+        self.available_units.sort()
 
     def has_production_building_for_unit(self, unit: UnitTemplate) -> bool:
         return self.has_building(unit.building_name)
@@ -488,7 +488,9 @@ class City:
                                              not building.exclusion_group in exclusion_groups_in_queue and
                                              not self.has_building(building.name) and
                                              not self.has_building_exclusion_group(building.exclusion_group)]
-        unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
+        current_unit_bldgs = [b for b in self.buildings if b.type == "unit"]
+        current_bottom_unit_tier = min(b.advancement_level for b in current_unit_bldgs) if len(current_unit_bldgs) >= 3 else -1
+        unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if unit.advancement_level() > current_bottom_unit_tier and not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
         return [*wonders, *buildings, *unit_buildings]
 
     def build_units(self, game_state: 'GameState') -> None:
@@ -639,6 +641,12 @@ class City:
         if isinstance(building, UnitTemplate):
             self.infinite_queue_unit = building
 
+            existing_unit_buildings = [b for b in self.buildings if b.type == "unit"][:-1]
+            # Prune down to max
+            if len(existing_unit_buildings) >= 3:
+                bldg_to_remove = min(existing_unit_buildings, key=lambda b: b._template)  # type: ignore
+                self.buildings.remove(bldg_to_remove)
+
         if new_building.vp_reward > 0:
             self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
 
@@ -749,14 +757,6 @@ class City:
         self.unhappiness = 0
         self.wood /= 2
         self.metal /= 2
-
-        military_bldgs = [building for building in self.buildings if isinstance(building._template, UnitTemplate)]
-        military_bldgs.sort(key=lambda unit: (-unit._template.advancement_level(), random.random()))  # type: ignore
-        best_3 = military_bldgs[:3]
-        top_level = [building for building in military_bldgs if building._template.advancement_level() == military_bldgs[0]._template.advancement_level()]  # type: ignore
-        for building in military_bldgs:
-            if building not in best_3 and building not in top_level:
-                self.buildings.remove(building)
 
         if civ.id not in self.ever_controlled_by_civ_ids:
             civ.gain_vps(CITY_CAPTURE_REWARD, "City Capture (5/city)")

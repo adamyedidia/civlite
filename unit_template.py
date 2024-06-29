@@ -35,10 +35,14 @@ class UnitTemplate:
             prereq.unlocks_units.append(self)
         self.great_people_names = great_people_names
 
-
-
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"
+
+    def _priority(self) -> tuple:
+        return (self.advancement_level(), self.wood_cost, self.metal_cost, self.strength, self.range, self.movement)
+
+    def __lt__(self, other: "UnitTemplate") -> bool:
+        return self._priority() < other._priority()
 
     def advancement_level(self):
         if self.prereq is None:

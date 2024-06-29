@@ -73,6 +73,16 @@ class Building:
         if isinstance(self._template, BuildingTemplate):
             return self._template.exclusion_group
         return None
+    
+    @property
+    def advancement_level(self) -> int:
+        if isinstance(self._template, BuildingTemplate):
+            return self._template.advancement_level()
+        elif isinstance(self._template, UnitTemplate):
+            return self._template.advancement_level()
+        elif isinstance(self._template, WonderTemplate):
+            return self._template.age
+        return 0
 
     def update_ruined_status(self, city, game_state: 'GameState') -> None:
         if isinstance(self._template, WonderTemplate):
