@@ -101,6 +101,16 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Receive {x} extra VP for each city you capture.",
         numbers=[x],
     ),
+    "UnitsExtraStrengthByTag": lambda x, y: Ability(
+        name="UnitsExtraStrengthByTag",
+        description=f"{x} units built get +{y} strength",
+        numbers=[x, y],
+    ),
+    "UnitsExtraStrengthByAge": lambda x, y: Ability(
+        name="UnitsExtraStrengthByAge",
+        description=f"Units of age {x} or earlier get +{y} strength",
+        numbers=[x, y],
+    ),
 }
 
 UNIT_ABILITIES: dict[str, Callable] = {

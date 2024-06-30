@@ -14,6 +14,26 @@ class BUILDINGS():
         prereq=TECHS.FORESTRY,
         exclusion_group="a1",
     )
+    TRAINING_GROUNDS = BuildingTemplate(
+        name="Training Grounds",
+        type="military",
+        cost=15,
+        prereq=TECHS.FORESTRY,
+        abilities=[{
+            "name": "UnitsExtraStrengthByAge",
+            "numbers": [2, 1],
+        }],
+    )
+    PASTURE = BuildingTemplate(
+        name="Pasture",
+        type="military",
+        cost=15,
+        prereq=TECHS.IRRIGATION,
+        abilities=[{
+            "name": "UnitsExtraStrengthByTag",
+            "numbers": ["mounted", 1],
+        }],
+    )
     GRANARY = BuildingTemplate(
         name="Granary",
         type="economy",
