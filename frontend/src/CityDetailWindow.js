@@ -349,7 +349,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             {(isBuildingListExpanded || !canBuild) && (
                                 <div className="existing-buildings-container">
                                     {selectedCity?.buildings.map((building, index) => (
-                                        (!unitTemplatesByBuildingName[building.building_name] && 
+                                        (!unitTemplatesByBuildingName[building.building_name] && !building.ruined && 
                                         <BriefBuildingDisplay key={index} buildingName={building.building_name} buildingObj={building} clickable={false} hideCost={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} descriptions={descriptions}/>)
                                     ))}
                                 </div>
