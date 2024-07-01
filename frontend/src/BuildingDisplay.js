@@ -5,6 +5,7 @@ import woodImg from './images/wood.png';
 import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
 import metalImg from './images/metal.png';
+import { WithTooltip } from './WithTooltip';
 
 const SingleYieldDisplay = ({ yield_value, img }) => {
     return (
@@ -35,7 +36,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions, yields }) => {
+export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions, yields, payoffTime }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -51,7 +52,6 @@ export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCos
     const description = descriptions?.[buildingName];
     let descriptionObj = "";
 
-    console.log(buildingName, yields)
     if (yields) {
         descriptionObj = <div style = {{display: 'inline-block'}}><YieldsDisplay yields={yields} /></div>;
     }
@@ -70,7 +70,14 @@ export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCos
             onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : setHoveredBuilding(null)} // clear on mouse leave
             style={style}
         >
-            <span className="building-name">{building?.building_name || building?.name} {descriptionObj ? <span>({descriptionObj})</span>: ""}{buildingObj?.ruined ? ' (Ruins)' : ''}</span>
+            <span className="building-name">
+                <WithTooltip alignBottom={true} tooltip={payoffTime ? <><div>With vitality decay, a {buildingName} will take {payoffTime} turns to pay back building cost.</div> <div>Assumes resources equally valuable & building income doesn't change.</div></> : null}>
+                {building?.building_name || building?.name}
+                {descriptionObj ? <span> ({descriptionObj}) </span>: ""}
+                {buildingObj?.ruined ? ' (Ruins)' : ''}
+                {payoffTime && <span> ({payoffTime}⏱) </span>}
+                </WithTooltip>
+            </span>
             {!hideCost && <span className="building-cost">{cost} <img src={woodImg} alt="" width="16" height="16" /></span>}
         </div>
     );

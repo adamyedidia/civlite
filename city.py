@@ -1,3 +1,4 @@
+import math
 from typing import TYPE_CHECKING, Generator, Optional, Union
 from building import Building
 from building_template import BuildingTemplate
@@ -7,7 +8,7 @@ from civ import Civ
 from camp import Camp
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
-from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD
+from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, VITALITY_DECAY_RATE
 from unit import Unit
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS, UNITS_BY_BUILDING_NAME
@@ -54,6 +55,7 @@ class City:
         self.available_wonders: list[WonderTemplate] = []
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, float, int]]] = {}
         self.building_yields: dict[str, Yields] = {}
+        self.available_buildings_payoff_times: dict[str, int] = {}
         self.capital = False
         self._territory_parent_id: Optional[str] = None
         self._territory_parent_coords: Optional[str] = None
@@ -447,6 +449,15 @@ class City:
                 
                 if building_yields.total() > 0:
                     self.building_yields[building_template.name] = building_yields
+                    # How much will it produce next turn?
+                    actual_yields = building_yields.total() * (self.civ.vitality * VITALITY_DECAY_RATE)
+                    yield_to_cost_ratio = actual_yields / building_template.cost
+                    # need to find time t such that 1 = yield_to_cost_ratio * (1 - VITALITY_DECAY_RATE ^ t) / (1 - VITALITY_DECAY_RATE)
+                    payoff_vitality = 1 - (1 - VITALITY_DECAY_RATE) / yield_to_cost_ratio
+                    payoff_turns = math.ceil(math.log(payoff_vitality, VITALITY_DECAY_RATE)) if payoff_vitality > 0 else -1
+                    # Add 1 to account for the first turn (when it makes no yields since we're building it).
+                    payoff_turns += 1
+                    self.available_buildings_payoff_times[building_template.name] = payoff_turns
                 else:
                     pass
                     # TODO should we make sure it's not in the dict?
@@ -977,6 +988,7 @@ class City:
             "available_buildings": [b.name for b in self.available_buildings],
             "available_wonders": [w.name for w in self.available_wonders],
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
+            "available_buildings_payoff_times": self.available_buildings_payoff_times,
             "building_yields": {name: yields.to_json() for name, yields in self.building_yields.items()},
             "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
             "capital": self.capital,
@@ -1023,6 +1035,7 @@ class City:
         city.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
         city.available_wonders = [WONDERS.by_name(w) for w in json["available_wonders"]]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
+        city.available_buildings_payoff_times = json["available_buildings_payoff_times"]
         city.building_yields = {name: Yields(**yields) for name, yields in json["building_yields"].items()}
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
         city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UNITS.by_name(json["infinite_queue_unit"])

@@ -335,7 +335,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                         setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder}
                                         onClick={() => handleClickBuildingChoice(buildingName)}
                                         descriptions={descriptions}
-                                        yields = {selectedCity.building_yields?.[buildingName]} />
+                                        yields = {selectedCity.building_yields?.[buildingName]} 
+                                        payoffTime = {selectedCity.available_buildings_payoff_times?.[buildingName]}
+                                        />
                                 </div>
                             })}
                         </div>
@@ -347,7 +349,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCityBuildingQueue.map((buildingName, index) => (
                                 <div key={index} className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions} yields={selectedCity.building_yields?.[buildingName]}/>
+                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions} yields={selectedCity.building_yields?.[buildingName]} payoffTime = {selectedCity.available_buildings_payoff_times?.[buildingName]}/>
                                 </div>
                             ))}
                         </div>

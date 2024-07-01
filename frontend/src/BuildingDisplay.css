@@ -104,10 +104,11 @@
 .single-yield-display {
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: 2px;
 }
 
 .single-yield-display img {
-    height: 1em;
+    height: 0.8em;
     width: auto;
 }
