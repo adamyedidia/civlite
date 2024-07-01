@@ -67,13 +67,47 @@
 .brief-building-card.military, .building-card.military {
     background-color: #bbbbbb;
 }
-.brief-building-card.economic, .building-card.economic {
+.brief-building-card.rural, .building-card.rural, .existing-building-card.rural {
     background-color: #eecab7;
 }
-.brief-building-card.core-economic, .building-card.core-economic {
+.brief-building-card.urban, .building-card.urban, .existing-building-card.urban {
     background-color: #e08b5e;
 }
 
 .brief-building-card.faded {
     opacity: 0.5;
+}
+
+.existing-building-card {
+    width: 140px;
+    height: 80px;
+    border: 2px solid black;
+    border-radius: 10px;
+    padding: 5px;
+    font-size: 1.2em;
+  }
+
+.existing-building-card .building-name {
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.yields-display {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    
+}
+
+.single-yield-display {
+    display: flex;
+    flex-direction: row;
+    gap: 2px;
+}
+
+.single-yield-display img {
+    height: 1em;
+    width: auto;
 }

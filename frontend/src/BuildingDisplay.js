@@ -1,7 +1,29 @@
 import React from 'react';
 import UnitDisplay from './UnitDisplay';
 import './BuildingDisplay.css';
-import woodImage from './images/wood.png';
+import woodImg from './images/wood.png';
+import foodImg from './images/food.png';
+import scienceImg from './images/science.png';
+import metalImg from './images/metal.png';
+
+const SingleYieldDisplay = ({ yield_value, img }) => {
+    return (
+        <div className="single-yield-display">
+            {yield_value}<img src={img} alt=""/>
+        </div>
+    );
+};
+
+const YieldsDisplay = ({ yields }) => {
+    return (
+        <div className="yields-display">
+            {yields.food > 0 && <SingleYieldDisplay yield_value={yields.food} img={foodImg} />}
+            {yields.science > 0 && <SingleYieldDisplay yield_value={yields.science} img={scienceImg} />}
+            {yields.wood > 0 && <SingleYieldDisplay yield_value={yields.wood} img={woodImg} />}
+            {yields.metal > 0 && <SingleYieldDisplay yield_value={yields.metal} img={metalImg} />}
+        </div>
+    );
+};
 
 export const BriefBuildingDisplayTitle = ({ title }) => {
     return (
@@ -13,7 +35,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions }) => {
+export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions, yields }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -27,15 +49,18 @@ export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCos
         building = unitTemplatesByBuildingName?.[buildingName];
     }
     const description = descriptions?.[buildingName];
+    let descriptionObj = "";
 
-    let descriptionStr = null;
-
-    if (description?.type === 'yield' && !(description.value_for_ai > description.value)) {
+    console.log(buildingName, yields)
+    if (yields) {
+        descriptionObj = <div style = {{display: 'inline-block'}}><YieldsDisplay yields={yields} /></div>;
+    }
+    else if (description?.type === 'yield' && !(description.value_for_ai > description.value)) {
         const rounded_val = Number.isInteger(description.value) ? description.value : description.value.toFixed(1);
-        descriptionStr = ` (+${rounded_val})`;
+        descriptionObj = `(+${rounded_val})`;
     }
 
-    const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.exclusion_group ? 'core-economic' : 'economic';
+    const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.type == "urban" ? 'urban' : 'rural';
     const cost = !hideCost && (building_type == 'UNIT' ? building.wood_cost : building_type == 'BUILDING' ? building.cost : building_type == 'WONDER' ? wonderCostsByAge[building.age] : null);
     return (
         <div 
@@ -45,8 +70,8 @@ export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCos
             onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : setHoveredBuilding(null)} // clear on mouse leave
             style={style}
         >
-            <span className="building-name">{`${building?.building_name || building?.name}${descriptionStr !== null ? descriptionStr : ''}${buildingObj?.ruined ? ' (Ruins)' : ''}`}</span>
-            {!hideCost && <span className="building-cost">{cost} <img src={woodImage} alt="" width="16" height="16" /></span>}
+            <span className="building-name">{building?.building_name || building?.name} {descriptionObj ? <span>({descriptionObj})</span>: ""}{buildingObj?.ruined ? ' (Ruins)' : ''}</span>
+            {!hideCost && <span className="building-cost">{cost} <img src={woodImg} alt="" width="16" height="16" /></span>}
         </div>
     );
 };
@@ -64,7 +89,7 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
         building_type = 'UNIT';
         building = unitTemplatesByBuildingName?.[buildingName];
     }
-    const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.exclusion_group ? 'core-economic' : 'economic';
+    const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.type == "urban" ? 'urban' : 'rural';
 
     return (
         unitTemplatesByBuildingName[buildingName] ? 
@@ -86,6 +111,18 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
                     ))}
                 </ul>
             </div>
+    );
+};
+
+export const ExistingBuildingDisplay = ({ buildingName, templates, onClick, emptyType, setHoveredBuilding, yields }) => {
+    const building = templates.BUILDINGS?.[buildingName];
+    return (
+        <div className={`existing-building-card ${emptyType || building?.type}`} onClick={onClick} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
+            <div className="building-name">{buildingName || ""}</div>
+            {yields?.[buildingName] && 
+                <YieldsDisplay yields={yields[buildingName]} />
+            }
+        </div>
     );
 };
 

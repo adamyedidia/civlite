@@ -97,7 +97,7 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
                     )}
                 </div>
             </div>
-            <div className="panel-content">
+            <div className={children ? "panel-content" : ""}>
                 {hasPuppets && (<div className="puppet-income-container panel-banner">
                     <div>+</div>
                     <WithTooltip tooltip={projectedIncomePuppetsTooltip} alignBottom={true}> 

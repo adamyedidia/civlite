@@ -2195,9 +2195,6 @@ export default function GamePage() {
             } else {
                 const template1 = templates.BUILDINGS[buildingName1];
                 const template2 = templates.BUILDINGS[buildingName2];
-                if ((template1?.exclusion_group === null) != (template2?.exclusion_group === null)) {
-                    return template1?.exclusion_group === null ? -1 : 1;
-                }
                 return template1?.cost - template2?.cost;
             }
         });

@@ -53,6 +53,7 @@ class City:
         self.available_buildings: list[BuildingTemplate] = []
         self.available_wonders: list[WonderTemplate] = []
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, float, int]]] = {}
+        self.building_yields: dict[str, Yields] = {}
         self.capital = False
         self._territory_parent_id: Optional[str] = None
         self._territory_parent_coords: Optional[str] = None
@@ -82,11 +83,6 @@ class City:
 
     def has_building(self, building_name: str) -> bool:
         return building_name in [b.building_name for b in self.buildings]
-    
-    def has_building_exclusion_group(self, exclusion_group: str | None) -> bool:
-        if exclusion_group is None:
-            return False
-        return any(b.exclusion_group == exclusion_group for b in self.buildings)
 
     def orphan_territory_children(self, game_state: 'GameState', make_new_territory=True):
         """
@@ -380,7 +376,7 @@ class City:
         # Validate queue
         self.buildings_queue = [bldg for bldg in self.buildings_queue if bldg in new_available_bldgs]
 
-        for template in new_available_bldgs:
+        for template in new_available_bldgs + [b._template for b in self.buildings if b.type in ('urban', 'rural')]:
             building_template = template if isinstance(template, BuildingTemplate) else None
             if building_template is not None:
                 total_pseudoyields: float = 0
@@ -421,7 +417,7 @@ class City:
                             resource: sum(
                                 amount / (1 - self.puppet_distance_penalty() * distance) * (self.puppet_distance_penalty() - ability.numbers[0]) * distance
                                 for amount, distance in puppet_infos.values()
-                            ) * (self.puppet_distance_penalty() - ability.numbers[0])
+                            )
                             for resource, puppet_infos in self.projected_income_puppets.items()}
                         
                 total_yields = building_yields.total()
@@ -448,6 +444,12 @@ class City:
                         "type": "???",
                         "value": 0,
                     }
+                
+                if building_yields.total() > 0:
+                    self.building_yields[building_template.name] = building_yields
+                else:
+                    pass
+                    # TODO should we make sure it's not in the dict?
 
             elif isinstance(template, WonderTemplate):
                 self.available_buildings_to_descriptions[template.name] = {
@@ -478,16 +480,12 @@ class City:
             return []
         if include_in_queue:
             building_names_in_queue = {}
-            exclusion_groups_in_queue = {}
         else:
             building_names_in_queue = {building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue}  # type: ignore
-            exclusion_groups_in_queue = {building.exclusion_group for building in self.buildings_queue if isinstance(building, BuildingTemplate) and building.exclusion_group is not None}
         wonders: list[WonderTemplate] = [wonder for wonder in self.available_wonders if wonder.name not in building_names_in_queue]
         buildings: list[BuildingTemplate] = [building for building in self.available_buildings if 
                                              not building.name in building_names_in_queue and 
-                                             not building.exclusion_group in exclusion_groups_in_queue and
-                                             not self.has_building(building.name) and
-                                             not self.has_building_exclusion_group(building.exclusion_group)]
+                                             not self.has_building(building.name)]
         current_unit_bldgs = [b for b in self.buildings if b.type == "unit"]
         current_bottom_unit_tier = min(b.advancement_level for b in current_unit_bldgs) if len(current_unit_bldgs) >= 3 else -1
         unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if unit.advancement_level() > current_bottom_unit_tier and not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
@@ -617,6 +615,13 @@ class City:
         for ability, _ in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
             unit.strength += ability.numbers[0]
 
+        for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByTag'):
+            if unit.template.has_tag(ability.numbers[0]):
+                unit.strength += ability.numbers[1]
+        for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByAge'):
+            if unit.template.advancement_level() <= ability.numbers[0]:
+                unit.strength += ability.numbers[1]
+
         return unit
 
     def reinforce_unit(self, unit: Unit, stack_size=1) -> None:
@@ -638,14 +643,20 @@ class City:
 
         self.buildings.append(new_building)
 
+
+        def prune_by_type(type, max_num):
+            existing_buildings = [b for b in self.buildings if b.type == type][:-1]
+            # Prune down to max
+            if len(existing_buildings) >= max_num:
+                bldg_to_remove = min(existing_buildings, key=lambda b: b._template)  # type: ignore
+                self.buildings.remove(bldg_to_remove)
+
         if isinstance(building, UnitTemplate):
             self.infinite_queue_unit = building
+            prune_by_type("unit", 3)
 
-            existing_unit_buildings = [b for b in self.buildings if b.type == "unit"][:-1]
-            # Prune down to max
-            if len(existing_unit_buildings) >= 3:
-                bldg_to_remove = min(existing_unit_buildings, key=lambda b: b._template)  # type: ignore
-                self.buildings.remove(bldg_to_remove)
+        if isinstance(building, BuildingTemplate):
+            prune_by_type(building.type.value, 2)
 
         if new_building.vp_reward > 0:
             self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
@@ -966,6 +977,7 @@ class City:
             "available_buildings": [b.name for b in self.available_buildings],
             "available_wonders": [w.name for w in self.available_wonders],
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
+            "building_yields": {name: yields.to_json() for name, yields in self.building_yields.items()},
             "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
             "capital": self.capital,
             "available_units": [u.name for u in self.available_units],
@@ -1011,6 +1023,7 @@ class City:
         city.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
         city.available_wonders = [WONDERS.by_name(w) for w in json["available_wonders"]]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
+        city.building_yields = {name: Yields(**yields) for name, yields in json["building_yields"].items()}
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
         city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UNITS.by_name(json["infinite_queue_unit"])
         city.focus = json["focus"]

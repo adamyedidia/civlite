@@ -34,7 +34,7 @@ class Building:
  
     @property
     def type(self) -> str:
-        return "unit" if isinstance(self._template, UnitTemplate) else "building" if isinstance(self._template, BuildingTemplate) else "wonder"
+        return "unit" if isinstance(self._template, UnitTemplate) else self._template.type.value if isinstance(self._template, BuildingTemplate) else "wonder"
 
     @property
     def one_per_civ(self) -> bool:
@@ -67,12 +67,6 @@ class Building:
         if isinstance(self._template, WonderTemplate):
             return self._template.on_build
         return []
-    
-    @property
-    def exclusion_group(self) -> str | None:
-        if isinstance(self._template, BuildingTemplate):
-            return self._template.exclusion_group
-        return None
     
     @property
     def advancement_level(self) -> int:
@@ -111,7 +105,7 @@ class Building:
     @staticmethod
     def from_json(json: dict) -> "Building":
         type = json.get('type')
-        proto_dict = UNITS if type == 'unit' else BUILDINGS if type == 'building' else WONDERS
+        proto_dict = UNITS if type == 'unit' else WONDERS if type == 'wonder' else BUILDINGS
         b = Building(template=proto_dict.by_name(json['template_name']))
         b.ruined = json['ruined']
         return b

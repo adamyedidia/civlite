@@ -3,7 +3,7 @@ import './CityDetailWindow.css';
 
 import { Button, Select, MenuItem } from '@mui/material';
 
-import { BriefBuildingDisplay, BriefBuildingDisplayTitle } from './BuildingDisplay';
+import { BriefBuildingDisplay, BriefBuildingDisplayTitle, ExistingBuildingDisplay } from './BuildingDisplay';
 import { IconUnitDisplay } from './UnitDisplay';
 import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
@@ -127,7 +127,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
      }) => {
 
     const canBuild = !declinePreviewMode && !puppet;
-    const [isBuildingListExpanded, setIsBuildingListExpanded] = useState(declinePreviewMode);
     const [showHiddenBuildings, setShowHiddenBuildings] = useState(false);
 
     const handleClickClose = () => {
@@ -282,11 +281,29 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 </h1>
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
             </div>
+            <div className="existing-buildings-container">
+                {selectedCity?.buildings.map((building, index) => (
+                    building.type=="rural" &&
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
+                ))}
+                {Array.from({ length: 2 - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
+                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="rural"/>
+                ))}
+                {selectedCity?.buildings.map((building, index) => (
+                    building.type=="urban" &&
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
+                ))}
+                {Array.from({ length: 2 - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
+                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
+                ))}
+            </div>
             <div className="city-detail-columns">
             <div className="city-detail-column">
                 {puppet && 
                     <MakeTerritory myCiv={myCiv} myTerritoryCapitals={myTerritoryCapitals} handleMakeTerritory={handleMakeTerritory}/>                    
                 }
+                <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
+                </CityDetailPanel>
                 <CityDetailPanel title="wood" icon={woodImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCityBuildingChoices && canBuild && (<>
                         <div className="building-choices-container">
@@ -317,7 +334,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                         unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates}
                                         setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder}
                                         onClick={() => handleClickBuildingChoice(buildingName)}
-                                        descriptions={descriptions} />
+                                        descriptions={descriptions}
+                                        yields = {selectedCity.building_yields?.[buildingName]} />
                                 </div>
                             })}
                         </div>
@@ -329,33 +347,11 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCityBuildingQueue.map((buildingName, index) => (
                                 <div key={index} className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions}/>
+                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions} yields={selectedCity.building_yields?.[buildingName]}/>
                                 </div>
                             ))}
                         </div>
                     )}               
-                    {selectedCity?.buildings && (
-                        <div>
-                            {canBuild ? <button 
-                                className="collapse-expand-button" 
-                                onClick={() => setIsBuildingListExpanded(!isBuildingListExpanded)} 
-                            >
-                                <BriefBuildingDisplayTitle title={`${isBuildingListExpanded ? '▼' : '▶'} Existing buildings`} />
-                            </button> 
-                            : 
-                                <BriefBuildingDisplayTitle title="Existing buildings" />
-                            }
-
-                            {(isBuildingListExpanded || !canBuild) && (
-                                <div className="existing-buildings-container">
-                                    {selectedCity?.buildings.map((building, index) => (
-                                        (!unitTemplatesByBuildingName[building.building_name] && !building.ruined && 
-                                        <BriefBuildingDisplay key={index} buildingName={building.building_name} buildingObj={building} clickable={false} hideCost={true} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} descriptions={descriptions}/>)
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    )}
                 </CityDetailPanel>
             </div>
             <div className="city-detail-column">
@@ -433,8 +429,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                             </WithTooltip>
                         </div>
                     </div>}
-                </CityDetailPanel>
-                <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                 </CityDetailPanel>
                 <CityDetailPanel title="metal" icon={metalImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCityUnitChoices && (
