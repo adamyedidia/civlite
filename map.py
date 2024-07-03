@@ -1,4 +1,5 @@
 import random
+from civ_templates_list import CIVS
 from terrain_template import TerrainTemplate
 from terrain_templates_list import TERRAINS
 from hex import Hex
@@ -70,7 +71,7 @@ def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], othe
     # Don't choose a spot with a city or an active player's units nearby
     if decline_location.city is not None: 
         return False
-    if any([unit.civ.game_player for unit in decline_location.units]):
+    if any([unit.civ.template != CIVS.BARBARIAN for unit in decline_location.units]):
         return False
     for hex in decline_location.get_neighbors(hexes):
         if hex.city is not None:
