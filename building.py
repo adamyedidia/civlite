@@ -69,6 +69,14 @@ class Building:
         return []
     
     @property
+    def per_turn(self) -> list[CityTargetEffect]:
+        if isinstance(self._template, BuildingTemplate):
+            return self._template.per_turn
+        if isinstance(self._template, WonderTemplate):
+            return self._template.per_turn
+        return []
+    
+    @property
     def advancement_level(self) -> int:
         if isinstance(self._template, BuildingTemplate):
             return self._template.advancement_level()

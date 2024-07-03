@@ -1,7 +1,7 @@
 import math
-from typing import TYPE_CHECKING, Generator, Optional, Union
+from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Union
 from building import Building
-from building_template import BuildingTemplate
+from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
@@ -46,6 +46,8 @@ class City:
         self.wood = 0.0
         self.food_demand = 0
         self.focus: str = 'food'
+        self.rural_slots = 3
+        self.urban_slots = 1
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
         self.infinite_queue_unit: Optional[UnitTemplate] = None
@@ -279,8 +281,8 @@ class City:
     def roll_wonders(self, game_state: 'GameState') -> None:
         for bldg in self.buildings:
             bldg.update_ruined_status(self, game_state)
-            if isinstance(bldg._template, WonderTemplate) and not bldg.ruined:
-                for effect in bldg._template.per_turn:
+            if not bldg.ruined:
+                for effect in bldg.per_turn:
                     effect.apply(self, game_state)
 
     def age(self, game_state) -> int:
@@ -295,11 +297,11 @@ class City:
 
         if self.is_territory_capital:
             result -= 2 * len(self.get_puppets(game_state))
-        else:
-            result += 2
 
+        for ability, _ in self.civ.passive_building_abilities_of_name('DecreaseFoodDemand', game_state):
+            result -= ability.numbers[1]
         for ability, _ in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
-            result -= ability.numbers[0]
+            result -= ability.numbers[0] + ability.numbers[1]
         parent = self.get_territory_parent(game_state)
         if parent is not None:
             for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
@@ -362,6 +364,21 @@ class City:
     def refresh_available_wonders(self, game_state: 'GameState') -> None:
         self.available_wonders: list[WonderTemplate] = game_state.available_wonders()
 
+    def calculate_payoff_time(self, yields, cost) -> int:
+        if yields == 0:
+            return 99
+        # How much will it produce next turn?
+        actual_yields = yields * (self.civ.vitality * VITALITY_DECAY_RATE)
+        yield_to_cost_ratio = actual_yields / cost
+        # need to find time t such that 1 = yield_to_cost_ratio * (1 - VITALITY_DECAY_RATE ^ t) / (1 - VITALITY_DECAY_RATE)
+        payoff_vitality = 1 - (1 - VITALITY_DECAY_RATE) / yield_to_cost_ratio
+        if payoff_vitality <= 0:
+            return 99
+        payoff_turns = math.ceil(math.log(payoff_vitality, VITALITY_DECAY_RATE))
+        # Add 1 to account for the first turn (when it makes no yields since we're building it).
+        payoff_turns += 1
+        return payoff_turns
+
     def refresh_available_buildings(self) -> None:
         if not self.civ:
             return
@@ -372,13 +389,11 @@ class City:
 
         if not self.hex:
             return
-        
         new_available_bldgs = self.get_available_buildings(include_in_queue=True)
-
         # Validate queue
         self.buildings_queue = [bldg for bldg in self.buildings_queue if bldg in new_available_bldgs]
 
-        for template in new_available_bldgs + [b._template for b in self.buildings if b.type in ('urban', 'rural')]:
+        for template in new_available_bldgs + [b._template for b in self.buildings_of_type("rural") + self.buildings_of_type("urban")]:
             building_template = template if isinstance(template, BuildingTemplate) else None
             if building_template is not None:
                 total_pseudoyields: float = 0
@@ -424,7 +439,6 @@ class City:
                         
                 total_yields = building_yields.total()
                 is_economic_building = total_yields > 0 or is_economic_building
-
                 if building_template.vp_reward is not None and building_template.vp_reward > 0:
                     self.available_buildings_to_descriptions[building_template.name] = {
                         "type": "vp",
@@ -437,9 +451,7 @@ class City:
                         "type": "yield",
                         "value": total_yields,
                         "value_for_ai": total_yields + total_pseudoyields,
-                    }        
-                    if building_template in new_bldgs and total_yields == 0 and total_pseudoyields == 0:
-                        self.toggle_discard(building_template.name, hidden=True)
+                    }
                 
                 else:
                     self.available_buildings_to_descriptions[building_template.name] = {
@@ -447,20 +459,15 @@ class City:
                         "value": 0,
                     }
                 
+                if building_template.calculate_yields is not None and total_yields == 0 and total_pseudoyields == 0:
+                    self.toggle_discard(building_template.name, hidden=True)
+
                 if building_yields.total() > 0:
                     self.building_yields[building_template.name] = building_yields
-                    # How much will it produce next turn?
-                    actual_yields = building_yields.total() * (self.civ.vitality * VITALITY_DECAY_RATE)
-                    yield_to_cost_ratio = actual_yields / building_template.cost
-                    # need to find time t such that 1 = yield_to_cost_ratio * (1 - VITALITY_DECAY_RATE ^ t) / (1 - VITALITY_DECAY_RATE)
-                    payoff_vitality = 1 - (1 - VITALITY_DECAY_RATE) / yield_to_cost_ratio
-                    payoff_turns = math.ceil(math.log(payoff_vitality, VITALITY_DECAY_RATE)) if payoff_vitality > 0 else -1
-                    # Add 1 to account for the first turn (when it makes no yields since we're building it).
-                    payoff_turns += 1
-                    self.available_buildings_payoff_times[building_template.name] = payoff_turns
+                    self.available_buildings_payoff_times[building_template.name] = self.calculate_payoff_time(building_yields.total(), building_template.cost)
                 else:
-                    pass
-                    # TODO should we make sure it's not in the dict?
+                    if building_template.name in self.building_yields:
+                        del self.building_yields[building_template.name]
 
             elif isinstance(template, WonderTemplate):
                 self.available_buildings_to_descriptions[template.name] = {
@@ -473,6 +480,23 @@ class City:
                     "type": "strength",
                     "value": template.strength, 
                 }
+        def sort_rank(template) -> tuple[int, Any, str]:
+            if isinstance(template, WonderTemplate):
+                type_rank = 5
+                sort_val = template.age
+            elif isinstance(template, BuildingTemplate):
+                type_rank = 4 if template.type == BuildingType.URBAN else 3 if template.type == BuildingType.RURAL else 999
+                assert type_rank in (3, 4), f"Invalid type, {template.type}, {template}"
+                yields_val = self.building_yields[template.name].total() if template.name in self.building_yields else 0
+                other_val = self.available_buildings_to_descriptions[template.name]["value"] if template.name in self.available_buildings_to_descriptions else 0
+                sort_val = (yields_val, other_val, template.cost)
+            elif isinstance(template, UnitTemplate):
+                type_rank = 1
+                sort_val = template.strength
+            else:
+                raise ValueError(f"Unknown template type: {type(template)}")
+            return type_rank, sort_val, template.name
+        self.available_buildings.sort(key = sort_rank, reverse=True)
 
     def refresh_available_units(self) -> None:
         self.available_units = [unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
@@ -497,7 +521,15 @@ class City:
         buildings: list[BuildingTemplate] = [building for building in self.available_buildings if 
                                              not building.name in building_names_in_queue and 
                                              not self.has_building(building.name)]
-        current_unit_bldgs = [b for b in self.buildings if b.type == "unit"]
+        if self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots:
+            buildings = [b for b in buildings if b.type != BuildingType.RURAL or b in self.buildings_queue]
+        if self.num_buildings_of_type("urban", include_in_queue=True) >= self.urban_slots:
+            buildings = [b for b in buildings if b.type != BuildingType.URBAN or b in self.buildings_queue]
+        else:
+            # CAn't urbanize if not full
+            buildings = [b for b in buildings if b != BUILDINGS.URBANIZE]
+
+        current_unit_bldgs = self.buildings_of_type("unit")
         current_bottom_unit_tier = min(b.advancement_level for b in current_unit_bldgs) if len(current_unit_bldgs) >= 3 else -1
         unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if unit.advancement_level() > current_bottom_unit_tier and not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
         return [*wonders, *buildings, *unit_buildings]
@@ -630,7 +662,7 @@ class City:
             if unit.template.has_tag(ability.numbers[0]):
                 unit.strength += ability.numbers[1]
         for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByAge'):
-            if unit.template.advancement_level() <= ability.numbers[0]:
+            if unit.template.advancement_level() >= ability.numbers[0]:
                 unit.strength += ability.numbers[1]
 
         return unit
@@ -649,14 +681,27 @@ class City:
             else:
                 break
 
+    def buildings_of_type(self, type: str,) -> list[Building]:
+        assert type in ("rural", "urban", "unit", "wonder")
+        return [b for b in self.buildings if b.type == type]
+
+    def num_buildings_of_type(self, type: str, include_in_queue=False):
+        def type_from_template(t: WonderTemplate | UnitTemplate | BuildingTemplate) -> Literal['wonder', 'unit', 'rural', 'urban']:
+            if isinstance(t, WonderTemplate): return "wonder"
+            if isinstance(t, UnitTemplate): return "unit"
+            if isinstance(t, BuildingTemplate): return t.type.value
+        bldgs = len(self.buildings_of_type(type))
+        if include_in_queue:
+            bldgs += len([b for b in self.buildings_queue if type_from_template(b) == type])
+        return bldgs
+
     def build_building(self, game_state: 'GameState', building: Union[BuildingTemplate, UnitTemplate, WonderTemplate]) -> None:
         new_building = Building(building)
 
         self.buildings.append(new_building)
 
-
         def prune_by_type(type, max_num):
-            existing_buildings = [b for b in self.buildings if b.type == type][:-1]
+            existing_buildings = self.buildings_of_type(type)[:-1]
             # Prune down to max
             if len(existing_buildings) >= max_num:
                 bldg_to_remove = min(existing_buildings, key=lambda b: b._template)  # type: ignore
@@ -667,7 +712,10 @@ class City:
             prune_by_type("unit", 3)
 
         if isinstance(building, BuildingTemplate):
-            prune_by_type(building.type.value, 2)
+            if building.type == BuildingType.RURAL:
+                prune_by_type("rural", self.rural_slots)
+            elif building.type == BuildingType.URBAN:
+                prune_by_type("urban", self.urban_slots)
 
         if new_building.vp_reward > 0:
             self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
@@ -852,22 +900,36 @@ class City:
         # Build the highest age one we can afford
         return max(affordable_choices, key=lambda x: (x.age, random.random()))
 
-    def bot_pick_economic_building(self, choices: list[BuildingTemplate]) -> Optional[BuildingTemplate]:
+    def bot_pick_economic_building(self, choices: list[BuildingTemplate], remaining_wood: float) -> Optional[BuildingTemplate]:
+        if self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots:
+            choices = [b for b in choices if b.type != BuildingType.RURAL]
+        if self.num_buildings_of_type("urban", include_in_queue=True) >= self.urban_slots:
+            choices = [b for b in choices if b.type != BuildingType.URBAN]
+
+        # Don't build libraries
+        if self.civ.get_advancement_level() > 2:
+            choices = [b for b in choices if b != BUILDINGS.LIBRARY]
+        # Don't build husbandry centers by themself
+        if self.focus != "food" and self.urban_slots < 2:
+            choices = [b for b in choices if b != BUILDINGS.HUSBANDRY_CENTER]
+        # Only live players can urbanize
+        if self.civ.game_player is None:
+            choices = [b for b in choices if b != BUILDINGS.URBANIZE]
+        # Only one of these per city
+        if any([len(building.passive_building_abilities_of_name("IncreaseFocusYieldsPerPopulation")) > 0 for building in self.buildings]):
+            choices = [b for b in choices if not any (a.name == "IncreaseFocusYieldsPerPopulation" for a in b.abilities)]
+
         if len(choices) > 0:
-            # print(f"    Choosing nonwonder; {self.available_buildings_to_descriptions=}")
-            ACCEPTABLE_PAYOFF_TURNS = 8
-            inverse_payoff_turns: dict[BuildingTemplate, float] = {
-                building: float(self.available_buildings_to_descriptions[building.name].get('value_for_ai', 0)) / building.cost
+            ACCEPTABLE_PAYOFF_TURNS = 6
+            payoff_turns: dict[BuildingTemplate, float] = {
+                building: self.calculate_payoff_time(yields=self.available_buildings_to_descriptions[building.name].get('value_for_ai', 0), cost=building.cost)
                 for building in choices
                 if building.name in self.available_buildings_to_descriptions and 'value_for_ai' in self.available_buildings_to_descriptions[building.name]
             }
-            print(f"    {inverse_payoff_turns=}")
-            if len(choices) > len(inverse_payoff_turns):
-                print(f"**** didn't consider these non-yield buildings: {set(choices) - set(inverse_payoff_turns.keys() )}")
-            if len(inverse_payoff_turns) > 0:
+            if len(payoff_turns) > 0:
                 # calulcate the argmin of the payoff turns
-                best_building = max(inverse_payoff_turns, key=lambda x: inverse_payoff_turns.get(x, 0))
-                if inverse_payoff_turns[best_building] > 1.0 / ACCEPTABLE_PAYOFF_TURNS:
+                best_building = min(payoff_turns, key=lambda x: (x.cost > remaining_wood, payoff_turns.get(x, 99), -x.cost))
+                if payoff_turns[best_building] < ACCEPTABLE_PAYOFF_TURNS:
                     return best_building
 
         return None
@@ -887,7 +949,7 @@ class City:
                 return 0.5
             return unit.advancement_level()
 
-        print(f"Planning Ai move for city {self.name}")
+        print(f"{self.name} -- City planning AI move.")
         self.midturn_update(game_state)
 
         # Don't build stationary units
@@ -905,6 +967,10 @@ class City:
             print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units]})")
 
         available_buildings = self.get_available_buildings()
+
+        # Never steal from another city's queue
+        available_buildings = [b for b in available_buildings if (b.building_name if isinstance(b, UnitTemplate) else b.name) not in self.civ.buildings_in_all_queues]
+
         wonders: list[WonderTemplate] = [building for building in available_buildings if isinstance(building, WonderTemplate)]
         economic_buildings: list[BuildingTemplate] = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
         military_buildings: list[UnitTemplate] = [building for building in available_buildings if isinstance(building, UnitTemplate) and building.movement > 0]
@@ -917,22 +983,26 @@ class City:
                 ))
         else:
             best_military_building = None
-        if best_military_building is not None and (self.infinite_queue_unit is None or effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood) > effective_advancement_level(self.infinite_queue_unit, slingers_better_than_warriors=lotsa_wood)):
+        
+        remaining_wood_budget = self.wood + self.projected_income['wood']
+        if best_military_building is not None \
+                and (self.infinite_queue_unit is None or effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood) > effective_advancement_level(self.infinite_queue_unit, slingers_better_than_warriors=lotsa_wood)) \
+                and remaining_wood_budget > best_military_building.wood_cost:
             self.buildings_queue = [best_military_building]
             print(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)}): {self.buildings_queue}")
             if self.infinite_queue_unit is not None and not self.is_threatened_city(game_state):
                 print(f"  not building units to wait for new military building.")
                 self.infinite_queue_unit = None
-        elif len(self.buildings_queue) > 0:
-            print(f"  continuing previous build queue: {self.buildings_queue}")
-        elif len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None:
-            self.buildings_queue = [wonder_choice]
-            print(f"  set building queue to wonder: {self.buildings_queue}")
-        elif len(economic_buildings) > 0 and (choice := self.bot_pick_economic_building(economic_buildings)) is not None:
-            self.buildings_queue = [choice]
-            print(f"  set building queue to economic building: {self.buildings_queue}")
-        else:
-            print(f"  no buildings available")
+        while len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None and remaining_wood_budget > (cost := game_state.wonder_cost_by_age[wonder_choice.age]):
+            self.buildings_queue.append(wonder_choice)
+            wonders.remove(wonder_choice)
+            remaining_wood_budget -= cost
+            print(f"  adding wonder to buildings queue: {self.buildings_queue}")
+        while len(economic_buildings) > 0 and (choice := self.bot_pick_economic_building(economic_buildings, remaining_wood_budget)) is not None and remaining_wood_budget > choice.cost:
+            self.buildings_queue.append(choice)
+            economic_buildings.remove(choice)
+            remaining_wood_budget -= choice.cost
+            print(f"  adding economic building to buildings queue: {self.buildings_queue}")
 
         if self.civ_to_revolt_into is not None or self.unhappiness + self.projected_income['unhappiness'] > game_state.unhappiness_threshold:
             self.focus = 'food'
@@ -952,21 +1022,15 @@ class City:
                 
             max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
             focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
-            if len(focuses_with_best_yields) == 1:
-                self.focus = focuses_with_best_yields[0]
-            elif self.population < 3 and 'food' in focuses_with_best_yields:
-                self.focus = 'food'
-            elif production_city.infinite_queue_unit is not None and 'metal' in focuses_with_best_yields:
+            if production_city.infinite_queue_unit is not None and 'metal' in focuses_with_best_yields and self.is_threatened_city(game_state):
                 self.focus = 'metal'
-            elif len(production_city.buildings_queue) > 0 and 'wood' in focuses_with_best_yields:
+            elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type("urban", include_in_queue=True) < self.urban_slots and len([b for b in economic_buildings if b.type == BuildingType.URBAN and b.cost > remaining_wood_budget]) > 0:
                 self.focus = 'wood'
-            elif 'science' in focuses_with_best_yields:
-                self.focus = 'science'
             else:
                 self.focus = random.choice(list(focuses_with_best_yields))
 
             print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
-        
+            self.civ.midturn_update(game_state)
 
     def to_json(self, include_civ_details: bool = False) -> dict:
         return {
@@ -980,6 +1044,8 @@ class City:
             "metal": self.metal,
             "wood": self.wood,
             "focus": self.focus,
+            "rural_slots": self.rural_slots,
+            "urban_slots": self.urban_slots,
             "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
             "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
@@ -1029,6 +1095,8 @@ class City:
         city.food = json["food"]
         city.metal = json["metal"]
         city.wood = json["wood"]
+        city.rural_slots = json["rural_slots"]
+        city.urban_slots = json["urban_slots"]
         city.under_siege_by_civ = json["under_siege_by_civ_id"]
         city.capital = json["capital"]
         city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BUILDINGS.by_name(building) if building in [b.name for b in BUILDINGS.all()] else WONDERS.by_name(building) for building in json["buildings_queue"]]

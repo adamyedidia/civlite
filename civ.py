@@ -254,6 +254,10 @@ class Civ:
             print(f"{self.moniker()} deciding not to decline because I'm seiging a camp.")
             return None
 
+        # Don't decline within 2 turns of finishing renaissance
+        if self.techs_status[TECHS.RENAISSANCE] == TechStatus.RESEARCHING and (self.renaissance_cost() - self.science) / self.projected_science_income <= 2:
+            print(f"{self.moniker()} deciding not to decline because I'm almost done with a renaissance.")
+
         # Don't decline if I have above average army size.
         all_army_sizes: dict[str, float] = defaultdict(float)
         for unit in game_state.units:
@@ -288,11 +292,14 @@ class Civ:
                 continue
 
             current_total_yields = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
-            option_total_yields[city.hex.coords] = current_total_yields / city.civ.vitality * city.revolting_starting_vitality
+            option_total_yields[city.hex.coords] = current_total_yields / city.civ.vitality
+            option_total_yields[city.hex.coords] += 4 * city.rural_slots + city.population * city.urban_slots
+            option_total_yields[city.hex.coords] *= city.revolting_starting_vitality
 
         for coords, city in game_state.fresh_cities_for_decline.items():
-            option_total_yields[coords] = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
-        
+            option_total_yields[coords] = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science']
+            option_total_yields[coords] += (4 * city.rural_slots + city.population * city.urban_slots) * city.revolting_starting_vitality
+
         if len(option_total_yields) == 0:
             print(f"{self.moniker()} deciding not to decline because there are no options.")
             return None
@@ -335,7 +342,8 @@ class Civ:
             un_owner_civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in un_owner_ids]
             self.target1 = un_owner_civs[0].target1
             self.target2 = un_owner_civs[1].target2
-        elif random.random() < 0.2 or self.target1 is None or self.target2 is None:
+        elif random.random() < 0.2 or self.target1 is None or self.target2 is None or \
+            (self.target1.city is not None and self.target1.city.civ == self) or (self.target2.city is not None and self.target2.city.civ == self):
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             vandetta_cities: list[City] = [city for city in enemy_cities if city.civ.id == self.vandetta_civ_id]
             if len(vandetta_cities) > 0:
@@ -368,7 +376,8 @@ class Civ:
                 chosen_tech = special_tech
             else:
                 if len(available_techs) > 0:
-                    chosen_tech = random.choice(available_techs)
+                    # Pick randomly, avoiding renaissance if possibhle.
+                    chosen_tech = sorted(available_techs, key=lambda t: (t == TECHS.RENAISSANCE, random.random()))[0]
                 else:
                     print(f"{self.moniker()} has no available techs")
                     chosen_tech = None
@@ -384,6 +393,9 @@ class Civ:
                     break
 
         for city in my_cities:
+            city.buildings_queue = []
+        self.midturn_update(game_state)
+        for city in sorted(my_cities, key=lambda c: c.population, reverse=True):
             city.bot_move(game_state)
 
     def renaissance_cost(self) -> float:

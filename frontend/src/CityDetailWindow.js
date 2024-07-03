@@ -240,7 +240,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const foodDemandTooltip = <><p>Food Demand {foodDemanded}:</p> <ul> 
         <li>{(gameState.turn_num - selectedCity.founded_turn)} from age (1/turn since founding turn {selectedCity.founded_turn})</li> 
         {selectedCity.capital ? <li>Capital's age food demand reduced by 75%</li> : ""}
-        {selectedCity.territory_parent_coords ? <li>+2 in puppet city</li> : ""}
         {numPuppets > 0 ? <li>-{2 * numPuppets} from puppets (-2/puppet) </li> : ""}
         </ul> </>
 
@@ -286,15 +285,21 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     building.type=="rural" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
                 ))}
-                {Array.from({ length: 2 - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
+                {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="rural"/>
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="urban" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
                 ))}
-                {Array.from({ length: 2 - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
+                {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
+                ))}
+            </div>
+            <div className="wonders-container">
+                {selectedCity?.buildings.map((building, index) => (
+                    building.type=="wonder" &&
+                    <BriefBuildingDisplay key={index} buildingName={building.building_name} faded={building.ruined} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder}/>
                 ))}
             </div>
             <div className="city-detail-columns">

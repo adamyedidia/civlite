@@ -66,10 +66,10 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Increase {x} yields per population in the city with a {x} focus by {y}.",
         numbers=[x, y],
     ),
-    "DecreaseFoodDemand": lambda x: Ability(
+    "DecreaseFoodDemand": lambda x, y: Ability(
         name="DecreaseFoodDemand",
-        description=f"Decrease food demand by {x}.",
-        numbers=[x],
+        description=f"Decrease food demand by {x} in this city" + ("." if y == 0 else f" and {y} in all other cities."),
+        numbers=[x, y],
     ),
     "DecreaseFoodDemandPuppets": lambda x: Ability(
         name="DecreaseFoodDemandPuppets",
@@ -108,7 +108,7 @@ BUILDING_ABILITIES: dict[str, Callable] = {
     ),
     "UnitsExtraStrengthByAge": lambda x, y: Ability(
         name="UnitsExtraStrengthByAge",
-        description=f"Units of age {x} or earlier get +{y} strength",
+        description=f"Units of age {x} or later get +{y} strength",
         numbers=[x, y],
     ),
 }

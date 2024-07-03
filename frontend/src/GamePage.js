@@ -2161,47 +2161,7 @@ export default function GamePage() {
 
     const descriptions = selectedCity?.available_buildings_to_descriptions;
 
-    const unsortedSelectedCityBuildingChoices = selectedCity?.available_building_names;
-
-    let selectedCityBuildingChoices = [];
-
-    if (descriptions && Object.keys(descriptions).length > 0) {
-        selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices?.sort((buildingName1, buildingName2) => {
-            const description1 = descriptions[buildingName1];
-            const description2 = descriptions[buildingName2];
-            
-            const getTypeOrder = (type) => {
-                switch (type) {
-                    case 'vp':
-                        return 1;
-                    case 'yield':
-                        return 2;
-                    case 'wonder':
-                        return 3;
-                    case 'strength':
-                        return 4;
-                    default:
-                        return 5;
-                }
-            };
-        
-            const typeOrder1 = getTypeOrder(description1?.type);
-            const typeOrder2 = getTypeOrder(description2?.type);
-        
-            if (typeOrder1 !== typeOrder2) {
-                return typeOrder1 - typeOrder2;
-            } else if (description1?.value !== description2?.value) {
-                return description2?.value - description1?.value;
-            } else {
-                const template1 = templates.BUILDINGS[buildingName1];
-                const template2 = templates.BUILDINGS[buildingName2];
-                return template1?.cost - template2?.cost;
-            }
-        });
-    }
-    else {
-        selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices;
-    }
+    const selectedCityBuildingChoices = selectedCity?.available_building_names;
 
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
 

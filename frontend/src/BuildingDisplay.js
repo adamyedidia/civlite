@@ -8,9 +8,10 @@ import metalImg from './images/metal.png';
 import { WithTooltip } from './WithTooltip';
 
 const SingleYieldDisplay = ({ yield_value, img }) => {
+    const rounded_val = Number.isInteger(yield_value) ? yield_value : yield_value.toFixed(0);
     return (
         <div className="single-yield-display">
-            {yield_value}<img src={img} alt=""/>
+            {rounded_val}<img src={img} alt=""/>
         </div>
     );
 };
@@ -51,13 +52,13 @@ export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCos
     }
     const description = descriptions?.[buildingName];
     let descriptionObj = "";
-
-    if (yields) {
-        descriptionObj = <div style = {{display: 'inline-block'}}><YieldsDisplay yields={yields} /></div>;
+    const displayYields = yields && (yields?.food || yields?.science || yields?.wood || yields?.metal);
+    if (displayYields) {
+        descriptionObj = <div style={{display: 'inline-block'}}><YieldsDisplay yields={yields} /></div>
     }
     else if (description?.type === 'yield' && !(description.value_for_ai > description.value)) {
         const rounded_val = Number.isInteger(description.value) ? description.value : description.value.toFixed(1);
-        descriptionObj = `(+${rounded_val})`;
+        descriptionObj = `+${rounded_val}`;
     }
 
     const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.type == "urban" ? 'urban' : 'rural';
@@ -74,8 +75,7 @@ export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCos
                 <WithTooltip alignBottom={true} tooltip={payoffTime ? <><div>With vitality decay, a {buildingName} will take {payoffTime} turns to pay back building cost.</div> <div>Assumes resources equally valuable & building income doesn't change.</div></> : null}>
                 {building?.building_name || building?.name}
                 {descriptionObj ? <span> ({descriptionObj}) </span>: ""}
-                {buildingObj?.ruined ? ' (Ruins)' : ''}
-                {payoffTime && <span> ({payoffTime}⏱) </span>}
+                {payoffTime && displayYields ? <span> ({payoffTime}⏱) </span> : ""}
                 </WithTooltip>
             </span>
             {!hideCost && <span className="building-cost">{cost} <img src={woodImg} alt="" width="16" height="16" /></span>}

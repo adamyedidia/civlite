@@ -249,3 +249,23 @@ class EndGameEffect(CityTargetEffect):
     
     def apply(self, city: 'City', game_state: 'GameState'):
         game_state.game_over = True
+
+class UrbanizeEffect(CityTargetEffect):
+    @property
+    def description(self) -> str:
+        return "Permanently turn this rural slot into an urban slot"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        city.rural_slots -= 1
+        city.urban_slots += 1
+        # Remove the building that triggered this.
+        city.buildings.pop(-1)
+
+class BuildEeachUnitEffect(CityTargetEffect):
+    @property
+    def description(self) -> str:
+        return "Build one free unit of each type this city can build."
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        for unit in city.available_units:
+            city.build_unit(game_state=game_state, unit=unit)

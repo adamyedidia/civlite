@@ -186,6 +186,23 @@
   /* transform: translate(-50%, -50%); */
 }
 
+.wonders-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  width: 630px;
+  gap: 5px;
+  margin: 0 auto; /* Center horizontally */
+}
+
+.wonders-container .brief-building-card {
+  display: flex;
+  width: 130px;
+  align-items: center;
+  justify-items: center;
+  flex-grow: 0;
+}
+
 .unit-choices-container {
   display: flex;
   gap: 5px;

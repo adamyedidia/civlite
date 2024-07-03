@@ -1,7 +1,7 @@
 from typing import Generator
 from building_template import BuildingTemplate, BuildingType
 from terrain_templates_list import TERRAINS
-from effects_list import ResetHappinessThisCityEffect
+from effects_list import BuildEeachUnitEffect, ResetHappinessThisCityEffect, UrbanizeEffect
 from tech_templates_list import TECHS
 from yields import ConstantYields, Yields, YieldsPerPopulation, YieldsPerTerrainType, YieldsPerUniqueTerrainType
 
@@ -9,24 +9,24 @@ class BUILDINGS():
     LUMBER_MILL = BuildingTemplate(
         name="Lumber Mill",
         type=BuildingType.RURAL,
-        cost=15,
+        cost=10,
         calculate_yields=YieldsPerTerrainType(TERRAINS.FOREST, Yields(wood=1)),
         prereq=TECHS.FORESTRY,
     )
     TRAINING_GROUNDS = BuildingTemplate(
         name="Training Grounds",
-        type=BuildingType.URBAN,
-        cost=15,
+        type=BuildingType.RURAL,
+        cost=10,
         prereq=TECHS.FORESTRY,
         abilities=[{
             "name": "UnitsExtraStrengthByAge",
-            "numbers": [2, 1],
+            "numbers": [1, 1],
         }],
     )
     PASTURE = BuildingTemplate(
         name="Pasture",
         type=BuildingType.RURAL,
-        cost=15,
+        cost=10,
         prereq=TECHS.IRRIGATION,
         abilities=[{
             "name": "UnitsExtraStrengthByTag",
@@ -53,14 +53,14 @@ class BUILDINGS():
     LIBRARY = BuildingTemplate(
         name="Library",
         type=BuildingType.URBAN,
-        cost=15,
+        cost=5,
         calculate_yields=YieldsPerUniqueTerrainType(Yields(science=1)),
         prereq=TECHS.POTTERY,
     )
     MINE = BuildingTemplate(
         name="Mine",
         type=BuildingType.RURAL,
-        cost=15,
+        cost=10,
         calculate_yields=YieldsPerTerrainType(TERRAINS.HILLS, Yields(metal=1)),
         prereq=TECHS.MINING,
     )
@@ -74,30 +74,36 @@ class BUILDINGS():
         }],
         prereq=TECHS.CONSTRUCTION,
     )
-    COLOSSEUM = BuildingTemplate(
-        name="Colosseum",
-        type=BuildingType.RURAL,
-        cost=10,
-        prereq=TECHS.CONSTRUCTION,
-        abilities=[],
-        vp_reward=1,
-    )
     BAZAAR = BuildingTemplate(
         name="Bazaar",
         type=BuildingType.URBAN,
-        cost=10,
+        cost=20,
         prereq=TECHS.CURRENCY,
         abilities=[{
             "name": "DecreaseFoodDemand",
-            "numbers": [4],
+            "numbers": [8, 2],
         }],
     )
     WORKSHOP = BuildingTemplate(
         name="Workshop",
-        type=BuildingType.URBAN,
+        type=BuildingType.RURAL,
         cost=15,
         calculate_yields=ConstantYields(Yields(metal=4)),
+        prereq=TECHS.CONSTRUCTION,
+    )
+    MANORS = BuildingTemplate(
+        name="Manors",
+        type=BuildingType.RURAL,
+        cost=15,
+        calculate_yields=ConstantYields(Yields(food=6)),
         prereq=TECHS.CURRENCY,
+    )
+    URBANIZE = BuildingTemplate(
+        name="Urbanize",
+        type=BuildingType.RURAL,
+        cost=20,
+        on_build=UrbanizeEffect(),
+        vp_reward=5,
     )
     MAGISTERIUM = BuildingTemplate(
         name="Magisterium",
@@ -109,10 +115,17 @@ class BUILDINGS():
         }],
         prereq=TECHS.MATHEMATICS,
     )
+    QUARRY = BuildingTemplate(
+        name="Quarry",
+        type=BuildingType.RURAL,
+        cost=15,
+        calculate_yields=ConstantYields(Yields(wood=4)),
+        prereq=TECHS.ENGINEERING,
+    )
     UNIVERSITY = BuildingTemplate(
         name="University",
         type=BuildingType.URBAN,
-        cost=20,
+        cost=15,
         calculate_yields=YieldsPerPopulation(Yields(science=1)),
         prereq=TECHS.EDUCATION,
     )
@@ -122,6 +135,13 @@ class BUILDINGS():
         cost=20,
         calculate_yields=YieldsPerPopulation(Yields(wood=1)),
         prereq=TECHS.COMPASS,
+    )
+    PLANTATION = BuildingTemplate(
+        name="Plantation",
+        type=BuildingType.RURAL,
+        cost=20,
+        calculate_yields=YieldsPerPopulation(Yields(food=1)),
+        prereq=TECHS.CIVIL_SERVICE,
     )
     CONSCRIPTION_POST = BuildingTemplate(
         name="Conscription Post",
@@ -133,53 +153,40 @@ class BUILDINGS():
     FACTORY = BuildingTemplate(
         name="Factory",
         type=BuildingType.URBAN,
-        cost=40,
-        calculate_yields=YieldsPerPopulation(Yields(wood=1)),
+        cost=75,
+        calculate_yields=YieldsPerPopulation(Yields(wood=1, metal=1)),
         prereq=TECHS.INDUSTRIALIZATION,
     )
-    INDUSTRIAL_MINE = BuildingTemplate(
-        name="Industrial Mine",
+    COMMERCIAL_CENTER = BuildingTemplate(
+        name="Commercial Center",
         type=BuildingType.URBAN,
-        cost=40,
-        calculate_yields=YieldsPerPopulation(Yields(metal=1)),
+        cost=75,
+        calculate_yields=YieldsPerPopulation(Yields(wood=1, science=1)),
         prereq=TECHS.MILITARY_SCIENCE,
     )
     LABORATORY = BuildingTemplate(
         name="Laboratory",
         type=BuildingType.URBAN,
-        cost=40,
-        calculate_yields=YieldsPerPopulation(Yields(science=1)),
+        cost=75,
+        calculate_yields=YieldsPerPopulation(Yields(science=1, metal=1)),
         prereq=TECHS.MEDICINE,
+    )
+    ARMY_BASE = BuildingTemplate(
+        name="Army Base",
+        type=BuildingType.RURAL,
+        cost=40,
+        prereq=TECHS.MILITARY_SCIENCE,
+        abilities=[{
+            "name": "UnitsExtraStrengthByAge",
+            "numbers": [4, 5],
+        }],
     )
     OBSERVATORY = BuildingTemplate(
         name="Observatory",
         type=BuildingType.RURAL,
-        cost=15,
-        calculate_yields=ConstantYields(Yields(science=4)),
-        prereq=TECHS.PHYSICS,
-    )
-    PAPER_MAKER = BuildingTemplate(
-        name="Paper Maker",
-        type=BuildingType.URBAN,
-        cost=15,
-        calculate_yields=ConstantYields(Yields(wood=4)),
-        prereq=TECHS.CIVIL_SERVICE,
-    )
-    ZOO = BuildingTemplate(
-        name="Zoo",
-        type=BuildingType.URBAN,
         cost=20,
-        prereq=TECHS.PRINTING_PRESS,
-        abilities=[],
-        vp_reward=1,
-    )
-    STADIUM = BuildingTemplate(
-        name="Stadium",
-        type=BuildingType.URBAN,
-        cost=40,
-        prereq=TECHS.MASS_MARKETS,
-        abilities=[],
-        vp_reward=2,
+        calculate_yields=ConstantYields(Yields(science=8)),
+        prereq=TECHS.PHYSICS,
     )
     RAILROADS = BuildingTemplate(
         name="Railroads",
@@ -197,17 +204,14 @@ class BUILDINGS():
         cost=20,
         abilities=[{
             "name": "DecreaseFoodDemand",
-            "numbers": [10],
-        }, {
-            "name": "DecreaseFoodDemandPuppets",
-            "numbers": [10],
+            "numbers": [40, 10],
         }],
         prereq=TECHS.MASS_MARKETS,
     )
     WINDMILL = BuildingTemplate(
         name="Windmill",
         type=BuildingType.RURAL,
-        cost=30,
+        cost=20,
         calculate_yields=YieldsPerTerrainType(TERRAINS.PLAINS, Yields(food=2)),
         prereq=TECHS.PHYSICS,
     )
@@ -232,30 +236,37 @@ class BUILDINGS():
         calculate_yields=YieldsPerTerrainType({TERRAINS.MOUNTAINS, TERRAINS.DESERT, TERRAINS.TUNDRA}, Yields(science=4)),
         prereq=TECHS.METALLURGY,
     )
+    VOLUNTEER_POST = BuildingTemplate(
+        name="Volunteer Post",
+        type=BuildingType.RURAL,
+        cost=50,
+        per_turn=BuildEeachUnitEffect(),
+        prereq=TECHS.PRINTING_PRESS,
+    )
     CARAVANSERY = BuildingTemplate(
         name="Caravansery",
-        type=BuildingType.URBAN,
-        cost=20,
+        type=BuildingType.RURAL,
+        cost=30,
         prereq=TECHS.PRINTING_PRESS,
         abilities=[{
             "name": "DecreaseFoodDemand",
-            "numbers": [10],
+            "numbers": [20, 4],
         }],
     )
     IRONWORKS = BuildingTemplate(
         name="Ironworks",
         type=BuildingType.URBAN,
-        cost=20,
+        cost=15,
         abilities=[{
             "name": "IncreaseFocusYieldsPerPopulation",
-            "numbers": ["metal", 2],
+            "numbers": ["metal", 1],
         }],
         prereq=TECHS.MACHINERY,
     )
     NATIONAL_COLLEGE = BuildingTemplate(
         name="National College",
         type=BuildingType.URBAN,
-        cost=20,
+        cost=30,
         abilities=[{
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["science", 2],
@@ -265,10 +276,10 @@ class BUILDINGS():
     TIMBERWORKS = BuildingTemplate(
         name="Timberworks",
         type=BuildingType.URBAN,
-        cost=20,
+        cost=15,
         abilities=[{
             "name": "IncreaseFocusYieldsPerPopulation",
-            "numbers": ["wood", 2],
+            "numbers": ["wood", 1],
         }],
         prereq=TECHS.ENGINEERING,
     )
@@ -284,13 +295,20 @@ class BUILDINGS():
     )
     GRAND_PALACE = BuildingTemplate(
         name="Grand Palace",
-        type=BuildingType.URBAN,
+        type=BuildingType.RURAL,
         cost=100,
         on_build=ResetHappinessThisCityEffect(),
-        prereq=TECHS.MILITARY_SCIENCE,
+        prereq=TECHS.INDUSTRIALIZATION,
     )
     INDUSTRIAL_FARM = BuildingTemplate(
         name="Industrial Farm",
+        type=BuildingType.RURAL,
+        cost=50,
+        calculate_yields=ConstantYields(Yields(food=20)),
+        prereq=TECHS.MEDICINE,
+    )
+    AUTOMATED_FARM = BuildingTemplate(
+        name="Auromated Farm",
         type=BuildingType.RURAL,
         cost=80,
         calculate_yields=ConstantYields(Yields(food=30, wood=15)),
