@@ -307,14 +307,24 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             <div className="existing-buildings-container">
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="rural" &&
-                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} handleQueueDelete={handleQueueDelete} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields} deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}/>
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
+                    handleQueueDelete={handleQueueDelete} 
+                    templates={templates} setHoveredBuilding={setHoveredBuilding} 
+                    yields={selectedCity.building_yields} 
+                    deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
+                    slotsFull={selectedCity.building_slots_full.rural}/>
                 ))}
                 {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="rural"/>
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="urban" &&
-                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} handleQueueDelete={handleQueueDelete} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields} deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}/>
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
+                    handleQueueDelete={handleQueueDelete} 
+                    templates={templates} setHoveredBuilding={setHoveredBuilding} 
+                    yields={selectedCity.building_yields} 
+                    deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
+                    slotsFull={selectedCity.building_slots_full.urban}/>
                 ))}
                 {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
