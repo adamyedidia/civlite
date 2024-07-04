@@ -1,4 +1,5 @@
-from typing import Optional, Union
+import itertools
+from typing import Literal, Optional, Union
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from ability import Ability
@@ -117,3 +118,31 @@ class Building:
         b = Building(template=proto_dict.by_name(json['template_name']))
         b.ruined = json['ruined']
         return b
+
+class QueueEntry:
+    """
+    An entry that can be in building queues.
+    """
+    def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate], order_type: Literal["DELETE", "BUILD"]):
+        self.template = template
+        self.order_type = order_type
+    
+    @staticmethod
+    def find_queue_template_by_name(building_name) -> UnitTemplate | BuildingTemplate | WonderTemplate:
+        for template in itertools.chain(UNITS.all(), BUILDINGS.all(), WONDERS.all()):
+            if template.name == building_name:
+                return template
+        raise ValueError(f"No template {building_name}")    
+
+    def to_json(self):
+        return {
+            'order_type': self.order_type, 
+            'template_name': self.template.name
+        }
+
+    @staticmethod
+    def from_json(json):
+        return QueueEntry(
+            order_type=json['order_type'],
+            template=QueueEntry.find_queue_template_by_name(json['template_name'])
+        )

@@ -42,13 +42,16 @@ export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCos
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
         building_type = 'BUILDING';
-        building = templates.BUILDINGS?.[buildingName];
+        building = templates.BUILDINGS[buildingName];
     } else if (templates.WONDERS?.[buildingName]) {
         building_type = 'WONDER';
-        building = templates.WONDERS?.[buildingName];
+        building = templates.WONDERS[buildingName];
+    } else if (templates.UNITS?.[buildingName]) {
+        building_type = 'UNIT';
+        building = templates.UNITS[buildingName];
     } else if (unitTemplatesByBuildingName?.[buildingName]) {
         building_type = 'UNIT';
-        building = unitTemplatesByBuildingName?.[buildingName];
+        building = unitTemplatesByBuildingName[buildingName];
     }
     const description = descriptions?.[buildingName];
     let descriptionObj = "";
@@ -92,15 +95,19 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     } else if (templates.WONDERS?.[buildingName]) {
         building_type = 'WONDER';
         building = templates.WONDERS?.[buildingName];
+    } else if (templates.UNITS?.[buildingName]) {
+        building_type = 'UNIT';
+        building = templates.UNITS[buildingName];
     } else if (unitTemplatesByBuildingName?.[buildingName]) {
         building_type = 'UNIT';
-        building = unitTemplatesByBuildingName?.[buildingName];
+        building = unitTemplatesByBuildingName[buildingName];
     }
     const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.type == "urban" ? 'urban' : 'rural';
 
     return (
-        unitTemplatesByBuildingName[buildingName] ? 
+        building_type == 'UNIT' ? 
             <div className="building-card" onClick={onClick}>
+                {buildingName}
                 <h2>{unitTemplatesByBuildingName[buildingName]?.building_name}</h2>
                 <p>Cost: {unitTemplatesByBuildingName[buildingName]?.wood_cost} wood</p>
                 <div className="unlocked-units">
@@ -121,14 +128,15 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
-export const ExistingBuildingDisplay = ({ buildingName, templates, onClick, emptyType, setHoveredBuilding, yields }) => {
+export const ExistingBuildingDisplay = ({ buildingName, templates, handleQueueDelete, emptyType, setHoveredBuilding, yields }) => {
     const building = templates.BUILDINGS?.[buildingName];
     return (
-        <div className={`existing-building-card ${emptyType || building?.type}`} onClick={onClick} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
+        <div className={`existing-building-card ${emptyType || building?.type}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
             <div className="building-name">{buildingName || ""}</div>
             {yields?.[buildingName] && 
                 <YieldsDisplay yields={yields[buildingName]} />
             }
+            <div className="delete-building-card" onClick={handleQueueDelete(buildingName)}></div>
         </div>
     );
 };

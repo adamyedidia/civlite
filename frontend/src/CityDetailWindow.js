@@ -120,14 +120,13 @@ const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
 }
 
 const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
-    selectedCityBuildingChoices, selectedCityBuildingQueue, 
+    selectedCityBuildingQueue, 
     selectedCityUnitChoices, selectedCity,
     unitTemplatesByBuildingName, templates, descriptions,
     setHoveredUnit, setHoveredBuilding, setHoveredWonder, setSelectedCity, centerMap
      }) => {
 
     const canBuild = !declinePreviewMode && !puppet;
-    const [showHiddenBuildings, setShowHiddenBuildings] = useState(false);
 
     const handleClickClose = () => {
         setSelectedCity(null);
@@ -189,10 +188,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         submitPlayerInput('trade_hub', {});
     }
 
-    const handleHideBuilding = (buildingName, newHidden) => {
-        if (!canBuild) return;
-        console.log('discarding building', buildingName);
-        submitPlayerInput('hide_building', {'building_name': buildingName, 'hidden': newHidden});
+    const handleQueueDelete = (buildingName) => {
+        if (declinePreviewMode) return;
+        submitPlayerInput('choose_building', {'building_name': (buildingName), 'delete': true});        
     }
 
     const CycleCities = (direction) => {
@@ -249,6 +247,25 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / templates.UNITS[selectedCity.infinite_queue_unit].metal_cost) : 0;
     const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => templates.BUILDINGS[item] ? templates.BUILDINGS[item].cost : templates.WONDERS[item] ? gameState.wonder_cost_by_age[templates.WONDERS[item].age] : unitTemplatesByBuildingName[item] ? unitTemplatesByBuildingName[item].wood_cost : 0);
 
+    const availableBuildingEntry = (buildingName, index) => {
+        console.log(buildingName);
+        const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
+        return <div key={index} className='building-choices-row'>
+            <BriefBuildingDisplay 
+                buildingName={buildingName}
+                faded={inOtherQueue}
+                wonderCostsByAge={gameState.wonder_cost_by_age}
+                clickable={true}
+                unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates}
+                setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder}
+                onClick={() => handleClickBuildingChoice(buildingName)}
+                descriptions={descriptions}
+                yields = {selectedCity.building_yields?.[buildingName]} 
+                payoffTime = {selectedCity.available_buildings_payoff_times?.[buildingName]}
+                />
+        </div>
+    }
+
     return (
         <div className="city-detail-window" 
             style={{borderColor: myCivTemplate?.secondary_color}}>
@@ -283,17 +300,17 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             <div className="existing-buildings-container">
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="rural" &&
-                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} handleQueueDelete={handleQueueDelete} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
                 ))}
                 {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
-                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="rural"/>
+                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="rural"/>
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="urban" &&
-                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} handleQueueDelete={handleQueueDelete} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
                 ))}
                 {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
-                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
+                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
                 ))}
             </div>
             <div className="wonders-container">
@@ -310,45 +327,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                 </CityDetailPanel>
                 <CityDetailPanel title="wood" icon={woodImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
-                    {selectedCityBuildingChoices && canBuild && (<>
-                        <div className="building-choices-container">
-                            <div className='building-choices-row'>
-                                <img src={showHiddenBuildings ? eyeImg : closedEyeImg} alt="" className={selectedCity.hidden_building_names.length > 0 ? "clickable" : ""} height="20px" onClick={() => setShowHiddenBuildings(!showHiddenBuildings)} style={{
-                                    border: '2px solid black',
-                                    borderRadius: '50%',
-                                    opacity: selectedCity.hidden_building_names.length > 0 ? 1.0 : 0.25,
-                                }}/>
-                                <BriefBuildingDisplayTitle title="Building Choices" />
-                            </div>
-                            {selectedCityBuildingChoices.map((buildingName, index) => {
-                                const hidden = selectedCity.hidden_building_names.includes(buildingName)
-                                if (!showHiddenBuildings && hidden) {
-                                    return null;
-                                }
-                                const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
-                                return <div key={index} className={`building-choices-row ${hidden ? 'hidden' : ''}`}>
-                                    <img src={hidden ? closedEyeImg : eyeImg} alt="" height="20px" className="clickable" onClick={() => handleHideBuilding(buildingName, !hidden)} style={{
-                                        border: '2px solid black',
-                                        borderRadius: '50%',
-                                    }}/>
-                                    <BriefBuildingDisplay 
-                                        buildingName={buildingName}
-                                        faded={inOtherQueue}
-                                        wonderCostsByAge={gameState.wonder_cost_by_age}
-                                        clickable={true}
-                                        unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates}
-                                        setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder}
-                                        onClick={() => handleClickBuildingChoice(buildingName)}
-                                        descriptions={descriptions}
-                                        yields = {selectedCity.building_yields?.[buildingName]} 
-                                        payoffTime = {selectedCity.available_buildings_payoff_times?.[buildingName]}
-                                        />
-                                </div>
-                            })}
-                        </div>
-                        <div className="building-choices-placeholder"/>
-
-                    </>)}
                     {selectedCityBuildingQueue && canBuild &&  (
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
@@ -463,6 +441,31 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 </CityDetailPanel>
             </div>
             </div>
+            {selectedCity && canBuild && 
+            <div className="available-buildings city-detail-columns">
+                <div className="city-detail-column">
+                    <div className="building-choices-container">
+                        {selectedCity.available_wonders.map(availableBuildingEntry)}
+                    </div>
+                    <div className="building-choices-container">
+                        {selectedCity.available_unit_building_names.map(availableBuildingEntry)}
+                    </div>
+                </div>
+                <div className="city-detail-column">
+                    <div className="building-choices-container">
+                        {selectedCity.available_urban_building_names.map(availableBuildingEntry)}
+                        {selectedCity.building_slots_full.urban && <div className="building-slots-full-banner">
+                            <span>No Urban Slots</span>
+                        </div>}
+                    </div>
+                    <div className="building-choices-container">
+                        {selectedCity.available_rural_building_names.map(availableBuildingEntry)}
+                        {selectedCity.building_slots_full.rural && <div className="building-slots-full-banner">
+                            <span>No Rural Slots</span>
+                        </div>}
+                    </div>
+                </div>
+            </div>}
         </div>
     );
 };

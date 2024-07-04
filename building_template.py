@@ -39,7 +39,7 @@ class BuildingTemplate:
     def __repr__(self):
         return f"<BuildingTemplate {self.name})>"
     
-    def __lt__(self, other: 'BuildingTemplate'):
+    def __lt__(self, other: 'BuildingTemplate') -> bool:
         return (self.advancement_level(), self.cost, self.name) < (other.advancement_level(), other.cost, other.name)
 
     def advancement_level(self) -> int:

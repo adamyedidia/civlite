@@ -23,6 +23,7 @@
 }
 .city-detail-columns { 
     display: flex; /* So that the columns are horizontally adjacent. */
+    justify-content: space-evenly;
 }
 .city-detail-column {
   padding: 5px;
@@ -123,44 +124,32 @@
 }
 
 .building-choices-container {
+  position: relative; /* for purpose of positioning the building-slots-full-banner */
   overflow-y: auto; /* Enable vertical scrolling */
-  margin-bottom: 50px;
-  max-height: 300px;
+  max-height: 200px;
+  width: 300px;
 }
 
-.building-choices-container:hover {
-    max-height: 350px;
-    z-index: 1;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 10px); /* 10px of padding on parent */
-}
-.building-choices-placeholder {
-    height: 0;
-    visibility: hidden;
-}
-.building-choices-container:hover + .building-choices-placeholder {
-    height: 350px; /* Adjust based on the actual height of .building-choices-container */
-    visibility: visible;
-}
+.building-slots-full-banner {
+  background-color: #8888;
+  z-index: 200000;
 
-.building-choices-row {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-
-.building-choices-row.hidden {
-    opacity: 0.25;
-}
-
-.building-choices-row img.clickable {
-    cursor: pointer;
-}
-.building-choices-row img.clickable:hover {
-    transform: scale(1.2);
-    background-color: #eee;
+.building-slots-full-banner span {
+  background-color: #888a;
+  font-size: 2em;
+  height: 1.5em;
+  padding: 2px 10px;
+  border-radius: 3px;
+  transform: rotate(-10deg);
 }
 
 .building-queue-container {
@@ -469,3 +458,9 @@
   color: #666;
 }
 
+.available-buildings {
+  margin: 10px;
+  background-color: #ffeedde0;
+  border: 10px solid #e46c2b;
+  border-radius: 20px;
+}

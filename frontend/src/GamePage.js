@@ -2157,11 +2157,8 @@ export default function GamePage() {
         '20,0,-20': React.createRef(),
     });
 
-    // const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
-
     const descriptions = selectedCity?.available_buildings_to_descriptions;
 
-    const selectedCityBuildingChoices = selectedCity?.available_building_names;
 
     const selectedCityBuildingQueue = selectedCity?.buildings_queue;
 
@@ -3117,7 +3114,6 @@ export default function GamePage() {
                         playerApiUrl={playerApiUrl}
                         setGameState={setGameState}
                         refreshSelectedCity={refreshSelectedCity}
-                        selectedCityBuildingChoices={selectedCityBuildingChoices} 
                         selectedCityBuildingQueue={selectedCityBuildingQueue}
                         selectedCityUnitChoices={selectedCityUnitChoices}
                         selectedCity={selectedCity} 

@@ -35,7 +35,7 @@ class Civ:
         self.techs_status: Dict[TechTemplate, TechStatus] = {tech: TechStatus.UNAVAILABLE for tech in TECHS.all()}
         self.vitality = 1.0
         self.city_power = 0.0
-        self.available_buildings: list[BuildingTemplate] = []
+        self.available_city_buildings: list[BuildingTemplate] = []
         self.available_unit_buildings: list[UnitTemplate] = []
         self.buildings_in_all_queues: list[str] = []
         self.target1: Optional['Hex'] = None
@@ -207,7 +207,7 @@ class Civ:
             "current_tech_choices": [tech.name for tech in self._available_techs()],
             "vitality": self.vitality,
             "city_power": self.city_power,
-            "available_buildings": [b.name for b in self.available_buildings],
+            "available_buildings": [b.name for b in self.available_city_buildings],
             "available_unit_buildings": [u.name for u in self.available_unit_buildings],
             "buildings_in_all_queues": self.buildings_in_all_queues,
             "target1": self.target1.coords if self.target1 else None,
@@ -227,7 +227,7 @@ class Civ:
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
-        self.available_buildings = [building for building in BUILDINGS.all() if (
+        self.available_city_buildings = [building for building in BUILDINGS.all() if (
             (building.prereq is None or self.has_tech(building.prereq))
             and (not building.name in game_state.one_per_civs_built_by_civ_id.get(self.id, []))
         )]
@@ -235,6 +235,7 @@ class Civ:
             unit for unit in UNITS.all() 
             if unit.buildable and (unit.prereq is None or self.has_tech(unit.prereq))
             and (not unit.building_name in game_state.one_per_civs_built_by_civ_id.get(self.id, []))
+            and unit != UNITS.WARRIOR
             ]
         
     def refresh_queues_cache(self, game_state: 'GameState'):
@@ -512,7 +513,7 @@ class Civ:
         civ.techs_status = {tech: TechStatus(json["techs_status"][tech.name]) for tech in TECHS.all()}
         civ.vitality = json["vitality"]
         civ.city_power = json["city_power"]
-        civ.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
+        civ.available_city_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
         civ.available_unit_buildings = [UNITS.by_name(u) for u in json["available_unit_buildings"]]
         civ.buildings_in_all_queues = json["buildings_in_all_queues"]
         civ.target1_coords = json["target1"]

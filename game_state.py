@@ -5,10 +5,11 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
 from collections import defaultdict
-from city import City, get_city_name_for_civ
+from city import City, find_queue_template_by_name, get_city_name_for_civ
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
+from unit_template import UnitTemplate
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
 from wonder_template import WonderTemplate
@@ -296,7 +297,7 @@ class GameState:
             assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
         city.hex = hex
         city.populate_terrains_dict(self)
-        city.refresh_available_wonders(self)
+        city.midturn_update(self)
         return city
 
     def register_camp(self, camp, hex):
@@ -432,10 +433,6 @@ class GameState:
         if civ.has_ability('ExtraCityPower'):
             civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
 
-
-        city.refresh_available_buildings()
-        city.refresh_available_units()
-        city.refresh_available_wonders(self)
         self.midturn_update()
 
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
@@ -609,23 +606,17 @@ class GameState:
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
-
-                if building_name in UNITS_BY_BUILDING_NAME:
-                    building = UNITS_BY_BUILDING_NAME[building_name]
-                elif building_name in {b.name for b in BUILDINGS.all()}:
-                    building = BUILDINGS.by_name(building_name)
-                elif building_name in {w.name for w in WONDERS.all()}:
-                    building = WONDERS.by_name(building_name)
-                else:
-                    raise ValueError(f"Unknown building name {building_name}")
-                city.buildings_queue.append(building)
-                for other_city in city.civ.get_my_cities(self):
-                    if other_city != city and other_city.buildings_queue:
-                        other_city.buildings_queue = [b for b in other_city.buildings_queue if b != building]
+                building = find_queue_template_by_name(building_name)
+                if move['delete']:
+                    if any([building == b._template for b in city.buildings]):
+                        city.buildings_queue = [] + city.buildings_queue
+                elif city.validate_building_queueable(building):
+                    city.buildings_queue.append(building)
+                    for other_city in city.civ.get_my_cities(self):
+                        if other_city != city and other_city.buildings_queue:
+                            other_city.buildings_queue = [b for b in other_city.buildings_queue if b != building]
                 game_player_to_return = game_player
-                print(city, city.buildings_queue)
                 self.midturn_update()
-                print(city, city.buildings_queue)
 
             if move['move_type'] == 'cancel_building':
                 building_name = move['building_name']
@@ -998,8 +989,7 @@ class GameState:
             civ.fill_out_available_buildings(self)
 
         for city in self.cities_by_id.values():
-            city.refresh_available_buildings()     
-            city.refresh_available_wonders(self)
+            city.midturn_update(self)
 
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= self.game_end_score():

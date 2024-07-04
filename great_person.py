@@ -116,7 +116,7 @@ class GreatEngineer(GreatPerson):
 
     def apply(self, game_state, city: City):
         city.build_building(game_state, self.unit_template)
-        city.refresh_available_units()
+        city.midturn_update(game_state)
         city.wood += self.extra_wood
 
     def valid_for_city(self, city: City) -> bool:

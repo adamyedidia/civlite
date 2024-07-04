@@ -1,6 +1,7 @@
+import itertools
 import math
 from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Union
-from building import Building
+from building import Building, QueueEntry
 from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
@@ -29,6 +30,11 @@ if TYPE_CHECKING:
 
 TRADE_HUB_CITY_POWER_PER_TURN = 20
 
+def find_queue_template_by_name(building_name) -> UnitTemplate | BuildingTemplate | WonderTemplate:
+    for template in itertools.chain(UNITS.all(), BUILDINGS.all(), WONDERS.all()):
+        if template.name == building_name:
+            return template
+    raise ValueError(f"No template {building_name}")    
 
 class City:
     def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
@@ -53,8 +59,9 @@ class City:
         self.infinite_queue_unit: Optional[UnitTemplate] = None
         self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate, WonderTemplate]] = []
         self.buildings: list[Building] = [Building(UNITS.WARRIOR)]
-        self.available_buildings: list[BuildingTemplate] = []
+        self.available_city_buildings: list[BuildingTemplate] = []
         self.available_wonders: list[WonderTemplate] = []
+        self.available_unit_buildings: list[UnitTemplate] = []
         self.available_buildings_to_descriptions: dict[str, dict[str, Union[str, float, int]]] = {}
         self.building_yields: dict[str, Yields] = {}
         self.available_buildings_payoff_times: dict[str, int] = {}
@@ -76,8 +83,6 @@ class City:
         self.unhappiness: float = 0.0
         self.is_decline_view_option: bool = False
         self.revolt_unit_count: int = 0
-
-        self.handle_cleanup()
 
     def __repr__(self):
         return f"<City {self.name} @ {self.hex.coords if self.hex else None}>"
@@ -152,7 +157,7 @@ class City:
         Update things that could have changed due to the controlling player fiddling with focus etc.
         """
         self.adjust_projected_yields(game_state)
-        self.refresh_available_buildings()
+        self._refresh_available_buildings_and_units(game_state)
 
     def is_trade_hub(self):
         return self.civ.trade_hub_id == self.id
@@ -275,7 +280,6 @@ class City:
             self.handle_siege(sess, game_state)
         
         self.handle_unhappiness(game_state)
-        self.handle_cleanup()
         self.midturn_update(game_state)
 
     def roll_wonders(self, game_state: 'GameState') -> None:
@@ -361,8 +365,29 @@ class City:
             else:
                 self.terrains_dict[hex.terrain] += 1
 
-    def refresh_available_wonders(self, game_state: 'GameState') -> None:
-        self.available_wonders: list[WonderTemplate] = game_state.available_wonders()
+    def _refresh_available_buildings_and_units(self, game_state):
+        if self.civ is None or self.hex is None:
+            return
+        self.available_units = sorted([unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)])
+
+        self.available_unit_buildings: list[UnitTemplate] = sorted(self.civ.available_unit_buildings, reverse=True)
+        self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders())
+        self.available_city_buildings = self.civ.available_city_buildings
+        # Can't urbanize if not full
+        if self.urban_slots > self.num_buildings_of_type('urban', include_in_queue=True):
+            self.available_city_buildings = [b for b in self.available_city_buildings if b != BUILDINGS.URBANIZE]
+
+        self._update_city_building_descriptions()
+        self.available_city_buildings.sort(key=lambda b: (
+            -self.building_yields[b.name].total() if b.name in self.building_yields else 0,
+            b.name
+        ))
+
+        # Validate queue
+        self.buildings_queue = [bldg for bldg in self.buildings_queue if bldg in 
+                                self.available_city_buildings + self.available_unit_buildings + self.available_wonders]
+        if self.infinite_queue_unit not in self.available_units:
+            self.infinite_queue_unit = None
 
     def calculate_payoff_time(self, yields, cost) -> int:
         if yields == 0:
@@ -379,160 +404,84 @@ class City:
         payoff_turns += 1
         return payoff_turns
 
-    def refresh_available_buildings(self) -> None:
-        if not self.civ:
-            return
+    def _update_city_building_descriptions(self) -> None:
+        for building_template in self.available_city_buildings + [b._template for b in self.buildings_of_type("rural") + self.buildings_of_type("urban")]:
+            assert isinstance(building_template, BuildingTemplate)
+            total_pseudoyields: float = 0
+            is_economic_building = False
+            building_yields = building_template.calculate_yields.calculate(self) if building_template.calculate_yields is not None else Yields()
 
-        old_available_buildings = set(self.available_buildings)
-        self.available_buildings = self.civ.available_buildings
-        new_bldgs = set(self.available_buildings) - old_available_buildings
+            for ability in building_template.abilities:
+                if ability.name == "IncreaseFocusYieldsPerPopulation":
+                    is_economic_building = True
+                    resource: str = ability.numbers[0]
+                    amount: int = ability.numbers[1]
+                    building_yields += Yields(**{resource: self.population * amount})
 
-        if not self.hex:
-            return
-        new_available_bldgs = self.get_available_buildings(include_in_queue=True)
-        # Validate queue
-        self.buildings_queue = [bldg for bldg in self.buildings_queue if bldg in new_available_bldgs]
+                if ability.name == "CityGrowthCostReduction":
+                    is_economic_building = True
+                    ratio = ability.numbers[0]
+                    effective_income_multiplier = 1 / ratio
+                    effective_income_bonus = self.projected_income_base['food'] * (effective_income_multiplier - 1)
+                    total_pseudoyields += int(effective_income_bonus / self.civ.vitality)
 
-        for template in new_available_bldgs + [b._template for b in self.buildings_of_type("rural") + self.buildings_of_type("urban")]:
-            building_template = template if isinstance(template, BuildingTemplate) else None
-            if building_template is not None:
-                total_pseudoyields: float = 0
-                is_economic_building = False
-                building_yields = building_template.calculate_yields.calculate(self) if building_template.calculate_yields is not None else Yields()
+                if ability.name == "DecreaseFoodDemand":
+                    unhappiness_saved: float = min(ability.numbers[0], self.food_demand)
+                    building_yields.unhappiness = unhappiness_saved
 
-                for ability in building_template.abilities:
-                    if ability.name == "IncreaseFocusYieldsPerPopulation":
-                        is_economic_building = True
-                        resource: str = ability.numbers[0]
-                        amount: int = ability.numbers[1]
-                        building_yields += Yields(**{resource: self.population * amount})
+                    # Decide how much AI cares
+                    if self.civ_to_revolt_into is not None:
+                        # Count the unhappiness as full resources
+                        pass
+                    elif self.unhappiness == 0 and self.projected_income["unhappiness"] == 0:
+                        # This ability is pretty useless if there's no unhappiness, cancel out its yields
+                        total_pseudoyields -= unhappiness_saved
+                    else:
+                        # Count the unhappiness as half resources
+                        total_pseudoyields -= 0.5 * unhappiness_saved
 
-                    if ability.name == "CityGrowthCostReduction":
-                        is_economic_building = True
-                        ratio = ability.numbers[0]
-                        effective_income_multiplier = 1 / ratio
-                        effective_income_bonus = self.projected_income_base['food'] * (effective_income_multiplier - 1)
-                        total_pseudoyields += int(effective_income_bonus / self.civ.vitality)
-
-                    if ability.name == "DecreaseFoodDemand":
-                        unhappiness_saved: float = min(ability.numbers[0], self.food_demand)
-                        building_yields.unhappiness = unhappiness_saved
-
-                        # Decide how much AI cares
-                        if self.civ_to_revolt_into is not None:
-                            # Count the unhappiness as full resources
-                            pass
-                        elif self.unhappiness == 0 and self.projected_income["unhappiness"] == 0:
-                            # This ability is pretty useless if there's no unhappiness, cancel out its yields
-                            total_pseudoyields -= unhappiness_saved
-                        else:
-                            # Count the unhappiness as half resources
-                            total_pseudoyields -= 0.5 * unhappiness_saved
-
-                    if ability.name == "ReducePuppetDistancePenalty":
-                        building_yields += {
-                            resource: sum(
-                                amount / (1 - self.puppet_distance_penalty() * distance) * (self.puppet_distance_penalty() - ability.numbers[0]) * distance
-                                for amount, distance in puppet_infos.values()
-                            )
-                            for resource, puppet_infos in self.projected_income_puppets.items()}
-                        
-                total_yields = building_yields.total()
-                is_economic_building = total_yields > 0 or is_economic_building
-                if building_template.vp_reward is not None and building_template.vp_reward > 0:
-                    self.available_buildings_to_descriptions[building_template.name] = {
-                        "type": "vp",
-                        "value": building_template.vp_reward,
-                        "value_for_ai": building_template.vp_reward * 3 + total_yields + total_pseudoyields,
-                    }
-
-                elif is_economic_building:
-                    self.available_buildings_to_descriptions[building_template.name] = {
-                        "type": "yield",
-                        "value": total_yields,
-                        "value_for_ai": total_yields + total_pseudoyields,
-                    }
-                
-                else:
-                    self.available_buildings_to_descriptions[building_template.name] = {
-                        "type": "???",
-                        "value": 0,
-                    }
-                
-                if building_template.calculate_yields is not None and total_yields == 0 and total_pseudoyields == 0:
-                    self.toggle_discard(building_template.name, hidden=True)
-
-                if building_yields.total() > 0:
-                    self.building_yields[building_template.name] = building_yields
-                    self.available_buildings_payoff_times[building_template.name] = self.calculate_payoff_time(building_yields.total(), building_template.cost)
-                else:
-                    if building_template.name in self.building_yields:
-                        del self.building_yields[building_template.name]
-
-            elif isinstance(template, WonderTemplate):
-                self.available_buildings_to_descriptions[template.name] = {
-                    "type": "wonder",
-                    "value": template.age,
+                if ability.name == "ReducePuppetDistancePenalty":
+                    building_yields += {
+                        resource: sum(
+                            amount / (1 - self.puppet_distance_penalty() * distance) * (self.puppet_distance_penalty() - ability.numbers[0]) * distance
+                            for amount, distance in puppet_infos.values()
+                        )
+                        for resource, puppet_infos in self.projected_income_puppets.items()}
+                    
+            total_yields = building_yields.total()
+            is_economic_building = total_yields > 0 or is_economic_building
+            if building_template.vp_reward is not None and building_template.vp_reward > 0:
+                self.available_buildings_to_descriptions[building_template.name] = {
+                    "type": "vp",
+                    "value": building_template.vp_reward,
+                    "value_for_ai": building_template.vp_reward * 3 + total_yields + total_pseudoyields,
                 }
 
-            elif isinstance(template, UnitTemplate):
-                self.available_buildings_to_descriptions[template.building_name] = {
-                    "type": "strength",
-                    "value": template.strength, 
+            elif is_economic_building:
+                self.available_buildings_to_descriptions[building_template.name] = {
+                    "type": "yield",
+                    "value": total_yields,
+                    "value_for_ai": total_yields + total_pseudoyields,
                 }
-        def sort_rank(template) -> tuple[int, Any, str]:
-            if isinstance(template, WonderTemplate):
-                type_rank = 5
-                sort_val = template.age
-            elif isinstance(template, BuildingTemplate):
-                type_rank = 4 if template.type == BuildingType.URBAN else 3 if template.type == BuildingType.RURAL else 999
-                assert type_rank in (3, 4), f"Invalid type, {template.type}, {template}"
-                yields_val = self.building_yields[template.name].total() if template.name in self.building_yields else 0
-                other_val = self.available_buildings_to_descriptions[template.name]["value"] if template.name in self.available_buildings_to_descriptions else 0
-                sort_val = (yields_val, other_val, template.cost)
-            elif isinstance(template, UnitTemplate):
-                type_rank = 1
-                sort_val = template.strength
+            
             else:
-                raise ValueError(f"Unknown template type: {type(template)}")
-            return type_rank, sort_val, template.name
-        self.available_buildings.sort(key = sort_rank, reverse=True)
+                self.available_buildings_to_descriptions[building_template.name] = {
+                    "type": "???",
+                    "value": 0,
+                }
+            
+            if building_template.calculate_yields is not None and total_yields == 0 and total_pseudoyields == 0:
+                self.toggle_discard(building_template.name, hidden=True)
 
-    def refresh_available_units(self) -> None:
-        self.available_units = [unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)]
-        self.available_units.sort()
+            if building_yields.total() > 0:
+                self.building_yields[building_template.name] = building_yields
+                self.available_buildings_payoff_times[building_template.name] = self.calculate_payoff_time(building_yields.total(), building_template.cost)
+            else:
+                if building_template.name in self.building_yields:
+                    del self.building_yields[building_template.name]
 
     def has_production_building_for_unit(self, unit: UnitTemplate) -> bool:
         return self.has_building(unit.building_name)
-
-    def handle_cleanup(self) -> None:
-
-        self.refresh_available_units()
-        self.refresh_available_buildings()
-
-    def get_available_buildings(self, include_in_queue=False) -> list[Union[BuildingTemplate, UnitTemplate, WonderTemplate]]:
-        if not self.civ:
-            return []
-        if include_in_queue:
-            building_names_in_queue = {}
-        else:
-            building_names_in_queue = {building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue}  # type: ignore
-        wonders: list[WonderTemplate] = [wonder for wonder in self.available_wonders if wonder.name not in building_names_in_queue]
-        buildings: list[BuildingTemplate] = [building for building in self.available_buildings if 
-                                             not building.name in building_names_in_queue and 
-                                             not self.has_building(building.name)]
-        if self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots:
-            buildings = [b for b in buildings if b.type != BuildingType.RURAL or b in self.buildings_queue]
-        if self.num_buildings_of_type("urban", include_in_queue=True) >= self.urban_slots:
-            buildings = [b for b in buildings if b.type != BuildingType.URBAN or b in self.buildings_queue]
-        else:
-            # CAn't urbanize if not full
-            buildings = [b for b in buildings if b != BUILDINGS.URBANIZE]
-
-        current_unit_bldgs = self.buildings_of_type("unit")
-        current_bottom_unit_tier = min(b.advancement_level for b in current_unit_bldgs) if len(current_unit_bldgs) >= 3 else -1
-        unit_buildings: list[UnitTemplate] = [unit for unit in self.civ.available_unit_buildings if unit.advancement_level() > current_bottom_unit_tier and not unit.building_name in building_names_in_queue and not self.has_production_building_for_unit(unit)]
-        return [*wonders, *buildings, *unit_buildings]
 
     def build_units(self, game_state: 'GameState') -> None:
         if self.infinite_queue_unit:
@@ -670,6 +619,24 @@ class City:
     def reinforce_unit(self, unit: Unit, stack_size=1) -> None:
         unit.health += 100 * stack_size
 
+    def validate_building_queueable(self, building_template: UnitTemplate | BuildingTemplate | WonderTemplate) -> bool:
+        if self.has_building(building_template.name):
+            return False
+        if isinstance(building_template, UnitTemplate):
+            if building_template not in self.available_unit_buildings:
+                return False
+        if isinstance(building_template, BuildingTemplate):
+            if building_template not in self.available_city_buildings:
+                return False
+            if building_template.type == BuildingType.URBAN and self.urban_slots <= self.num_buildings_of_type("urban", include_in_queue=True):
+                return False
+            if building_template.type == BuildingType.RURAL and self.rural_slots <= self.num_buildings_of_type("rural", include_in_queue=True):
+                return False
+        if isinstance(building_template, WonderTemplate):
+            if building_template not in self.available_wonders:
+                return False
+        return True
+
     def build_buildings(self, game_state: 'GameState') -> None:
         while self.buildings_queue:
             building: UnitTemplate | BuildingTemplate | WonderTemplate = self.buildings_queue[0]
@@ -753,14 +720,13 @@ class City:
 
     def hide_bad_buildings(self):
         highest_unit_level = max([0] + [u.advancement_level() for u in self.civ.available_unit_buildings])
-        for building in self.get_available_buildings():
-            if isinstance(building, BuildingTemplate):
-                desc = self.available_buildings_to_descriptions[building.name]
-                if desc.get('type') == 'yield' and desc.get('value') == 0 and desc.get('value_for_ai') == 0:
-                    self.toggle_discard(building.name, hidden=True)
-            elif isinstance(building, UnitTemplate):
-                if building.advancement_level() < highest_unit_level - 1:
-                    self.toggle_discard(building.building_name, hidden=True)
+        for building in self.available_city_buildings:
+            desc = self.available_buildings_to_descriptions[building.name]
+            if desc.get('type') == 'yield' and desc.get('value') == 0 and desc.get('value_for_ai') == 0:
+                self.toggle_discard(building.name, hidden=True)
+        for building in self.available_unit_buildings:
+            if building.advancement_level() < highest_unit_level - 1:
+                self.toggle_discard(building.building_name, hidden=True)
 
 
     def change_owner(self, civ: Civ, game_state: 'GameState') -> None:
@@ -792,9 +758,7 @@ class City:
         self.ever_controlled_by_civ_ids[civ.id] = True
 
         # Update available stuff
-        self.refresh_available_buildings()
-        self.refresh_available_units()
-        self.refresh_available_wonders(game_state)
+        self.midturn_update(game_state)
         self.hide_bad_buildings()
 
     def barbarian_capture(self, game_state: 'GameState') -> None:
@@ -966,14 +930,11 @@ class City:
             self.infinite_queue_unit = random.choice(highest_tier_units)
             print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units]})")
 
-        available_buildings = self.get_available_buildings()
-
         # Never steal from another city's queue
-        available_buildings = [b for b in available_buildings if (b.building_name if isinstance(b, UnitTemplate) else b.name) not in self.civ.buildings_in_all_queues]
+        wonders: list[WonderTemplate] = [w for w in self.available_wonders if w.name not in self.civ.buildings_in_all_queues]
+        economic_buildings: list[BuildingTemplate] = [b for b in self.available_city_buildings if b.name not in self.civ.buildings_in_all_queues]
+        military_buildings: list[UnitTemplate] = [u for u in self.available_unit_buildings if u.movement > 0 and u.building_name not in self.civ.buildings_in_all_queues]
 
-        wonders: list[WonderTemplate] = [building for building in available_buildings if isinstance(building, WonderTemplate)]
-        economic_buildings: list[BuildingTemplate] = [building for building in available_buildings if isinstance(building, BuildingTemplate)]
-        military_buildings: list[UnitTemplate] = [building for building in available_buildings if isinstance(building, UnitTemplate) and building.movement > 0]
         lotsa_wood: bool = self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2
         if len(military_buildings) > 0:
             # Choose buildings first by effective advancement level, then randomly
@@ -1049,14 +1010,19 @@ class City:
             "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
             "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
-            "buildings_queue": [building.building_name if hasattr(building, 'building_name') else building.name for building in self.buildings_queue],  # type: ignore
+            "buildings_queue": [building.name for building in self.buildings_queue],
             "buildings": [building.to_json() for building in self.buildings],
-            "available_buildings": [b.name for b in self.available_buildings],
-            "available_wonders": [w.name for w in self.available_wonders],
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
             "available_buildings_payoff_times": self.available_buildings_payoff_times,
             "building_yields": {name: yields.to_json() for name, yields in self.building_yields.items()},
-            "available_building_names": [template.building_name if hasattr(template, 'building_name') else template.name for template in self.get_available_buildings()],  # type: ignore
+            "available_wonders": [w.name for w in self.available_wonders if w not in self.buildings_queue],
+            "available_unit_building_names": [template.name for template in self.available_unit_buildings if template not in self.buildings_queue],
+            "available_urban_building_names": [template.name for template in self.available_city_buildings if template not in self.buildings_queue and template.type==BuildingType.URBAN],
+            "available_rural_building_names": [template.name for template in self.available_city_buildings if template not in self.buildings_queue and template.type==BuildingType.RURAL],
+            "building_slots_full": {
+                "rural": self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots,
+                "urban": self.num_buildings_of_type("urban", include_in_queue=True) >= self.urban_slots,
+            },
             "capital": self.capital,
             "available_units": [u.name for u in self.available_units],
             "projected_income": self.projected_income.to_json(),
@@ -1099,9 +1065,7 @@ class City:
         city.urban_slots = json["urban_slots"]
         city.under_siege_by_civ = json["under_siege_by_civ_id"]
         city.capital = json["capital"]
-        city.buildings_queue = [UNITS_BY_BUILDING_NAME[building] if building in UNITS_BY_BUILDING_NAME else BUILDINGS.by_name(building) if building in [b.name for b in BUILDINGS.all()] else WONDERS.by_name(building) for building in json["buildings_queue"]]
-        city.available_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
-        city.available_wonders = [WONDERS.by_name(w) for w in json["available_wonders"]]
+        city.buildings_queue = [find_queue_template_by_name(building) for building in json["buildings_queue"]]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.available_buildings_payoff_times = json["available_buildings_payoff_times"]
         city.building_yields = {name: Yields(**yields) for name, yields in json["building_yields"].items()}
@@ -1122,12 +1086,11 @@ class City:
         city._territory_parent_coords = json["territory_parent_coords"]
         city.founded_turn = json["founded_turn"]
 
-        city.handle_cleanup()
-
         return city
 
     def from_json_postprocess(self, game_state: 'GameState'):
         self.under_siege_by_civ = game_state.civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
+        self.midturn_update(game_state)
 
 CITY_NAMES = {
     "Miami",
