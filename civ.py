@@ -2,6 +2,7 @@ import random
 from typing import TYPE_CHECKING, Any, Generator, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
+from building import QueueOrderType
 from wonder_templates_list import WONDERS
 from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_people_by_name
 from civ_template import CivTemplate
@@ -239,7 +240,7 @@ class Civ:
             ]
         
     def refresh_queues_cache(self, game_state: 'GameState'):
-        self.buildings_in_all_queues = [b.building_name if isinstance(b, UnitTemplate) else b.name for city in self.get_my_cities(game_state) for b in city.buildings_queue]
+        self.buildings_in_all_queues = [entry.template.name for city in self.get_my_cities(game_state) for entry in city.buildings_queue if entry.order_type == QueueOrderType.BUILD]
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
         """

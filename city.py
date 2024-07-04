@@ -1,7 +1,7 @@
 import itertools
 import math
 from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Union
-from building import Building, QueueEntry
+from building import Building, QueueEntry, QueueOrderType
 from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
@@ -57,7 +57,7 @@ class City:
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
         self.infinite_queue_unit: Optional[UnitTemplate] = None
-        self.buildings_queue: list[Union[UnitTemplate, BuildingTemplate, WonderTemplate]] = []
+        self.buildings_queue: list[QueueEntry] = []
         self.buildings: list[Building] = [Building(UNITS.WARRIOR)]
         self.available_city_buildings: list[BuildingTemplate] = []
         self.available_wonders: list[WonderTemplate] = []
@@ -90,8 +90,8 @@ class City:
     def __hash__(self):
         return hash(self.id)
 
-    def has_building(self, building_name: str) -> bool:
-        return building_name in [b.building_name for b in self.buildings]
+    def has_building(self, template: BuildingTemplate | UnitTemplate | WonderTemplate) -> bool:
+        return any(b._template == template for b in self.buildings)
 
     def orphan_territory_children(self, game_state: 'GameState', make_new_territory=True):
         """
@@ -384,8 +384,8 @@ class City:
         ))
 
         # Validate queue
-        self.buildings_queue = [bldg for bldg in self.buildings_queue if bldg in 
-                                self.available_city_buildings + self.available_unit_buildings + self.available_wonders]
+        self.buildings_queue = [entry for entry in self.buildings_queue if 
+                                (entry.order_type == QueueOrderType.DELETE) or (entry.template in self.available_city_buildings + self.available_unit_buildings + self.available_wonders)]
         if self.infinite_queue_unit not in self.available_units:
             self.infinite_queue_unit = None
 
@@ -481,7 +481,7 @@ class City:
                     del self.building_yields[building_template.name]
 
     def has_production_building_for_unit(self, unit: UnitTemplate) -> bool:
-        return self.has_building(unit.building_name)
+        return self.has_building(unit)
 
     def build_units(self, game_state: 'GameState') -> None:
         if self.infinite_queue_unit:
@@ -620,7 +620,7 @@ class City:
         unit.health += 100 * stack_size
 
     def validate_building_queueable(self, building_template: UnitTemplate | BuildingTemplate | WonderTemplate) -> bool:
-        if self.has_building(building_template.name):
+        if self.has_building(building_template):
             return False
         if isinstance(building_template, UnitTemplate):
             if building_template not in self.available_unit_buildings:
@@ -639,14 +639,22 @@ class City:
 
     def build_buildings(self, game_state: 'GameState') -> None:
         while self.buildings_queue:
-            building: UnitTemplate | BuildingTemplate | WonderTemplate = self.buildings_queue[0]
-            cost = building.wood_cost if isinstance(building, UnitTemplate) else building.cost if isinstance(building, BuildingTemplate) else game_state.wonder_cost_by_age[building.age]
-            if self.wood >= cost:
+            entry = self.buildings_queue[0]
+            building: UnitTemplate | BuildingTemplate | WonderTemplate = entry.template
+            order_type = entry.order_type
+            if order_type == QueueOrderType.BUILD:
+                cost = building.wood_cost if isinstance(building, UnitTemplate) else building.cost if isinstance(building, BuildingTemplate) else game_state.wonder_cost_by_age[building.age]
+                if self.wood >= cost:
+                    self.buildings_queue.pop(0)
+                    self.build_building(game_state, building)
+                    self.wood -= cost
+                else:
+                    break
+            elif order_type == QueueOrderType.DELETE:
                 self.buildings_queue.pop(0)
-                self.build_building(game_state, building)
-                self.wood -= cost
+                self.buildings = [b for b in self.buildings if b._template != building]
             else:
-                break
+                raise ValueError("wtf")
 
     def buildings_of_type(self, type: str,) -> list[Building]:
         assert type in ("rural", "urban", "unit", "wonder")
@@ -659,8 +667,19 @@ class City:
             if isinstance(t, BuildingTemplate): return t.type.value
         bldgs = len(self.buildings_of_type(type))
         if include_in_queue:
-            bldgs += len([b for b in self.buildings_queue if type_from_template(b) == type])
+            bldgs += sum([(+1 if b.order_type == QueueOrderType.BUILD else -1) for b in self.buildings_queue if type_from_template(b.template) == type])
         return bldgs
+
+    def building_in_queue(self, template) -> bool:
+        return any(b.template == template for b in self.buildings_queue)
+
+    def enqueue_build(self, template: Union[BuildingTemplate, UnitTemplate, WonderTemplate], delete=False) -> None:
+        assert self.has_building(template) == delete, (template, self.buildings_queue, self.building_in_queue(template))
+        order = QueueEntry(template, QueueOrderType.BUILD if not delete else QueueOrderType.DELETE)
+        if delete:
+            self.buildings_queue = [order] + self.buildings_queue
+        else:
+            self.buildings_queue.append(order)
 
     def build_building(self, game_state: 'GameState', building: Union[BuildingTemplate, UnitTemplate, WonderTemplate]) -> None:
         new_building = Building(building)
@@ -701,7 +720,7 @@ class City:
 
             # Clear it from any other cities immediately; you can't build two in one turn.
             for city in self.civ.get_my_cities(game_state):
-                city.buildings_queue = [b for b in city.buildings_queue if b.name != building.name]
+                city.buildings_queue = [b for b in city.buildings_queue if b.template != building]
 
     def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
         if self.hex is None:
@@ -933,7 +952,7 @@ class City:
         # Never steal from another city's queue
         wonders: list[WonderTemplate] = [w for w in self.available_wonders if w.name not in self.civ.buildings_in_all_queues]
         economic_buildings: list[BuildingTemplate] = [b for b in self.available_city_buildings if b.name not in self.civ.buildings_in_all_queues]
-        military_buildings: list[UnitTemplate] = [u for u in self.available_unit_buildings if u.movement > 0 and u.building_name not in self.civ.buildings_in_all_queues]
+        military_buildings: list[UnitTemplate] = [u for u in self.available_unit_buildings if u.movement > 0 and u.name not in self.civ.buildings_in_all_queues]
 
         lotsa_wood: bool = self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2
         if len(military_buildings) > 0:
@@ -949,18 +968,19 @@ class City:
         if best_military_building is not None \
                 and (self.infinite_queue_unit is None or effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood) > effective_advancement_level(self.infinite_queue_unit, slingers_better_than_warriors=lotsa_wood)) \
                 and remaining_wood_budget > best_military_building.wood_cost:
-            self.buildings_queue = [best_military_building]
+            self.buildings_queue = []
+            self.enqueue_build(best_military_building)
             print(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)}): {self.buildings_queue}")
             if self.infinite_queue_unit is not None and not self.is_threatened_city(game_state):
                 print(f"  not building units to wait for new military building.")
                 self.infinite_queue_unit = None
         while len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None and remaining_wood_budget > (cost := game_state.wonder_cost_by_age[wonder_choice.age]):
-            self.buildings_queue.append(wonder_choice)
+            self.enqueue_build(wonder_choice)
             wonders.remove(wonder_choice)
             remaining_wood_budget -= cost
             print(f"  adding wonder to buildings queue: {self.buildings_queue}")
         while len(economic_buildings) > 0 and (choice := self.bot_pick_economic_building(economic_buildings, remaining_wood_budget)) is not None and remaining_wood_budget > choice.cost:
-            self.buildings_queue.append(choice)
+            self.enqueue_build(choice)
             economic_buildings.remove(choice)
             remaining_wood_budget -= choice.cost
             print(f"  adding economic building to buildings queue: {self.buildings_queue}")
@@ -1010,15 +1030,15 @@ class City:
             "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
             "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
-            "buildings_queue": [building.name for building in self.buildings_queue],
+            "buildings_queue": [building.to_json() for building in self.buildings_queue],
             "buildings": [building.to_json() for building in self.buildings],
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
             "available_buildings_payoff_times": self.available_buildings_payoff_times,
             "building_yields": {name: yields.to_json() for name, yields in self.building_yields.items()},
-            "available_wonders": [w.name for w in self.available_wonders if w not in self.buildings_queue],
-            "available_unit_building_names": [template.name for template in self.available_unit_buildings if template not in self.buildings_queue],
-            "available_urban_building_names": [template.name for template in self.available_city_buildings if template not in self.buildings_queue and template.type==BuildingType.URBAN],
-            "available_rural_building_names": [template.name for template in self.available_city_buildings if template not in self.buildings_queue and template.type==BuildingType.RURAL],
+            "available_wonders": [w.name for w in self.available_wonders if not self.building_in_queue(w)],
+            "available_unit_building_names": [template.name for template in self.available_unit_buildings if not self.building_in_queue(template)],
+            "available_urban_building_names": [template.name for template in self.available_city_buildings if not self.building_in_queue(template) and template.type==BuildingType.URBAN],
+            "available_rural_building_names": [template.name for template in self.available_city_buildings if not self.building_in_queue(template) and template.type==BuildingType.RURAL],
             "building_slots_full": {
                 "rural": self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots,
                 "urban": self.num_buildings_of_type("urban", include_in_queue=True) >= self.urban_slots,
@@ -1065,7 +1085,7 @@ class City:
         city.urban_slots = json["urban_slots"]
         city.under_siege_by_civ = json["under_siege_by_civ_id"]
         city.capital = json["capital"]
-        city.buildings_queue = [find_queue_template_by_name(building) for building in json["buildings_queue"]]
+        city.buildings_queue = [QueueEntry.from_json(entry) for entry in json["buildings_queue"]]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
         city.available_buildings_payoff_times = json["available_buildings_payoff_times"]
         city.building_yields = {name: Yields(**yields) for name, yields in json["building_yields"].items()}

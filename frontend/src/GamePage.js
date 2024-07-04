@@ -2160,7 +2160,6 @@ export default function GamePage() {
     const descriptions = selectedCity?.available_buildings_to_descriptions;
 
 
-    const selectedCityBuildingQueue = selectedCity?.buildings_queue;
 
     const selectedCityUnitChoices = selectedCity?.available_units;
 
@@ -2712,11 +2711,11 @@ export default function GamePage() {
         if (city.buildings_queue.length === 0) {
             buildingText = "??";
             buildingIconUnit = null;
-        } else if (unitTemplatesByBuildingName[city.buildings_queue[0]]) {
+        } else if (templates.UNITS[city.buildings_queue[0].template_name]) {
             buildingText = "";
-            buildingIconUnit = unitTemplatesByBuildingName[city.buildings_queue[0]].name;
+            buildingIconUnit = templates.UNITS[city.buildings_queue[0].template_name].name;
         } else {
-            buildingText = city.buildings_queue[0].slice(0, 2);
+            buildingText = city.buildings_queue[0].template_name.slice(0, 2);
             buildingIconUnit = null;
         }
         const buildingImage = buildingIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(buildingIconUnit)}.svg`; 
@@ -3114,7 +3113,6 @@ export default function GamePage() {
                         playerApiUrl={playerApiUrl}
                         setGameState={setGameState}
                         refreshSelectedCity={refreshSelectedCity}
-                        selectedCityBuildingQueue={selectedCityBuildingQueue}
                         selectedCityUnitChoices={selectedCityUnitChoices}
                         selectedCity={selectedCity} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName}

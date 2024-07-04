@@ -1,3 +1,4 @@
+from enum import Enum
 import itertools
 from typing import Literal, Optional, Union
 from building_template import BuildingTemplate
@@ -119,13 +120,20 @@ class Building:
         b.ruined = json['ruined']
         return b
 
+class QueueOrderType(Enum):
+    DELETE = 'delete'
+    BUILD = 'build'
+
 class QueueEntry:
     """
     An entry that can be in building queues.
     """
-    def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate], order_type: Literal["DELETE", "BUILD"]):
+    def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate], order_type: QueueOrderType):
         self.template = template
         self.order_type = order_type
+
+    def __repr__(self):
+        return f"<{self.order_type} {self.template.name}>"
     
     @staticmethod
     def find_queue_template_by_name(building_name) -> UnitTemplate | BuildingTemplate | WonderTemplate:
@@ -136,13 +144,13 @@ class QueueEntry:
 
     def to_json(self):
         return {
-            'order_type': self.order_type, 
+            'order_type': self.order_type.value, 
             'template_name': self.template.name
         }
 
     @staticmethod
     def from_json(json):
         return QueueEntry(
-            order_type=json['order_type'],
+            order_type=QueueOrderType(json['order_type']),
             template=QueueEntry.find_queue_template_by_name(json['template_name'])
         )

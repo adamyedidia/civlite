@@ -1,6 +1,7 @@
 import math
 from typing import Any, Optional
 from animation_frame import AnimationFrame
+from building import QueueOrderType
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
@@ -607,14 +608,14 @@ class GameState:
                 city = self.cities_by_id[city_id]
 
                 building = find_queue_template_by_name(building_name)
-                if move['delete']:
+                if move.get('delete'):
                     if any([building == b._template for b in city.buildings]):
-                        city.buildings_queue = [] + city.buildings_queue
+                        city.enqueue_build(building, delete=True)
                 elif city.validate_building_queueable(building):
-                    city.buildings_queue.append(building)
+                    city.enqueue_build(building)
                     for other_city in city.civ.get_my_cities(self):
-                        if other_city != city and other_city.buildings_queue:
-                            other_city.buildings_queue = [b for b in other_city.buildings_queue if b != building]
+                        if other_city != city:
+                            other_city.buildings_queue = [b for b in other_city.buildings_queue if not (b.template == building and b.order_type == QueueOrderType.BUILD)]
                 game_player_to_return = game_player
                 self.midturn_update()
 
@@ -626,8 +627,9 @@ class GameState:
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
-                for i, building in enumerate(city.buildings_queue):
-                    if building.name == building_name or hasattr(building, 'building_name') and building.building_name == building_name:  # type: ignore
+                for i, entry in enumerate(city.buildings_queue):
+                    if entry.template.name == building_name:
+                        # TODO could check it has the right delete/build type
                         city.buildings_queue.pop(i)
                         break
 

@@ -5,6 +5,7 @@ import woodImg from './images/wood.png';
 import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
 import metalImg from './images/metal.png';
+import deleteImg from './images/metal.png';
 import { WithTooltip } from './WithTooltip';
 
 const SingleYieldDisplay = ({ yield_value, img }) => {
@@ -128,15 +129,15 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
-export const ExistingBuildingDisplay = ({ buildingName, templates, handleQueueDelete, emptyType, setHoveredBuilding, yields }) => {
+export const ExistingBuildingDisplay = ({ buildingName, templates, handleQueueDelete, emptyType, setHoveredBuilding, yields, deleteQueued}) => {
     const building = templates.BUILDINGS?.[buildingName];
     return (
-        <div className={`existing-building-card ${emptyType || building?.type}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
+        <div className={`existing-building-card ${emptyType || building?.type} ${deleteQueued ? 'delete-queued' : ''}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
             <div className="building-name">{buildingName || ""}</div>
             {yields?.[buildingName] && 
                 <YieldsDisplay yields={yields[buildingName]} />
             }
-            <div className="delete-building-card" onClick={handleQueueDelete(buildingName)}></div>
+            {buildingName && !deleteQueued && <img src={deleteImg} className="delete-building-card" alt="" onClick={handleQueueDelete ? () => handleQueueDelete(buildingName) : null} />}
         </div>
     );
 };

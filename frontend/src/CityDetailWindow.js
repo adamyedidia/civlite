@@ -120,7 +120,6 @@ const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
 }
 
 const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
-    selectedCityBuildingQueue, 
     selectedCityUnitChoices, selectedCity,
     unitTemplatesByBuildingName, templates, descriptions,
     setHoveredUnit, setHoveredBuilding, setHoveredWonder, setSelectedCity, centerMap
@@ -245,10 +244,18 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const woodAvailable = selectedCity.wood + projectedIncome['wood'];
 
     const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / templates.UNITS[selectedCity.infinite_queue_unit].metal_cost) : 0;
-    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCityBuildingQueue, (item) => templates.BUILDINGS[item] ? templates.BUILDINGS[item].cost : templates.WONDERS[item] ? gameState.wonder_cost_by_age[templates.WONDERS[item].age] : unitTemplatesByBuildingName[item] ? unitTemplatesByBuildingName[item].wood_cost : 0);
-
+    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCity.buildings_queue, 
+        (entry) => {
+            if (entry.order_type == "delete") {return 0}
+            else if (entry.order_type == "build") {
+                return templates.BUILDINGS[entry.template_name] ? templates.BUILDINGS[entry.template_name].cost : templates.WONDERS[entry.template_name] ? gameState.wonder_cost_by_age[templates.WONDERS[entry.template_name].age] : templates.UNITS[entry.template_name] ? templates.UNITS[entry.template_name].wood_cost : 0;
+            }
+        }
+    );
+    const existingBuildingNamesWithDeleteQueued = selectedCity.buildings.filter(
+        (building) => selectedCity.buildings_queue.filter((entry) => entry.order_type == "delete" && entry.template_name == building.template_name).length > 0
+    ).map((building) => building.template_name)
     const availableBuildingEntry = (buildingName, index) => {
-        console.log(buildingName);
         const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
         return <div key={index} className='building-choices-row'>
             <BriefBuildingDisplay 
@@ -300,14 +307,14 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             <div className="existing-buildings-container">
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="rural" &&
-                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} handleQueueDelete={handleQueueDelete} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} handleQueueDelete={handleQueueDelete} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields} deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}/>
                 ))}
                 {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="rural"/>
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="urban" &&
-                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} handleQueueDelete={handleQueueDelete} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields}/>
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} handleQueueDelete={handleQueueDelete} templates={templates} setHoveredBuilding={setHoveredBuilding} yields={selectedCity.building_yields} deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}/>
                 ))}
                 {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
@@ -327,14 +334,21 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                 </CityDetailPanel>
                 <CityDetailPanel title="wood" icon={woodImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
-                    {selectedCityBuildingQueue && canBuild &&  (
+                    {selectedCity && canBuild &&  (
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
-                            {selectedCityBuildingQueue.map((buildingName, index) => (
-                                <div key={index} className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                    <BriefBuildingDisplay buildingName={buildingName} clickable={true} wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} onClick={() => handleCancelBuilding(buildingName)} descriptions={descriptions} yields={selectedCity.building_yields?.[buildingName]} payoffTime = {selectedCity.available_buildings_payoff_times?.[buildingName]}/>
+                            {selectedCity.buildings_queue.map((entry, index) => {
+                                return <div key={index} className={entry.order_type == 'delete' ? "delete" : index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
+                                    <BriefBuildingDisplay 
+                                        buildingName={entry.template_name} 
+                                        clickable={true} 
+                                        hideCost={entry.order_type == 'delete'}
+                                        wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} 
+                                        setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} 
+                                        onClick={() => handleCancelBuilding(entry.template_name)} 
+                                        descriptions={descriptions} yields={selectedCity.building_yields?.[entry.template_name]} payoffTime = {selectedCity.available_buildings_payoff_times?.[entry.template_name]}/>
                                 </div>
-                            ))}
+                            })}
                         </div>
                     )}               
                 </CityDetailPanel>

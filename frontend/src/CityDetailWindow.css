@@ -247,6 +247,10 @@
   opacity: 40%;
 }
 
+.building-queue-container .delete {
+  text-decoration: line-through;
+}
+
 .focus-selection-option {
   text-transform: capitalize;
   border: 1px solid #ddd;

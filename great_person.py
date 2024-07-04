@@ -120,7 +120,7 @@ class GreatEngineer(GreatPerson):
         city.wood += self.extra_wood
 
     def valid_for_city(self, city: City) -> bool:
-        return not city.has_building(self.unit_template.building_name)
+        return not city.has_building(self.unit_template)
 
 _great_people_by_age: dict[int, list[GreatPerson]] = defaultdict(list)
 
