@@ -7,6 +7,7 @@ import scienceImg from './images/science.png';
 import metalImg from './images/metal.png';
 import deleteImg from './images/hide.png';  // TODO better image
 import { WithTooltip } from './WithTooltip';
+import { IconUnitDisplay } from './UnitDisplay';
 
 const SingleYieldDisplay = ({ yield_value, img }) => {
     const rounded_val = Number.isInteger(yield_value) ? yield_value : yield_value.toFixed(0);
@@ -138,6 +139,35 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, handleQueueDe
                 <YieldsDisplay yields={yields[buildingName]} />
             }
             {buildingName && !deleteQueued && slotsFull && <img src={deleteImg} className="delete-building-card" alt="" onClick={handleQueueDelete ? () => handleQueueDelete(buildingName) : null} />}
+        </div>
+    );
+};
+
+export const ExistingMilitaryBuildingDisplay = ({ unitName, templates, isCurrentIQUnit, projectedBuildNum, handleQueueDelete, handleSetInfiniteQueue, setHoveredUnit, deleteQueued, slotsFull}) => {
+    const unit = templates.UNITS?.[unitName];
+    const display_num = projectedBuildNum > 3 ? 1 : projectedBuildNum;
+    return (
+        <div className={`existing-building-card military ${deleteQueued ? 'delete-queued' : ''} ${isCurrentIQUnit ? 'infinite-queue' : ''} ${handleSetInfiniteQueue ? 'enabled' : 'disabled'}`} 
+            onMouseEnter={() => setHoveredUnit(unitName)} onMouseLeave={() => setHoveredUnit(null)}
+            onClick={handleSetInfiniteQueue ? () => handleSetInfiniteQueue(unitName) : null}
+        >
+            {unitName && <div className="building-name">{unit.building_name || ""}</div>}
+            {unitName && isCurrentIQUnit && <div className="build-num">
+                {Array.from(({length: display_num})).map((_, _index) => 
+                <IconUnitDisplay
+                    unitName={unitName} 
+                    templates={templates} 
+                    setHoveredUnit={setHoveredUnit} 
+                    size={30}
+                />)}
+                {projectedBuildNum > 3 ? `x${projectedBuildNum}` : ''}
+                </div>
+            }
+            {unitName && <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px", "position": "absolute", "bottom": "2px", "left": "4px"}}>
+                    {templates.UNITS[unitName].metal_cost}
+                    <img src={metalImg} alt="" height="10px"/>
+                </div>}
+            {unitName && !deleteQueued && slotsFull && <img src={deleteImg} className="delete-building-card" alt="" onClick={() => handleQueueDelete(unitName)} />}
         </div>
     );
 };

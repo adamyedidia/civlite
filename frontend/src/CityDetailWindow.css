@@ -222,9 +222,22 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
 }
 
-.unit-choice.infinite-queue {
-  position: relative;
+.existing-building-card.military.enabled:hover {
+  cursor: pointer;
+  transform: scale(1.1);
+  background-color: #ddd;
+}
+
+.existing-building-card.military.infinite-queue {
   animation: dash-around 1.5s linear infinite;
+}
+
+.existing-building-card.military .build-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 3px;
 }
 
 @keyframes dash-around {

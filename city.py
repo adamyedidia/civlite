@@ -1,6 +1,6 @@
 import itertools
 import math
-from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Union
+from typing import TYPE_CHECKING, Any, Generator, Iterable, Literal, Optional, Union
 from building import Building, QueueEntry, QueueOrderType
 from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
@@ -52,11 +52,12 @@ class City:
         self.wood = 0.0
         self.food_demand = 0
         self.focus: str = 'food'
-        self.rural_slots = 3
+        self.rural_slots = 1
         self.urban_slots = 1
+        self.military_slots = 1
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
-        self.infinite_queue_unit: Optional[UnitTemplate] = None
+        self.projected_unit_builds: dict[UnitTemplate, int] = {}
         self.buildings_queue: list[QueueEntry] = []
         self.buildings: list[Building] = [Building(UNITS.WARRIOR)]
         self.available_city_buildings: list[BuildingTemplate] = []
@@ -157,6 +158,7 @@ class City:
         Update things that could have changed due to the controlling player fiddling with focus etc.
         """
         self.adjust_projected_yields(game_state)
+        self.adjust_projected_unit_builds()
         self._refresh_available_buildings_and_units(game_state)
 
     def is_trade_hub(self):
@@ -175,6 +177,29 @@ class City:
             self.hidden_building_names.append(building_name)
         elif not hidden and building_name in self.hidden_building_names:
             self.hidden_building_names.remove(building_name)
+
+    def toggle_unit_build(self, unit: UnitTemplate):
+        assert unit in self.available_units, f"{self.name} trying to build unit {unit} but only have {self.available_units}."
+        if unit in self.projected_unit_builds:
+            print("delete", self.projected_unit_builds)
+            del self.projected_unit_builds[unit]
+        else:
+            self.projected_unit_builds[unit] = 0
+            print("add", self.projected_unit_builds)
+        self.adjust_projected_unit_builds()
+        print(self.projected_unit_builds)
+
+    def clear_unit_builds(self):
+        self.projected_unit_builds = {}
+
+    def adjust_projected_unit_builds(self):
+        if len(self.projected_unit_builds) == 0: return
+        total_metal = self.metal + self.projected_income['metal']
+        per_unit = total_metal / len(self.projected_unit_builds)
+        self.projected_unit_builds = {
+            unit : int(per_unit / unit.metal_cost)
+            for unit in self.projected_unit_builds
+        }
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -210,6 +235,20 @@ class City:
             parent.adjust_projected_yields(game_state)
         else:
             self.projected_income += {key: sum(amnt for amnt, distance in puppet_vals.values()) for key, puppet_vals in self.projected_income_puppets.items()}
+
+
+        self.projected_income.metal *= self.metal_bonus_from_num_units
+
+    @property
+    def metal_bonus_from_num_units(self):
+        METAL_BONUS_BY_NUM_UNITS = {
+            0: 0.9,
+            1: 1.0,
+            2: 1.4,
+            3: 1.8,
+            4: 2.2,
+        }
+        return METAL_BONUS_BY_NUM_UNITS[len(self.projected_unit_builds)]
 
     def _get_projected_yields_without_focus(self, game_state) -> Yields:
         yields = Yields(food=2, science=self.population)
@@ -376,6 +415,8 @@ class City:
         # Can't urbanize if not full
         if self.urban_slots > self.num_buildings_of_type('urban', include_in_queue=True):
             self.available_city_buildings = [b for b in self.available_city_buildings if b != BUILDINGS.URBANIZE]
+        if self.military_slots > self.num_buildings_of_type('unit', include_in_queue=True):
+            self.available_city_buildings = [b for b in self.available_city_buildings if b != BUILDINGS.MILITARIZE]
 
         self._update_city_building_descriptions()
         self.available_city_buildings.sort(key=lambda b: (
@@ -386,8 +427,7 @@ class City:
         # Validate queue
         self.buildings_queue = [entry for entry in self.buildings_queue if 
                                 (entry.order_type == QueueOrderType.DELETE) or (entry.template in self.available_city_buildings + self.available_unit_buildings + self.available_wonders)]
-        if self.infinite_queue_unit not in self.available_units:
-            self.infinite_queue_unit = None
+        self.projected_unit_builds = {u: n for u, n in self.projected_unit_builds.items() if u in self.available_units}
 
     def calculate_payoff_time(self, yields, cost) -> int:
         if yields == 0:
@@ -484,13 +524,14 @@ class City:
         return self.has_building(unit)
 
     def build_units(self, game_state: 'GameState') -> None:
-        if self.infinite_queue_unit:
-            while self.metal >= self.infinite_queue_unit.metal_cost:
-                if self.metal >= self.infinite_queue_unit.metal_cost:
-                    if self.build_unit(game_state, self.infinite_queue_unit) is not None:
-                        self.metal -= self.infinite_queue_unit.metal_cost
-                    else:
-                        break
+        if len(self.projected_unit_builds) == 0: return
+        # Interleave them for better diversity
+        max_num = max(self.projected_unit_builds.values())
+        for i in range(max_num):
+            for unit, num in self.projected_unit_builds.items():
+                if i < num:
+                    if self.build_unit(game_state, unit) is not None:
+                        self.metal -= unit.metal_cost
 
     def get_closest_target(self) -> Optional['Hex']:
         if not self.hex:
@@ -625,6 +666,8 @@ class City:
         if isinstance(building_template, UnitTemplate):
             if building_template not in self.available_unit_buildings:
                 return False
+            if self.military_slots <= self.num_buildings_of_type("unit", include_in_queue=True):
+                return False
         if isinstance(building_template, BuildingTemplate):
             if building_template not in self.available_city_buildings:
                 return False
@@ -686,22 +729,10 @@ class City:
 
         self.buildings.append(new_building)
 
-        def prune_by_type(type, max_num):
-            existing_buildings = self.buildings_of_type(type)[:-1]
-            # Prune down to max
-            if len(existing_buildings) >= max_num:
-                bldg_to_remove = min(existing_buildings, key=lambda b: b._template)  # type: ignore
-                self.buildings.remove(bldg_to_remove)
-
         if isinstance(building, UnitTemplate):
-            self.infinite_queue_unit = building
-            prune_by_type("unit", 3)
-
-        if isinstance(building, BuildingTemplate):
-            if building.type == BuildingType.RURAL:
-                prune_by_type("rural", self.rural_slots)
-            elif building.type == BuildingType.URBAN:
-                prune_by_type("urban", self.urban_slots)
+            self.clear_unit_builds()
+            self._refresh_available_buildings_and_units(game_state)
+            self.toggle_unit_build(building)
 
         if new_building.vp_reward > 0:
             self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
@@ -773,7 +804,7 @@ class City:
         self.hidden_building_names = []
         self.under_siege_by_civ = None
         self.buildings_queue = []
-        self.infinite_queue_unit = None
+        self.clear_unit_builds()
         self.ever_controlled_by_civ_ids[civ.id] = True
 
         # Update available stuff
@@ -897,7 +928,7 @@ class City:
             choices = [b for b in choices if b != BUILDINGS.HUSBANDRY_CENTER]
         # Only live players can urbanize
         if self.civ.game_player is None:
-            choices = [b for b in choices if b != BUILDINGS.URBANIZE]
+            choices = [b for b in choices if b != BUILDINGS.URBANIZE and b != BUILDINGS.MILITARIZE]
         # Only one of these per city
         if any([len(building.passive_building_abilities_of_name("IncreaseFocusYieldsPerPopulation")) > 0 for building in self.buildings]):
             choices = [b for b in choices if not any (a.name == "IncreaseFocusYieldsPerPopulation" for a in b.abilities)]
@@ -939,15 +970,15 @@ class City:
         available_units = [unit for unit in self.available_units if unit.movement > 0]
         highest_level = max([effective_advancement_level(unit, slingers_better_than_warriors=True) for unit in available_units])
         highest_tier_units = [unit for unit in available_units if effective_advancement_level(unit, slingers_better_than_warriors=True) == highest_level]
+        self.clear_unit_builds()
         if highest_level < self.civ.get_advancement_level() - 2 and not self.is_threatened_city(game_state):
-            self.infinite_queue_unit = None
             print(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
         elif highest_level < self.civ.get_advancement_level() - 4:
-            self.infinite_queue_unit = None
             print(f"  not building units even though threatened, because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
         else:
-            self.infinite_queue_unit = random.choice(highest_tier_units)
-            print(f"  set unit build: {self.infinite_queue_unit.name} (available were from {[u.name for u in available_units]})")
+            for u in highest_tier_units:
+                self.toggle_unit_build(u)
+            print(f"  set unit build: {self.projected_unit_builds}")
 
         # Never steal from another city's queue
         wonders: list[WonderTemplate] = [w for w in self.available_wonders if w.name not in self.civ.buildings_in_all_queues]
@@ -961,19 +992,22 @@ class City:
                 effective_advancement_level(building, slingers_better_than_warriors=lotsa_wood), 
                 random.random()
                 ))
+            best_military_building_age = effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)
         else:
             best_military_building = None
+            best_military_building_age = -1
         
         remaining_wood_budget = self.wood + self.projected_income['wood']
+        best_current_available_unit_age = max([effective_advancement_level(u, slingers_better_than_warriors=lotsa_wood) for u in self.available_units]) if len(self.available_units) > 0 else -1
         if best_military_building is not None \
-                and (self.infinite_queue_unit is None or effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood) > effective_advancement_level(self.infinite_queue_unit, slingers_better_than_warriors=lotsa_wood)) \
+                and best_military_building_age > best_current_available_unit_age \
                 and remaining_wood_budget > best_military_building.wood_cost:
             self.buildings_queue = []
             self.enqueue_build(best_military_building)
             print(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)}): {self.buildings_queue}")
-            if self.infinite_queue_unit is not None and not self.is_threatened_city(game_state):
+            if not self.is_threatened_city(game_state):
                 print(f"  not building units to wait for new military building.")
-                self.infinite_queue_unit = None
+                self.clear_unit_builds()
         while len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None and remaining_wood_budget > (cost := game_state.wonder_cost_by_age[wonder_choice.age]):
             self.enqueue_build(wonder_choice)
             wonders.remove(wonder_choice)
@@ -1003,7 +1037,7 @@ class City:
                 
             max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
             focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
-            if production_city.infinite_queue_unit is not None and 'metal' in focuses_with_best_yields and self.is_threatened_city(game_state):
+            if len(production_city.projected_unit_builds) > 0 and 'metal' in focuses_with_best_yields and self.is_threatened_city(game_state):
                 self.focus = 'metal'
             elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type("urban", include_in_queue=True) < self.urban_slots and len([b for b in economic_buildings if b.type == BuildingType.URBAN and b.cost > remaining_wood_budget]) > 0:
                 self.focus = 'wood'
@@ -1027,9 +1061,12 @@ class City:
             "focus": self.focus,
             "rural_slots": self.rural_slots,
             "urban_slots": self.urban_slots,
+            "military_slots": self.military_slots,
             "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
-            "infinite_queue_unit": self.infinite_queue_unit.name if self.infinite_queue_unit is not None else "",
+            "projected_unit_builds": {unit.name: num for unit, num in self.projected_unit_builds.items()},
+            "metal_bonus_from_num_units": self.metal_bonus_from_num_units,
+            "icon_unit_name": sorted(self.projected_unit_builds, key=lambda u: u.advancement_level(), reverse=True)[0].name if len(self.projected_unit_builds) > 0 else None,
             "buildings_queue": [building.to_json() for building in self.buildings_queue],
             "buildings": [building.to_json() for building in self.buildings],
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
@@ -1042,6 +1079,7 @@ class City:
             "building_slots_full": {
                 "rural": self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots,
                 "urban": self.num_buildings_of_type("urban", include_in_queue=True) >= self.urban_slots,
+                "military": self.num_buildings_of_type("unit", include_in_queue=True) >= self.military_slots,
             },
             "capital": self.capital,
             "available_units": [u.name for u in self.available_units],
@@ -1083,6 +1121,7 @@ class City:
         city.wood = json["wood"]
         city.rural_slots = json["rural_slots"]
         city.urban_slots = json["urban_slots"]
+        city.military_slots = json["military_slots"]
         city.under_siege_by_civ = json["under_siege_by_civ_id"]
         city.capital = json["capital"]
         city.buildings_queue = [QueueEntry.from_json(entry) for entry in json["buildings_queue"]]
@@ -1090,7 +1129,7 @@ class City:
         city.available_buildings_payoff_times = json["available_buildings_payoff_times"]
         city.building_yields = {name: Yields(**yields) for name, yields in json["building_yields"].items()}
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
-        city.infinite_queue_unit = None if json["infinite_queue_unit"] == "" else UNITS.by_name(json["infinite_queue_unit"])
+        city.projected_unit_builds = {UNITS.by_name(unit_name): num for unit_name, num in json["projected_unit_builds"].items()}
         city.focus = json["focus"]
         city.projected_income = Yields(**json["projected_income"])
         city.projected_income_base = Yields(**json["projected_income_base"])

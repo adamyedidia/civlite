@@ -261,6 +261,17 @@ class UrbanizeEffect(CityTargetEffect):
         # Remove the building that triggered this.
         city.buildings.pop(-1)
 
+class MilitarizeEffect(CityTargetEffect):
+    @property
+    def description(self) -> str:
+        return "Permanently turn this rural slot into a military slot"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        city.rural_slots -= 1
+        city.military_slots += 1
+        # Remove the building that triggered this.
+        city.buildings.pop(-1)
+
 class BuildEeachUnitEffect(CityTargetEffect):
     @property
     def description(self) -> str:

@@ -657,12 +657,9 @@ class GameState:
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
-                if unit_name == "":
-                    unit = None
-                else:
-                    unit = UNITS.by_name(unit_name)
+                unit = UNITS.by_name(unit_name)
 
-                city.infinite_queue_unit = unit
+                city.toggle_unit_build(unit)
                 self.midturn_update()
                 game_player_to_return = game_player
 

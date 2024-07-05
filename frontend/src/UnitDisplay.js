@@ -28,12 +28,13 @@ export const BriefUnitDisplay = ({ unitName, templates, onClick, setHoveredUnit 
     );
 };
 
-export const IconUnitDisplay = ({ unitName, templates, style, onClick, setHoveredUnit }) => {
+export const IconUnitDisplay = ({ unitName, templates, style, onClick, setHoveredUnit, size }) => {
+    size = (size || 40) + "px";
     let unit;
     if (unitName) {
         unit = templates.UNITS[unitName];
         const unitImage = `/images/${lowercaseAndReplaceSpacesWithUnderscores(unit.name)}.svg`; // Path to the unit SVG image
-        style = { ...style, backgroundImage: `url(${unitImage})`}
+        style = { ...style, height: size, width: size, backgroundImage: `url(${unitImage})`}
     }
     return (
         <div 

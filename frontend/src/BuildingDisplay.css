@@ -64,7 +64,7 @@
 .brief-building-card.wonder, .building-card.wonder {
     background-color: #b66dc0;
 }
-.brief-building-card.military, .building-card.military {
+.brief-building-card.military, .building-card.military, .existing-building-card.military {
     background-color: #bbbbbb;
 }
 .brief-building-card.rural, .building-card.rural, .existing-building-card.rural {
@@ -130,7 +130,7 @@
     width: auto;
     position: absolute;
     bottom: 2px;
-    right: 2px;
+    right: 4px;
     cursor: pointer;
 }
 

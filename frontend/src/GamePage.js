@@ -2720,8 +2720,8 @@ export default function GamePage() {
         }
         const buildingImage = buildingIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(buildingIconUnit)}.svg`; 
  
-        const unitText = !city.infinite_queue_unit && "??";
-        const unitIconUnit = city.infinite_queue_unit;    
+        const unitText = !city.icon_unit_name && "??";
+        const unitIconUnit = city.icon_unit_name;    
         const unitImage = unitIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(unitIconUnit)}.svg`;
 
 

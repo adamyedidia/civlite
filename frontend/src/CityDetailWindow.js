@@ -3,7 +3,7 @@ import './CityDetailWindow.css';
 
 import { Button, Select, MenuItem } from '@mui/material';
 
-import { BriefBuildingDisplay, BriefBuildingDisplayTitle, ExistingBuildingDisplay } from './BuildingDisplay';
+import { BriefBuildingDisplay, BriefBuildingDisplayTitle, ExistingBuildingDisplay, ExistingMilitaryBuildingDisplay } from './BuildingDisplay';
 import { IconUnitDisplay } from './UnitDisplay';
 import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
@@ -15,8 +15,6 @@ import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import declineImg from './images/phoenix.png';
 import tradeHubImg from './images/tradehub.png';
-import eyeImg from './images/view.png';
-import closedEyeImg from './images/hide.png';
 import workerImg from './images/worker.png';
 import { CityDetailPanel } from './CityDetailPanel.js';
 import { TextOnIcon } from './TextOnIcon.js';
@@ -240,10 +238,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         {numPuppets > 0 ? <li>-{2 * numPuppets} from puppets (-2/puppet) </li> : ""}
         </ul> </>
 
-    const metalAvailable = selectedCity.metal + projectedIncome['metal'];
     const woodAvailable = selectedCity.wood + projectedIncome['wood'];
 
-    const unitQueueNumber = selectedCity.infinite_queue_unit ? Math.floor(metalAvailable / templates.UNITS[selectedCity.infinite_queue_unit].metal_cost) : 0;
     const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCity.buildings_queue, 
         (entry) => {
             if (entry.order_type == "delete") {return 0}
@@ -305,10 +301,24 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
             </div>
             <div className="existing-buildings-container">
+            {selectedCity?.buildings.map((building, index) => (
+                    building.type=="unit" &&
+                    <ExistingMilitaryBuildingDisplay key={index} unitName={building.template_name} 
+                    handleQueueDelete={handleQueueDelete} handleSetInfiniteQueue={canBuild && handleSetInfiniteQueue}
+                    templates={templates} setHoveredUnit={setHoveredUnit} 
+                    deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
+                    slotsFull={selectedCity.building_slots_full.military}
+                    isCurrentIQUnit={canBuild && selectedCity.projected_unit_builds[building.template_name] !== undefined} 
+                    projectedBuildNum={selectedCity.projected_unit_builds[building.template_name]}
+                    />
+                ))}
+                {Array.from({ length: selectedCity?.military_slots - selectedCity?.buildings.filter(building => building.type=="unit").length }).map((_, index) => (
+                    <ExistingMilitaryBuildingDisplay key={`empty-${index}`} unitName={null} templates={templates} setHoveredUnit={setHoveredUnit}/>
+                ))}
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="rural" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
-                    handleQueueDelete={handleQueueDelete} 
+                    handleQueueDelete={handleQueueDelete}
                     templates={templates} setHoveredBuilding={setHoveredBuilding} 
                     yields={selectedCity.building_yields} 
                     deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
@@ -341,7 +351,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 {puppet && 
                     <MakeTerritory myCiv={myCiv} myTerritoryCapitals={myTerritoryCapitals} handleMakeTerritory={handleMakeTerritory}/>                    
                 }
-                <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
+                <CityDetailPanel title="metal" icon={metalImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
+                {Array(selectedCity.projected_unit_builds).length !== 1 && `x${Math.round(selectedCity.metal_bonus_from_num_units * 100)}% (building ${Array(selectedCity.projected_unit_builds).length} unit types)`}
                 </CityDetailPanel>
                 <CityDetailPanel title="wood" icon={woodImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCity && canBuild &&  (
@@ -364,6 +375,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 </CityDetailPanel>
             </div>
             <div className="city-detail-column">
+                <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
+                </CityDetailPanel>
                 <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced this turn.z" handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     <div className='growth-area'>
                         <TextOnIcon image={workerImg}>
@@ -439,30 +452,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                         </div>
                     </div>}
                 </CityDetailPanel>
-                <CityDetailPanel title="metal" icon={metalImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
-                    {selectedCityUnitChoices && (
-                        <div className="unit-choices-container">
-                            {selectedCityUnitChoices.map((unitName, index) => (
-                                <UnitQueueOption key={index} unitName={unitName} canBuild={canBuild}
-                                    isCurrentIQUnit={canBuild && selectedCity.infinite_queue_unit === unitName} 
-                                    templates={templates} setHoveredUnit={setHoveredUnit} handleSetInfiniteQueue={handleSetInfiniteQueue}/>
-                            ))}
-                        {Array.from({ length: 3 - selectedCityUnitChoices.length }).map((_, index) => (
-                            <UnitQueueOption key={`empty-${index}`} unitName={null} canBuild={false} isCurrentIQUnit={false}/>
-                        ))}
-                        </div>
-                    )}
-                    {canBuild && <div>
-                        <h2> Producing This Turn </h2>
-                        <div className="unit-queue-container">
-                            {Array.from({ length: unitQueueNumber }).map((_, index) => (
-                                <div key={index} >
-                                    <IconUnitDisplay unitName={selectedCity.infinite_queue_unit} templates={templates} setHoveredUnit={setHoveredUnit}/>
-                                </div>
-                            ))}
-                        </div>
-                    </div>}
-                </CityDetailPanel>
             </div>
             </div>
             {selectedCity && canBuild && 
@@ -473,6 +462,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     </div>
                     <div className="building-choices-container">
                         {selectedCity.available_unit_building_names.map(availableBuildingEntry)}
+                        {selectedCity.building_slots_full.military && <div className="building-slots-full-banner">
+                            <span>No Unit Slots</span>
+                        </div>}
                     </div>
                 </div>
                 <div className="city-detail-column">
