@@ -1,7 +1,7 @@
 import itertools
 import math
 from typing import TYPE_CHECKING, Any, Generator, Iterable, Literal, Optional, Union
-from building import Building, QueueEntry, QueueOrderType
+from building import Building, QueueEntry
 from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
@@ -68,6 +68,8 @@ class City:
         self.projected_income_base = Yields()  # income without focus
         self.projected_income_focus = Yields()  # income from focus
         self.projected_income_puppets: dict[str, dict[str, tuple[float, int]]] = {'wood': {}, 'metal': {}} # (amount, distance)
+        self.projected_build_queue_depth: int = 0
+        self.projected_bulldozes: list[UnitTemplate] = []
         self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
         self.hidden_building_names: list[str] = []
@@ -152,6 +154,7 @@ class City:
         Update things that could have changed due to the controlling player fiddling with focus etc.
         """
         self.adjust_projected_yields(game_state)
+        self.adjust_projected_builds(game_state)
         self.adjust_projected_unit_builds()
         self._refresh_available_buildings_and_units(game_state)
 
@@ -194,6 +197,17 @@ class City:
             unit : int(per_unit / unit.metal_cost)
             for unit in self.projected_unit_builds
         }
+
+    def adjust_projected_builds(self, game_state):
+        wood_available = self.wood + self.projected_income["wood"]
+        costs = [entry.get_cost(game_state) for entry in self.buildings_queue]
+        cumsum_cost = [sum(costs[:i + 1]) for i in range(len(costs))]
+        self.projected_build_queue_depth = sum([c < wood_available for c in cumsum_cost])
+
+        unit_buildings_to_bulldoze = max(0, self.num_buildings_of_type("unit", include_in_queue=True) - self.military_slots)
+        assert unit_buildings_to_bulldoze <= self.num_buildings_of_type("unit", include_in_queue=True)
+        targets = self.unit_buildings_ranked_for_bulldoze()
+        self.projected_bulldozes = targets[:unit_buildings_to_bulldoze]
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -406,8 +420,9 @@ class City:
         if self.civ is None or self.hex is None:
             return
         self.available_units = sorted([unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)])
-
-        self.available_unit_buildings: list[UnitTemplate] = sorted(self.civ.available_unit_buildings, reverse=True)
+        
+        min_level = min([u.advancement_level() for u in self.available_units])
+        self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level() >= min_level], reverse=True)
         self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders())
         self.available_city_buildings = self.civ.available_city_buildings
         # Can't urbanize if not full
@@ -423,11 +438,8 @@ class City:
         ))
 
         # Validate queue
-        print(f"updating city {self.name}, {self.available_wonders}")
-        print(self.buildings_queue)
         self.buildings_queue = [entry for entry in self.buildings_queue if 
-                                (entry.order_type == QueueOrderType.DELETE) or (entry.template in self.available_city_buildings + self.available_unit_buildings + self.available_wonders)]
-        print(self.buildings_queue)
+                                entry.template in self.available_city_buildings + self.available_unit_buildings + self.available_wonders]
         self.projected_unit_builds = {u: n for u, n in self.projected_unit_builds.items() if u in self.available_units}
 
     def calculate_payoff_time(self, yields, cost) -> int:
@@ -668,8 +680,6 @@ class City:
         if isinstance(building_template, UnitTemplate):
             if building_template not in self.available_unit_buildings:
                 return False
-            if self.military_slots <= self.num_buildings_of_type("unit", include_in_queue=True):
-                return False
         if isinstance(building_template, BuildingTemplate):
             if building_template not in self.available_city_buildings:
                 return False
@@ -686,20 +696,13 @@ class City:
         while self.buildings_queue:
             entry = self.buildings_queue[0]
             building: UnitTemplate | BuildingTemplate | WonderTemplate = entry.template
-            order_type = entry.order_type
-            if order_type == QueueOrderType.BUILD:
-                cost = building.wood_cost if isinstance(building, UnitTemplate) else building.cost if isinstance(building, BuildingTemplate) else game_state.wonder_cost_by_age[building.age]
-                if self.wood >= cost:
-                    self.buildings_queue.pop(0)
-                    self.build_building(game_state, building)
-                    self.wood -= cost
-                else:
-                    break
-            elif order_type == QueueOrderType.DELETE:
+            cost = entry.get_cost(game_state)
+            if self.wood >= cost:
                 self.buildings_queue.pop(0)
-                self.buildings = [b for b in self.buildings if b._template != building]
+                self.build_building(game_state, building)
+                self.wood -= cost
             else:
-                raise ValueError("wtf")
+                break
 
     def buildings_of_type(self, type: str,) -> list[Building]:
         assert type in ("rural", "urban", "unit", "wonder")
@@ -712,20 +715,23 @@ class City:
             if isinstance(t, BuildingTemplate): return t.type.value
         bldgs = len(self.buildings_of_type(type))
         if include_in_queue:
-            bldgs += sum([(+1 if b.order_type == QueueOrderType.BUILD else -1) for b in self.buildings_queue if type_from_template(b.template) == type])
+            bldgs += len([b for b in self.buildings_queue if type_from_template(b.template) == type])
         return bldgs
+
+    def unit_buildings_ranked_for_bulldoze(self) -> list[UnitTemplate]:
+        targets = self.buildings_of_type("unit")
+        targets.sort(key=lambda b: b.advancement_level)
+        print(targets)
+        return [b._template for b in targets]  # This type works but only do to some careful dancing around the queue type options. We should clean that up.
 
     def building_in_queue(self, template) -> bool:
         return any(b.template == template for b in self.buildings_queue)
 
-    def enqueue_build(self, template: Union[BuildingTemplate, UnitTemplate, WonderTemplate], delete=False) -> None:
+    def enqueue_build(self, template: Union[BuildingTemplate, UnitTemplate, WonderTemplate]) -> None:
         print(f"enqueuing {template}")
-        assert self.has_building(template) == delete, (template, self.buildings_queue, self.building_in_queue(template))
-        order = QueueEntry(template, QueueOrderType.BUILD if not delete else QueueOrderType.DELETE)
-        if delete:
-            self.buildings_queue = [order] + self.buildings_queue
-        else:
-            self.buildings_queue.append(order)
+        assert not self.has_building(template), (template, self.buildings_queue, self.building_in_queue(template))
+        order = QueueEntry(template)
+        self.buildings_queue.append(order)
 
     def build_building(self, game_state: 'GameState', building: Union[BuildingTemplate, UnitTemplate, WonderTemplate]) -> None:
         new_building = Building(building)
@@ -733,9 +739,13 @@ class City:
         self.buildings.append(new_building)
 
         if isinstance(building, UnitTemplate):
+            if self.num_buildings_of_type("unit") > self.military_slots:
+                bulldoze: UnitTemplate = self.unit_buildings_ranked_for_bulldoze()[0]
+                self.buildings = [b for b in self.buildings if b._template != bulldoze]
             self.clear_unit_builds()
             self._refresh_available_buildings_and_units(game_state)
             self.toggle_unit_build(building)
+
 
         if new_building.vp_reward > 0:
             self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
@@ -1090,6 +1100,9 @@ class City:
             "projected_income_base": self.projected_income_base.to_json(),
             "projected_income_focus": self.projected_income_focus.to_json(),
             "projected_income_puppets": self.projected_income_puppets,
+            "projected_build_queue_depth": self.projected_build_queue_depth,
+            "projected_bulldozes": [u.name for u in self.projected_bulldozes],
+            "max_units_in_build_queue": self.military_slots <= len([entry for entry in self.buildings_queue if isinstance(entry.template, UnitTemplate)]),
             "growth_cost": self.growth_cost(),
             "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
             "hidden_building_names": self.hidden_building_names,
@@ -1137,6 +1150,8 @@ class City:
         city.projected_income = Yields(**json["projected_income"])
         city.projected_income_base = Yields(**json["projected_income_base"])
         city.projected_income_focus = Yields(**json["projected_income_focus"])
+        city.projected_build_queue_depth = json["projected_build_queue_depth"]
+        city.projected_bulldozes = [UNITS.by_name(u) for u in json["projected_bulldozes"]]
         city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
         city.hidden_building_names = json.get("hidden_building_names") or []
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None

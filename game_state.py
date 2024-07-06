@@ -1,7 +1,7 @@
 import math
 from typing import Any, Optional
 from animation_frame import AnimationFrame
-from building import QueueEntry, QueueOrderType
+from building import QueueEntry
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
@@ -610,14 +610,11 @@ class GameState:
                 city = self.cities_by_id[city_id]
 
                 building = QueueEntry.find_queue_template_by_name(building_name)
-                if move.get('delete'):
-                    if any([building == b._template for b in city.buildings]):
-                        city.enqueue_build(building, delete=True)
-                elif city.validate_building_queueable(building):
+                if city.validate_building_queueable(building):
                     city.enqueue_build(building)
                     for other_city in city.civ.get_my_cities(self):
                         if other_city != city:
-                            other_city.buildings_queue = [b for b in other_city.buildings_queue if not (b.template == building and b.order_type == QueueOrderType.BUILD)]
+                            other_city.buildings_queue = [b for b in other_city.buildings_queue if not b.template == building]
                 game_player_to_return = game_player
                 self.midturn_update()
 

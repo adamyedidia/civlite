@@ -23,6 +23,7 @@ class Building:
     def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate]) -> None:
         self._template = template  # TODO remove external calls to this
         self.ruined: bool = False
+        self.projected_bulldoze: bool = False
 
     def __repr__(self):
         return f"<Building {self._template.name}>"
@@ -109,7 +110,8 @@ class Building:
             "type": self.type,
             "template_name": self._template.name,
             "building_name": self.building_name,
-            "ruined": self.ruined
+            "ruined": self.ruined,
+            "projected_bulldoze": self.projected_bulldoze,
         }
     
     @staticmethod
@@ -118,22 +120,28 @@ class Building:
         proto_dict = UNITS if type == 'unit' else WONDERS if type == 'wonder' else BUILDINGS
         b = Building(template=proto_dict.by_name(json['template_name']))
         b.ruined = json['ruined']
+        b.projected_bulldoze = json["projected_bulldoze"]
         return b
-
-class QueueOrderType(Enum):
-    DELETE = 'delete'
-    BUILD = 'build'
 
 class QueueEntry:
     """
     An entry that can be in building queues.
     """
-    def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate], order_type: QueueOrderType):
+    def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate]):
         self.template = template
-        self.order_type = order_type
 
     def __repr__(self):
-        return f"<{self.order_type} {self.template.name}>"
+        return self.template.name
+    
+    def get_cost(self, game_state) -> int:
+        if isinstance(self.template, UnitTemplate):
+            return self.template.wood_cost
+        elif isinstance(self.template, BuildingTemplate):
+            return self.template.cost
+        elif isinstance(self.template, WonderTemplate):
+            return game_state.wonder_cost_by_age[self.template.age]
+        else:
+            raise ValueError("wtf")
     
     @staticmethod
     def find_queue_template_by_name(building_name) -> UnitTemplate | BuildingTemplate | WonderTemplate:
@@ -144,13 +152,11 @@ class QueueEntry:
 
     def to_json(self):
         return {
-            'order_type': self.order_type.value, 
             'template_name': self.template.name
         }
 
     @staticmethod
     def from_json(json):
         return QueueEntry(
-            order_type=QueueOrderType(json['order_type']),
             template=QueueEntry.find_queue_template_by_name(json['template_name'])
         )

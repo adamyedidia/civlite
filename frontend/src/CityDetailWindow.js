@@ -51,19 +51,6 @@ const UnitQueueOption = ({unitName, isCurrentIQUnit, canBuild, templates, setHov
     return content;
 }
 
-const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
-    let available = resourcesAvailable
-    for (let index = 0; index < queue.length; index++) {
-        const item = queue[index];
-        const itemCost = getCostOfItem(item);
-        available -= itemCost;
-        if (available < 0) {
-            return index - 1;
-        }
-    }
-    return 9999
-}
-
 const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
     const [otherCitySelected, setOtherCitySelected] = useState(0);
 
@@ -187,11 +174,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         submitPlayerInput('trade_hub', {});
     }
 
-    const handleQueueDelete = (buildingName) => {
-        if (declinePreviewMode) return;
-        submitPlayerInput('choose_building', {'building_name': (buildingName), 'delete': true});        
-    }
-
     const CycleCities = (direction) => {
         let newCity;
         if (puppet) {
@@ -240,19 +222,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         {numPuppets > 0 ? <li>-{2 * numPuppets} from puppets (-2/puppet) </li> : ""}
         </ul> </>
 
-    const woodAvailable = selectedCity.wood + projectedIncome['wood'];
-
-    const bldgQueueMaxIndexFinishing = queueBuildDepth(woodAvailable, selectedCity.buildings_queue, 
-        (entry) => {
-            if (entry.order_type == "delete") {return 0}
-            else if (entry.order_type == "build") {
-                return templates.BUILDINGS[entry.template_name] ? templates.BUILDINGS[entry.template_name].cost : templates.WONDERS[entry.template_name] ? gameState.wonder_cost_by_age[templates.WONDERS[entry.template_name].age] : templates.UNITS[entry.template_name] ? templates.UNITS[entry.template_name].wood_cost : 0;
-            }
-        }
-    );
-    const existingBuildingNamesWithDeleteQueued = selectedCity.buildings.filter(
-        (building) => selectedCity.buildings_queue.filter((entry) => entry.order_type == "delete" && entry.template_name == building.template_name).length > 0
-    ).map((building) => building.template_name)
+    const bldgQueueMaxIndexFinishing = selectedCity.projected_build_queue_depth - 1;
+    const existingBuildingNamesWithDeleteQueued = selectedCity.projected_bulldozes;
     const availableBuildingEntry = (buildingName, index) => {
         const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
         return <div key={index} className='building-choices-row'>
@@ -306,7 +277,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             {selectedCity?.buildings.map((building, index) => (
                     building.type=="unit" &&
                     <ExistingMilitaryBuildingDisplay key={index} unitName={building.template_name} 
-                    handleQueueDelete={handleQueueDelete} handleSetInfiniteQueue={canBuild && handleSetInfiniteQueue}
+                    handleSetInfiniteQueue={canBuild && handleSetInfiniteQueue}
                     templates={templates} setHoveredUnit={setHoveredUnit} 
                     deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
                     slotsFull={selectedCity.building_slots_full.military}
@@ -320,7 +291,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="rural" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
-                    handleQueueDelete={handleQueueDelete}
                     templates={templates} setHoveredBuilding={setHoveredBuilding} 
                     yields={selectedCity.building_yields} 
                     deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
@@ -332,7 +302,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="urban" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
-                    handleQueueDelete={handleQueueDelete} 
                     templates={templates} setHoveredBuilding={setHoveredBuilding} 
                     yields={selectedCity.building_yields} 
                     deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
@@ -361,11 +330,10 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                         <div className="building-queue-container">
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCity.buildings_queue.map((entry, index) => {
-                                return <div key={index} className={entry.order_type == 'delete' ? "delete" : index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
+                                return <div key={index} className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
                                     <BriefBuildingDisplay 
                                         buildingName={entry.template_name} 
                                         clickable={true} 
-                                        hideCost={entry.order_type == 'delete'}
                                         wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} 
                                         setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} 
                                         onClick={() => handleCancelBuilding(entry.template_name)} 
@@ -464,8 +432,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     </div>
                     <div className="building-choices-container">
                         {selectedCity.available_unit_building_names.map(availableBuildingEntry)}
-                        {selectedCity.building_slots_full.military && <div className="building-slots-full-banner">
-                            <span>No Unit Slots</span>
+                        {selectedCity.max_units_in_build_queue && <div className="building-slots-full-banner">
+                            <span>Queued Max Units</span>
                         </div>}
                     </div>
                 </div>

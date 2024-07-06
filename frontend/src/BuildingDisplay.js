@@ -130,7 +130,7 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
-export const ExistingBuildingDisplay = ({ buildingName, templates, handleQueueDelete, emptyType, setHoveredBuilding, yields, deleteQueued, slotsFull}) => {
+export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, deleteQueued, slotsFull}) => {
     const building = templates.BUILDINGS?.[buildingName];
     return (
         <div className={`existing-building-card ${emptyType || building?.type} ${deleteQueued ? 'delete-queued' : ''}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
@@ -138,12 +138,11 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, handleQueueDe
             {yields?.[buildingName] && 
                 <YieldsDisplay yields={yields[buildingName]} />
             }
-            {buildingName && !deleteQueued && slotsFull && <img src={deleteImg} className="delete-building-card" alt="" onClick={handleQueueDelete ? () => handleQueueDelete(buildingName) : null} />}
         </div>
     );
 };
 
-export const ExistingMilitaryBuildingDisplay = ({ unitName, templates, isCurrentIQUnit, projectedBuildNum, handleQueueDelete, handleSetInfiniteQueue, setHoveredUnit, deleteQueued, slotsFull}) => {
+export const ExistingMilitaryBuildingDisplay = ({ unitName, templates, isCurrentIQUnit, projectedBuildNum, handleSetInfiniteQueue, setHoveredUnit, deleteQueued, slotsFull}) => {
     const unit = templates.UNITS?.[unitName];
     const display_num = projectedBuildNum > 3 ? 1 : projectedBuildNum;
     return (
@@ -168,7 +167,6 @@ export const ExistingMilitaryBuildingDisplay = ({ unitName, templates, isCurrent
                     {templates.UNITS[unitName].metal_cost}
                     <img src={metalImg} alt="" height="10px"/>
                 </div>}
-            {unitName && !deleteQueued && slotsFull && <img src={deleteImg} className="delete-building-card" alt="" onClick={() => handleQueueDelete(unitName)} />}
         </div>
     );
 };
