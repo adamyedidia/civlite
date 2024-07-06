@@ -13,12 +13,13 @@ if TYPE_CHECKING:
 
 
 class Hex:
-    def __init__(self, q: int, r: int, s: int, terrain: TerrainTemplate, yields: Yields) -> None:
+    def __init__(self, q: int, r: int, s: int, terrain: TerrainTemplate, yields: Yields, has_building_slot: bool = False) -> None:
         assert not (q + r + s)
         self.q = q
         self.r = r
         self.s = s
         self.terrain = terrain
+        self.has_building_slot = has_building_slot
         self.yields = yields
         self.units: list[Unit] = []
         self.city: Optional[City] = None
@@ -147,6 +148,7 @@ class Hex:
             "r": self.r,
             "s": self.s,
             "terrain": self.terrain.name,
+            "has_building_slot": self.has_building_slot,
             **({
                 "yields": self.yields.to_json(),
                 "units": [unit.to_json() for unit in self.units],
@@ -164,6 +166,7 @@ class Hex:
             r=json["r"],
             s=json["s"],
             terrain=TERRAINS.by_name(json["terrain"]),
+            has_building_slot=json["has_building_slot"],
             yields=Yields.from_json(json['yields']) if 'yields' in json else Yields(),
         )
         hex.units = [Unit.from_json(unit_json) for unit_json in json.get("units") or []]

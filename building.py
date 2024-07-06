@@ -137,7 +137,7 @@ class QueueEntry:
     
     @staticmethod
     def find_queue_template_by_name(building_name) -> UnitTemplate | BuildingTemplate | WonderTemplate:
-        for template in itertools.chain(UNITS.all(), BUILDINGS.all(), WONDERS.all()):
+        for template in itertools.chain(WONDERS.all(), UNITS.all(), BUILDINGS.all()):
             if template.name == building_name:
                 return template
         raise ValueError(f"No template {building_name}")    

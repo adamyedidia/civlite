@@ -21,7 +21,7 @@ import {
 import EngineStates from './EngineStates';
 import CivDisplay from './CivDisplay';
 import TechDisplay from './TechDisplay';
-import HexDisplay, { YieldImages, HexBuffIcons } from './HexDisplay';
+import HexDisplay, { YieldImages, BuildingSlotImage } from './HexDisplay';
 import BuildingDisplay from './BuildingDisplay';
 import UnitDisplay from './UnitDisplay';
 import WonderHover from './WonderHover';
@@ -3007,6 +3007,7 @@ export default function GamePage() {
                                         style={{visibility: 'hidden'}}
                                     />
                                     {hex.yields ? <YieldImages yields={hex.yields} /> : null}
+                                    {hex.yields && hex.has_building_slot ? <BuildingSlotImage/>: null}
                                 </Hexagon>
                             );
                         })}

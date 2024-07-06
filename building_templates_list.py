@@ -103,14 +103,12 @@ class BUILDINGS():
         type=BuildingType.RURAL,
         cost=10,
         on_build=UrbanizeEffect(),
-        vp_reward=2,
     )
     MILITARIZE = BuildingTemplate(
         name="Militarize",
         type=BuildingType.RURAL,
         cost=10,
         on_build=MilitarizeEffect(),
-        vp_reward=1,
     )
     MAGISTERIUM = BuildingTemplate(
         name="Magisterium",

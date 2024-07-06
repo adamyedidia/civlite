@@ -1,12 +1,12 @@
 import math
 from typing import Any, Optional
 from animation_frame import AnimationFrame
-from building import QueueOrderType
+from building import QueueEntry, QueueOrderType
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
 from collections import defaultdict
-from city import City, find_queue_template_by_name, get_city_name_for_civ
+from city import City, get_city_name_for_civ
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
@@ -287,6 +287,7 @@ class GameState:
 
     def register_city(self, city):
         city.hex.city = city
+        city.hex.has_building_slot = False
         city.founded_turn = self.turn_num
         self.cities_by_id[city.id] = city
 
@@ -297,6 +298,7 @@ class GameState:
         for h in hex.get_neighbors(self.hexes):
             assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
         city.hex = hex
+        city.populate_slots(self)
         city.populate_terrains_dict(self)
         city.midturn_update(self)
         return city
@@ -607,7 +609,7 @@ class GameState:
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
-                building = find_queue_template_by_name(building_name)
+                building = QueueEntry.find_queue_template_by_name(building_name)
                 if move.get('delete'):
                     if any([building == b._template for b in city.buildings]):
                         city.enqueue_build(building, delete=True)

@@ -30,12 +30,6 @@ if TYPE_CHECKING:
 
 TRADE_HUB_CITY_POWER_PER_TURN = 20
 
-def find_queue_template_by_name(building_name) -> UnitTemplate | BuildingTemplate | WonderTemplate:
-    for template in itertools.chain(UNITS.all(), BUILDINGS.all(), WONDERS.all()):
-        if template.name == building_name:
-            return template
-    raise ValueError(f"No template {building_name}")    
-
 class City:
     def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
         # civ actually can be None very briefly before GameState.from_json() is done, 
@@ -52,7 +46,7 @@ class City:
         self.wood = 0.0
         self.food_demand = 0
         self.focus: str = 'food'
-        self.rural_slots = 1
+        self.rural_slots = -1
         self.urban_slots = 1
         self.military_slots = 1
         self.under_siege_by_civ: Optional[Civ] = None
@@ -404,6 +398,10 @@ class City:
             else:
                 self.terrains_dict[hex.terrain] += 1
 
+    def populate_slots(self, game_state):
+        assert self.hex is not None
+        self.rural_slots = len([hex for hex in self.hex.get_neighbors(game_state.hexes, include_self=False) if hex.has_building_slot])
+
     def _refresh_available_buildings_and_units(self, game_state):
         if self.civ is None or self.hex is None:
             return
@@ -425,8 +423,11 @@ class City:
         ))
 
         # Validate queue
+        print(f"updating city {self.name}, {self.available_wonders}")
+        print(self.buildings_queue)
         self.buildings_queue = [entry for entry in self.buildings_queue if 
                                 (entry.order_type == QueueOrderType.DELETE) or (entry.template in self.available_city_buildings + self.available_unit_buildings + self.available_wonders)]
+        print(self.buildings_queue)
         self.projected_unit_builds = {u: n for u, n in self.projected_unit_builds.items() if u in self.available_units}
 
     def calculate_payoff_time(self, yields, cost) -> int:
@@ -661,6 +662,7 @@ class City:
         unit.health += 100 * stack_size
 
     def validate_building_queueable(self, building_template: UnitTemplate | BuildingTemplate | WonderTemplate) -> bool:
+        print(f"validate_building_queueable: {building_template}")
         if self.has_building(building_template):
             return False
         if isinstance(building_template, UnitTemplate):
@@ -717,6 +719,7 @@ class City:
         return any(b.template == template for b in self.buildings_queue)
 
     def enqueue_build(self, template: Union[BuildingTemplate, UnitTemplate, WonderTemplate], delete=False) -> None:
+        print(f"enqueuing {template}")
         assert self.has_building(template) == delete, (template, self.buildings_queue, self.building_in_queue(template))
         order = QueueEntry(template, QueueOrderType.BUILD if not delete else QueueOrderType.DELETE)
         if delete:

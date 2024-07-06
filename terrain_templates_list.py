@@ -8,18 +8,21 @@ class TERRAINS():
         yields= Yields(food=1, wood=0, metal=1, science=0),
         bonus_yields= Yields(food=3, wood=0, metal=1, science=0),
         frequency= 1,
+        slot_frequency=0.8,
     )
     FOREST = TerrainTemplate(
         name= 'forest',
         yields= Yields(food=1, wood=1, metal=0, science=0),
         bonus_yields= Yields(food=1, wood=3, metal=0, science=0),
         frequency= 1,
+        slot_frequency=0.55,
     )
     HILLS = TerrainTemplate(
         name= 'hills',
         yields= Yields(food=0, wood=1, metal=1, science=0),
         bonus_yields= Yields(food=0, wood=1, metal=3, science=0),
         frequency= 1,
+        slot_frequency=0.3,
     )
 
     MOUNTAINS = TerrainTemplate(

@@ -153,8 +153,9 @@ export const ExistingMilitaryBuildingDisplay = ({ unitName, templates, isCurrent
         >
             {unitName && <div className="building-name">{unit.building_name || ""}</div>}
             {unitName && isCurrentIQUnit && <div className="build-num">
-                {Array.from(({length: display_num})).map((_, _index) => 
+                {Array.from(({length: display_num})).map((_, index) => 
                 <IconUnitDisplay
+                    key={index}
                     unitName={unitName} 
                     templates={templates} 
                     setHoveredUnit={setHoveredUnit} 

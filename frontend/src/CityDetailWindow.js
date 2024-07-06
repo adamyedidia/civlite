@@ -67,6 +67,8 @@ const queueBuildDepth = (resourcesAvailable, queue, getCostOfItem) => {
 const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
     const [otherCitySelected, setOtherCitySelected] = useState(0);
 
+    if (myCiv === null) {return}
+
     const roomForNewTerritory = myTerritoryCapitals.length < myCiv.max_territories;
 
     const enoughCityPower = myCiv.city_power >= 100;
@@ -352,7 +354,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <MakeTerritory myCiv={myCiv} myTerritoryCapitals={myTerritoryCapitals} handleMakeTerritory={handleMakeTerritory}/>                    
                 }
                 <CityDetailPanel title="metal" icon={metalImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
-                {Array(selectedCity.projected_unit_builds).length !== 1 && `x${Math.round(selectedCity.metal_bonus_from_num_units * 100)}% (building ${Array(selectedCity.projected_unit_builds).length} unit types)`}
+                {Object.entries(selectedCity.projected_unit_builds).length !== 1 && `x${Math.round(selectedCity.metal_bonus_from_num_units * 100)}% (building ${Object.entries(selectedCity.projected_unit_builds).length} unit types)`}
                 </CityDetailPanel>
                 <CityDetailPanel title="wood" icon={woodImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCity && canBuild &&  (

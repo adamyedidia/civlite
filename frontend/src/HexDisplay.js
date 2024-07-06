@@ -6,10 +6,17 @@ import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
 import scienceImg from './images/science.png';
-import smallBldgImg from './images/smallbldg.png';
 import largeBldgImg from './images/largebldg.png';
 
-import { shuffle } from 'lodash';
+export const BuildingSlotImage = () => {
+    return <image 
+        href={largeBldgImg} 
+        x={-0.5} 
+        y={-2.2} 
+        height={1} 
+        width={1}
+/>
+}
 
 export const YieldImages = ({ yields }) => {
     let imageCounter = 0; // Counter to track the total number of images
