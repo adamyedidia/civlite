@@ -11,6 +11,7 @@ from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
 from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, VITALITY_DECAY_RATE
 from unit import Unit
+from unit_building import UnitBuilding
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS, UNITS_BY_BUILDING_NAME
 from wonder_template import WonderTemplate
@@ -53,7 +54,8 @@ class City:
         self.hex: Optional['Hex'] = None
         self.projected_unit_builds: dict[UnitTemplate, int] = {}
         self.buildings_queue: list[QueueEntry] = []
-        self.buildings: list[Building] = [Building(UNITS.WARRIOR)]
+        self.buildings: list[Building] = []
+        self.unit_buildings: list[UnitBuilding] = [UnitBuilding(UNITS.WARRIOR)]
         self.available_city_buildings: list[BuildingTemplate] = []
         self.available_wonders: list[WonderTemplate] = []
         self.available_unit_buildings: list[UnitTemplate] = []
@@ -88,7 +90,10 @@ class City:
         return hash(self.id)
 
     def has_building(self, template: BuildingTemplate | UnitTemplate | WonderTemplate) -> bool:
-        return any(b._template == template for b in self.buildings)
+        if isinstance(template, UnitTemplate):
+            return any(b.template == template for b in self.unit_buildings)
+        else:
+            return any(b._template == template for b in self.buildings)
 
     def orphan_territory_children(self, game_state: 'GameState', make_new_territory=True):
         """
@@ -422,7 +427,7 @@ class City:
         self.available_units = sorted([unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)])
         
         min_level = min([u.advancement_level() for u in self.available_units])
-        self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level() >= min_level], reverse=True)
+        self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level() >= min_level and not self.has_building(u)], reverse=True)
         self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders())
         self.available_city_buildings = self.civ.available_city_buildings
         # Can't urbanize if not full
@@ -705,24 +710,26 @@ class City:
                 break
 
     def buildings_of_type(self, type: str,) -> list[Building]:
-        assert type in ("rural", "urban", "unit", "wonder")
+        assert type in ("rural", "urban", "wonder")
         return [b for b in self.buildings if b.type == type]
 
-    def num_buildings_of_type(self, type: str, include_in_queue=False):
+    def num_buildings_of_type(self, type: Literal['wonder', 'unit', 'rural', 'urban'], include_in_queue=False):
         def type_from_template(t: WonderTemplate | UnitTemplate | BuildingTemplate) -> Literal['wonder', 'unit', 'rural', 'urban']:
             if isinstance(t, WonderTemplate): return "wonder"
             if isinstance(t, UnitTemplate): return "unit"
             if isinstance(t, BuildingTemplate): return t.type.value
-        bldgs = len(self.buildings_of_type(type))
+        if type == "unit":
+            bldgs = len(self.unit_buildings)
+        else:
+            bldgs = len(self.buildings_of_type(type))
         if include_in_queue:
             bldgs += len([b for b in self.buildings_queue if type_from_template(b.template) == type])
         return bldgs
 
     def unit_buildings_ranked_for_bulldoze(self) -> list[UnitTemplate]:
-        targets = self.buildings_of_type("unit")
-        targets.sort(key=lambda b: b.advancement_level)
-        print(targets)
-        return [b._template for b in targets]  # This type works but only do to some careful dancing around the queue type options. We should clean that up.
+        targets = self.unit_buildings.copy()
+        targets.sort(key=lambda b: b.template.advancement_level())
+        return [b.template for b in targets]
 
     def building_in_queue(self, template) -> bool:
         return any(b.template == template for b in self.buildings_queue)
@@ -734,33 +741,33 @@ class City:
         self.buildings_queue.append(order)
 
     def build_building(self, game_state: 'GameState', building: Union[BuildingTemplate, UnitTemplate, WonderTemplate]) -> None:
-        new_building = Building(building)
-
-        self.buildings.append(new_building)
-
         if isinstance(building, UnitTemplate):
-            if self.num_buildings_of_type("unit") > self.military_slots:
+            new_building = UnitBuilding(building)
+            self.unit_buildings.append(new_building)
+            if len(self.unit_buildings) > self.military_slots:
                 bulldoze: UnitTemplate = self.unit_buildings_ranked_for_bulldoze()[0]
-                self.buildings = [b for b in self.buildings if b._template != bulldoze]
+                self.unit_buildings = [b for b in self.unit_buildings if b.template != bulldoze]
             self.clear_unit_builds()
             self._refresh_available_buildings_and_units(game_state)
             self.toggle_unit_build(building)
+        
+        else:
+            new_building = Building(building)
+            self.buildings.append(new_building)
+            if new_building.vp_reward > 0:
+                self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
 
+            for effect in new_building.on_build:
+                effect.apply(self, game_state)
 
-        if new_building.vp_reward > 0:
-            self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
+            if isinstance(building, WonderTemplate):
+                game_state.handle_wonder_built(self, building)
 
-        for effect in new_building.on_build:
-            effect.apply(self, game_state)
-
-        if isinstance(building, WonderTemplate):
-            game_state.handle_wonder_built(self, building)
-
-        if new_building.one_per_civ:
+        if new_building.one_per_civ_key:
             if self.civ.id not in game_state.one_per_civs_built_by_civ_id:
-                game_state.one_per_civs_built_by_civ_id[self.civ.id] = {new_building.building_name: self.id}
+                game_state.one_per_civs_built_by_civ_id[self.civ.id] = {new_building.one_per_civ_key: self.id}
             else:
-                game_state.one_per_civs_built_by_civ_id[self.civ.id][new_building.building_name] = self.id
+                game_state.one_per_civs_built_by_civ_id[self.civ.id][new_building.one_per_civ_key] = self.id
 
             # Clear it from any other cities immediately; you can't build two in one turn.
             for city in self.civ.get_my_cities(game_state):
@@ -800,9 +807,8 @@ class City:
         if self.is_trade_hub():
             self.civ.trade_hub_id = None
 
-        # Re-assign global wonders, and remove national wonders.
         for building in self.buildings:
-            if building.one_per_civ and game_state.one_per_civs_built_by_civ_id.get(self.civ.id, {}).get(building.building_name) == self.id:
+            if building.one_per_civ_key and game_state.one_per_civs_built_by_civ_id.get(self.civ.id, {}).get(building.building_name) == self.id:
                 del game_state.one_per_civs_built_by_civ_id[self.civ.id][building.building_name]
         self.buildings = [b for b in self.buildings if not b.destroy_on_owner_change]
 
@@ -1082,6 +1088,7 @@ class City:
             "icon_unit_name": sorted(self.projected_unit_builds, key=lambda u: u.advancement_level(), reverse=True)[0].name if len(self.projected_unit_builds) > 0 else None,
             "buildings_queue": [building.to_json() for building in self.buildings_queue],
             "buildings": [building.to_json() for building in self.buildings],
+            "unit_buildings": [building.to_json() for building in self.unit_buildings],
             "available_buildings_to_descriptions": self.available_buildings_to_descriptions.copy(),
             "available_buildings_payoff_times": self.available_buildings_payoff_times,
             "building_yields": {name: yields.to_json() for name, yields in self.building_yields.items()},
@@ -1132,6 +1139,7 @@ class City:
         city.ever_controlled_by_civ_ids = json["ever_controlled_by_civ_ids"].copy()
         city.population = json["population"]
         city.buildings = [Building.from_json(building) for building in json["buildings"]]
+        city.unit_buildings = [UnitBuilding.from_json(building) for building in json["unit_buildings"]]
         city.food = json["food"]
         city.metal = json["metal"]
         city.wood = json["wood"]

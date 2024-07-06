@@ -20,7 +20,7 @@ if TYPE_CHECKING:
     from city import City
 
 class Building:
-    def __init__(self, template: Union[UnitTemplate, BuildingTemplate, WonderTemplate]) -> None:
+    def __init__(self, template: Union[BuildingTemplate, WonderTemplate]) -> None:
         self._template = template  # TODO remove external calls to this
         self.ruined: bool = False
         self.projected_bulldoze: bool = False
@@ -30,18 +30,15 @@ class Building:
 
     @property
     def building_name(self) -> str:
-        if isinstance(self._template, UnitTemplate):
-            return self._template.building_name
-        else:
-            return self._template.name
+        return self._template.name
  
     @property
     def type(self) -> str:
-        return "unit" if isinstance(self._template, UnitTemplate) else self._template.type.value if isinstance(self._template, BuildingTemplate) else "wonder"
+        return self._template.type.value if isinstance(self._template, BuildingTemplate) else "wonder"
 
     @property
-    def one_per_civ(self) -> bool:
-        return self._template != UNITS.WARRIOR
+    def one_per_civ_key(self) -> str | None:
+        return self._template.name if self._template != UNITS.WARRIOR else None
     
     @property
     def destroy_on_owner_change(self) -> bool:
@@ -50,8 +47,6 @@ class Building:
     @property
     def prereq(self) -> Optional[TechTemplate]:
         if isinstance(self._template, BuildingTemplate):
-            return self._template.prereq
-        elif isinstance(self._template, UnitTemplate):
             return self._template.prereq
         return None
     
@@ -83,8 +78,6 @@ class Building:
     def advancement_level(self) -> int:
         if isinstance(self._template, BuildingTemplate):
             return self._template.advancement_level()
-        elif isinstance(self._template, UnitTemplate):
-            return self._template.advancement_level()
         elif isinstance(self._template, WonderTemplate):
             return self._template.age
         return 0
@@ -94,8 +87,6 @@ class Building:
             self.ruined = (city.id, city.civ.id) not in game_state.built_wonders[self._template].infos
 
     def passive_building_abilities_of_name(self, ability_name: str) -> list[Ability]:
-        if isinstance(self._template, UnitTemplate):
-            return []
         if isinstance(self._template, WonderTemplate) and self.ruined:
             return []
         return [ability for ability in self._template.abilities if ability.name == ability_name]
@@ -117,7 +108,7 @@ class Building:
     @staticmethod
     def from_json(json: dict) -> "Building":
         type = json.get('type')
-        proto_dict = UNITS if type == 'unit' else WONDERS if type == 'wonder' else BUILDINGS
+        proto_dict = WONDERS if type == 'wonder' else BUILDINGS
         b = Building(template=proto_dict.by_name(json['template_name']))
         b.ruined = json['ruined']
         b.projected_bulldoze = json["projected_bulldoze"]

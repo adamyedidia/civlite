@@ -379,7 +379,7 @@ class GameState:
         chosen_techs_by_advancement = defaultdict(int)
 
         # Start with prereqs for the buildings we have
-        for building in city.buildings:
+        for building in city.buildings + city.unit_buildings:
             prereq = building.prereq
             if prereq is not None:
                 chosen_techs.add(prereq)

@@ -234,7 +234,7 @@ class Civ:
         self.available_unit_buildings: list[UnitTemplate] = [
             unit for unit in UNITS.all() 
             if unit.buildable and (unit.prereq is None or self.has_tech(unit.prereq))
-            and (not unit.building_name in game_state.one_per_civs_built_by_civ_id.get(self.id, []))
+            and (not unit.name in game_state.one_per_civs_built_by_civ_id.get(self.id, []))
             and unit != UNITS.WARRIOR
             ]
         

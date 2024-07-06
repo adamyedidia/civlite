@@ -274,8 +274,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
             </div>
             <div className="existing-buildings-container">
-            {selectedCity?.buildings.map((building, index) => (
-                    building.type=="unit" &&
+            {selectedCity?.unit_buildings.map((building, index) => (
                     <ExistingMilitaryBuildingDisplay key={index} unitName={building.template_name} 
                     handleSetInfiniteQueue={canBuild && handleSetInfiniteQueue}
                     templates={templates} setHoveredUnit={setHoveredUnit} 
@@ -285,7 +284,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     projectedBuildNum={selectedCity.projected_unit_builds[building.template_name]}
                     />
                 ))}
-                {Array.from({ length: selectedCity?.military_slots - selectedCity?.buildings.filter(building => building.type=="unit").length }).map((_, index) => (
+                {Array.from({ length: selectedCity?.military_slots - selectedCity?.unit_buildings.length }).map((_, index) => (
                     <ExistingMilitaryBuildingDisplay key={`empty-${index}`} unitName={null} templates={templates} setHoveredUnit={setHoveredUnit}/>
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
