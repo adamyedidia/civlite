@@ -573,7 +573,6 @@ class GameState:
                             city.civ.vitality = STARTING_CIV_VITALITY
 
                             city.capitalize(self)
-                            self.midturn_update()
 
                         else:
                             if city.hex:
@@ -588,7 +587,8 @@ class GameState:
                 self.refresh_visibility_by_civ()
 
                 for civ in self.civs_by_id.values():
-                    civ.fill_out_available_buildings(self)      
+                    civ.fill_out_available_buildings(self)
+                self.midturn_update()
 
                 rdel(dream_key(self.game_id, player_num, self.turn_num))
 

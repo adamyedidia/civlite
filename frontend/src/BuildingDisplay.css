@@ -124,16 +124,3 @@
     height: 0.8em;
     width: auto;
 }
-
-.delete-building-card {
-    height: 16px;;
-    width: auto;
-    position: absolute;
-    bottom: 2px;
-    right: 4px;
-    cursor: pointer;
-}
-
-.delete-building-card:hover {
-    transform: scale(1.2);
-}

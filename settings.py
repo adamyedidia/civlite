@@ -59,5 +59,12 @@ WONDER_COUNT_FOR_PLAYER_NUM = {
     8: 6,
 }
 
+UNIT_BUILDING_BONUSES = {
+    1: [1.0],
+    2: [0.8, 0.55],
+    3: [0.7, 0.55, 0.45],
+    4: [0.65, 0.55, 0.45, 0.35],
+}
+
 if os.path.exists('local_settings.py'):
     from local_settings import *

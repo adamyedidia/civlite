@@ -275,13 +275,11 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             </div>
             <div className="existing-buildings-container">
             {selectedCity?.unit_buildings.map((building, index) => (
-                    <ExistingMilitaryBuildingDisplay key={index} unitName={building.template_name} 
+                    <ExistingMilitaryBuildingDisplay key={index} 
+                    unitBuilding={building}
                     handleSetInfiniteQueue={canBuild && handleSetInfiniteQueue}
                     templates={templates} setHoveredUnit={setHoveredUnit} 
-                    deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
                     slotsFull={selectedCity.building_slots_full.military}
-                    isCurrentIQUnit={canBuild && selectedCity.projected_unit_builds[building.template_name] !== undefined} 
-                    projectedBuildNum={selectedCity.projected_unit_builds[building.template_name]}
                     />
                 ))}
                 {Array.from({ length: selectedCity?.military_slots - selectedCity?.unit_buildings.length }).map((_, index) => (
@@ -292,7 +290,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
                     templates={templates} setHoveredBuilding={setHoveredBuilding} 
                     yields={selectedCity.building_yields} 
-                    deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
                     slotsFull={selectedCity.building_slots_full.rural}/>
                 ))}
                 {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
@@ -303,7 +300,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
                     templates={templates} setHoveredBuilding={setHoveredBuilding} 
                     yields={selectedCity.building_yields} 
-                    deleteQueued={existingBuildingNamesWithDeleteQueued.indexOf(building.template_name) != -1}
                     slotsFull={selectedCity.building_slots_full.urban}/>
                 ))}
                 {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
@@ -322,7 +318,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <MakeTerritory myCiv={myCiv} myTerritoryCapitals={myTerritoryCapitals} handleMakeTerritory={handleMakeTerritory}/>                    
                 }
                 <CityDetailPanel title="metal" icon={metalImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
-                {Object.entries(selectedCity.projected_unit_builds).length !== 1 && `x${Math.round(selectedCity.metal_bonus_from_num_units * 100)}% (building ${Object.entries(selectedCity.projected_unit_builds).length} unit types)`}
                 </CityDetailPanel>
                 <CityDetailPanel title="wood" icon={woodImg} hideStored={!canBuild} selectedCity={selectedCity} total_tooltip="available to spend this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     {selectedCity && canBuild &&  (

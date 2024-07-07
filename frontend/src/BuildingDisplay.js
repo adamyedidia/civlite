@@ -130,10 +130,10 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
-export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, deleteQueued, slotsFull}) => {
+export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields}) => {
     const building = templates.BUILDINGS?.[buildingName];
     return (
-        <div className={`existing-building-card ${emptyType || building?.type} ${deleteQueued ? 'delete-queued' : ''}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
+        <div className={`existing-building-card ${emptyType || building?.type}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
             <div className="building-name">{buildingName || ""}</div>
             {yields?.[buildingName] && 
                 <YieldsDisplay yields={yields[buildingName]} />
@@ -142,16 +142,18 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
     );
 };
 
-export const ExistingMilitaryBuildingDisplay = ({ unitName, templates, isCurrentIQUnit, projectedBuildNum, handleSetInfiniteQueue, setHoveredUnit, deleteQueued, slotsFull}) => {
+export const ExistingMilitaryBuildingDisplay = ({ unitBuilding, templates, handleSetInfiniteQueue, setHoveredUnit}) => {
+    const unitName = unitBuilding?.template_name;
     const unit = templates.UNITS?.[unitName];
-    const display_num = projectedBuildNum > 3 ? 1 : projectedBuildNum;
+    const display_num = unitBuilding?.projected_unit_count > 3 ? 1 : unitBuilding?.projected_unit_count;
+    console.log(unitBuilding);
     return (
-        <div className={`existing-building-card military ${deleteQueued ? 'delete-queued' : ''} ${isCurrentIQUnit ? 'infinite-queue' : ''} ${handleSetInfiniteQueue ? 'enabled' : 'disabled'}`} 
+        <div className={`existing-building-card military ${unitBuilding?.delete_queued ? 'delete-queued' : ''} ${unitBuilding?.active ? 'infinite-queue' : ''} ${handleSetInfiniteQueue ? 'enabled' : 'disabled'}`} 
             onMouseEnter={() => setHoveredUnit(unitName)} onMouseLeave={() => setHoveredUnit(null)}
             onClick={handleSetInfiniteQueue ? () => handleSetInfiniteQueue(unitName) : null}
         >
             {unitName && <div className="building-name">{unit.building_name || ""}</div>}
-            {unitName && isCurrentIQUnit && <div className="build-num">
+            {unitName && unitBuilding.active && <div className="build-num">
                 {Array.from(({length: display_num})).map((_, index) => 
                 <IconUnitDisplay
                     key={index}
@@ -160,12 +162,15 @@ export const ExistingMilitaryBuildingDisplay = ({ unitName, templates, isCurrent
                     setHoveredUnit={setHoveredUnit} 
                     size={30}
                 />)}
-                {projectedBuildNum > 3 ? `x${projectedBuildNum}` : ''}
+                {unitBuilding.projected_unit_count > 3 ? `x${unitBuilding.projected_unit_count}` : ''}
                 </div>
             }
             {unitName && <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px", "position": "absolute", "bottom": "2px", "left": "4px"}}>
-                    {templates.UNITS[unitName].metal_cost}
+                    {Math.floor(unitBuilding.metal)} / {templates.UNITS[unitName].metal_cost}
                     <img src={metalImg} alt="" height="10px"/>
+                </div>}
+                {unitName && <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px", "position": "absolute", "bottom": "2px", "right": "4px"}}>
+                    {Math.floor(unitBuilding.production_rate * 100)}%
                 </div>}
         </div>
     );

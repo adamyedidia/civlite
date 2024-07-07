@@ -9,7 +9,7 @@ from civ import Civ
 from camp import Camp
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
-from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, VITALITY_DECAY_RATE
+from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES
 from unit import Unit
 from unit_building import UnitBuilding
 from unit_template import UnitTemplate
@@ -52,7 +52,6 @@ class City:
         self.military_slots = 1
         self.under_siege_by_civ: Optional[Civ] = None
         self.hex: Optional['Hex'] = None
-        self.projected_unit_builds: dict[UnitTemplate, int] = {}
         self.buildings_queue: list[QueueEntry] = []
         self.buildings: list[Building] = []
         self.unit_buildings: list[UnitBuilding] = [UnitBuilding(UNITS.WARRIOR)]
@@ -180,28 +179,33 @@ class City:
         elif not hidden and building_name in self.hidden_building_names:
             self.hidden_building_names.remove(building_name)
 
+    def unit_building_from_template(self, template: UnitTemplate):
+        for bldg in self.unit_buildings:
+            if bldg.template == template:
+                return bldg
+        raise KeyError(f"No unit building for {template}")
+
     def toggle_unit_build(self, unit: UnitTemplate):
         assert unit in self.available_units, f"{self.name} trying to build unit {unit} but only have {self.available_units}."
-        if unit in self.projected_unit_builds:
-            print("delete", self.projected_unit_builds)
-            del self.projected_unit_builds[unit]
-        else:
-            self.projected_unit_builds[unit] = 0
-            print("add", self.projected_unit_builds)
+        unit_bldg = self.unit_building_from_template(unit)
+        unit_bldg.active = not unit_bldg.active
         self.adjust_projected_unit_builds()
-        print(self.projected_unit_builds)
 
     def clear_unit_builds(self):
-        self.projected_unit_builds = {}
+        for bldg in self.unit_buildings:
+            bldg.active = False
 
     def adjust_projected_unit_builds(self):
-        if len(self.projected_unit_builds) == 0: return
+        units_active = [u for u in self.unit_buildings if u.active]
+        if len(units_active) == 0: return
+
+        units_active.sort(key=lambda u: u.template.advancement_level())
+        for bldg, bonus in zip(units_active, UNIT_BUILDING_BONUSES[len(units_active)]):
+            bldg.production_rate = bonus
+
         total_metal = self.metal + self.projected_income['metal']
-        per_unit = total_metal / len(self.projected_unit_builds)
-        self.projected_unit_builds = {
-            unit : int(per_unit / unit.metal_cost)
-            for unit in self.projected_unit_builds
-        }
+        for unit_building in units_active:
+            unit_building.adjust_projected_unit_builds(total_metal=total_metal)
 
     def adjust_projected_builds(self, game_state):
         wood_available = self.wood + self.projected_income["wood"]
@@ -212,7 +216,10 @@ class City:
         unit_buildings_to_bulldoze = max(0, self.num_buildings_of_type("unit", include_in_queue=True) - self.military_slots)
         assert unit_buildings_to_bulldoze <= self.num_buildings_of_type("unit", include_in_queue=True)
         targets = self.unit_buildings_ranked_for_bulldoze()
-        self.projected_bulldozes = targets[:unit_buildings_to_bulldoze]
+        for t in targets[:unit_buildings_to_bulldoze]:
+            t.delete_queued = True
+        for t in targets[unit_buildings_to_bulldoze:]:
+            t.delete_queued = False
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.hex is None:
@@ -249,20 +256,6 @@ class City:
         else:
             self.projected_income += {key: sum(amnt for amnt, distance in puppet_vals.values()) for key, puppet_vals in self.projected_income_puppets.items()}
 
-
-        self.projected_income.metal *= self.metal_bonus_from_num_units
-
-    @property
-    def metal_bonus_from_num_units(self):
-        METAL_BONUS_BY_NUM_UNITS = {
-            0: 0.9,
-            1: 1.0,
-            2: 1.4,
-            3: 1.8,
-            4: 2.2,
-        }
-        return METAL_BONUS_BY_NUM_UNITS[len(self.projected_unit_builds)]
-
     def _get_projected_yields_without_focus(self, game_state) -> Yields:
         yields = Yields(food=2, science=self.population)
 
@@ -298,7 +291,10 @@ class City:
         if self.is_territory_capital:
             self.wood += self.projected_income.wood
             self.metal += self.projected_income.metal
-
+            if len(self.active_unit_buildings) > 0:
+                for b in self.active_unit_buildings:
+                    b.harvest_yields(self.metal)
+                self.metal = 0
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if self.hex is None:
@@ -445,7 +441,6 @@ class City:
         # Validate queue
         self.buildings_queue = [entry for entry in self.buildings_queue if 
                                 entry.template in self.available_city_buildings + self.available_unit_buildings + self.available_wonders]
-        self.projected_unit_builds = {u: n for u, n in self.projected_unit_builds.items() if u in self.available_units}
 
     def calculate_payoff_time(self, yields, cost) -> int:
         if yields == 0:
@@ -541,15 +536,18 @@ class City:
     def has_production_building_for_unit(self, unit: UnitTemplate) -> bool:
         return self.has_building(unit)
 
+    @property
+    def active_unit_buildings(self):
+        return [u for u in self.unit_buildings if u.active]
+
     def build_units(self, game_state: 'GameState') -> None:
-        if len(self.projected_unit_builds) == 0: return
+        max_units = max([u.projected_unit_count for u in self.active_unit_buildings]) if len(self.active_unit_buildings) > 0 else 0
         # Interleave them for better diversity
-        max_num = max(self.projected_unit_builds.values())
-        for i in range(max_num):
-            for unit, num in self.projected_unit_builds.items():
-                if i < num:
-                    if self.build_unit(game_state, unit) is not None:
-                        self.metal -= unit.metal_cost
+        for i in range(max_units):
+            for bldg in self.active_unit_buildings:
+                if i < bldg.projected_unit_count:
+                    if self.build_unit(game_state, bldg.template) is not None:
+                        bldg.metal -= bldg.template.metal_cost
 
     def get_closest_target(self) -> Optional['Hex']:
         if not self.hex:
@@ -726,10 +724,10 @@ class City:
             bldgs += len([b for b in self.buildings_queue if type_from_template(b.template) == type])
         return bldgs
 
-    def unit_buildings_ranked_for_bulldoze(self) -> list[UnitTemplate]:
+    def unit_buildings_ranked_for_bulldoze(self) -> list[UnitBuilding]:
         targets = self.unit_buildings.copy()
         targets.sort(key=lambda b: b.template.advancement_level())
-        return [b.template for b in targets]
+        return targets
 
     def building_in_queue(self, template) -> bool:
         return any(b.template == template for b in self.buildings_queue)
@@ -745,8 +743,9 @@ class City:
             new_building = UnitBuilding(building)
             self.unit_buildings.append(new_building)
             if len(self.unit_buildings) > self.military_slots:
-                bulldoze: UnitTemplate = self.unit_buildings_ranked_for_bulldoze()[0]
-                self.unit_buildings = [b for b in self.unit_buildings if b.template != bulldoze]
+                bulldoze: UnitBuilding = self.unit_buildings_ranked_for_bulldoze()[0]
+                self.unit_buildings = [b for b in self.unit_buildings if b != bulldoze]
+                self.metal += bulldoze.metal
             self.clear_unit_builds()
             self._refresh_available_buildings_and_units(game_state)
             self.toggle_unit_build(building)
@@ -997,7 +996,6 @@ class City:
         else:
             for u in highest_tier_units:
                 self.toggle_unit_build(u)
-            print(f"  set unit build: {self.projected_unit_builds}")
 
         # Never steal from another city's queue
         wonders: list[WonderTemplate] = [w for w in self.available_wonders if w.name not in self.civ.buildings_in_all_queues]
@@ -1056,7 +1054,7 @@ class City:
                 
             max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
             focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
-            if len(production_city.projected_unit_builds) > 0 and 'metal' in focuses_with_best_yields and self.is_threatened_city(game_state):
+            if len(production_city.active_unit_buildings) > 0 and 'metal' in focuses_with_best_yields and self.is_threatened_city(game_state):
                 self.focus = 'metal'
             elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type("urban", include_in_queue=True) < self.urban_slots and len([b for b in economic_buildings if b.type == BuildingType.URBAN and b.cost > remaining_wood_budget]) > 0:
                 self.focus = 'wood'
@@ -1064,7 +1062,7 @@ class City:
                 self.focus = random.choice(list(focuses_with_best_yields))
 
             print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
-            self.civ.midturn_update(game_state)
+            game_state.midturn_update()
 
     def to_json(self, include_civ_details: bool = False) -> dict:
         return {
@@ -1083,9 +1081,7 @@ class City:
             "military_slots": self.military_slots,
             "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords if self.hex else None,
-            "projected_unit_builds": {unit.name: num for unit, num in self.projected_unit_builds.items()},
-            "metal_bonus_from_num_units": self.metal_bonus_from_num_units,
-            "icon_unit_name": sorted(self.projected_unit_builds, key=lambda u: u.advancement_level(), reverse=True)[0].name if len(self.projected_unit_builds) > 0 else None,
+            "icon_unit_name": sorted(self.active_unit_buildings, key=lambda u: u.template.advancement_level(), reverse=True)[0].template.name if len(self.active_unit_buildings) > 0 else None,
             "buildings_queue": [building.to_json() for building in self.buildings_queue],
             "buildings": [building.to_json() for building in self.buildings],
             "unit_buildings": [building.to_json() for building in self.unit_buildings],
@@ -1108,7 +1104,6 @@ class City:
             "projected_income_focus": self.projected_income_focus.to_json(),
             "projected_income_puppets": self.projected_income_puppets,
             "projected_build_queue_depth": self.projected_build_queue_depth,
-            "projected_bulldozes": [u.name for u in self.projected_bulldozes],
             "max_units_in_build_queue": self.military_slots <= len([entry for entry in self.buildings_queue if isinstance(entry.template, UnitTemplate)]),
             "growth_cost": self.growth_cost(),
             "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
@@ -1153,13 +1148,11 @@ class City:
         city.available_buildings_payoff_times = json["available_buildings_payoff_times"]
         city.building_yields = {name: Yields(**yields) for name, yields in json["building_yields"].items()}
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
-        city.projected_unit_builds = {UNITS.by_name(unit_name): num for unit_name, num in json["projected_unit_builds"].items()}
         city.focus = json["focus"]
         city.projected_income = Yields(**json["projected_income"])
         city.projected_income_base = Yields(**json["projected_income_base"])
         city.projected_income_focus = Yields(**json["projected_income_focus"])
         city.projected_build_queue_depth = json["projected_build_queue_depth"]
-        city.projected_bulldozes = [UNITS.by_name(u) for u in json["projected_bulldozes"]]
         city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
         city.hidden_building_names = json.get("hidden_building_names") or []
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
