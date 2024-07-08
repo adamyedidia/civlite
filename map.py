@@ -41,8 +41,6 @@ def create_hex_map(map_size: int) -> dict[str, Hex]:
     for hex in hexes.values():
         if random.random() < GOOD_HEX_PROBABILITY:
             hex.yields = hex.terrain.bonus_yields.copy()
-        if random.random() < hex.terrain.slot_frequency:
-            hex.has_building_slot = True
 
 
 

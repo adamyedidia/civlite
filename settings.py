@@ -66,5 +66,10 @@ UNIT_BUILDING_BONUSES = {
     4: [0.65, 0.55, 0.45, 0.35],
 }
 
+MAX_SLOTS = 8
+DEVELOP_COST = {'rural': 50, 'urban': 100, 'unit': 100}
+MAX_SLOTS_OF_TYPE = {'urban': 4, 'unit': 4}
+DEVELOP_VPS = 2
+
 if os.path.exists('local_settings.py'):
     from local_settings import *

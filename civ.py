@@ -51,6 +51,7 @@ class Civ:
         self._great_people_choices_queue: list[tuple[int, str]] = []  # age, city_id
         self.max_territories: int = 3
         self.vandetta_civ_id: Optional[str] = None
+        self.develop_used: dict[str, bool] = {'urban': False, 'unit': False}
 
         self.score_dict: dict[str, float] = {}
 
@@ -188,7 +189,6 @@ class Civ:
 
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 2 + round(self.get_advancement_level() / 3)
-        my_cities: list[City] = self.get_my_cities(game_state)
         bonuses: int = len([ability for ability, _ in self.passive_building_abilities_of_name('ExtraTerritory', game_state)])
         self.max_territories = base + bonuses
 
@@ -224,6 +224,7 @@ class Civ:
             "max_territories": self.max_territories,
             "vandetta_civ_id": self.vandetta_civ_id,
             "score_dict": self.score_dict,
+            "develop_used": self.develop_used,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -318,10 +319,8 @@ class Civ:
             choice: GreatPerson = max(self.great_people_choices, key=lambda g: (isinstance(g, GreatGeneral), random.random()))
             self.select_great_person(game_state, choice.name)
 
-        my_cities = self.get_my_cities(game_state)
-
         # Choose trade hub:
-        unhappy_cities = [city for city in my_cities if city.unhappiness + city.projected_income["unhappiness"] > 0]
+        unhappy_cities = [city for city in self.get_my_cities(game_state) if city.unhappiness + city.projected_income["unhappiness"] > 0]
         def trade_hub_priority(city: 'City'):
             income = sum(city.projected_income[x] for x in ['wood', 'metal', 'science'])
             on_leaderboard = city.civ_to_revolt_into is not None
@@ -387,22 +386,23 @@ class Civ:
 
         game_state.refresh_foundability_by_civ()
 
-        if not self.in_decline and self.city_power >= 100 and not self.template.name == 'Barbarians':
-            for hex in game_state.hexes.values():
-                if hex.is_foundable_by_civ.get(self.id):
-                    game_state.found_city_for_civ(self, hex, generate_unique_id())
-                    break
+        while not self.in_decline and self.city_power >= 100 and not self.template.name == 'Barbarians':
+            choices = [hex for hex in game_state.hexes.values() if hex.is_foundable_by_civ.get(self.id)]
+            hex = random.choice(choices)
+            game_state.found_city_for_civ(self, hex, generate_unique_id())
 
-        for city in my_cities:
+        my_production_cities = [city for city in self.get_my_cities(game_state) if city.is_territory_capital]
+
+        for city in my_production_cities:
             city.buildings_queue = []
         self.midturn_update(game_state)
-        for city in sorted(my_cities, key=lambda c: c.population, reverse=True):
+        for city in sorted(my_production_cities, key=lambda c: c.population, reverse=True):
             city.bot_move(game_state)
 
     def renaissance_cost(self) -> float:
         base_cost = 100 * self.get_advancement_level()
         if self.game_player is None:
-            # Something very odd hsa happened, because renaiissance isn't offered to declined civs.
+            # Something very odd has happened, because renaiissance isn't offered to declined civs.
             # But I guess this could happen if you decline while it's queued.
             return base_cost
         return base_cost * (1 + self.game_player.renaissances)
@@ -528,6 +528,7 @@ class Civ:
         civ.max_territories = json.get("max_territories", 3)
         civ.vandetta_civ_id = json.get("vandetta_civ_id")
         civ.score_dict = json["score_dict"]
+        civ.develop_used = json["develop_used"]
 
         return civ
 

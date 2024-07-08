@@ -126,7 +126,7 @@
 .building-choices-container {
   position: relative; /* for purpose of positioning the building-slots-full-banner */
   overflow-y: auto; /* Enable vertical scrolling */
-  max-height: 200px;
+  max-height: 140px;
   width: 300px;
 }
 

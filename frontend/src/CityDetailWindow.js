@@ -4,7 +4,6 @@ import './CityDetailWindow.css';
 import { Button, Select, MenuItem } from '@mui/material';
 
 import { BriefBuildingDisplay, BriefBuildingDisplayTitle, ExistingBuildingDisplay, ExistingMilitaryBuildingDisplay } from './BuildingDisplay';
-import { IconUnitDisplay } from './UnitDisplay';
 import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
@@ -20,36 +19,6 @@ import { CityDetailPanel } from './CityDetailPanel.js';
 import { TextOnIcon } from './TextOnIcon.js';
 import ProgressBar from './ProgressBar.js';
 import { WithTooltip } from './WithTooltip.js';
-
-const UnitQueueOption = ({unitName, isCurrentIQUnit, canBuild, templates, setHoveredUnit, handleSetInfiniteQueue}) => {
-    let content = <div className={`unit-choice ${isCurrentIQUnit ? 'infinite-queue' : ''} ${canBuild ? 'enabled' : 'disabled'}`}
-        onClick={(event) => {
-            if (!canBuild) return;
-            // click to toggle infinite queue
-            if (isCurrentIQUnit) {
-                handleSetInfiniteQueue("")
-            } else {
-                handleSetInfiniteQueue(unitName);
-            }
-        }}>
-        <IconUnitDisplay 
-            unitName={unitName} 
-            templates={templates} 
-            setHoveredUnit={setHoveredUnit} 
-            style={{borderRadius: '25%'}} 
-        />
-        {unitName && <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px"}}>
-            {templates.UNITS[unitName].metal_cost}
-            <img src={metalImg} alt="" height="10px"/>
-            </div>}
-        </div>
-    if (unitName) {
-        content = <WithTooltip tooltip={canBuild ? "Toggle infinite queue." : "Cannot build units here."}>
-            {content}
-        </WithTooltip>
-    }
-    return content;
-}
 
 const MakeTerritory = ({myTerritoryCapitals, handleMakeTerritory, myCiv}) => {
     const [otherCitySelected, setOtherCitySelected] = useState(0);
@@ -174,6 +143,11 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         submitPlayerInput('trade_hub', {});
     }
 
+    const handleClickDevelop = (type) => {
+        if (declinePreviewMode) return;
+        submitPlayerInput('develop', {'type': type});
+    }
+
     const CycleCities = (direction) => {
         let newCity;
         if (puppet) {
@@ -223,7 +197,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         </ul> </>
 
     const bldgQueueMaxIndexFinishing = selectedCity.projected_build_queue_depth - 1;
-    const existingBuildingNamesWithDeleteQueued = selectedCity.projected_bulldozes;
     const availableBuildingEntry = (buildingName, index) => {
         const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
         return <div key={index} className='building-choices-row'>
@@ -233,7 +206,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 wonderCostsByAge={gameState.wonder_cost_by_age}
                 clickable={true}
                 unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates}
-                setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder}
+                setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} setHoveredUnit={setHoveredUnit}
                 onClick={() => handleClickBuildingChoice(buildingName)}
                 descriptions={descriptions}
                 yields = {selectedCity.building_yields?.[buildingName]} 
@@ -293,8 +266,18 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     slotsFull={selectedCity.building_slots_full.rural}/>
                 ))}
                 {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
-                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="rural"/>
+                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} 
+                        emptyType="rural"
+                        militarizeBtn={selectedCity?.can_militarize && index === 0}
+                        urbanizeBtn={selectedCity?.can_urbanize && index === 0}
+                        canAffordDevelop={myCiv?.city_power > 100}
+                        handleClickDevelop={handleClickDevelop}
+                    />
                 ))}
+                {selectedCity.can_expand && 
+                    <ExistingBuildingDisplay buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} handleClickDevelop={handleClickDevelop}
+                        emptyType="expand" expandSufficientPower={myCiv.city_power > 50}/>
+                }
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="urban" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
@@ -329,7 +312,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                         buildingName={entry.template_name} 
                                         clickable={true} 
                                         wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} 
-                                        setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} 
+                                        setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} setHoveredUnit={setHoveredUnit}
                                         onClick={() => handleCancelBuilding(entry.template_name)} 
                                         descriptions={descriptions} yields={selectedCity.building_yields?.[entry.template_name]} payoffTime = {selectedCity.available_buildings_payoff_times?.[entry.template_name]}/>
                                 </div>

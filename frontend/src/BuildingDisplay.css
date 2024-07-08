@@ -64,14 +64,80 @@
 .brief-building-card.wonder, .building-card.wonder {
     background-color: #b66dc0;
 }
-.brief-building-card.military, .building-card.military, .existing-building-card.military {
+.brief-building-card.military, .building-card.military, .existing-building-card.military, .develop-btn.unit {
     background-color: #bbbbbb;
 }
 .brief-building-card.rural, .building-card.rural, .existing-building-card.rural {
     background-color: #eecab7;
 }
-.brief-building-card.urban, .building-card.urban, .existing-building-card.urban {
+.brief-building-card.urban, .building-card.urban, .existing-building-card.urban, .develop-btn.urban {
     background-color: #e08b5e;
+}
+
+.existing-building-card.expand {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    gap: 5px;
+    background: linear-gradient(to bottom left, transparent calc(50% - 2px), black calc(50% - 2px), black calc(50% + 2px), transparent calc(50% + 2px)),
+                linear-gradient(to bottom right, transparent calc(50% - 2px), black calc(50% - 2px), black calc(50% + 2px), transparent calc(50% + 2px));
+    background-color: #eecab7;
+}
+.existing-building-card.expand.insufficient-power {
+    opacity: .5;
+}
+
+.existing-building-card.expand .price-label {
+    padding: 5px;
+    background-color: #eecab7;
+    align-self: center;
+}
+
+.existing-building-card.expand.sufficient-power:hover {
+    cursor: pointer;
+    background: #eecab7;
+    transform: scale(1.2);
+}
+
+.develop-btns {
+    height: 100%;
+    width: 90%;
+    position: absolute;
+    top: 0;
+    left: 5%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+}
+
+.develop-btn {
+    height: 40%;
+    width: 60%;
+    border: 1px solid black;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    font-size: 14px;
+    padding: 0 5px;
+}
+.develop-btn.enabled:hover {
+    cursor: pointer;
+    transform: scale(1.2);
+}
+.develop-btn.disabled {
+    opacity: 0.5;
+}
+.develop-btn.hidden {
+    opacity: 0;
+}
+.develop-btn.unit {
+    align-self: flex-start;
+    align-items: flex-start;
+}
+.develop-btn.urban {
+    align-self: flex-end;
+    align-items: flex-end;
 }
 
 .brief-building-card.faded {

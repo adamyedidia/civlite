@@ -9,7 +9,7 @@ from civ import Civ
 from camp import Camp
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
-from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES
+from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
 from unit import Unit
 from unit_building import UnitBuilding
 from unit_template import UnitTemplate
@@ -31,6 +31,8 @@ if TYPE_CHECKING:
 
 TRADE_HUB_CITY_POWER_PER_TURN = 20
 
+_DEVELOPMENT_VPS_STR = "Development (2 each)"
+
 class City:
     def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
         # civ actually can be None very briefly before GameState.from_json() is done, 
@@ -47,7 +49,7 @@ class City:
         self.wood = 0.0
         self.food_demand = 0
         self.focus: str = 'food'
-        self.rural_slots = -1
+        self.rural_slots = 1
         self.urban_slots = 1
         self.military_slots = 1
         self.under_siege_by_civ: Optional[Civ] = None
@@ -74,6 +76,7 @@ class City:
         self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
         self.hidden_building_names: list[str] = []
+        self.expanded_by_civ_ids: list[str] = []
 
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
@@ -186,6 +189,7 @@ class City:
         raise KeyError(f"No unit building for {template}")
 
     def toggle_unit_build(self, unit: UnitTemplate):
+        assert self.is_territory_capital, f"{self.name} tried to toggle unit build while a puppet"
         assert unit in self.available_units, f"{self.name} trying to build unit {unit} but only have {self.available_units}."
         unit_bldg = self.unit_building_from_template(unit)
         unit_bldg.active = not unit_bldg.active
@@ -205,6 +209,7 @@ class City:
 
         total_metal = self.metal + self.projected_income['metal']
         for unit_building in units_active:
+            # print(f"{self.name} projecting {unit_building.template} {total_metal}")
             unit_building.adjust_projected_unit_builds(total_metal=total_metal)
 
     def adjust_projected_builds(self, game_state):
@@ -293,6 +298,7 @@ class City:
             self.metal += self.projected_income.metal
             if len(self.active_unit_buildings) > 0:
                 for b in self.active_unit_buildings:
+                    # print(f"{self.name} harvesting {b.template} {self.metal}")
                     b.harvest_yields(self.metal)
                 self.metal = 0
 
@@ -325,7 +331,6 @@ class City:
                 self.build_units(game_state)
                 self.build_buildings(game_state)
             self.roll_wonders(game_state)
-            self.handle_siege(sess, game_state)
         
         self.handle_unhappiness(game_state)
         self.midturn_update(game_state)
@@ -413,10 +418,6 @@ class City:
             else:
                 self.terrains_dict[hex.terrain] += 1
 
-    def populate_slots(self, game_state):
-        assert self.hex is not None
-        self.rural_slots = len([hex for hex in self.hex.get_neighbors(game_state.hexes, include_self=False) if hex.has_building_slot])
-
     def _refresh_available_buildings_and_units(self, game_state):
         if self.civ is None or self.hex is None:
             return
@@ -426,11 +427,6 @@ class City:
         self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level() >= min_level and not self.has_building(u)], reverse=True)
         self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders())
         self.available_city_buildings = self.civ.available_city_buildings
-        # Can't urbanize if not full
-        if self.urban_slots > self.num_buildings_of_type('urban', include_in_queue=True):
-            self.available_city_buildings = [b for b in self.available_city_buildings if b != BUILDINGS.URBANIZE]
-        if self.military_slots > self.num_buildings_of_type('unit', include_in_queue=True):
-            self.available_city_buildings = [b for b in self.available_city_buildings if b != BUILDINGS.MILITARIZE]
 
         self._update_city_building_descriptions()
         self.available_city_buildings.sort(key=lambda b: (
@@ -541,11 +537,13 @@ class City:
         return [u for u in self.unit_buildings if u.active]
 
     def build_units(self, game_state: 'GameState') -> None:
-        max_units = max([u.projected_unit_count for u in self.active_unit_buildings]) if len(self.active_unit_buildings) > 0 else 0
+        build_dict = {u: u.projected_unit_count for u in self.active_unit_buildings}
+        max_units = max(build_dict.values()) if len(build_dict) > 0 else 0
         # Interleave them for better diversity
         for i in range(max_units):
-            for bldg in self.active_unit_buildings:
-                if i < bldg.projected_unit_count:
+            for bldg, target_num in build_dict.items():
+                if i < target_num:
+                    print(f"{self.name} building {bldg.template.name} {i}/{target_num}, has {bldg.metal}")
                     if self.build_unit(game_state, bldg.template) is not None:
                         bldg.metal -= bldg.template.metal_cost
 
@@ -724,6 +722,57 @@ class City:
             bldgs += len([b for b in self.buildings_queue if type_from_template(b.template) == type])
         return bldgs
 
+    @property
+    def can_expand(self):
+        return (self.civ.id not in self.expanded_by_civ_ids) \
+            and self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots \
+            and self.military_slots + self.urban_slots + self.rural_slots < MAX_SLOTS
+
+    def expand(self):
+        assert self.can_expand
+        self.rural_slots += 1
+        self.expanded_by_civ_ids.append(self.civ.id)
+        self.civ.city_power -= DEVELOP_COST['rural']
+        self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)
+
+    def _can_develop(self, type: Literal['unit', 'urban']):
+        if self.civ.develop_used[type]:
+            return False
+        slots_of_type = self.urban_slots if type == 'urban' else self.military_slots
+        if self.num_buildings_of_type(type, include_in_queue=True) < slots_of_type:
+            return False
+        if slots_of_type == MAX_SLOTS_OF_TYPE[type]:
+            return False
+        if self.num_buildings_of_type("rural", include_in_queue=True) == self.rural_slots:
+            return False
+        return True
+
+    @property
+    def can_urbanize(self):
+        return self._can_develop('urban')
+    @property
+    def can_militarize(self):
+        return self._can_develop('unit')
+    
+    def _develop(self, type: Literal['urban', 'unit']):
+        print(f"type")
+        assert self._can_develop(type)
+        self.rural_slots -= 1
+        if type == 'urban':
+            self.urban_slots += 1
+        if type == 'unit':
+            self.military_slots += 1
+        print(f"=========================== {self.military_slots} {type}")
+        self.civ.develop_used[type] = True
+        self.civ.city_power -= DEVELOP_COST[type]
+        self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)      
+    
+    def urbanize(self):
+        self._develop('urban')
+
+    def militarize(self):
+        self._develop('unit') 
+
     def unit_buildings_ranked_for_bulldoze(self) -> list[UnitBuilding]:
         targets = self.unit_buildings.copy()
         targets.sort(key=lambda b: b.template.advancement_level())
@@ -733,6 +782,7 @@ class City:
         return any(b.template == template for b in self.buildings_queue)
 
     def enqueue_build(self, template: Union[BuildingTemplate, UnitTemplate, WonderTemplate]) -> None:
+        assert self.is_territory_capital, f"{self.name} tried to enqueue a building while a puppet"
         print(f"enqueuing {template}")
         assert not self.has_building(template), (template, self.buildings_queue, self.building_in_queue(template))
         order = QueueEntry(template)
@@ -857,8 +907,8 @@ class City:
         print(f"****Captured {self.name}****")
         self.capital = False
         self.unhappiness = 0
-        self.wood /= 2
-        self.metal /= 2
+        self.wood = 0
+        self.metal = 0
 
         if civ.id not in self.ever_controlled_by_civ_ids:
             civ.gain_vps(CITY_CAPTURE_REWARD, "City Capture (5/city)")
@@ -944,9 +994,6 @@ class City:
         # Don't build husbandry centers by themself
         if self.focus != "food" and self.urban_slots < 2:
             choices = [b for b in choices if b != BUILDINGS.HUSBANDRY_CENTER]
-        # Only live players can urbanize
-        if self.civ.game_player is None:
-            choices = [b for b in choices if b != BUILDINGS.URBANIZE and b != BUILDINGS.MILITARIZE]
         # Only one of these per city
         if any([len(building.passive_building_abilities_of_name("IncreaseFocusYieldsPerPopulation")) > 0 for building in self.buildings]):
             choices = [b for b in choices if not any (a.name == "IncreaseFocusYieldsPerPopulation" for a in b.abilities)]
@@ -983,18 +1030,25 @@ class City:
 
         print(f"{self.name} -- City planning AI move.")
         self.midturn_update(game_state)
+        if self.can_urbanize:
+            self.urbanize()
+        if self.can_militarize:
+            self.militarize()
+        if self.can_expand:
+            self.expand()
+        self.midturn_update(game_state)
 
         # Don't build stationary units
         available_units = [unit for unit in self.available_units if unit.movement > 0]
         highest_level = max([effective_advancement_level(unit, slingers_better_than_warriors=True) for unit in available_units])
-        highest_tier_units = [unit for unit in available_units if effective_advancement_level(unit, slingers_better_than_warriors=True) == highest_level]
         self.clear_unit_builds()
         if highest_level < self.civ.get_advancement_level() - 2 and not self.is_threatened_city(game_state):
             print(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
         elif highest_level < self.civ.get_advancement_level() - 4:
             print(f"  not building units even though threatened, because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
         else:
-            for u in highest_tier_units:
+            high_tier_units = [unit for unit in available_units if effective_advancement_level(unit, slingers_better_than_warriors=True) >= highest_level - 1]
+            for u in high_tier_units:
                 self.toggle_unit_build(u)
 
         # Never steal from another city's queue
@@ -1035,34 +1089,40 @@ class City:
             economic_buildings.remove(choice)
             remaining_wood_budget -= choice.cost
             print(f"  adding economic building to buildings queue: {self.buildings_queue}")
+        
+        i_want_wood = len([b for b in economic_buildings if b.type == BuildingType.URBAN and b.cost > remaining_wood_budget]) > 0
+        self.bot_choose_focus(game_state, parent_wants_wood=i_want_wood)
+        for city in self.get_puppets(game_state):
+            city.bot_choose_focus(game_state, parent_wants_wood=i_want_wood)
+        game_state.midturn_update()
 
+    def bot_choose_focus(self, game_state, parent_wants_wood: bool):
         if self.civ_to_revolt_into is not None or self.unhappiness + self.projected_income['unhappiness'] > game_state.unhappiness_threshold:
             self.focus = 'food'
             print(f"  chose focus: {self.focus} to prevent revolt")
+            return
+        parent = self.get_territory_parent(game_state)
+        production_city: City = self if parent is None else parent
+
+        plausible_focuses = {"food", "wood", "metal", "science"}
+        if self.growth_cost() >= 30:
+            # At some point it's time to use our pop
+            plausible_focuses.remove('food')
+        if self.civ.researching_tech is None:
+            plausible_focuses.remove('science')
+        if production_city.wood >= 150:
+            plausible_focuses.remove('wood')
+            
+        max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
+        focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
+        if len(production_city.active_unit_buildings) > 0 and 'metal' in focuses_with_best_yields and production_city.is_threatened_city(game_state):
+            self.focus = 'metal'
+        elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type("urban", include_in_queue=True) < production_city.urban_slots and parent_wants_wood:
+            self.focus = 'wood'
         else:
-            parent = self.get_territory_parent(game_state)
-            production_city: City = self if parent is None else parent
+            self.focus = random.choice(list(focuses_with_best_yields))
 
-            plausible_focuses = {"food", "wood", "metal", "science"}
-            if self.growth_cost() >= 30:
-                # At some point it's time to use our pop
-                plausible_focuses.remove('food')
-            if self.civ.researching_tech is None:
-                plausible_focuses.remove('science')
-            if production_city.wood >= 150:
-                plausible_focuses.remove('wood')
-                
-            max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
-            focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
-            if len(production_city.active_unit_buildings) > 0 and 'metal' in focuses_with_best_yields and self.is_threatened_city(game_state):
-                self.focus = 'metal'
-            elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type("urban", include_in_queue=True) < self.urban_slots and len([b for b in economic_buildings if b.type == BuildingType.URBAN and b.cost > remaining_wood_budget]) > 0:
-                self.focus = 'wood'
-            else:
-                self.focus = random.choice(list(focuses_with_best_yields))
-
-            print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
-            game_state.midturn_update()
+        print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
 
     def to_json(self, include_civ_details: bool = False) -> dict:
         return {
@@ -1108,6 +1168,10 @@ class City:
             "growth_cost": self.growth_cost(),
             "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
             "hidden_building_names": self.hidden_building_names,
+            "expanded_by_civ_ids": self.expanded_by_civ_ids,
+            "can_expand": self.can_expand,
+            "can_militarize": self.can_militarize,
+            "can_urbanize": self.can_urbanize,
 
             "territory_parent_id": self._territory_parent_id,
             "territory_parent_coords": self._territory_parent_coords,
@@ -1155,6 +1219,7 @@ class City:
         city.projected_build_queue_depth = json["projected_build_queue_depth"]
         city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
         city.hidden_building_names = json.get("hidden_building_names") or []
+        city.expanded_by_civ_ids = json["expanded_by_civ_ids"]
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]
         city.unhappiness = json["unhappiness"]

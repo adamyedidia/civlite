@@ -98,18 +98,6 @@ class BUILDINGS():
         calculate_yields=ConstantYields(Yields(food=6)),
         prereq=TECHS.CURRENCY,
     )
-    URBANIZE = BuildingTemplate(
-        name="Urbanize",
-        type=BuildingType.RURAL,
-        cost=10,
-        on_build=UrbanizeEffect(),
-    )
-    MILITARIZE = BuildingTemplate(
-        name="Militarize",
-        type=BuildingType.RURAL,
-        cost=10,
-        on_build=MilitarizeEffect(),
-    )
     MAGISTERIUM = BuildingTemplate(
         name="Magisterium",
         type=BuildingType.URBAN,

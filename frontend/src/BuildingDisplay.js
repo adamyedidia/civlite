@@ -5,7 +5,7 @@ import woodImg from './images/wood.png';
 import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
 import metalImg from './images/metal.png';
-import deleteImg from './images/hide.png';  // TODO better image
+import cityImg from './images/city.png';
 import { WithTooltip } from './WithTooltip';
 import { IconUnitDisplay } from './UnitDisplay';
 
@@ -39,7 +39,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, descriptions, yields, payoffTime }) => {
+export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, setHoveredUnit, descriptions, yields, payoffTime }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -72,8 +72,8 @@ export const BriefBuildingDisplay = ({ buildingName, faded, buildingObj, hideCos
         <div 
             className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''} ${faded ? 'faded' : ''}`} 
             onClick={onClick}
-            onMouseEnter={() => building_type == 'WONDER' ? setHoveredWonder(building) : setHoveredBuilding(buildingName)} // set on mouse enter
-            onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : setHoveredBuilding(null)} // clear on mouse leave
+            onMouseEnter={() => building_type == 'WONDER' ? setHoveredWonder(building) : building_type == 'UNIT' ? setHoveredUnit(building) : setHoveredBuilding(buildingName)} // set on mouse enter
+            onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : building_type == 'UNIT' ? setHoveredUnit(null) : setHoveredBuilding(null)} // clear on mouse leave
             style={style}
         >
             <span className="building-name">
@@ -130,14 +130,33 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
-export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields}) => {
+export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, expandSufficientPower, handleClickDevelop,
+    militarizeBtn, urbanizeBtn, canAffordDevelop
+}) => {
     const building = templates.BUILDINGS?.[buildingName];
+    const developButtons = militarizeBtn || urbanizeBtn;
     return (
-        <div className={`existing-building-card ${emptyType || building?.type}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
+        <div className={`existing-building-card ${emptyType || building?.type} ${expandSufficientPower ? "sufficient-power" : "insufficient-power"}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)} 
+        onClick={emptyType == "expand" && handleClickDevelop ? () => handleClickDevelop('rural') : null}>
             <div className="building-name">{buildingName || ""}</div>
             {yields?.[buildingName] && 
                 <YieldsDisplay yields={yields[buildingName]} />
             }
+            {emptyType == "expand" && <div className="price-label">50 <img src={cityImg} alt="" height="24px"/></div>}
+            {developButtons && <>
+                <div className="develop-btns">
+                <div className={`develop-btn unit ${canAffordDevelop ? 'enabled' : 'disabled'} ${militarizeBtn ? '' : 'hidden'}`}
+                onClick={() => handleClickDevelop('unit')}>
+                    <div>Militarize</div>
+                    <div>(100 <img src={cityImg} alt="" height="14px" width="auto"/>)</div>
+                </div>
+                <div className={`develop-btn urban ${canAffordDevelop ? 'enabled' : 'disabled'} ${urbanizeBtn ? '' : 'hidden'}`}
+                onClick={() => handleClickDevelop('urban')}>
+                    <div>Urbanize</div>
+                    <div>(100 <img src={cityImg} alt="" height="14px" width="auto"/>)</div>
+                </div>
+                </div>
+            </>}
         </div>
     );
 };
@@ -146,10 +165,9 @@ export const ExistingMilitaryBuildingDisplay = ({ unitBuilding, templates, handl
     const unitName = unitBuilding?.template_name;
     const unit = templates.UNITS?.[unitName];
     const display_num = unitBuilding?.projected_unit_count > 3 ? 1 : unitBuilding?.projected_unit_count;
-    console.log(unitBuilding);
     return (
         <div className={`existing-building-card military ${unitBuilding?.delete_queued ? 'delete-queued' : ''} ${unitBuilding?.active ? 'infinite-queue' : ''} ${handleSetInfiniteQueue ? 'enabled' : 'disabled'}`} 
-            onMouseEnter={() => setHoveredUnit(unitName)} onMouseLeave={() => setHoveredUnit(null)}
+            onMouseEnter={() => setHoveredUnit(unit)} onMouseLeave={() => setHoveredUnit(null)}
             onClick={handleSetInfiniteQueue ? () => handleSetInfiniteQueue(unitName) : null}
         >
             {unitName && <div className="building-name">{unit.building_name || ""}</div>}

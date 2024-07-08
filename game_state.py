@@ -287,7 +287,6 @@ class GameState:
 
     def register_city(self, city):
         city.hex.city = city
-        city.hex.has_building_slot = False
         city.founded_turn = self.turn_num
         self.cities_by_id[city.id] = city
 
@@ -298,7 +297,6 @@ class GameState:
         for h in hex.get_neighbors(self.hexes):
             assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
         city.hex = hex
-        city.populate_slots(self)
         city.populate_terrains_dict(self)
         city.midturn_update(self)
         return city
@@ -662,6 +660,23 @@ class GameState:
                 self.midturn_update()
                 game_player_to_return = game_player
 
+            if move['move_type'] == 'develop':
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                city_id = move['city_id']
+                city = self.cities_by_id[city_id]
+
+                if move['type'] == 'rural':
+                    city.expand()
+                elif move['type'] == 'urban':
+                    city.urbanize()
+                elif move['type'] == 'unit':
+                    city.militarize()
+                else:
+                    raise ValueError(f"Invalid type: {move['type']}")
+                self.midturn_update()
+                game_player_to_return = game_player
 
             if move['move_type'] == 'set_civ_primary_target':
                 target_coords = move['target_coords']
@@ -960,6 +975,9 @@ class GameState:
 
         for city in cities_copy:
             city.roll_turn(sess, self)
+        # Handle all possession changes after all integrations, so there's a consistent ordering.
+        for city in cities_copy:
+            city.handle_siege(sess, self)
 
         for camp in camps_copy:
             camp.roll_turn(sess, self)
