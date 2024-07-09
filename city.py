@@ -730,7 +730,8 @@ class City:
     def can_expand(self):
         return (self.civ.id not in self.expanded_by_civ_ids) \
             and self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots \
-            and self.military_slots + self.urban_slots + self.rural_slots < MAX_SLOTS
+            and self.military_slots + self.urban_slots + self.rural_slots < MAX_SLOTS \
+            and self.civ.game_player is not None
 
     def expand(self):
         if STRICT_MODE:
@@ -749,6 +750,8 @@ class City:
         if slots_of_type == MAX_SLOTS_OF_TYPE[type]:
             return False
         if self.num_buildings_of_type("rural", include_in_queue=True) == self.rural_slots:
+            return False
+        if self.civ.game_player is None:
             return False
         return True
 
