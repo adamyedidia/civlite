@@ -247,7 +247,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
             </div>
             <div className="existing-buildings-container">
-            {selectedCity?.unit_buildings.map((building, index) => (
+            {selectedCity?.unit_buildings.slice().reverse().map((building, index) => (
                     <ExistingMilitaryBuildingDisplay key={index} 
                     unitBuilding={building}
                     handleSetInfiniteQueue={canBuild && handleSetInfiniteQueue}

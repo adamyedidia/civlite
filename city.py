@@ -9,7 +9,7 @@ from civ import Civ
 from camp import Camp
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
-from settings import ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
+from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
 from unit import Unit
 from unit_building import UnitBuilding
 from unit_template import UnitTemplate
@@ -31,7 +31,7 @@ if TYPE_CHECKING:
 
 TRADE_HUB_CITY_POWER_PER_TURN = 20
 
-_DEVELOPMENT_VPS_STR = "Development (2 each)"
+_DEVELOPMENT_VPS_STR = f"Development ({DEVELOP_VPS} each)"
 
 class City:
     def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
@@ -160,6 +160,9 @@ class City:
         """
         Update things that could have changed due to the controlling player fiddling with focus etc.
         """
+        if self.is_territory_capital:
+            for puppet in self.get_puppets(game_state):
+                puppet.midturn_update(game_state)
         self.adjust_projected_yields(game_state)
         self.adjust_projected_builds(game_state)
         self.adjust_projected_unit_builds()
@@ -204,7 +207,7 @@ class City:
         if len(units_active) == 0: return
 
         units_active.sort(key=lambda u: u.template.advancement_level())
-        for bldg, bonus in zip(units_active, UNIT_BUILDING_BONUSES[len(units_active)]):
+        for bldg, bonus in zip(units_active, reversed(UNIT_BUILDING_BONUSES[len(units_active)])):
             bldg.production_rate = bonus
 
         total_metal = self.metal + self.projected_income['metal']
@@ -1030,11 +1033,11 @@ class City:
 
         print(f"{self.name} -- City planning AI move.")
         self.midturn_update(game_state)
-        if self.can_urbanize:
+        if self.can_urbanize and random.random() < AI.CHANCE_URBANIZE:
             self.urbanize()
-        if self.can_militarize:
+        if self.can_militarize and random.random() < AI.CHANCE_MILITARIZE:
             self.militarize()
-        if self.can_expand:
+        if self.can_expand and random.random() < AI.CHANCE_EXPAND:
             self.expand()
         self.midturn_update(game_state)
 

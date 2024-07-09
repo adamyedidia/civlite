@@ -269,7 +269,9 @@ class GameState:
     def midturn_update(self):
         print("midturn update triggered")
         for city in self.cities_by_id.values():
-            city.midturn_update(self)
+            if city.is_territory_capital:
+                city.midturn_update(self)
+            # Non-puppet updates are triggered by their parent's midturn_update() function.
         for unit in self.units:
             unit.midturn_update(self)
         for civ in self.civs_by_id.values():

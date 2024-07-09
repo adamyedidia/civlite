@@ -187,9 +187,9 @@ export const ExistingMilitaryBuildingDisplay = ({ unitBuilding, templates, handl
                     {Math.floor(unitBuilding.metal)} / {templates.UNITS[unitName].metal_cost}
                     <img src={metalImg} alt="" height="10px"/>
                 </div>}
-                {unitName && <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px", "position": "absolute", "bottom": "2px", "right": "4px"}}>
-                    {Math.floor(unitBuilding.production_rate * 100)}%
-                </div>}
+            {unitName && unitBuilding.active && <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px", "position": "absolute", "bottom": "2px", "right": "4px"}}>
+                {Math.floor(unitBuilding.production_rate * 100)}%
+            </div>}
         </div>
     );
 };

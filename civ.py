@@ -7,7 +7,7 @@ from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_p
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
 from game_player import GamePlayer
-from settings import NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD
+from settings import AI, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD
 from tech_template import TechTemplate
 from building_template import BuildingTemplate
 from unit_template import UnitTemplate
@@ -295,19 +295,19 @@ class Civ:
 
             current_total_yields = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
             option_total_yields[city.hex.coords] = current_total_yields / city.civ.vitality
-            option_total_yields[city.hex.coords] += 4 * city.rural_slots + city.population * city.urban_slots
+            option_total_yields[city.hex.coords] += AI.RURAL_SLOT_VALUE * city.rural_slots + city.population * city.urban_slots
             option_total_yields[city.hex.coords] *= city.revolting_starting_vitality
 
         for coords, city in game_state.fresh_cities_for_decline.items():
             option_total_yields[coords] = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science']
-            option_total_yields[coords] += (4 * city.rural_slots + city.population * city.urban_slots) * city.revolting_starting_vitality
+            option_total_yields[coords] += (AI.RURAL_SLOT_VALUE * city.rural_slots + city.population * city.urban_slots) * city.revolting_starting_vitality
 
         if len(option_total_yields) == 0:
             print(f"{self.moniker()} deciding not to decline because there are no options.")
             return None
         best_option_yields, best_option = max((yields, coords) for coords, yields in option_total_yields.items())
         print(f"{self.moniker()} deciding whether to revolt. My yields are: {my_total_yields}; options have: {option_total_yields}")
-        if best_option_yields <= my_total_yields * 1.5:
+        if best_option_yields <= my_total_yields * AI.DECLINE_YIELD_RATIO_THRESHOLD:
             print(f"{self.moniker()} deciding not to decline because I have {my_total_yields} and the best option has {best_option_yields}")
             return None
 
@@ -342,7 +342,7 @@ class Civ:
             un_owner_civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in un_owner_ids]
             self.target1 = un_owner_civs[0].target1
             self.target2 = un_owner_civs[1].target2
-        elif random.random() < 0.2 or self.target1 is None or self.target2 is None or \
+        elif random.random() < AI.CHANCE_MOVE_FLAG or self.target1 is None or self.target2 is None or \
             (self.target1.city is not None and self.target1.city.civ == self) or (self.target2.city is not None and self.target2.city.civ == self):
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             vandetta_cities: list[City] = [city for city in enemy_cities if city.civ.id == self.vandetta_civ_id]
@@ -388,6 +388,8 @@ class Civ:
 
         while not self.in_decline and self.city_power >= 100 and not self.template.name == 'Barbarians':
             choices = [hex for hex in game_state.hexes.values() if hex.is_foundable_by_civ.get(self.id)]
+            if len(choices) == 0:
+                break
             hex = random.choice(choices)
             game_state.found_city_for_civ(self, hex, generate_unique_id())
 

@@ -69,7 +69,22 @@ UNIT_BUILDING_BONUSES = {
 MAX_SLOTS = 8
 DEVELOP_COST = {'rural': 50, 'urban': 100, 'unit': 100}
 MAX_SLOTS_OF_TYPE = {'urban': 4, 'unit': 4}
-DEVELOP_VPS = 2
+DEVELOP_VPS = 1
+
+class AI():
+    """
+    Settings for the AI
+    """
+    CHANCE_MOVE_FLAG = 0.2
+
+    CHANCE_URBANIZE = 0.7
+    CHANCE_MILITARIZE=0.2
+    CHANCE_EXPAND=0.2
+
+    RURAL_SLOT_VALUE = 4
+
+    DECLINE_YIELD_RATIO_THRESHOLD = 1.5
+
 
 if os.path.exists('local_settings.py'):
     from local_settings import *
