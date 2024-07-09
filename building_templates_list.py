@@ -301,7 +301,7 @@ class BUILDINGS():
         prereq=TECHS.MEDICINE,
     )
     AUTOMATED_FARM = BuildingTemplate(
-        name="Auromated Farm",
+        name="Automated Farm",
         type=BuildingType.RURAL,
         cost=80,
         calculate_yields=ConstantYields(Yields(food=30, wood=15)),

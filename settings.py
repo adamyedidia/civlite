@@ -71,7 +71,7 @@ UNIT_BUILDING_BONUSES = {
 MAX_SLOTS = 8
 DEVELOP_COST = {'rural': 50, 'urban': 100, 'unit': 100}
 MAX_SLOTS_OF_TYPE = {'urban': 4, 'unit': 4}
-DEVELOP_VPS = 1
+DEVELOP_VPS = 2
 
 class AI():
     """
