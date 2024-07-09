@@ -18,7 +18,7 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
 from redis_utils import rget_json, rlock, rset_json, rdel, rset, rget
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, BASE_SURVIVAL_BONUS, SURVIVAL_BONUS_PER_AGE, EXTRA_GAME_END_SCORE_PER_PLAYER, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, BASE_SURVIVAL_BONUS, STRICT_MODE, SURVIVAL_BONUS_PER_AGE, EXTRA_GAME_END_SCORE_PER_PLAYER, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -348,7 +348,7 @@ class GameState:
         civ.gain_vps(2, "Founded Cities (2/city)")
 
         if civ.has_ability('IncreaseYieldsForTerrain'):
-            assert city.hex
+            assert city.hex is not None
             numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
             for hex in city.hex.get_neighbors(self.hexes, include_self=True):
                 if hex.terrain == numbers[1]:
@@ -792,7 +792,8 @@ class GameState:
 
                 coords = move['coords']
 
-                assert not game_player.decline_this_turn, f"Player {player_num} is trying to decline twice in one turn."
+                if STRICT_MODE:
+                    assert not game_player.decline_this_turn, f"Player {player_num} is trying to decline twice in one turn."
 
                 # If speculative is False, then there should be no collisions
                 # We could be less strict here and not even check, but that seems dangerous

@@ -1,3 +1,4 @@
+from settings import STRICT_MODE
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 
@@ -31,7 +32,8 @@ class UnitBuilding:
 
     def harvest_yields(self, amount):
         amount = amount * self.production_rate
-        assert round(amount, 3) == round(self.projected_metal_income, 3), f"Projection failure in {self.template.building_name}! {amount} != {self.projected_metal_income}"
+        if STRICT_MODE:
+            assert round(amount, 3) == round(self.projected_metal_income, 3), f"Projection failure in {self.template.building_name}! {amount} != {self.projected_metal_income}"
         self.metal += self.projected_metal_income
         self.projected_metal_income = 0
 

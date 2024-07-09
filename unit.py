@@ -385,7 +385,7 @@ class Unit:
 
         if self.destination is None: return False
 
-        assert self.hex
+        assert self.hex is not None
         best_hex = None
         best_distance = self.hex.distance_to(self.destination) if not sensitive else self.hex.sensitive_distance_to(self.destination)
 

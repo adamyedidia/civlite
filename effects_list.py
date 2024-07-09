@@ -1,5 +1,5 @@
 import random
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Literal
 
 from TechStatus import TechStatus
 from terrain_template import TerrainTemplate
@@ -70,8 +70,7 @@ class FreeRandomTechEffect(CityTargetEffect):
                 return
 
 class GainResourceEffect(CityTargetEffect):
-    def __init__(self, resource: str, amount: int) -> None:
-        assert resource in ("wood", "food", "metal", "science", "city_power")
+    def __init__(self, resource: Literal["wood", "food", "metal", "science", "city_power"], amount: int) -> None:
         self.resource = resource
         self.amount = amount
 
@@ -151,7 +150,7 @@ class RecruitBarbariansEffect(CityTargetEffect):
         return f"Recruit all barbarians within {self.range} tiles (including camps)"
     
     def apply(self, city: 'City', game_state: 'GameState'):
-        assert city.hex
+        assert city.hex is not None
         for hex in city.hex.get_hexes_within_range_expensive(game_state.hexes, self.range):
             if len(hex.units) > 0 and hex.units[0].civ == game_state.barbarians:
                 hex.units[0].civ = city.civ

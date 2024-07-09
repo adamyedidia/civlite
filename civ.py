@@ -7,7 +7,7 @@ from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_p
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
 from game_player import GamePlayer
-from settings import AI, NUM_STARTING_LOCATION_OPTIONS, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD
+from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD
 from tech_template import TechTemplate
 from building_template import BuildingTemplate
 from unit_template import UnitTemplate
@@ -115,7 +115,8 @@ class Civ:
         return [tech for tech, status in self.techs_status.items() if status == TechStatus.RESEARCHED]
 
     def select_tech(self, tech: TechTemplate | None):
-        assert tech is None or self.techs_status[tech] in (TechStatus.AVAILABLE, TechStatus.RESEARCHING), f"Civ {self} tried to research {tech.name} which is in status {self.techs_status[tech]}; all statuses were: {self.techs_status}"
+        if STRICT_MODE:
+            assert tech is None or self.techs_status[tech] in (TechStatus.AVAILABLE, TechStatus.RESEARCHING), f"Civ {self} tried to research {tech.name} which is in status {self.techs_status[tech]}; all statuses were: {self.techs_status}"
         if self.researching_tech:
             self.techs_status[self.researching_tech] = TechStatus.AVAILABLE
         if tech is not None:
@@ -494,7 +495,8 @@ class Civ:
             print(f"Civ {self.moniker()} earned a great person. Chose {self.great_people_choices} from valid options: {valid_great_people}")
 
     def select_great_person(self, game_state: 'GameState', great_person_name):
-        assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
+        if STRICT_MODE:
+            assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
         assert self._great_people_choices_city_id is not None
         city = game_state.cities_by_id[self._great_people_choices_city_id]
         great_person: GreatPerson = great_people_by_name[great_person_name]

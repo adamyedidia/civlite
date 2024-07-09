@@ -9,7 +9,7 @@ from civ import Civ
 from camp import Camp
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
-from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
+from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
 from unit import Unit
 from unit_building import UnitBuilding
 from unit_template import UnitTemplate
@@ -192,8 +192,9 @@ class City:
         raise KeyError(f"No unit building for {template}")
 
     def toggle_unit_build(self, unit: UnitTemplate):
-        assert self.is_territory_capital, f"{self.name} tried to toggle unit build while a puppet"
-        assert unit in self.available_units, f"{self.name} trying to build unit {unit} but only have {self.available_units}."
+        if STRICT_MODE:
+            assert self.is_territory_capital, f"{self.name} tried to toggle unit build while a puppet"
+            assert unit in self.available_units, f"{self.name} trying to build unit {unit} but only have {self.available_units}."
         unit_bldg = self.unit_building_from_template(unit)
         unit_bldg.active = not unit_bldg.active
         self.adjust_projected_unit_builds()
@@ -222,7 +223,8 @@ class City:
         self.projected_build_queue_depth = sum([c < wood_available for c in cumsum_cost])
 
         unit_buildings_to_bulldoze = max(0, self.num_buildings_of_type("unit", include_in_queue=True) - self.military_slots)
-        assert unit_buildings_to_bulldoze <= self.num_buildings_of_type("unit", include_in_queue=True)
+        if STRICT_MODE:
+            assert unit_buildings_to_bulldoze <= self.num_buildings_of_type("unit", include_in_queue=True)
         targets = self.unit_buildings_ranked_for_bulldoze()
         for t in targets[:unit_buildings_to_bulldoze]:
             t.delete_queued = True
@@ -267,7 +269,7 @@ class City:
     def _get_projected_yields_without_focus(self, game_state) -> Yields:
         yields = Yields(food=2, science=self.population)
 
-        assert self.hex
+        assert self.hex is not None
 
         for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
             yields += hex.yields
@@ -708,8 +710,7 @@ class City:
             else:
                 break
 
-    def buildings_of_type(self, type: str,) -> list[Building]:
-        assert type in ("rural", "urban", "wonder")
+    def buildings_of_type(self, type: Literal["rural", "urban", "wonder"]) -> list[Building]:
         return [b for b in self.buildings if b.type == type]
 
     def num_buildings_of_type(self, type: Literal['wonder', 'unit', 'rural', 'urban'], include_in_queue=False):
@@ -732,7 +733,8 @@ class City:
             and self.military_slots + self.urban_slots + self.rural_slots < MAX_SLOTS
 
     def expand(self):
-        assert self.can_expand
+        if STRICT_MODE:
+            assert self.can_expand
         self.rural_slots += 1
         self.expanded_by_civ_ids.append(self.civ.id)
         self.civ.city_power -= DEVELOP_COST['rural']
@@ -758,8 +760,8 @@ class City:
         return self._can_develop('unit')
     
     def _develop(self, type: Literal['urban', 'unit']):
-        print(f"type")
-        assert self._can_develop(type)
+        if STRICT_MODE:
+            assert self._can_develop(type)
         self.rural_slots -= 1
         if type == 'urban':
             self.urban_slots += 1
@@ -785,9 +787,10 @@ class City:
         return any(b.template == template for b in self.buildings_queue)
 
     def enqueue_build(self, template: Union[BuildingTemplate, UnitTemplate, WonderTemplate]) -> None:
-        assert self.is_territory_capital, f"{self.name} tried to enqueue a building while a puppet"
         print(f"enqueuing {template}")
-        assert not self.has_building(template), (template, self.buildings_queue, self.building_in_queue(template))
+        if STRICT_MODE:
+            assert self.is_territory_capital, f"{self.name} tried to enqueue a building while a puppet"
+            assert not self.has_building(template), (template, self.buildings_queue, self.building_in_queue(template))
         order = QueueEntry(template)
         self.buildings_queue.append(order)
 
@@ -892,7 +895,6 @@ class City:
 
         assert self.hex and self.hex.city
 
-
         # Also build a handful of units out of the ruins of the city
         for u in self.available_units:
             self.hex.city.build_unit(game_state, u)
@@ -920,7 +922,7 @@ class City:
                 civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0], civ.template.name)
 
             if civ.has_ability('IncreaseYieldsForTerrain'):
-                assert self.hex
+                assert self.hex is not None
                 numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
                 for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
                     if hex.terrain == numbers[1]:
@@ -965,7 +967,7 @@ class City:
                 self.civ.science += civ.numbers_of_ability('StartWithResources')[1]
 
         if civ.has_ability('IncreaseYieldsForTerrain'):
-            assert self.hex
+            assert self.hex is not None
             numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
             for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
                 if hex.terrain == numbers[1]:

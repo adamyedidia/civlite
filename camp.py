@@ -5,7 +5,7 @@ import random
 from civ import Civ
 
 from typing import TYPE_CHECKING
-from settings import CAMP_CLEAR_CITY_POWER_REWARD, CAMP_CLEAR_VP_REWARD
+from settings import CAMP_CLEAR_CITY_POWER_REWARD, CAMP_CLEAR_VP_REWARD, STRICT_MODE
 from unit import Unit
 
 from unit_template import UnitTemplate
@@ -39,7 +39,8 @@ class Camp:
         self.civ: Civ = civ
         self.civ_id: str = civ.id if civ else None  # type: ignore
         self.target: Optional['Hex'] = None
-        assert unit is None or advancement_level == 0, f"Only set one of unit and advancement_level"
+        if STRICT_MODE:
+            assert unit is None or advancement_level == 0, f"Only set one of unit and advancement_level"
         self.unit: UnitTemplate = unit or random_unit_by_age(advancement_level)
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:

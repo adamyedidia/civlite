@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class Hex:
     def __init__(self, q: int, r: int, s: int, terrain: TerrainTemplate, yields: Yields) -> None:
-        assert not (q + r + s)
+        assert (q + r + s) == 0
         self.q = q
         self.r = r
         self.s = s

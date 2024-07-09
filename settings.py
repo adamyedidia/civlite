@@ -1,5 +1,7 @@
 import os
 
+# Do we crash judiciously on any inconsistency? (Good for debugging, bad for prod.)
+STRICT_MODE = False
 
 CITY_CAPTURE_REWARD = 5
 UNIT_KILL_REWARD = 1
