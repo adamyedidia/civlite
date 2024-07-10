@@ -285,10 +285,9 @@ class City:
         return yields * self.civ.vitality
 
     def harvest_yields(self, game_state: 'GameState') -> None:
-        self.adjust_projected_yields(game_state)  # TODO(dfarhi) this probably shouldn't be neessary since it should be called whenever teh state changes?
+        self.adjust_projected_yields(game_state)  # TODO(dfarhi) this probably shouldn't be neessary since it should be called whenever the state changes?
         self.food += self.projected_income.food
-        self.civ.science += self.projected_income.science
-        self.civ.city_power += self.projected_income.city_power
+        # Science and city power are harvested by the Civ instance.
         self.unhappiness += self.projected_income.unhappiness
 
         if self.is_territory_capital:

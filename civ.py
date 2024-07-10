@@ -449,7 +449,11 @@ class Civ:
                 amount = ability.numbers[0] * tech.advancement_level
                 self.gain_vps(amount, building.building_name)
 
-    def roll_turn(self, sess, game_state: 'GameState') -> None:
+    def roll_turn_pre_harvest(self) -> None:
+        self.city_power += self.projected_city_power_income
+        self.science += self.projected_science_income
+
+    def roll_turn_post_harvest(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
 
         if self.researching_tech:
@@ -463,10 +467,7 @@ class Civ:
                     "tech": researching_tech.name,
                 }, self)
 
-        self.vitality *= VITALITY_DECAY_RATE
-
-        self.city_power += BASE_CITY_POWER_INCOME * self.vitality
-        
+        self.vitality *= VITALITY_DECAY_RATE        
         self.update_max_territories(game_state)
 
     def from_json_postprocess(self, game_state: 'GameState') -> None:

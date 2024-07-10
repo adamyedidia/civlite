@@ -965,6 +965,8 @@ class GameState:
 
         for city in cities_copy:
             city.roll_turn_pre_harvest(self)
+        for civ in self.civs_by_id.values():
+            civ.roll_turn_pre_harvest()
         for city in cities_copy:
             city.roll_turn_post_harvest(sess, self)
 
@@ -972,7 +974,7 @@ class GameState:
             camp.roll_turn(sess, self)
 
         for civ in self.civs_by_id.values():
-            civ.roll_turn(sess, self)
+            civ.roll_turn_post_harvest(sess, self)
 
         print("Final refresh")
         for unit in units_copy:
