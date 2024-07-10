@@ -13,15 +13,20 @@ CIV_ABILITIES: dict[str, Callable] = {
         description=f"Increase {x} yields in the capital by {y}.",
         numbers=[x, y],
     ),
+    "DevelopFree": lambda x: Ability(
+        name="DevelopFree",
+        description=f"{dict(urban='Urbanize', rural='Expand', unit='Militarize')[x]} without paying the usual cost.",
+        numbers=[x],
+    ),
+    "OnDevelop": lambda x, y: Ability(
+        name="OnDevelop",
+        description=f"On {dict(urban='Urbanize', rural='Expand', unit='Militarize')[x]}: {y.description}.",
+        numbers=[x, y],
+    ),
     "IncreaseFocusYields": lambda x, y: Ability(
         name="IncreaseFocusYields",
         description=f"Each city with a {x} focus makes +{y} {x}.",
         numbers=[x, y],
-    ),
-    "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
-        name="IncreaseYieldsForTerrain",
-        description=f"When you found or capture a city for the first time, increase {x} yields in {p.plural(y.name)} around it by {z}.",
-        numbers=[x, y, z],
     ),
     "IncreasedStrengthForUnit": lambda x, y: Ability(
         name="IncreasedStrengthForUnit",

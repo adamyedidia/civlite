@@ -346,14 +346,6 @@ class GameState:
         city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
 
         civ.gain_vps(2, "Founded Cities (2/city)")
-
-        if civ.has_ability('IncreaseYieldsForTerrain'):
-            assert city.hex is not None
-            numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
-            for hex in city.hex.get_neighbors(self.hexes, include_self=True):
-                if hex.terrain == numbers[1]:
-                    new_value = getattr(hex.yields, numbers[0]) + numbers[2]
-                    setattr(hex.yields, numbers[0], new_value)
     
         self.refresh_foundability_by_civ()
         self.midturn_update() 
@@ -657,11 +649,11 @@ class GameState:
                 city = self.cities_by_id[city_id]
 
                 if move['type'] == 'rural':
-                    city.expand()
+                    city.expand(self)
                 elif move['type'] == 'urban':
-                    city.urbanize()
+                    city.urbanize(self)
                 elif move['type'] == 'unit':
-                    city.militarize()
+                    city.militarize(self)
                 else:
                     raise ValueError(f"Invalid type: {move['type']}")
                 self.midturn_update()

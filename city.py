@@ -270,6 +270,10 @@ class City:
         for bldg in self.buildings:
             yields += bldg.calculate_yields(self, game_state)
 
+        if self.civ.has_ability("IncreaseCapitalYields") and self.capital:
+            resource, amount = self.civ.numbers_of_ability("IncreaseCapitalYields")
+            yields += {resource: amount}
+
         return yields * self.civ.vitality
 
     def _get_projected_yields_from_focus(self, game_state) -> Yields:
@@ -730,13 +734,18 @@ class City:
             and self.military_slots + self.urban_slots + self.rural_slots < MAX_SLOTS \
             and self.civ.game_player is not None
 
-    def expand(self):
+    def expand(self, game_state):
+        # TODO merge this with _develop()
         if STRICT_MODE:
             assert self.can_expand
         self.rural_slots += 1
         self.expanded_by_civ_ids.append(self.civ.id)
         self.civ.city_power -= DEVELOP_COST['rural']
         self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)
+        if self.civ.has_ability("OnDevelop"):
+            civ_type, effect = self.civ.numbers_of_ability("OnDevelop")
+            if civ_type == 'rural':
+                effect.apply(self, game_state)
 
     def _can_develop(self, type: Literal['unit', 'urban']):
         if self.civ.develop_used[type]:
@@ -750,6 +759,8 @@ class City:
             return False
         if self.civ.game_player is None:
             return False
+        if not self.is_territory_capital:
+            return False
         return True
 
     @property
@@ -759,7 +770,7 @@ class City:
     def can_militarize(self):
         return self._can_develop('unit')
     
-    def _develop(self, type: Literal['urban', 'unit']):
+    def _develop(self, type: Literal['urban', 'unit'], game_state):
         if STRICT_MODE:
             assert self._can_develop(type)
         self.rural_slots -= 1
@@ -770,13 +781,17 @@ class City:
         print(f"=========================== {self.military_slots} {type}")
         self.civ.develop_used[type] = True
         self.civ.city_power -= DEVELOP_COST[type]
-        self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)      
+        self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)    
+        if self.civ.has_ability("OnDevelop"):
+            civ_type, effect = self.civ.numbers_of_ability("OnDevelop")
+            if civ_type == type:
+                effect.apply(self, game_state)
     
-    def urbanize(self):
-        self._develop('urban')
+    def urbanize(self, game_state):
+        self._develop('urban', game_state)
 
-    def militarize(self):
-        self._develop('unit') 
+    def militarize(self, game_state):
+        self._develop('unit', game_state)
 
     def unit_buildings_ranked_for_bulldoze(self) -> list[UnitBuilding]:
         targets = self.unit_buildings.copy()
@@ -794,7 +809,7 @@ class City:
         order = QueueEntry(template)
         self.buildings_queue.append(order)
 
-    def build_building(self, game_state: 'GameState', building: Union[BuildingTemplate, UnitTemplate, WonderTemplate]) -> None:
+    def build_building(self, game_state: 'GameState', building: Union[BuildingTemplate, UnitTemplate, WonderTemplate], free: bool = False) -> None:
         if isinstance(building, UnitTemplate):
             new_building = UnitBuilding(building)
             self.unit_buildings.append(new_building)
@@ -818,7 +833,7 @@ class City:
             if isinstance(building, WonderTemplate):
                 game_state.handle_wonder_built(self, building)
 
-        if new_building.one_per_civ_key:
+        if new_building.one_per_civ_key and not free:
             if self.civ.id not in game_state.one_per_civs_built_by_civ_id:
                 game_state.one_per_civs_built_by_civ_id[self.civ.id] = {new_building.one_per_civ_key: self.id}
             else:
@@ -908,14 +923,6 @@ class City:
             if civ.has_ability('ExtraVpsPerCityCaptured'):
                 civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerCityCaptured')[0], civ.template.name)
 
-            if civ.has_ability('IncreaseYieldsForTerrain'):
-                assert self.hex is not None
-                numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
-                for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
-                    if hex.terrain == numbers[1]:
-                        new_value = getattr(hex.yields, numbers[0]) + numbers[2]
-                        setattr(hex.yields, numbers[0], new_value)
-
             for ability, building in civ.passive_building_abilities_of_name("ExtraVpsForCityCapture", game_state):
                 amount = ability.numbers[0]
                 civ.gain_vps(amount, building.building_name)
@@ -933,11 +940,6 @@ class City:
     def capitalize(self, game_state: 'GameState') -> None:
         civ = self.civ
         self.capital = True
-    
-        if civ.has_ability('IncreaseCapitalYields'):
-            if self.hex:
-                self.hex.yields.increase(civ.numbers_of_ability('IncreaseCapitalYields')[0],
-                                            civ.numbers_of_ability('IncreaseCapitalYields')[1])
                 
         if civ.has_ability('StartWithResources'):
             if civ.numbers_of_ability('StartWithResources')[0] == 'food':
@@ -952,14 +954,6 @@ class City:
             
             if civ.numbers_of_ability('StartWithResources')[0] == 'science':
                 self.civ.science += civ.numbers_of_ability('StartWithResources')[1]
-
-        if civ.has_ability('IncreaseYieldsForTerrain'):
-            assert self.hex is not None
-            numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
-            for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
-                if hex.terrain == numbers[1]:
-                    new_value = getattr(hex.yields, numbers[0]) + numbers[2]
-                    setattr(hex.yields, numbers[0], new_value)
 
                 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
@@ -1023,11 +1017,11 @@ class City:
         print(f"{self.name} -- City planning AI move.")
         self.midturn_update(game_state)
         if self.can_urbanize and random.random() < AI.CHANCE_URBANIZE:
-            self.urbanize()
+            self.urbanize(game_state)
         if self.can_militarize and random.random() < AI.CHANCE_MILITARIZE:
-            self.militarize()
+            self.militarize(game_state)
         if self.can_expand and random.random() < AI.CHANCE_EXPAND:
-            self.expand()
+            self.expand(game_state)
         self.midturn_update(game_state)
 
         # Don't build stationary units
@@ -1117,7 +1111,6 @@ class City:
         print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
 
     def to_json(self, include_civ_details: bool = False) -> dict:
-        if self.under_siege_by_civ is not None: print(f"{self.name} is under siege by {self.under_siege_by_civ}")
         return {
             "id": self.id,
             "civ_id": self.civ.id,

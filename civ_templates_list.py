@@ -1,6 +1,9 @@
 from typing import Generator
+from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
+from effects_list import BuildBuildingEffect, BuildUnitsEffect, GainResourceEffect, GrowEffect, ResetHappinessThisCityEffect
 from terrain_templates_list import TERRAINS
+from unit_templates_list import UNITS
 
 def player_civs(min_advancement_level=0, max_advancement_level=9) -> Generator[CivTemplate, None, None]:
     for civ_template in CIVS.all():
@@ -165,7 +168,7 @@ class CIVS():
             "numbers": [1]
         }],
         advancement_level=0,
-    )    
+    )
     ROMANS = CivTemplate(
         name="Romans",
         abilities=[{
@@ -323,8 +326,8 @@ class CIVS():
     GUPTA = CivTemplate(
         name="Gupta",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", TERRAINS.PLAINS, 1],
+            "name": "DevelopFree",
+            "numbers": ["urban"],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Catapult", 3],
@@ -345,8 +348,8 @@ class CIVS():
     SUKHOTHAI = CivTemplate(
         name="Sukhothai",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", TERRAINS.FOREST, 1],
+            "name": "DevelopFree",
+            "numbers": ["unit"],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 3],
@@ -356,8 +359,8 @@ class CIVS():
     SRIVIJAYA = CivTemplate(
         name="Srivijaya",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", TERRAINS.HILLS, 1],
+            "name": "OnDevelop",
+            "numbers": ["rural", GainResourceEffect("wood", 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Garrison", 3],
@@ -367,8 +370,8 @@ class CIVS():
     SASSANIDS = CivTemplate(
         name="Sassanids",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", TERRAINS.PLAINS, 1],
+            "name": "DevelopFree",
+            "numbers": ["rural"],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horseman", 3],
@@ -378,8 +381,8 @@ class CIVS():
     ABBASIDS = CivTemplate(
         name="Abbasids",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", TERRAINS.HILLS, 1],
+            "name": "OnDevelop",
+            "numbers": ["rural", GainResourceEffect("science", 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 3],
@@ -389,8 +392,8 @@ class CIVS():
     UMAYYADS = CivTemplate(
         name="Umayyads",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", TERRAINS.PLAINS, 1],
+            "name": "OnDevelop",
+            "numbers": ["urban", BuildUnitsEffect(UNITS.KNIGHT, 3)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 3],
@@ -400,8 +403,8 @@ class CIVS():
     XHOSA = CivTemplate(
         name="Xhosa",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", TERRAINS.PLAINS, 1],
+            "name": "OnDevelop",
+            "numbers": ["rural", GrowEffect(2)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Archer", 3],
@@ -419,8 +422,8 @@ class CIVS():
     AKSUM = CivTemplate(
         name="Aksum",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", TERRAINS.PLAINS, 1],
+            "name": "OnDevelop",
+            "numbers": ["rural", BuildUnitsEffect(UNITS.ARCHER, 2)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Archer", 3],
@@ -430,8 +433,8 @@ class CIVS():
     CUMANS = CivTemplate(
         name="Cumans",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", TERRAINS.FOREST, 1],
+            "name": "OnDevelop",
+            "numbers": ["unit", BuildUnitsEffect(UNITS.HORSE_ARCHER, 2)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer", 3],
@@ -619,8 +622,8 @@ class CIVS():
     BURGUNDY = CivTemplate(
         name="Burgundy",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["metal", TERRAINS.PLAINS, 2],
+            "name": "OnDevelop",
+            "numbers": ["rural", GainResourceEffect('metal', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
@@ -630,8 +633,8 @@ class CIVS():
     BOHEMIA = CivTemplate(
         name="Bohemia",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", TERRAINS.PLAINS, 2],
+            "name": "OnDevelop",
+            "numbers": ["rural", GainResourceEffect('wood', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Militia", 4],
@@ -641,8 +644,8 @@ class CIVS():
     ENGLAND = CivTemplate(
         name="England",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", TERRAINS.FOREST, 2],
+            "name": "DevelopFree",
+            "numbers": ["urban"],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman", 4],
@@ -652,8 +655,8 @@ class CIVS():
     NOVGOROD = CivTemplate(
         name="Novgorod",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", TERRAINS.HILLS, 2],
+            "name": "DevelopFree",
+            "numbers": ["rural"],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
@@ -663,8 +666,8 @@ class CIVS():
     CASTILE = CivTemplate(
         name="Castile",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["food", TERRAINS.PLAINS, 2],
+            "name": "DevelopFree",
+            "numbers": ["unit"],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry", 4],
@@ -674,8 +677,8 @@ class CIVS():
     VENICE = CivTemplate(
         name="Venice",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", TERRAINS.PLAINS, 2],
+            "name": "OnDevelop",
+            "numbers": ["urban", BuildBuildingEffect(BUILDINGS.HARBOR)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 4],
@@ -696,8 +699,8 @@ class CIVS():
     MAMLUKS = CivTemplate(
         name="Mamluks",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["science", TERRAINS.PLAINS, 2],
+            "name": "OnDevelop",
+            "numbers": ["rural", GainResourceEffect('science', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 4],
@@ -718,8 +721,8 @@ class CIVS():
     BAHMANI = CivTemplate(
         name="Bahmani",
         abilities=[{
-            "name": "IncreaseYieldsForTerrain",
-            "numbers": ["wood", TERRAINS.PLAINS, 2],
+            "name": "OnDevelop",
+            "numbers": ["urban", ResetHappinessThisCityEffect()],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 4],

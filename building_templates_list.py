@@ -1,7 +1,7 @@
 from typing import Generator
 from building_template import BuildingTemplate, BuildingType
 from terrain_templates_list import TERRAINS
-from effects_list import BuildEeachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, MilitarizeEffect, ResetHappinessThisCityEffect, UrbanizeEffect
+from effects_list import BuildEeachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, ResetHappinessThisCityEffect
 from tech_templates_list import TECHS
 from yields import ConstantYields, Yields, YieldsPerBuildingType, YieldsPerPopulation, YieldsPerTerrainType, YieldsPerUniqueTerrainType
 

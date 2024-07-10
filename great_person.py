@@ -115,7 +115,7 @@ class GreatEngineer(GreatPerson):
         return desc
 
     def apply(self, game_state, city: City):
-        city.build_building(game_state, self.unit_template)
+        city.build_building(game_state, self.unit_template, free=True)
         city.midturn_update(game_state)
         city.wood += self.extra_wood
 

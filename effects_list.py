@@ -2,6 +2,7 @@ import random
 from typing import TYPE_CHECKING, Callable, Literal
 
 from TechStatus import TechStatus
+from building_template import BuildingTemplate
 from terrain_template import TerrainTemplate
 from unit_templates_list import UNITS
 from effect import CityTargetEffect
@@ -49,6 +50,17 @@ class BuildUnitsEffect(CityTargetEffect):
             unit = city.build_unit(unit=self.unit_template, game_state=game_state, stack_size=stack_size)
             if unit is not None:
                 unit.strength += self.extra_str
+
+class BuildBuildingEffect(CityTargetEffect):
+    def __init__(self, building_template: BuildingTemplate) -> None:
+        self.building_template = building_template
+
+    @property
+    def description(self) -> str:
+        return f"Build a free {self.building_template.name}."
+
+    def apply(self, city: 'City', game_state: 'GameState'):
+        city.build_building(building=self.building_template, game_state=game_state, free=True)
 
 class FreeRandomTechEffect(CityTargetEffect):
     def __init__(self, age) -> None:
@@ -259,28 +271,6 @@ class EndGameEffect(CityTargetEffect):
     
     def apply(self, city: 'City', game_state: 'GameState'):
         game_state.game_over = True
-
-class UrbanizeEffect(CityTargetEffect):
-    @property
-    def description(self) -> str:
-        return "Permanently turn this rural slot into an urban slot"
-    
-    def apply(self, city: 'City', game_state: 'GameState'):
-        city.rural_slots -= 1
-        city.urban_slots += 1
-        # Remove the building that triggered this.
-        city.buildings.pop(-1)
-
-class MilitarizeEffect(CityTargetEffect):
-    @property
-    def description(self) -> str:
-        return "Permanently turn this rural slot into a military slot"
-    
-    def apply(self, city: 'City', game_state: 'GameState'):
-        city.rural_slots -= 1
-        city.military_slots += 1
-        # Remove the building that triggered this.
-        city.buildings.pop(-1)
 
 class BuildEeachUnitEffect(CityTargetEffect):
     @property
