@@ -334,9 +334,9 @@ class City:
                 self.build_units(game_state)
                 self.build_buildings(game_state)
             self.roll_wonders(game_state)
-        
+            self.handle_siege(sess, game_state)
+
         self.handle_unhappiness(game_state)
-        self.handle_siege(sess, game_state)
         self.midturn_update(game_state)
 
     def roll_wonders(self, game_state: 'GameState') -> None:
@@ -1120,6 +1120,7 @@ class City:
         print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
 
     def to_json(self, include_civ_details: bool = False) -> dict:
+        if self.under_siege_by_civ is not None: print(f"{self.name} is under siege by {self.under_siege_by_civ}")
         return {
             "id": self.id,
             "civ_id": self.civ.id,
