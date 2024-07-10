@@ -132,14 +132,14 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
 
 export const ExpandButton = ({ expandSufficientPower, handleClickDevelop }) => {
     return (
-        <div className={`existing-building-card expand ${expandSufficientPower ? 'sufficient-power' : 'insufficient-power'}`} onClick={handleClickDevelop}>
+        <div className={`existing-building-card expand ${expandSufficientPower ? 'sufficient-power' : 'insufficient-power'}`} onClick={() => handleClickDevelop('rural')}>
             <div>Expand</div>
             <div className="price-label">50 <img src={cityImg} alt="" height="16px"/></div>
         </div>
     );
 };
 
-export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, expandSufficientPower, handleClickDevelop,
+export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, handleClickDevelop,
     militarizeBtn, urbanizeBtn, canAffordDevelop
 }) => {
     const building = templates.BUILDINGS?.[buildingName];
