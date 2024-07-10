@@ -75,7 +75,6 @@ class City:
         self.projected_bulldozes: list[UnitTemplate] = []
         self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
-        self.hidden_building_names: list[str] = []
         self.expanded_by_civ_ids: list[str] = []
 
         # Revolt stuff
@@ -178,12 +177,6 @@ class City:
     def puppet_distance_penalty(self) -> float:
         bldg_factors = [ability.numbers[0] for ability, _ in self.passive_building_abilities_of_name('ReducePuppetDistancePenalty')]
         return min([.1] + bldg_factors)
-
-    def toggle_discard(self, building_name: str, hidden=True) -> None:
-        if hidden and building_name not in self.hidden_building_names:
-            self.hidden_building_names.append(building_name)
-        elif not hidden and building_name in self.hidden_building_names:
-            self.hidden_building_names.remove(building_name)
 
     def unit_building_from_template(self, template: UnitTemplate):
         for bldg in self.unit_buildings:
@@ -534,9 +527,6 @@ class City:
                     "type": "???",
                     "value": 0,
                 }
-            
-            if building_template.calculate_yields is not None and total_yields == 0 and total_pseudoyields == 0:
-                self.toggle_discard(building_template.name, hidden=True)
 
             if building_yields.total() > 0:
                 self.building_yields[building_template.name] = building_yields
@@ -857,17 +847,6 @@ class City:
             for ability in building.passive_building_abilities_of_name(ability_name):
                 yield ability, building
 
-    def hide_bad_buildings(self):
-        highest_unit_level = max([0] + [u.advancement_level() for u in self.civ.available_unit_buildings])
-        for building in self.available_city_buildings:
-            desc = self.available_buildings_to_descriptions[building.name]
-            if desc.get('type') == 'yield' and desc.get('value') == 0 and desc.get('value_for_ai') == 0:
-                self.toggle_discard(building.name, hidden=True)
-        for building in self.available_unit_buildings:
-            if building.advancement_level() < highest_unit_level - 1:
-                self.toggle_discard(building.building_name, hidden=True)
-
-
     def change_owner(self, civ: Civ, game_state: 'GameState') -> None:
         """
         Called when an existing city changes owner; called by capture() and process_decline_option().
@@ -889,7 +868,6 @@ class City:
         self.set_territory_parent_if_needed(game_state, adopt_focus=True)
 
         # Reset various properties
-        self.hidden_building_names = []
         self.under_siege_by_civ = None
         self.buildings_queue = []
         self.clear_unit_builds()
@@ -897,7 +875,6 @@ class City:
 
         # Update available stuff
         self.midturn_update(game_state)
-        self.hide_bad_buildings()
 
     def barbarian_capture(self, game_state: 'GameState') -> None:
         """Barbarians replace the city with a camp."""
@@ -1186,7 +1163,6 @@ class City:
             "max_units_in_build_queue": self.military_slots <= len([entry for entry in self.buildings_queue if isinstance(entry.template, UnitTemplate)]),
             "growth_cost": self.growth_cost(),
             "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
-            "hidden_building_names": self.hidden_building_names,
             "expanded_by_civ_ids": self.expanded_by_civ_ids,
             "can_expand": self.can_expand,
             "can_militarize": self.can_militarize,
@@ -1237,7 +1213,6 @@ class City:
         city.projected_income_focus = Yields(**json["projected_income_focus"])
         city.projected_build_queue_depth = json["projected_build_queue_depth"]
         city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
-        city.hidden_building_names = json.get("hidden_building_names") or []
         city.expanded_by_civ_ids = json["expanded_by_civ_ids"]
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]

@@ -357,7 +357,6 @@ class GameState:
     
         self.refresh_foundability_by_civ()
         self.midturn_update() 
-        city.hide_bad_buildings()
         return city
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
@@ -635,18 +634,6 @@ class GameState:
                 game_player_to_return = game_player
 
                 self.midturn_update()
-
-            if move['move_type'] == 'hide_building':
-                building_name = move['building_name']
-                hidden = move['hidden']
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
-                city_id = move['city_id']
-                city = self.cities_by_id[city_id]
-                city.toggle_discard(building_name, hidden)
-                game_player_to_return = game_player
-                city.midturn_update(self)
 
             if move['move_type'] == 'select_infinite_queue':
                 unit_name = move['unit_name']
