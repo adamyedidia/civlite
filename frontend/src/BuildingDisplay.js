@@ -18,7 +18,7 @@ const SingleYieldDisplay = ({ yield_value, img }) => {
     );
 };
 
-const YieldsDisplay = ({ yields }) => {
+export const YieldsDisplay = ({ yields }) => {
     return (
         <div className="yields-display">
             {yields.food > 0 && <SingleYieldDisplay yield_value={yields.food} img={foodImg} />}
