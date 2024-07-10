@@ -285,7 +285,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
                 ))}
                 {selectedCity.can_expand && 
-                    <ExpandButton expandSufficientPower={myCiv.city_power > 50} handleClickDevelop={handleClickDevelop}/>
+                    <ExpandButton expandSufficientPower={myCiv.city_power > 25} handleClickDevelop={handleClickDevelop}/>
                 }
             </div>
             <div className="wonders-container">

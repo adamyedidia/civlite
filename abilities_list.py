@@ -111,6 +111,16 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Units of age {x} or later get +{y} strength",
         numbers=[x, y],
     ),
+    "Airforce": lambda x, y: Ability(
+        name="Airforce",
+        description=f"Gives +{x} strength to battles within range {y}.",
+        numbers=[x, y],
+    ),
+    "DeploymentCenter": lambda: Ability(
+        name="Deployment Center",
+        description=f"Units built by this city will be built at the location of your primary flag rather than the city.",
+        numbers=[],
+    ),
 }
 
 UNIT_ABILITIES: dict[str, Callable] = {

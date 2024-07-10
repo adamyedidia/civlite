@@ -134,7 +134,7 @@ export const ExpandButton = ({ expandSufficientPower, handleClickDevelop }) => {
     return (
         <div className={`existing-building-card expand ${expandSufficientPower ? 'sufficient-power' : 'insufficient-power'}`} onClick={() => handleClickDevelop('rural')}>
             <div>Expand</div>
-            <div className="price-label">50 <img src={cityImg} alt="" height="16px"/></div>
+            <div className="price-label">25 <img src={cityImg} alt="" height="16px"/></div>
         </div>
     );
 };

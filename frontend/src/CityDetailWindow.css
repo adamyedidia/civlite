@@ -167,7 +167,7 @@
 .existing-buildings-container {
   display: flex;
   justify-content: left;
-  align-items: center;
+  align-items: flex-start;
   gap: 5px;
   flex-direction: row;
   margin: 0 10px;

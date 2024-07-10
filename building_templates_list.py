@@ -1,9 +1,9 @@
 from typing import Generator
 from building_template import BuildingTemplate, BuildingType
 from terrain_templates_list import TERRAINS
-from effects_list import BuildEeachUnitEffect, MilitarizeEffect, ResetHappinessThisCityEffect, UrbanizeEffect
+from effects_list import BuildEeachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, MilitarizeEffect, ResetHappinessThisCityEffect, UrbanizeEffect
 from tech_templates_list import TECHS
-from yields import ConstantYields, Yields, YieldsPerPopulation, YieldsPerTerrainType, YieldsPerUniqueTerrainType
+from yields import ConstantYields, Yields, YieldsPerBuildingType, YieldsPerPopulation, YieldsPerTerrainType, YieldsPerUniqueTerrainType
 
 class BUILDINGS():
     LUMBER_MILL = BuildingTemplate(
@@ -22,6 +22,13 @@ class BUILDINGS():
             "name": "UnitsExtraStrengthByAge",
             "numbers": [1, 1],
         }],
+    )
+    SLAVE_TRADE = BuildingTemplate(
+        name="Slave Trade",
+        type=BuildingType.URBAN,
+        cost=10,
+        prereq=TECHS.BRONZE_WORKING,
+        on_build=[GainResourceEffect("wood", 30), GainUnhappinessEffect(20)],
     )
     PASTURE = BuildingTemplate(
         name="Pasture",
@@ -129,6 +136,13 @@ class BUILDINGS():
         calculate_yields=YieldsPerPopulation(Yields(wood=1)),
         prereq=TECHS.COMPASS,
     )
+    TAX_OFFICE = BuildingTemplate(
+        name="Tax Office",
+        type=BuildingType.URBAN,
+        cost=20,
+        calculate_yields=YieldsPerBuildingType("rural", Yields(wood=2, metal=2)),
+        prereq=TECHS.COMPASS,
+    )
     PLANTATION = BuildingTemplate(
         name="Plantation",
         type=BuildingType.RURAL,
@@ -189,6 +203,13 @@ class BUILDINGS():
             "name": "ReducePuppetDistancePenalty",
             "numbers": [0.02],
         }],
+        prereq=TECHS.DYNAMITE,
+    )
+    CONSTRUCTION_DEPOT = BuildingTemplate(
+        name="Construction Depot",
+        type=BuildingType.RURAL,
+        cost=5,
+        on_build=GainResourceEffect("wood", 100),
         prereq=TECHS.DYNAMITE,
     )
     SHOPPING_MALL = BuildingTemplate(
@@ -306,6 +327,47 @@ class BUILDINGS():
         cost=80,
         calculate_yields=ConstantYields(Yields(food=30, wood=15)),
         prereq=TECHS.MECHANIZED_AGRICULTURE,
+    )
+    SUBURBS = BuildingTemplate(
+        name="Suburbs",
+        type=BuildingType.RURAL,
+        cost=50,
+        prereq=TECHS.MECHANIZED_AGRICULTURE,
+        on_build=GrowEffect(5),
+    )
+    LAND_REFORM = BuildingTemplate(
+        name="Land Reform",
+        type=BuildingType.RURAL,
+        cost=50,
+        prereq=TECHS.COMBINED_ARMS,
+        calculate_yields=YieldsPerBuildingType("rural", Yields(food=4, wood=4, metal=4, science=4)),
+    )
+    PUBLIC_TRANSIT = BuildingTemplate(
+        name="Public Transit",
+        type=BuildingType.URBAN,
+        cost=20,
+        prereq=TECHS.MASS_MARKETS,
+        calculate_yields=YieldsPerBuildingType("urban", Yields(food=2, wood=2, metal=2, science=2)),
+    )
+    AIRFORCE_BASE = BuildingTemplate(
+        name="Airforce Base",
+        type=BuildingType.RURAL,
+        cost=50,
+        prereq=TECHS.RADIO,
+        abilities=[{
+            "name": "Airforce",
+            "numbers": [20, 5],
+        }],
+    )
+    DEPLOYMENT_CENTER = BuildingTemplate(
+        name="Deployment Center",
+        type=BuildingType.URBAN,
+        cost=50,
+        prereq=TECHS.COMBINED_ARMS,
+        abilities=[{
+            "name": "DeploymentCenter",
+            "numbers": [],
+        }],
     )
     INTERNET = BuildingTemplate(
         name="Internet",

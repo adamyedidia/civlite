@@ -260,7 +260,7 @@ class Civ:
             return None
 
         # Don't decline within 2 turns of finishing renaissance
-        if self.techs_status[TECHS.RENAISSANCE] == TechStatus.RESEARCHING and (self.renaissance_cost() - self.science) / self.projected_science_income <= 2:
+        if self.projected_science_income > 0 and self.techs_status[TECHS.RENAISSANCE] == TechStatus.RESEARCHING and (self.renaissance_cost() - self.science) / self.projected_science_income <= 2:
             print(f"{self.moniker()} deciding not to decline because I'm almost done with a renaissance.")
 
         # Don't decline if I have above average army size.

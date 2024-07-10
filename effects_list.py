@@ -90,6 +90,17 @@ class GainResourceEffect(CityTargetEffect):
         elif self.resource == 'city_power':
             city.civ.city_power += self.amount
 
+class GainUnhappinessEffect(CityTargetEffect):
+    def __init__(self, amount: int) -> None:
+        self.amount = amount
+
+    @property
+    def description(self) -> str:
+        return f"Gain {self.amount} unhappiness"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        city.unhappiness += self.amount
+
 class GrowEffect(CityTargetEffect):
     def __init__(self, amount: int | None = None, amount_fn: Callable[['City', 'GameState'], int] | None = None, description: str | None =None) -> None:
         assert (amount is None) != (amount_fn is None), "amount and amount_fn are mutually exclusive"

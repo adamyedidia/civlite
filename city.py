@@ -577,16 +577,23 @@ class City:
     def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1) -> Unit | None:
         if not self.hex:
             return None
+        
+        spawn_hex = self.hex
+        for _ in self.passive_building_abilities_of_name('Deployment Center'):
+            spawn_hex = self.civ.target1 if self.civ.target1 is not None else spawn_hex
+            if spawn_hex.city and spawn_hex.city.civ != self.civ:
+                assert self.hex is not None
+                spawn_hex = min(spawn_hex.get_neighbors(game_state.hexes), key=lambda h: h.distance_to(self.hex))
 
-        if not self.hex.is_occupied(unit.type, self.civ):
-            return self.spawn_unit_on_hex(game_state, unit, self.hex, stack_size=stack_size)
+        if not spawn_hex.is_occupied(unit.type, self.civ):
+            return self.spawn_unit_on_hex(game_state, unit, spawn_hex, stack_size=stack_size)
 
         best_hex = None
         best_hex_distance_from_target = 10000
 
-        for hex in self.hex.get_neighbors(game_state.hexes):
+        for hex in spawn_hex.get_neighbors(game_state.hexes):
             if not hex.is_occupied(unit.type, self.civ):
-                distance_from_target = hex.distance_to(self.get_closest_target() or self.hex)
+                distance_from_target = hex.distance_to(self.get_closest_target() or spawn_hex)
                 if distance_from_target < best_hex_distance_from_target:
                     best_hex = hex
                     best_hex_distance_from_target = distance_from_target
@@ -594,20 +601,13 @@ class City:
         best_unit_to_reinforce = None
         if best_hex is None:
 
-            best_unit_penalty = 10000
+            best_unit_penalty = 10000          
 
-            # for hex in self.hex.get_distance_2_hexes(game_state.hexes):
-            #     if not hex.is_occupied(unit.type, self.civ):
-            #         distance_from_target = hex.distance_to(self.get_closest_target() or self.hex)
-            #         if distance_from_target < best_hex_distance_from_target:
-            #             best_hex = hex
-            #             best_hex_distance_from_target = distance_from_target            
-
-            for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
+            for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
                 if hex.is_occupied(unit.type, self.civ):
                     unit_to_possibly_reinforce = hex.units[0]
                     if unit_to_possibly_reinforce.civ.id == self.civ.id and unit_to_possibly_reinforce.template.name == unit.name and unit_to_possibly_reinforce.hex:
-                        unit_penalty = unit_to_possibly_reinforce.health * 10 + unit_to_possibly_reinforce.hex.distance_to(self.get_closest_target() or self.hex)
+                        unit_penalty = unit_to_possibly_reinforce.health * 10 + unit_to_possibly_reinforce.hex.distance_to(self.get_closest_target() or spawn_hex)
                         if unit_penalty < best_unit_penalty:
                             best_unit_to_reinforce = unit_to_possibly_reinforce
                             best_unit_penalty = unit_penalty            
@@ -623,7 +623,7 @@ class City:
                 num_merges = 0
 
                 # Try merging friendly units
-                for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
+                for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
                     if hex.units and hex.units[0].civ.id == self.civ.id:
                         if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
                             num_merges += 1
@@ -632,7 +632,7 @@ class City:
 
                 # If that doesn't work, try merging enemy units, so long as they aren't on the city itself
                 if num_merges == 0:
-                    for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
+                    for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
                         if hex.units and not hex.city:
                             if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
                                 num_merges += 1
@@ -642,7 +642,7 @@ class City:
 
                 # If that doesn't work, and we have a lot of metal to spend, try removing friendly units altogether
                 if num_merges == 0 and self.metal > 75:
-                    for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
+                    for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
                         if hex.units and hex.units[0].civ.id == self.civ.id and hex.units[0].health < 300:
                             hex.units[0].remove_from_game(game_state)
                             break
@@ -652,8 +652,6 @@ class City:
         return self.spawn_unit_on_hex(game_state, unit, best_hex, stack_size=stack_size)
 
     def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', stack_size=1) -> Unit | None:
-        if self.hex is None:
-            return None
         unit = Unit(unit_template, self.civ)
         unit.health *= stack_size
         unit.hex = hex
@@ -680,7 +678,6 @@ class City:
         unit.health += 100 * stack_size
 
     def validate_building_queueable(self, building_template: UnitTemplate | BuildingTemplate | WonderTemplate) -> bool:
-        print(f"validate_building_queueable: {building_template}")
         if self.has_building(building_template):
             return False
         if isinstance(building_template, UnitTemplate):
