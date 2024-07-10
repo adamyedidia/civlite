@@ -68,7 +68,7 @@ class Camp:
         best_hex_distance_from_target = 10000
 
         for hex in self.hex.get_neighbors(game_state.hexes):
-            if not hex.is_occupied(unit.type, self.civ):
+            if not hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
                 distance_from_target = hex.distance_to(self.target or self.hex)
                 if distance_from_target < best_hex_distance_from_target:
                     best_hex = hex
@@ -76,7 +76,7 @@ class Camp:
 
         if best_hex is None:
             for hex in self.hex.get_distance_2_hexes(game_state.hexes):
-                if not hex.is_occupied(unit.type, self.civ):
+                if not hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
                     distance_from_target = hex.distance_to(self.target or self.hex)
                     if distance_from_target < best_hex_distance_from_target:
                         best_hex = hex

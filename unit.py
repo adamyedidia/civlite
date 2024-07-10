@@ -242,7 +242,7 @@ class Unit:
 
         af_bonus = 0
         for city in self.civ.get_my_cities(game_state):
-            assert city.hex is not None
+            assert city.hex is not None and battle_location is not None
             for ability, _ in city.passive_building_abilities_of_name('Airforce'):
                 if city.hex.distance_to(battle_location) <= ability.numbers[1]:
                     af_bonus = max(af_bonus, ability.numbers[0])
@@ -283,19 +283,18 @@ class Unit:
         self_hex = self.hex
         target_hex = target.hex
 
-        self.punch(game_state, target, battle_location=target.hex)
+        self.punch(game_state, target, battle_location=target_hex)
 
         if self.has_ability('Splash'):
             for neighboring_hex in target_hex.get_neighbors(game_state.hexes):
                 for unit in neighboring_hex.units:
                     if unit.civ != self.civ:
-                        self.punch(game_state, unit, damage_reduction_factor=self.numbers_of_ability('Splash')[0], battle_location=target.hex)
+                        self.punch(game_state, unit, damage_reduction_factor=self.numbers_of_ability('Splash')[0], battle_location=target_hex)
 
         if self.template.has_tag(UnitTag.RANGED):
-            # target.target = self.hex
             pass
         else:
-            target.punch(game_state, self, battle_location=target.hex)
+            target.punch(game_state, self, battle_location=target_hex)
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",

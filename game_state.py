@@ -10,6 +10,7 @@ from city import City, get_city_name_for_civ
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
+from local_settings import GOD_MODE
 from unit_template import UnitTemplate
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
@@ -561,7 +562,7 @@ class GameState:
                             game_player_to_return.civ_id = city.civ.id
                             game_player_to_return.all_civ_ids.append(city.civ.id)
                             self.game_player_by_player_num[player_num].civ_id = city.civ.id
-                            city.civ.vitality = STARTING_CIV_VITALITY
+                            city.civ.vitality = STARTING_CIV_VITALITY if not GOD_MODE else 10
 
                             city.capitalize(self)
 

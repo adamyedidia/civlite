@@ -113,11 +113,17 @@ class Hex:
             if hex.distance_to(self) <= range:
                 yield hex
 
-    def is_occupied(self, unit_type: str, civ: Civ) -> bool:
+    def is_occupied(self, unit_type: str, civ: Civ, allow_enemy_city=True) -> bool:
         """
         Is this hex occupied by a unit of this type or by an enemy of this civ?
         """
-        return any(unit.template.type == unit_type or unit.civ.template.name != civ.template.name for unit in self.units)
+        if any(unit.template.type == unit_type or unit.civ.template.name != civ.template.name for unit in self.units):
+            return True
+        if not allow_enemy_city and self.city and self.city.civ != civ:
+            return True
+        if not allow_enemy_city and self.camp and self.camp.civ != civ:
+            return True
+        return False
 
     def is_threatened_city(self, game_state):
         """ Is there an enemy unit adjacent? """

@@ -2,6 +2,7 @@ import random
 from typing import TYPE_CHECKING, Any, Generator, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
+from local_settings import GOD_MODE
 from wonder_templates_list import WONDERS
 from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_people_by_name
 from civ_template import CivTemplate
@@ -34,7 +35,10 @@ class Civ:
         self.game_player = game_player
         self.template = civ_template
         self.science = 0.0
-        self.techs_status: Dict[TechTemplate, TechStatus] = {tech: TechStatus.UNAVAILABLE for tech in TECHS.all()}
+        if GOD_MODE:
+            self.techs_status: Dict[TechTemplate, TechStatus] = {tech: TechStatus.RESEARCHED for tech in TECHS.all()}
+        else:
+            self.techs_status: Dict[TechTemplate, TechStatus] = {tech: TechStatus.UNAVAILABLE for tech in TECHS.all()}
         self.vitality = 1.0
         self.city_power = 0.0
         self.available_city_buildings: list[BuildingTemplate] = []

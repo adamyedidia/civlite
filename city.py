@@ -7,9 +7,10 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
+from local_settings import GOD_MODE
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
-from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
+from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, FRESH_CITY_VITALITY_PER_TURN, REVOLT_VITALITY_PER_TURN, REVOLT_VITALITY_PER_UNHAPPINESS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
 from unit import Unit
 from unit_building import UnitBuilding
 from unit_template import UnitTemplate
@@ -376,9 +377,12 @@ class City:
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:
         if self.is_fake_city():
-            self.revolting_starting_vitality = 1.0 + 0.05 * game_state.turn_num
+            self.revolting_starting_vitality = 1.0 + FRESH_CITY_VITALITY_PER_TURN * game_state.turn_num
         else:
-            self.revolting_starting_vitality = 1.0 + 0.025 * game_state.turn_num + 0.0075 * self.unhappiness
+            self.revolting_starting_vitality = 1.0 + REVOLT_VITALITY_PER_TURN * game_state.turn_num + REVOLT_VITALITY_PER_UNHAPPINESS * self.unhappiness
+
+        if GOD_MODE:
+            self.revolting_starting_vitality *= 10
 
     def revolt_to_rebels_if_needed(self, game_state: 'GameState') -> None:
         if self.unhappiness >= 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None:
@@ -585,18 +589,15 @@ class City:
         spawn_hex = self.hex
         for _ in self.passive_building_abilities_of_name('Deployment Center'):
             spawn_hex = self.civ.target1 if self.civ.target1 is not None else spawn_hex
-            if spawn_hex.city and spawn_hex.city.civ != self.civ:
-                assert self.hex is not None
-                spawn_hex = min(spawn_hex.get_neighbors(game_state.hexes), key=lambda h: h.distance_to(self.hex))
 
-        if not spawn_hex.is_occupied(unit.type, self.civ):
+        if not spawn_hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
             return self.spawn_unit_on_hex(game_state, unit, spawn_hex, stack_size=stack_size)
 
         best_hex = None
         best_hex_distance_from_target = 10000
 
         for hex in spawn_hex.get_neighbors(game_state.hexes):
-            if not hex.is_occupied(unit.type, self.civ):
+            if not hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):    
                 distance_from_target = hex.distance_to(self.get_closest_target() or spawn_hex)
                 if distance_from_target < best_hex_distance_from_target:
                     best_hex = hex
@@ -606,9 +607,8 @@ class City:
         if best_hex is None:
 
             best_unit_penalty = 10000          
-
             for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
-                if hex.is_occupied(unit.type, self.civ):
+                if hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
                     unit_to_possibly_reinforce = hex.units[0]
                     if unit_to_possibly_reinforce.civ.id == self.civ.id and unit_to_possibly_reinforce.template.name == unit.name and unit_to_possibly_reinforce.hex:
                         unit_penalty = unit_to_possibly_reinforce.health * 10 + unit_to_possibly_reinforce.hex.distance_to(self.get_closest_target() or spawn_hex)
