@@ -324,13 +324,19 @@ class City:
             for key in hex.is_foundable_by_civ:
                 hex.is_foundable_by_civ[key] = False            
 
-    def roll_turn(self, sess, game_state: 'GameState', fake: bool = False) -> None:
+    def roll_turn_pre_harvest(self, game_state):
+        """ All the turn roll stuff up to and including harvesting yields"""
+        self.revolt_to_rebels_if_needed(game_state)
+        self.harvest_yields(game_state)
+
+    def roll_turn_post_harvest(self, sess, game_state: 'GameState', fake: bool = False) -> None:
         """
+        All the turn roll stuff after harvest.
+        They are split out so that we can make sure all cities harvest before any cities do stuff that could change another city's yields
+
         Fake: is this just a fake city for decline view?
         """
         if not fake:
-            self.revolt_to_rebels_if_needed(game_state)
-            self.harvest_yields(game_state)
             self.grow(game_state)
             if self.is_territory_capital:
                 self.build_units(game_state)
@@ -338,6 +344,7 @@ class City:
             self.roll_wonders(game_state)
         
         self.handle_unhappiness(game_state)
+        self.handle_siege(sess, game_state)
         self.midturn_update(game_state)
 
     def roll_wonders(self, game_state: 'GameState') -> None:
@@ -434,6 +441,10 @@ class City:
         self.available_city_buildings = self.civ.available_city_buildings
 
         self._update_city_building_descriptions()
+
+        # Remove totally useless ones
+        self.available_city_buildings = [b for b in self.available_city_buildings if not (b.useless_if_zero_yields and b.name not in self.building_yields)]
+
         self.available_city_buildings.sort(key=lambda b: (
             -self.building_yields[b.name].total() if b.name in self.building_yields else 0,
             b.name
@@ -729,7 +740,7 @@ class City:
     @property
     def can_expand(self):
         return (self.civ.id not in self.expanded_by_civ_ids) \
-            and self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots \
+            and self.num_buildings_of_type("rural", include_in_queue=False) >= self.rural_slots \
             and self.military_slots + self.urban_slots + self.rural_slots < MAX_SLOTS \
             and self.civ.game_player is not None
 
@@ -745,7 +756,7 @@ class City:
         if self.civ.develop_used[type]:
             return False
         slots_of_type = self.urban_slots if type == 'urban' else self.military_slots
-        if self.num_buildings_of_type(type, include_in_queue=True) < slots_of_type:
+        if self.num_buildings_of_type(type, include_in_queue=False) < slots_of_type:
             return False
         if slots_of_type == MAX_SLOTS_OF_TYPE[type]:
             return False

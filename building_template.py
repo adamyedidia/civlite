@@ -44,6 +44,10 @@ class BuildingTemplate:
 
     def advancement_level(self) -> int:
         return self.prereq.advancement_level if self.prereq else 0
+    
+    @property
+    def useless_if_zero_yields(self):
+        return self.calculate_yields is not None and len(self.abilities) == len(self.on_build) == len(self.per_turn) == 0
 
     def to_json(self) -> dict:
         return {

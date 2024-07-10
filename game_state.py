@@ -977,10 +977,9 @@ class GameState:
         random.shuffle(camps_copy)
 
         for city in cities_copy:
-            city.roll_turn(sess, self)
-        # Handle all possession changes after all integrations, so there's a consistent ordering.
+            city.roll_turn_pre_harvest(self)
         for city in cities_copy:
-            city.handle_siege(sess, self)
+            city.roll_turn_post_harvest(sess, self)
 
         for camp in camps_copy:
             camp.roll_turn(sess, self)
@@ -1018,7 +1017,7 @@ class GameState:
 
         self.handle_decline_options()
         for city in self.fresh_cities_for_decline.values():
-            city.roll_turn(sess, self, fake=True)
+            city.roll_turn_post_harvest(sess, self, fake=True)
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
