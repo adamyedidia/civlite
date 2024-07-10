@@ -18,6 +18,8 @@ from tech_templates_list import TECHS
 
 import random
 
+from yields import Yields
+
 if TYPE_CHECKING:
     from game_state import GameState
     from hex import Hex
@@ -391,7 +393,7 @@ class Civ:
             choices = [hex for hex in game_state.hexes.values() if hex.is_foundable_by_civ.get(self.id)]
             if len(choices) == 0:
                 break
-            hex = random.choice(choices)
+            hex = max(choices, key=lambda h: (sum([n.yields for n in h.get_neighbors(game_state.hexes, include_self=True)], start=Yields()).total(), random.random()))
             game_state.found_city_for_civ(self, hex, generate_unique_id())
 
         my_production_cities = [city for city in self.get_my_cities(game_state) if city.is_territory_capital]
