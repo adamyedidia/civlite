@@ -130,19 +130,26 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
+export const ExpandButton = ({ expandSufficientPower, handleClickDevelop }) => {
+    return (
+        <div className={`existing-building-card expand ${expandSufficientPower ? 'sufficient-power' : 'insufficient-power'}`} onClick={handleClickDevelop}>
+            <div>Expand</div>
+            <div className="price-label">50 <img src={cityImg} alt="" height="16px"/></div>
+        </div>
+    );
+};
+
 export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, expandSufficientPower, handleClickDevelop,
     militarizeBtn, urbanizeBtn, canAffordDevelop
 }) => {
     const building = templates.BUILDINGS?.[buildingName];
     const developButtons = militarizeBtn || urbanizeBtn;
     return (
-        <div className={`existing-building-card ${emptyType || building?.type} ${expandSufficientPower ? "sufficient-power" : "insufficient-power"}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)} 
-        onClick={emptyType == "expand" && handleClickDevelop ? () => handleClickDevelop('rural') : null}>
+        <div className={`existing-building-card ${emptyType || building?.type}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
             <div className="building-name">{buildingName || ""}</div>
             {yields?.[buildingName] && 
                 <YieldsDisplay yields={yields[buildingName]} />
             }
-            {emptyType == "expand" && <div className="price-label">50 <img src={cityImg} alt="" height="24px"/></div>}
             {developButtons && <>
                 <div className="develop-btns">
                 <div className={`develop-btn unit ${canAffordDevelop ? 'enabled' : 'disabled'} ${militarizeBtn ? '' : 'hidden'}`}

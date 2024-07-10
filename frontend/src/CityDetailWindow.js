@@ -3,7 +3,7 @@ import './CityDetailWindow.css';
 
 import { Button, Select, MenuItem } from '@mui/material';
 
-import { BriefBuildingDisplay, BriefBuildingDisplayTitle, ExistingBuildingDisplay, ExistingMilitaryBuildingDisplay } from './BuildingDisplay';
+import { BriefBuildingDisplay, BriefBuildingDisplayTitle, ExistingBuildingDisplay, ExistingMilitaryBuildingDisplay, ExpandButton } from './BuildingDisplay';
 import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
@@ -274,10 +274,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                         handleClickDevelop={handleClickDevelop}
                     />
                 ))}
-                {selectedCity.can_expand && 
-                    <ExistingBuildingDisplay buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} handleClickDevelop={handleClickDevelop}
-                        emptyType="expand" expandSufficientPower={myCiv.city_power > 50}/>
-                }
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="urban" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
@@ -288,6 +284,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
                 ))}
+                {selectedCity.can_expand && 
+                    <ExpandButton expandSufficientPower={myCiv.city_power > 50} handleClickDevelop={handleClickDevelop}/>
+                }
             </div>
             <div className="wonders-container">
                 {selectedCity?.buildings.map((building, index) => (
