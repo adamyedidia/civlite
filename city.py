@@ -916,6 +916,8 @@ class City:
         self.unhappiness = 0
         self.wood = 0
         self.metal = 0
+        for bldg in self.unit_buildings:
+            bldg.metal = 0
 
         if civ.id not in self.ever_controlled_by_civ_ids:
             civ.gain_vps(CITY_CAPTURE_REWARD, "City Capture (5/city)")
