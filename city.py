@@ -740,7 +740,8 @@ class City:
             assert self.can_expand
         self.rural_slots += 1
         self.expanded_by_civ_ids.append(self.civ.id)
-        self.civ.city_power -= DEVELOP_COST['rural']
+        if not (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
+            self.civ.city_power -= DEVELOP_COST['rural']
         self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)
         if self.civ.has_ability("OnDevelop"):
             civ_type, effect = self.civ.numbers_of_ability("OnDevelop")
@@ -778,9 +779,9 @@ class City:
             self.urban_slots += 1
         if type == 'unit':
             self.military_slots += 1
-        print(f"=========================== {self.military_slots} {type}")
         self.civ.develop_used[type] = True
-        self.civ.city_power -= DEVELOP_COST[type]
+        if not (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == type):
+            self.civ.city_power -= DEVELOP_COST[type]
         self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)    
         if self.civ.has_ability("OnDevelop"):
             civ_type, effect = self.civ.numbers_of_ability("OnDevelop")

@@ -130,17 +130,21 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
-export const ExpandButton = ({ expandSufficientPower, handleClickDevelop }) => {
+export const ExpandButton = ({ expandSufficientPower, handleClickDevelop, expandFree }) => {
     return (
-        <div className={`existing-building-card expand ${expandSufficientPower ? 'sufficient-power' : 'insufficient-power'}`} onClick={() => handleClickDevelop('rural')}>
+        <div className={`existing-building-card expand ${expandSufficientPower || expandFree ? 'sufficient-power' : 'insufficient-power'}`} onClick={() => handleClickDevelop('rural')}>
             <div>Expand</div>
-            <div className="price-label">25 <img src={cityImg} alt="" height="16px"/></div>
+            {expandFree ? (
+                <div className='price-label'>Free</div>
+            ) : (
+                <div className='price-label'>(25 <img src={cityImg} alt="" height="16px"/>)</div>
+            )}
         </div>
     );
 };
 
 export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, handleClickDevelop,
-    militarizeBtn, urbanizeBtn, canAffordDevelop
+    militarizeBtn, urbanizeBtn, canAffordDevelop, militarizeFree, urbanizeFree
 }) => {
     const building = templates.BUILDINGS?.[buildingName];
     const developButtons = militarizeBtn || urbanizeBtn;
@@ -152,15 +156,23 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
             }
             {developButtons && <>
                 <div className="develop-btns">
-                <div className={`develop-btn unit ${canAffordDevelop ? 'enabled' : 'disabled'} ${militarizeBtn ? '' : 'hidden'}`}
+                <div className={`develop-btn unit ${canAffordDevelop || militarizeFree ? 'enabled' : 'disabled'} ${militarizeBtn ? '' : 'hidden'}`}
                 onClick={() => handleClickDevelop('unit')}>
                     <div>Militarize</div>
-                    <div>(100 <img src={cityImg} alt="" height="14px" width="auto"/>)</div>
+                    {militarizeFree ? (
+                        <div>Free</div>
+                    ) : (
+                        <div>(100 <img src={cityImg} alt="" height="14px" width="auto"/>)</div>
+                    )}
                 </div>
-                <div className={`develop-btn urban ${canAffordDevelop ? 'enabled' : 'disabled'} ${urbanizeBtn ? '' : 'hidden'}`}
+                <div className={`develop-btn urban ${canAffordDevelop || urbanizeFree ? 'enabled' : 'disabled'} ${urbanizeBtn ? '' : 'hidden'}`}
                 onClick={() => handleClickDevelop('urban')}>
                     <div>Urbanize</div>
-                    <div>(100 <img src={cityImg} alt="" height="14px" width="auto"/>)</div>
+                    {urbanizeFree ? (
+                        <div>Free</div>
+                    ) : (
+                        <div>(100 <img src={cityImg} alt="" height="14px" width="auto"/>)</div>
+                    )}
                 </div>
                 </div>
             </>}

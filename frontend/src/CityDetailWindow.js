@@ -174,6 +174,23 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         {numPuppets > 0 ? <li>-{2 * numPuppets} from puppets (-2/puppet) </li> : ""}
         </ul> </>
 
+
+    const abilities = myCiv ? templates.CIVS[myCiv.name].abilities : [];
+    let militarizeFree = false;
+    let urbanizeFree = false;
+    let expandFree = false;
+    for (const ability of abilities) {
+        if (ability.name === "DevelopFree") {
+            if (ability.numbers[0] == 'unit') {
+                militarizeFree = true;
+            } else if (ability.numbers[0] == 'urban') {
+                urbanizeFree = true;
+            } else if (ability.numbers[0] == 'rural') {
+                expandFree = true;
+            }
+        }
+    }
+
     const bldgQueueMaxIndexFinishing = selectedCity.projected_build_queue_depth - 1;
     const availableBuildingEntry = (buildingName, index) => {
         const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
@@ -250,7 +267,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} 
                         emptyType="rural"
                         militarizeBtn={selectedCity?.can_militarize && index === 0}
+                        militarizeFree={militarizeFree}
                         urbanizeBtn={selectedCity?.can_urbanize && index === 0}
+                        urbanizeFree={urbanizeFree}
                         canAffordDevelop={myCiv?.city_power > 100}
                         handleClickDevelop={handleClickDevelop}
                     />
@@ -266,7 +285,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
                 ))}
                 {selectedCity.can_expand && 
-                    <ExpandButton expandSufficientPower={myCiv.city_power > 25} handleClickDevelop={handleClickDevelop}/>
+                    <ExpandButton expandSufficientPower={myCiv.city_power > 25} handleClickDevelop={handleClickDevelop} expandFree={expandFree}/>
                 }
             </div>
             <div className="wonders-container">
