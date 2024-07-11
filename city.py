@@ -732,7 +732,7 @@ class City:
         return (self.civ.id not in self.expanded_by_civ_ids) \
             and self.num_buildings_of_type("rural", include_in_queue=False) >= self.rural_slots \
             and self.military_slots + self.urban_slots + self.rural_slots < MAX_SLOTS \
-            and self.civ.game_player is not None
+            # and self.civ.game_player is not None  # Removing this to make more expansions happen over time.
 
     def expand(self, game_state):
         # TODO merge this with _develop()
@@ -1015,12 +1015,20 @@ class City:
             return unit.advancement_level()
 
         print(f"{self.name} -- City planning AI move.")
+
+        if self.civ.has_ability('OnDevelop'):
+            favorite_development = self.civ.numbers_of_ability('OnDevelop')[0]
+        elif self.civ.has_ability('DevelopFree'):
+            favorite_development = self.civ.numbers_of_ability('DevelopFree')[0]
+        else:
+            favorite_development = None
+
         self.midturn_update(game_state)
-        if self.can_urbanize and random.random() < AI.CHANCE_URBANIZE:
+        if self.can_urbanize and (random.random() < AI.CHANCE_URBANIZE or favorite_development == 'urban'):
             self.urbanize(game_state)
-        if self.can_militarize and random.random() < AI.CHANCE_MILITARIZE:
+        if self.can_militarize and (random.random() < AI.CHANCE_MILITARIZE or favorite_development == 'unit'):
             self.militarize(game_state)
-        if self.can_expand and random.random() < AI.CHANCE_EXPAND:
+        if self.can_expand and (random.random() < AI.CHANCE_EXPAND or favorite_development == 'rural'):
             self.expand(game_state)
         self.midturn_update(game_state)
 
