@@ -357,9 +357,9 @@ class City:
 
     def _calculate_food_demand(self, game_state: 'GameState') -> float:
         if self.founded_turn is None: return 0  # Not sure why we're even calculating this.
+        if self.capital: 
+            return 0
         result: float = 1.0 * self.age(game_state)
-        if self.capital:
-            result *= 0.25
 
         if self.is_territory_capital:
             result -= 2 * len(self.get_puppets(game_state))
