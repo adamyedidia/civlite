@@ -531,6 +531,14 @@ export default function GamePage() {
                 setTechChoiceDialogOpen(false);
                 setGreatPersonChoiceDialogOpen(false);
                 setDeclineOptionsView(false);
+                setHoveredBuilding(null);
+                setHoveredCity(null);
+                setHoveredCiv(null);
+                setHoveredGamePlayer(null);
+                setHoveredHex(null);
+                setHoveredTech(null);
+                setHoveredUnit(null);
+                setHoveredWonder(null);
             }
         };
     
@@ -2159,10 +2167,6 @@ export default function GamePage() {
 
     const descriptions = selectedCity?.available_buildings_to_descriptions;
 
-
-
-    const selectedCityUnitChoices = selectedCity?.available_units;
-
     const refreshSelectedCity = (newGameState) => {
         if (selectedCity?.id) {
             setSelectedCity(newGameState.hexes[selectedCity.hex].city);
@@ -3113,7 +3117,6 @@ export default function GamePage() {
                         playerApiUrl={playerApiUrl}
                         setGameState={setGameState}
                         refreshSelectedCity={refreshSelectedCity}
-                        selectedCityUnitChoices={selectedCityUnitChoices}
                         selectedCity={selectedCity} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName}
                         templates={templates}
