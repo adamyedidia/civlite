@@ -26,7 +26,7 @@ class BUILDINGS():
     SLAVE_TRADE = BuildingTemplate(
         name="Slave Trade",
         type=BuildingType.URBAN,
-        cost=10,
+        cost=1,
         prereq=TECHS.BRONZE_WORKING,
         on_build=[GainResourceEffect("wood", 30), GainUnhappinessEffect(20)],
     )

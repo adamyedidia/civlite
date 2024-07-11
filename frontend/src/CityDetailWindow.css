@@ -128,6 +128,7 @@
   overflow-y: auto; /* Enable vertical scrolling */
   max-height: 140px;
   width: 300px;
+  margin-bottom: 10px;;
 }
 
 .building-slots-full-banner {
