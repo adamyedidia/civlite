@@ -195,7 +195,7 @@ class Civ:
         return [city for city in game_state.cities_by_id.values() if city.civ == self]
 
     def update_max_territories(self, game_state: 'GameState'):
-        base: int = 2 + round(self.get_advancement_level() / 3)
+        base: int = 3
         bonuses: int = len([ability for ability, _ in self.passive_building_abilities_of_name('ExtraTerritory', game_state)])
         self.max_territories = base + bonuses
 
