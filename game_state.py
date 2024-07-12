@@ -1,6 +1,7 @@
 import math
 from typing import Any, Optional
 from animation_frame import AnimationFrame
+from building import QueueEntry
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from camp import Camp
@@ -9,6 +10,8 @@ from city import City, get_city_name_for_civ
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
+from settings import GOD_MODE
+from unit_template import UnitTemplate
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
 from wonder_template import WonderTemplate
@@ -16,7 +19,7 @@ from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
 from redis_utils import rget_json, rlock, rset_json, rdel, rset, rget
-from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, BASE_SURVIVAL_BONUS, SURVIVAL_BONUS_PER_AGE, EXTRA_GAME_END_SCORE_PER_PLAYER, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
+from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, BASE_SURVIVAL_BONUS, STRICT_MODE, SURVIVAL_BONUS_PER_AGE, EXTRA_GAME_END_SCORE_PER_PLAYER, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
@@ -252,7 +255,7 @@ class GameState:
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {}
         self.built_wonders: dict[WonderTemplate, WonderBuiltInfo] = {}
         self.wonder_cost_by_age: dict[int, int] = BASE_WONDER_COST.copy()
-        self.national_wonders_built_by_civ_id: dict[str, list[str]] = {}
+        self.one_per_civs_built_by_civ_id: dict[str, dict[str, str]] = {}  # civ_id: {building_name: city_id}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
         self.advancement_level_progress = 0.0
@@ -267,7 +270,9 @@ class GameState:
     def midturn_update(self):
         print("midturn update triggered")
         for city in self.cities_by_id.values():
-            city.midturn_update(self)
+            if city.is_territory_capital:
+                city.midturn_update(self)
+            # Puppet updates are triggered by their parent's midturn_update() function.
         for unit in self.units:
             unit.midturn_update(self)
         for civ in self.civs_by_id.values():
@@ -296,7 +301,7 @@ class GameState:
             assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
         city.hex = hex
         city.populate_terrains_dict(self)
-        city.refresh_available_wonders(self)
+        city.midturn_update(self)
         return city
 
     def register_camp(self, camp, hex):
@@ -342,18 +347,9 @@ class GameState:
         city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
 
         civ.gain_vps(2, "Founded Cities (2/city)")
-
-        if civ.has_ability('IncreaseYieldsForTerrain'):
-            assert city.hex
-            numbers = civ.numbers_of_ability('IncreaseYieldsForTerrain')
-            for hex in city.hex.get_neighbors(self.hexes, include_self=True):
-                if hex.terrain == numbers[1]:
-                    new_value = getattr(hex.yields, numbers[0]) + numbers[2]
-                    setattr(hex.yields, numbers[0], new_value)
     
         self.refresh_foundability_by_civ()
         self.midturn_update() 
-        city.hide_bad_buildings()
         return city
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
@@ -375,7 +371,7 @@ class GameState:
         chosen_techs_by_advancement = defaultdict(int)
 
         # Start with prereqs for the buildings we have
-        for building in city.buildings:
+        for building in city.buildings + city.unit_buildings:
             prereq = building.prereq
             if prereq is not None:
                 chosen_techs.add(prereq)
@@ -432,10 +428,6 @@ class GameState:
         if civ.has_ability('ExtraCityPower'):
             civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
 
-
-        city.refresh_available_buildings()
-        city.refresh_available_units()
-        city.refresh_available_wonders(self)
         self.midturn_update()
 
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
@@ -479,7 +471,7 @@ class GameState:
         game_player.all_civ_ids.append(civ.id)
         game_player.decline_this_turn = True
         self.make_new_civ_from_the_ashes(city)
-        civ.get_great_person(self.advancement_level, city)
+        civ.get_great_person(self.advancement_level, city, self)
         print(f"New civ {civ} great people choices: {civ.great_people_choices}")
 
         return from_civ_perspectives
@@ -504,11 +496,10 @@ class GameState:
             print(f"Declining to fresh city at {coords}")
             self.register_city(self.fresh_cities_for_decline[coords])
         assert hex.city is not None, "Failed to register city!"
-        hex.city.wood = hex.city.metal = hex.city.unhappiness = 0
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.advancement_level + 1)
         hex.city.civ_to_revolt_into = None
-        hex.city.buildings = [b for b in hex.city.buildings if not b.is_national_wonder]
+        hex.city.buildings = [b for b in hex.city.buildings if not b.destroy_on_owner_change]
 
         new_civ: Civ = hex.city.civ
         new_civ.vitality = hex.city.revolting_starting_vitality
@@ -570,10 +561,9 @@ class GameState:
                             game_player_to_return.civ_id = city.civ.id
                             game_player_to_return.all_civ_ids.append(city.civ.id)
                             self.game_player_by_player_num[player_num].civ_id = city.civ.id
-                            city.civ.vitality = STARTING_CIV_VITALITY
+                            city.civ.vitality = STARTING_CIV_VITALITY if not GOD_MODE else 10
 
                             city.capitalize(self)
-                            self.midturn_update()
 
                         else:
                             if city.hex:
@@ -588,7 +578,8 @@ class GameState:
                 self.refresh_visibility_by_civ()
 
                 for civ in self.civs_by_id.values():
-                    civ.fill_out_available_buildings(self)      
+                    civ.fill_out_available_buildings(self)
+                self.midturn_update()
 
                 rdel(dream_key(self.game_id, player_num, self.turn_num))
 
@@ -609,19 +600,14 @@ class GameState:
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
-
-                if building_name in UNITS_BY_BUILDING_NAME:
-                    building = UNITS_BY_BUILDING_NAME[building_name]
-                elif building_name in {b.name for b in BUILDINGS.all()}:
-                    building = BUILDINGS.by_name(building_name)
-                elif building_name in {w.name for w in WONDERS.all()}:
-                    building = WONDERS.by_name(building_name)
-                else:
-                    raise ValueError(f"Unknown building name {building_name}")
-                city.buildings_queue.append(building)
+                building = QueueEntry.find_queue_template_by_name(building_name)
+                if city.validate_building_queueable(building):
+                    city.enqueue_build(building)
+                    for other_city in city.civ.get_my_cities(self):
+                        if other_city != city:
+                            other_city.buildings_queue = [b for b in other_city.buildings_queue if not b.template == building]
                 game_player_to_return = game_player
-
-                city.refresh_available_buildings()
+                self.midturn_update()
 
             if move['move_type'] == 'cancel_building':
                 building_name = move['building_name']
@@ -631,26 +617,15 @@ class GameState:
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
-                for i, building in enumerate(city.buildings_queue):
-                    if building.name == building_name or hasattr(building, 'building_name') and building.building_name == building_name:  # type: ignore
+                for i, entry in enumerate(city.buildings_queue):
+                    if entry.template.name == building_name:
+                        # TODO could check it has the right delete/build type
                         city.buildings_queue.pop(i)
                         break
 
                 game_player_to_return = game_player
 
-                city.refresh_available_buildings()
-
-            if move['move_type'] == 'hide_building':
-                building_name = move['building_name']
-                hidden = move['hidden']
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
-                city_id = move['city_id']
-                city = self.cities_by_id[city_id]
-                city.toggle_discard(building_name, hidden)
-                game_player_to_return = game_player
-                city.midturn_update(self)
+                self.midturn_update()
 
             if move['move_type'] == 'select_infinite_queue':
                 unit_name = move['unit_name']
@@ -660,15 +635,29 @@ class GameState:
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
-                if unit_name == "":
-                    unit = None
-                else:
-                    unit = UNITS.by_name(unit_name)
+                unit = UNITS.by_name(unit_name)
 
-                city.infinite_queue_unit = unit
+                city.toggle_unit_build(unit)
                 self.midturn_update()
                 game_player_to_return = game_player
 
+            if move['move_type'] == 'develop':
+                game_player = self.game_player_by_player_num[player_num]
+                assert game_player.civ_id
+                civ = self.civs_by_id[game_player.civ_id]
+                city_id = move['city_id']
+                city = self.cities_by_id[city_id]
+
+                if move['type'] == 'rural':
+                    city.expand(self)
+                elif move['type'] == 'urban':
+                    city.urbanize(self)
+                elif move['type'] == 'unit':
+                    city.militarize(self)
+                else:
+                    raise ValueError(f"Invalid type: {move['type']}")
+                self.midturn_update()
+                game_player_to_return = game_player
 
             if move['move_type'] == 'set_civ_primary_target':
                 target_coords = move['target_coords']
@@ -727,19 +716,27 @@ class GameState:
                 city: City = self.cities_by_id[city_id]
                 previous_parent: City | None = city.get_territory_parent(self)
                 civ = city.civ
-                if civ.city_power > 100:
-                    civ.city_power -= 100
-                    city.make_territory_capital(self)
+                city.make_territory_capital(self)
 
-                    instead_of_city_id: str = move['other_city_id']
-                    print(f"{instead_of_city_id=}")
-                    if instead_of_city_id is not None:
-                        instead_of_city: City = self.cities_by_id[instead_of_city_id]
-                        instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False)
-                        instead_of_city.orphan_territory_children(self, make_new_territory=False)
-                        print(f"{instead_of_city._territory_parent_id=}")
-                    if previous_parent is not None and previous_parent.id != instead_of_city_id:
-                        previous_parent.orphan_territory_children(self, make_new_territory=False)
+                instead_of_city_id: str = move['other_city_id']
+                if instead_of_city_id is not None:
+                    instead_of_city: City = self.cities_by_id[instead_of_city_id]
+                    instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False)
+                    instead_of_city.orphan_territory_children(self, make_new_territory=False)
+                    instead_of_city.buildings_queue = []
+
+                    # Take all the wood and metal over.
+                    new_parent = instead_of_city.get_territory_parent(self)
+                    assert new_parent is not None
+                    new_parent.wood += instead_of_city.wood
+                    instead_of_city.wood = 0
+                    for bldg in new_parent.unit_buildings:
+                        new_parent.metal += bldg.metal
+                        bldg.metal = 0
+                    new_parent.metal += instead_of_city.metal
+                    instead_of_city.metal = 0
+                if previous_parent is not None and previous_parent.id != instead_of_city_id:
+                    previous_parent.orphan_territory_children(self, make_new_territory=False)
 
                 game_player_to_return = game_player
                 self.midturn_update()
@@ -783,7 +780,8 @@ class GameState:
 
                 coords = move['coords']
 
-                assert not game_player.decline_this_turn, f"Player {player_num} is trying to decline twice in one turn."
+                if STRICT_MODE:
+                    assert not game_player.decline_this_turn, f"Player {player_num} is trying to decline twice in one turn."
 
                 # If speculative is False, then there should be no collisions
                 # We could be less strict here and not even check, but that seems dangerous
@@ -886,6 +884,7 @@ class GameState:
             if (game_player is None or game_player.is_bot) and not civ.template.name == 'Barbarians':
                 # decline if they want to
                 if game_player and not civ.in_decline and (decline_coords := civ.bot_decide_decline(self)):
+                    civ.bot_predecline_moves(self)
                     self.execute_decline(decline_coords, game_player)
                     new_civ_id = game_player.civ_id
                     assert new_civ_id is not None
@@ -967,13 +966,17 @@ class GameState:
         random.shuffle(camps_copy)
 
         for city in cities_copy:
-            city.roll_turn(sess, self)
+            city.roll_turn_pre_harvest(self)
+        for civ in self.civs_by_id.values():
+            civ.roll_turn_pre_harvest()
+        for city in cities_copy:
+            city.roll_turn_post_harvest(sess, self)
 
         for camp in camps_copy:
             camp.roll_turn(sess, self)
 
         for civ in self.civs_by_id.values():
-            civ.roll_turn(sess, self)
+            civ.roll_turn_post_harvest(sess, self)
 
         print("Final refresh")
         for unit in units_copy:
@@ -995,8 +998,7 @@ class GameState:
             civ.fill_out_available_buildings(self)
 
         for city in self.cities_by_id.values():
-            city.refresh_available_buildings()     
-            city.refresh_available_wonders(self)
+            city.midturn_update(self)
 
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= self.game_end_score():
@@ -1006,7 +1008,7 @@ class GameState:
 
         self.handle_decline_options()
         for city in self.fresh_cities_for_decline.values():
-            city.roll_turn(sess, self, fake=True)
+            city.roll_turn_post_harvest(sess, self, fake=True)
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
@@ -1198,7 +1200,7 @@ class GameState:
             "wonders_by_age": {age: [wonder.name for wonder in wonders] for age, wonders in self.wonders_by_age.items()},
             "built_wonders": {wonder.name: built_wonder.to_json() for wonder, built_wonder in self.built_wonders.items()},
             "available_wonders": [w.name for w in self.available_wonders()],
-            "national_wonders_built_by_civ_id": {k: v[:] for k, v in self.national_wonders_built_by_civ_id.items()},
+            "one_per_civs_built_by_civ_id": {civ_id: {building_name: city_id for building_name, city_id in v.items()} for civ_id, v in self.one_per_civs_built_by_civ_id.items()},
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
             "advancement_level": self.advancement_level,
@@ -1228,7 +1230,7 @@ class GameState:
         game_state.wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["wonders_by_age"].items()}
         game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json) for wonder_name, wonder_json in json["built_wonders"].items()}
         game_state.wonder_cost_by_age = {int(age): cost for age, cost in json["wonder_cost_by_age"].items()}
-        game_state.national_wonders_built_by_civ_id = {k: v[:] for k, v in json["national_wonders_built_by_civ_id"].items()}
+        game_state.one_per_civs_built_by_civ_id = {civ_id: {building_name: city_id for building_name, city_id in v.items()} for civ_id, v in json["one_per_civs_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}
         game_state.game_over = json["game_over"]

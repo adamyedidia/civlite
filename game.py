@@ -296,7 +296,7 @@ class Game(Base):
 
             rset_json(staged_moves_key(self.id, player_num, self.turn_num), staged_moves, ex=7 * 24 * 60 * 60)
             rset_json(self._staged_game_state_key(player_num, self.turn_num), game_state_to_store_json, ex=7 * 24 * 60 * 60)
-        print("Move staged")
+        print(f"Move staged {moves[0]}")
         if decline_eviction_player is not None:
             print(f"evicting player {decline_eviction_player}")
             # Find the "choose_decline_option" move in their moves, and trim back to that spot.

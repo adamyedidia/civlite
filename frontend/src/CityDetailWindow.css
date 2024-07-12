@@ -23,6 +23,7 @@
 }
 .city-detail-columns { 
     display: flex; /* So that the columns are horizontally adjacent. */
+    justify-content: space-evenly;
 }
 .city-detail-column {
   padding: 5px;
@@ -123,44 +124,33 @@
 }
 
 .building-choices-container {
+  position: relative; /* for purpose of positioning the building-slots-full-banner */
   overflow-y: auto; /* Enable vertical scrolling */
-  margin-bottom: 50px;
-  max-height: 300px;
+  max-height: 140px;
+  width: 300px;
+  margin-bottom: 10px;;
 }
 
-.building-choices-container:hover {
-    max-height: 350px;
-    z-index: 1;
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 10px); /* 10px of padding on parent */
-}
-.building-choices-placeholder {
-    height: 0;
-    visibility: hidden;
-}
-.building-choices-container:hover + .building-choices-placeholder {
-    height: 350px; /* Adjust based on the actual height of .building-choices-container */
-    visibility: visible;
-}
+.building-slots-full-banner {
+  background-color: #8888;
+  z-index: 200000;
 
-.building-choices-row {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
-
-.building-choices-row.hidden {
-    opacity: 0.25;
-}
-
-.building-choices-row img.clickable {
-    cursor: pointer;
-}
-.building-choices-row img.clickable:hover {
-    transform: scale(1.2);
-    background-color: #eee;
+.building-slots-full-banner span {
+  background-color: #888a;
+  font-size: 2em;
+  height: 1.5em;
+  padding: 2px 10px;
+  border-radius: 3px;
+  transform: rotate(-10deg);
 }
 
 .building-queue-container {
@@ -176,26 +166,31 @@
 }
 
 .existing-buildings-container {
-  /* display: flex; */
-  justify-content: center;
-  align-items: center;
-  /* gap: 5px; */
-  /* transform: translate(-50%, -50%); */
-  overflow-y: auto; /* Enable vertical scrolling */
-  flex-direction: column;
-  max-height: 300px;
+  display: flex;
+  justify-content: left;
+  align-items: flex-start;
+  gap: 5px;
+  flex-direction: row;
+  margin: 0 10px;
+  max-width: 630px;
+  flex-wrap: wrap;
 }
 
-.collapse-expand-button {
-  border: none;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  cursor: pointer;
-  border-radius: 12px;
-  transition: 0.3s;
-  width: 100%;
+.wonders-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  width: 630px;
+  gap: 5px;
+  margin: 0 auto; /* Center horizontally */
+}
+
+.wonders-container .brief-building-card {
+  display: flex;
+  width: 130px;
+  align-items: center;
+  justify-items: center;
+  flex-grow: 0;
 }
 
 .unit-choices-container {
@@ -228,9 +223,22 @@
   box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Add shadow for depth */
 }
 
-.unit-choice.infinite-queue {
-  position: relative;
+.existing-building-card.military.enabled:hover {
+  cursor: pointer;
+  transform: scale(1.1);
+  background-color: #ddd;
+}
+
+.existing-building-card.military.infinite-queue {
   animation: dash-around 1.5s linear infinite;
+}
+
+.existing-building-card.military .build-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  gap: 3px;
 }
 
 @keyframes dash-around {
@@ -251,6 +259,10 @@
 
 .queue-not-building {
   opacity: 40%;
+}
+
+.building-queue-container .delete {
+  text-decoration: line-through;
 }
 
 .focus-selection-option {
@@ -438,17 +450,6 @@
   background-color: #ffffff;
 }
 
-.make-territory-area {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    width: 304px;
-}
-
-.make-territory-select.flash-select {
-  animation: flashAnimation 0.25s infinite;
-}
-
 @keyframes flashAnimation {
   0%, 100% { background-color: #ffffff; }
   50% { background-color: #ff0000; }
@@ -464,3 +465,9 @@
   color: #666;
 }
 
+.available-buildings {
+  margin: 10px;
+  background-color: #ffeedde0;
+  border: 10px solid #e46c2b;
+  border-radius: 20px;
+}

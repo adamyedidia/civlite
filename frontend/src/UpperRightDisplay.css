@@ -244,8 +244,15 @@ h2.tech-name {
     font-weight: bold;
 }
 
-.revolt-cities-detail {
+.revolt-cities-detail-container {
     display: none;
+}
+
+.decline-option-row:hover .revolt-cities-detail-container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    gap: 5px;
 }
 
 .decline-option-row:hover .revolt-cities-detail {
@@ -303,6 +310,23 @@ h2.tech-name {
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+.slot {
+    height: 20px;
+    width: 24px;
+    border: 2px solid black;
+    border-radius: 5px;
+}
+
+.slot.military {
+    background-color: #bbbbbb;
+}
+.slot.rural {
+    background-color: #eecab7;
+}
+.slot.urban {
+    background-color: #e08b5e;
 }
 
 /*

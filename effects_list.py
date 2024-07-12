@@ -1,7 +1,8 @@
 import random
-from typing import TYPE_CHECKING, Callable
+from typing import TYPE_CHECKING, Callable, Literal
 
 from TechStatus import TechStatus
+from building_template import BuildingTemplate
 from terrain_template import TerrainTemplate
 from unit_templates_list import UNITS
 from effect import CityTargetEffect
@@ -50,6 +51,17 @@ class BuildUnitsEffect(CityTargetEffect):
             if unit is not None:
                 unit.strength += self.extra_str
 
+class BuildBuildingEffect(CityTargetEffect):
+    def __init__(self, building_template: BuildingTemplate) -> None:
+        self.building_template = building_template
+
+    @property
+    def description(self) -> str:
+        return f"Build a free {self.building_template.name}."
+
+    def apply(self, city: 'City', game_state: 'GameState'):
+        city.build_building(building=self.building_template, game_state=game_state, free=True)
+
 class FreeRandomTechEffect(CityTargetEffect):
     def __init__(self, age) -> None:
         self.age = age
@@ -70,8 +82,7 @@ class FreeRandomTechEffect(CityTargetEffect):
                 return
 
 class GainResourceEffect(CityTargetEffect):
-    def __init__(self, resource: str, amount: int) -> None:
-        assert resource in ("wood", "food", "metal", "science", "city_power")
+    def __init__(self, resource: Literal["wood", "food", "metal", "science", "city_power"], amount: int) -> None:
         self.resource = resource
         self.amount = amount
 
@@ -90,6 +101,17 @@ class GainResourceEffect(CityTargetEffect):
             city.civ.science += self.amount
         elif self.resource == 'city_power':
             city.civ.city_power += self.amount
+
+class GainUnhappinessEffect(CityTargetEffect):
+    def __init__(self, amount: int) -> None:
+        self.amount = amount
+
+    @property
+    def description(self) -> str:
+        return f"Gain {self.amount} unhappiness"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        city.unhappiness += self.amount
 
 class GrowEffect(CityTargetEffect):
     def __init__(self, amount: int | None = None, amount_fn: Callable[['City', 'GameState'], int] | None = None, description: str | None =None) -> None:
@@ -151,7 +173,7 @@ class RecruitBarbariansEffect(CityTargetEffect):
         return f"Recruit all barbarians within {self.range} tiles (including camps)"
     
     def apply(self, city: 'City', game_state: 'GameState'):
-        assert city.hex
+        assert city.hex is not None
         for hex in city.hex.get_hexes_within_range_expensive(game_state.hexes, self.range):
             if len(hex.units) > 0 and hex.units[0].civ == game_state.barbarians:
                 hex.units[0].civ = city.civ
@@ -229,7 +251,7 @@ class GetGreatPersonEffect(CityTargetEffect):
         return f"Get a great person from {p.number_to_words(self.age_offset)} {p.plural('age', self.age_offset)} ago."  # type: ignore
     
     def apply(self, city: 'City', game_state: 'GameState'):
-        city.civ.get_great_person(game_state.advancement_level - self.age_offset, city)
+        city.civ.get_great_person(game_state.advancement_level - self.age_offset, city, game_state)
 
 class ZigguratWarriorsEffect(CityTargetEffect):
     @property
@@ -250,52 +272,11 @@ class EndGameEffect(CityTargetEffect):
     def apply(self, city: 'City', game_state: 'GameState'):
         game_state.game_over = True
 
-class IncreaseYieldsForTerrain(CityTargetEffect):
-    def __init__(self, resource: str, amount: int, terrain: TerrainTemplate | list[TerrainTemplate], buff_type: str) -> None:
-        self.resource = resource
-        self.amount = amount
-        self.terrain: list[TerrainTemplate] = [terrain] if isinstance(terrain, TerrainTemplate) else terrain
-        self.buff_type = buff_type
-
+class BuildEeachUnitEffect(CityTargetEffect):
     @property
     def description(self) -> str:
-        terrain_strs: list[str] = [p.plural(t.name) for t in self.terrain] # type: ignore
-        terrain_combined_str: str = " and ".join(terrain_strs)
-        return f"Increase {self.resource} yields in {terrain_combined_str} around the city by {self.amount}."
-
+        return "Build one free unit of each type this city can build."
+    
     def apply(self, city: 'City', game_state: 'GameState'):
-        assert city.hex is not None
-        for hex in city.hex.get_neighbors(game_state.hexes, include_self=True):
-            if hex.terrain in self.terrain:
-                new_value = getattr(hex.yields, self.resource) + self.amount
-                setattr(hex.yields, self.resource, new_value)
-                hex.buff_counts[self.buff_type] += 1
-
-class IncreaseYieldsInCity(CityTargetEffect):
-    def __init__(self, resource: str, amount: int) -> None:
-        self.resource = resource
-        self.amount = amount
-
-    @property
-    def description(self) -> str:
-        return f"Increase {self.resource} yields in the city by {self.amount}"
-
-    def apply(self, city: 'City', game_state: 'GameState'):
-        assert city.hex is not None
-        new_value = getattr(city.hex.yields, self.resource) + self.amount
-        setattr(city.hex.yields, self.resource, new_value)
-
-class IncreaseYieldsPerTerrainType(CityTargetEffect):
-    def __init__(self, resource: str, amount: int) -> None:
-        self.resource = resource
-        self.amount = amount
-
-    @property
-    def description(self) -> str:
-        return f"Increase {self.resource} yields in the city by {self.amount} for each unique terrain type."
-
-    def apply(self, city: 'City', game_state: 'GameState'):
-        assert city.hex is not None
-        num = len(set([hex.terrain for hex in city.hex.get_neighbors(game_state.hexes, include_self=True)]))
-        new_value = getattr(city.hex.yields, self.resource) + self.amount * num
-        setattr(city.hex.yields, self.resource, new_value)
+        for unit in city.available_units:
+            city.build_unit(game_state=game_state, unit=unit)

@@ -16,7 +16,7 @@ import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
 import { TextOnIcon } from './TextOnIcon.js';
 import { IconUnitDisplay } from './UnitDisplay.js';
-import { BriefBuildingDisplay } from './BuildingDisplay.js';
+import { YieldsDisplay } from './BuildingDisplay.js';
 import { WithTooltip } from './WithTooltip.js';
 
 const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
@@ -51,7 +51,7 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     const iconTooltip = <table><tbody>
         <tr><td> +10 </td><td> base </td></tr>
         {myCities?.map((city, index) => {
-            const amount = Math.floor(city.projected_income['city-power']);
+            const amount = Math.floor(city.projected_income['city_power']);
             return amount !== 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
         })}
     </tbody></table>
@@ -140,14 +140,6 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
             <TextOnIcon image={workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
                 <b>{city.population}</b>
             </TextOnIcon>
-            <div style={{ display: 'flex', alignItems: 'center', width: '30px' }}>
-                {Object.entries(city.yields_per_population).map(([name, amount]) => (
-                        Array.from({ length: amount }).map((_, index) => {
-                            const img = name === 'food' ? foodImg : name === 'wood' ? woodImg : name === 'metal' ? metalImg : name === 'science' ? scienceImg : null;
-                            return <img key={`${name}-${index}`} src={img} alt={name} style={{ width: '10px', height: 'auto' }} />
-                        })
-                    ))}
-            </div>
             <div className="unit-count" style={{visibility: city.revolt_unit_count > 0 ? "visible" : "hidden" }}>
                 {city.revolt_unit_count}
             </div>
@@ -162,27 +154,32 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
                 </WithTooltip>
             </div>}
         </div>
+        <div className="revolt-cities-detail-container">
         <div className="revolt-cities-detail">
-            {Math.floor(city.projected_income_base['food'])}
-            <img src={foodImg} alt=""/>
-            {Math.floor(city.projected_income_base['science'])}
-            <img src={scienceImg} alt=""/>
-            {Math.floor(city.projected_income_base['wood'])}
-            <img src={woodImg} alt=""/>
-            {Math.floor(city.projected_income_base['metal'])}
-            <img src={metalImg} alt=""/>
+            <YieldsDisplay yields={city.projected_income_base}/>
         </div>
         <div className="revolt-cities-detail">
-        {city.available_units.map((unitName, index) => (
-            <div key={index} className="city-unit">
-                <IconUnitDisplay 
-                    unitName={unitName} 
-                    templates={templates} 
-                    setHoveredUnit={setHoveredUnit} 
-                    style={{borderRadius: '25%', height: "30px", width: "30px"}} 
-                />
-            </div>
-        ))}
+            {city.available_units.map((unitName, index) => (
+                <div key={index} className="slot military">
+                    <IconUnitDisplay 
+                        unitName={unitName} 
+                        templates={templates} 
+                        setHoveredUnit={setHoveredUnit} 
+                        size={20}
+                        style={{border: '0px'}}
+                    />
+                </div>
+            ))}
+            {Array.from({length: city.military_slots - city.available_units.length}, (_, index) => (
+                <div key={index} className="slot military"></div>
+            ))}
+            {Array.from({length: city.rural_slots}, (_, index) => (
+                <div key={index} className="slot rural"></div>
+            ))}
+            {Array.from({length: city.urban_slots}, (_, index) => (
+                <div key={index} className="slot urban"></div>
+            ))}
+        </div>
         </div>
     </div>
 }

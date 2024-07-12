@@ -21,7 +21,7 @@ import {
 import EngineStates from './EngineStates';
 import CivDisplay from './CivDisplay';
 import TechDisplay from './TechDisplay';
-import HexDisplay, { YieldImages, HexBuffIcons } from './HexDisplay';
+import HexDisplay, { YieldImages } from './HexDisplay';
 import BuildingDisplay from './BuildingDisplay';
 import UnitDisplay from './UnitDisplay';
 import WonderHover from './WonderHover';
@@ -531,6 +531,14 @@ export default function GamePage() {
                 setTechChoiceDialogOpen(false);
                 setGreatPersonChoiceDialogOpen(false);
                 setDeclineOptionsView(false);
+                setHoveredBuilding(null);
+                setHoveredCity(null);
+                setHoveredCiv(null);
+                setHoveredGamePlayer(null);
+                setHoveredHex(null);
+                setHoveredTech(null);
+                setHoveredUnit(null);
+                setHoveredWonder(null);
             }
         };
     
@@ -2157,60 +2165,7 @@ export default function GamePage() {
         '20,0,-20': React.createRef(),
     });
 
-    // const [selectedCityBuildingChoices, setSelectedCityBuildingChoices] = useState(null);
-
     const descriptions = selectedCity?.available_buildings_to_descriptions;
-
-    const unsortedSelectedCityBuildingChoices = selectedCity?.available_building_names;
-
-    let selectedCityBuildingChoices = [];
-
-    if (descriptions && Object.keys(descriptions).length > 0) {
-        selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices?.sort((buildingName1, buildingName2) => {
-            const description1 = descriptions[buildingName1];
-            const description2 = descriptions[buildingName2];
-            
-            const getTypeOrder = (type) => {
-                switch (type) {
-                    case 'national-wonder':
-                        return 0;
-                    case 'vp':
-                        return 1;
-                    case 'yield':
-                        return 2;
-                    case 'wonder':
-                        return 3;
-                    case 'strength':
-                        return 4;
-                    default:
-                        return 5;
-                }
-            };
-        
-            const typeOrder1 = getTypeOrder(description1?.type);
-            const typeOrder2 = getTypeOrder(description2?.type);
-        
-            if (typeOrder1 !== typeOrder2) {
-                return typeOrder1 - typeOrder2;
-            } else if (description1?.value !== description2?.value) {
-                return description2?.value - description1?.value;
-            } else {
-                const template1 = templates.BUILDINGS[buildingName1];
-                const template2 = templates.BUILDINGS[buildingName2];
-                if ((template1?.exclusion_group === null) != (template2?.exclusion_group === null)) {
-                    return template1?.exclusion_group === null ? -1 : 1;
-                }
-                return template1?.cost - template2?.cost;
-            }
-        });
-    }
-    else {
-        selectedCityBuildingChoices = unsortedSelectedCityBuildingChoices;
-    }
-
-    const selectedCityBuildingQueue = selectedCity?.buildings_queue;
-
-    const selectedCityUnitChoices = selectedCity?.available_units;
 
     const refreshSelectedCity = (newGameState) => {
         if (selectedCity?.id) {
@@ -2760,17 +2715,17 @@ export default function GamePage() {
         if (city.buildings_queue.length === 0) {
             buildingText = "??";
             buildingIconUnit = null;
-        } else if (unitTemplatesByBuildingName[city.buildings_queue[0]]) {
+        } else if (templates.UNITS[city.buildings_queue[0].template_name]) {
             buildingText = "";
-            buildingIconUnit = unitTemplatesByBuildingName[city.buildings_queue[0]].name;
+            buildingIconUnit = templates.UNITS[city.buildings_queue[0].template_name].name;
         } else {
-            buildingText = city.buildings_queue[0].slice(0, 2);
+            buildingText = city.buildings_queue[0].template_name.slice(0, 2);
             buildingIconUnit = null;
         }
         const buildingImage = buildingIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(buildingIconUnit)}.svg`; 
  
-        const unitText = !city.infinite_queue_unit && "??";
-        const unitIconUnit = city.infinite_queue_unit;    
+        const unitText = !city.icon_unit_name && "??";
+        const unitIconUnit = city.icon_unit_name;    
         const unitImage = unitIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(unitIconUnit)}.svg`;
 
 
@@ -2785,7 +2740,7 @@ export default function GamePage() {
             <>
                 {isHovered && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="white" strokeWidth="0.2"/>}
                 {isSelected && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="black" strokeWidth="0.2"/>}
-                {city.under_siege_by_civ && <svg width="6" height="6" viewBox="0 0 6 6" x={-3} y={isUnitInHex ? -4 : -3}>
+                {city.under_siege_by_civ_id && <svg width="6" height="6" viewBox="0 0 6 6" x={-3} y={isUnitInHex ? -4 : -3}>
                         <image href="/images/fire.svg" x="0" y="0" height="6" width="6" />
                     </svg>
                 }
@@ -2852,7 +2807,7 @@ export default function GamePage() {
     
         return (
             <>
-                {camp.under_siege_by_civ && <svg width="5" height="5" viewBox="0 0 5 5" x={-2.5} y={isUnitInHex ? -3.5 : -2.5}>
+                {camp.under_siege_by_civ_id && <svg width="5" height="5" viewBox="0 0 5 5" x={-2.5} y={isUnitInHex ? -3.5 : -2.5}>
                         <image href="/images/fire.svg" x="0" y="0" height="5" width="5" />
                     </svg>
                 }
@@ -3055,7 +3010,6 @@ export default function GamePage() {
                                         ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
                                         style={{visibility: 'hidden'}}
                                     />
-                                    {hex.buff_counts && !hex.city ? <HexBuffIcons buff_counts={hex.buff_counts} hex_based_seed={(13 * hex.q + 17 * hex.r + 19 * hex.s) / 971} /> : null}
                                     {hex.yields ? <YieldImages yields={hex.yields} /> : null}
                                 </Hexagon>
                             );
@@ -3163,9 +3117,6 @@ export default function GamePage() {
                         playerApiUrl={playerApiUrl}
                         setGameState={setGameState}
                         refreshSelectedCity={refreshSelectedCity}
-                        selectedCityBuildingChoices={selectedCityBuildingChoices} 
-                        selectedCityBuildingQueue={selectedCityBuildingQueue}
-                        selectedCityUnitChoices={selectedCityUnitChoices}
                         selectedCity={selectedCity} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName}
                         templates={templates}

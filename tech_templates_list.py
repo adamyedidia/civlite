@@ -5,47 +5,47 @@ class TECHS():
     item_type = TechTemplate
     ARCHERY = TechTemplate(
         name= 'Archery',
-        cost= 25,
+        cost= 20,
         advancement_level= 1,
     )
     BRONZE_WORKING = TechTemplate(
         name= 'Bronze Working',
-        cost= 25,
+        cost= 20,
         advancement_level= 1,
     )
     POTTERY = TechTemplate(
         name='Pottery',
-        cost=20,
+        cost=15,
         advancement_level=1,
     )
     THE_WHEEL = TechTemplate(
         name='The Wheel',
-        cost=35,
+        cost=25,
         advancement_level=1,
     )
     MINING = TechTemplate(
         name='Mining',
-        cost=30,
+        cost=25,
         advancement_level=1,
     )
     FORESTRY = TechTemplate(
         name='Forestry',
-        cost=25,
+        cost=20,
         advancement_level=1,
     )
     IRRIGATION = TechTemplate(
         name='Irrigation',
-        cost=25,
+        cost=20,
         advancement_level=1,
     )
     MATHEMATICS = TechTemplate(
         name='Mathematics',
-        cost=50,
+        cost=45,
         advancement_level=2,
     )
     HORSEBACK_RIDING = TechTemplate(
         name='Horseback Riding',
-        cost=50,
+        cost=45,
         advancement_level=2,
     )
     IRON_WORKING = TechTemplate(
@@ -60,12 +60,12 @@ class TECHS():
     )
     ENGINEERING = TechTemplate(
         name='Engineering',
-        cost=45,
+        cost=40,
         advancement_level=2,
     )
     CONSTRUCTION = TechTemplate(
         name='Construction',
-        cost=50,
+        cost=40,
         advancement_level=2,
     )
     EDUCATION = TechTemplate(

@@ -1,5 +1,7 @@
 import os
 
+# Do we crash judiciously on any inconsistency? (Good for debugging, bad for prod.)
+STRICT_MODE = False
 
 CITY_CAPTURE_REWARD = 5
 UNIT_KILL_REWARD = 1
@@ -15,8 +17,14 @@ MAP_HOMOGENEITY_LEVEL = 1.0
 
 NUM_STARTING_LOCATION_OPTIONS = 3
 
-PER_PLAYER_AREA = 40
+PER_PLAYER_AREA = 30
 STARTING_CIV_VITALITY = 1.3
+REVOLT_VITALITY_PER_TURN = 0.025
+REVOLT_VITALITY_PER_UNHAPPINESS = 0.0075
+FRESH_CITY_VITALITY_PER_TURN = 0.05
+
+FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE = 30
+FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY = 10
 
 GOOD_HEX_PROBABILITY = 0.2
 
@@ -29,6 +37,7 @@ EXTRA_GAME_END_SCORE_PER_PLAYER = 100
 DATABASE_URL = "postgresql://cl:cl@localhost:5432/cl"
 
 LOCAL = False
+GOD_MODE = False
 
 BASE_CITY_POWER_INCOME = 10.0
 
@@ -58,6 +67,33 @@ WONDER_COUNT_FOR_PLAYER_NUM = {
     7: 5,
     8: 6,
 }
+
+UNIT_BUILDING_BONUSES = {
+    1: [1.0],
+    2: [0.8, 0.55],
+    3: [0.7, 0.55, 0.45],
+    4: [0.65, 0.55, 0.45, 0.35],
+}
+
+MAX_SLOTS = 8
+DEVELOP_COST = {'rural': 25, 'urban': 100, 'unit': 100}
+MAX_SLOTS_OF_TYPE = {'urban': 4, 'unit': 4}
+DEVELOP_VPS = 2
+
+class AI():
+    """
+    Settings for the AI
+    """
+    CHANCE_MOVE_FLAG = 0.2
+
+    CHANCE_URBANIZE = 0.5
+    CHANCE_MILITARIZE=0.1
+    CHANCE_EXPAND=0.2
+
+    RURAL_SLOT_VALUE = 4
+
+    DECLINE_YIELD_RATIO_THRESHOLD = 1.5
+
 
 if os.path.exists('local_settings.py'):
     from local_settings import *

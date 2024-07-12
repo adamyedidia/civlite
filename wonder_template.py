@@ -21,6 +21,10 @@ class WonderTemplate:
             return False
         return self.name == other.name
     
+    def __lt__(self, other: 'WonderTemplate'):
+        # Sort by age, with larger ages first.
+        return (-self.age, self.name) < (-other.age, other.name)
+    
     def __hash__(self) -> int:
         return hash(self.name)
     

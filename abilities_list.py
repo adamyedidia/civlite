@@ -13,15 +13,20 @@ CIV_ABILITIES: dict[str, Callable] = {
         description=f"Increase {x} yields in the capital by {y}.",
         numbers=[x, y],
     ),
+    "DevelopFree": lambda x: Ability(
+        name="DevelopFree",
+        description=f"{dict(urban='Urbanize', rural='Expand', unit='Militarize')[x]} without paying the usual cost.",
+        numbers=[x],
+    ),
+    "OnDevelop": lambda x, y: Ability(
+        name="OnDevelop",
+        description=f"On {dict(urban='Urbanize', rural='Expand', unit='Militarize')[x]}: {y.description}.",
+        numbers=[x, y],
+    ),
     "IncreaseFocusYields": lambda x, y: Ability(
         name="IncreaseFocusYields",
         description=f"Each city with a {x} focus makes +{y} {x}.",
         numbers=[x, y],
-    ),
-    "IncreaseYieldsForTerrain": lambda x, y, z: Ability(
-        name="IncreaseYieldsForTerrain",
-        description=f"When you found or capture a city for the first time, increase {x} yields in {p.plural(y.name)} around it by {z}.",
-        numbers=[x, y, z],
     ),
     "IncreasedStrengthForUnit": lambda x, y: Ability(
         name="IncreasedStrengthForUnit",
@@ -56,11 +61,6 @@ CIV_ABILITIES: dict[str, Callable] = {
 }
 
 BUILDING_ABILITIES: dict[str, Callable] = {
-    "IncreaseYieldsPerPopulation": lambda x, y: Ability(
-        name="IncreaseYieldsPerPopulation",
-        description=f"Increase {x} yields per population in the city by {y}.",
-        numbers=[x, y],
-    ),
     "CityGrowthCostReduction": lambda x: Ability(
         name="CityGrowthCostReduction",
         description=f"Reduce the cost of city growth by {'{:.0%}'.format(x)}.",
@@ -71,10 +71,10 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Increase {x} yields per population in the city with a {x} focus by {y}.",
         numbers=[x, y],
     ),
-    "DecreaseFoodDemand": lambda x: Ability(
+    "DecreaseFoodDemand": lambda x, y: Ability(
         name="DecreaseFoodDemand",
-        description=f"Decrease food demand by {x}.",
-        numbers=[x],
+        description=f"Decrease food demand by {x} in this city" + ("." if y == 0 else f" and {y} in all other cities."),
+        numbers=[x, y],
     ),
     "DecreaseFoodDemandPuppets": lambda x: Ability(
         name="DecreaseFoodDemandPuppets",
@@ -92,7 +92,7 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         numbers=[x],
     ),
     "NewUnitsGainBonusStrength": lambda x: Ability(
-        name="UnitsHaveExtraStrength",
+        name="NewUnitsGainBonusStrength",
         description=f"New units you build get +{x} extra strength.",
         numbers=[x],
     ),    
@@ -105,6 +105,26 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         name="ExtraVpsForCityCapture",
         description=f"Receive {x} extra VP for each city you capture.",
         numbers=[x],
+    ),
+    "UnitsExtraStrengthByTag": lambda x, y: Ability(
+        name="UnitsExtraStrengthByTag",
+        description=f"{x.value} units built get +{y} strength",
+        numbers=[x, y],
+    ),
+    "UnitsExtraStrengthByAge": lambda x, y: Ability(
+        name="UnitsExtraStrengthByAge",
+        description=f"Units of age {x} or later get +{y} strength",
+        numbers=[x, y],
+    ),
+    "Airforce": lambda x, y: Ability(
+        name="Airforce",
+        description=f"Gives +{x} strength to battles within range {y}.",
+        numbers=[x, y],
+    ),
+    "DeploymentCenter": lambda: Ability(
+        name="Deployment Center",
+        description=f"Units built by this city will be built at the location of your primary flag rather than the city.",
+        numbers=[],
     ),
 }
 
