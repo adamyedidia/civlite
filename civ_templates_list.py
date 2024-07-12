@@ -108,7 +108,7 @@ class CIVS():
         name="Caralans",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Warrior", 2]
+            "numbers": ["Warrior", 1]
         }],
         advancement_level=0,
     )
@@ -340,7 +340,7 @@ class CIVS():
             "numbers": [100],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Slinger", 5],
+            "numbers": ["Slinger", 4],
         }],
         advancement_level=1,
     )
@@ -447,7 +447,7 @@ class CIVS():
             "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 4],
+            "numbers": ["Pikeman", 6],
         }],
         advancement_level=2,
     )
@@ -458,7 +458,7 @@ class CIVS():
             "numbers": ["wood", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 4],
+            "numbers": ["Cannon", 6],
         }],
         advancement_level=2,
     )
@@ -469,7 +469,7 @@ class CIVS():
             "numbers": ["metal", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 4],
+            "numbers": ["Cannon", 6],
         }],
         advancement_level=2,
     )
@@ -480,7 +480,7 @@ class CIVS():
             "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 4],
+            "numbers": ["Knight", 6],
         }],
         advancement_level=2,
     )
@@ -491,7 +491,7 @@ class CIVS():
             "numbers": ["science", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 4],
+            "numbers": ["Pikeman", 6],
         }],
         advancement_level=2,
     )
@@ -502,7 +502,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 4],
+            "numbers": ["Knight", 6],
         }],
         advancement_level=2,
     )
@@ -513,7 +513,7 @@ class CIVS():
             "numbers": ["metal", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horse Archer", 4],
+            "numbers": ["Horse Archer", 6],
         }],
         advancement_level=2,
     )
@@ -537,7 +537,7 @@ class CIVS():
             "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 4],
+            "numbers": ["Pikeman", 6],
         }],
         advancement_level=2,
     )
@@ -548,7 +548,7 @@ class CIVS():
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 4],
+            "numbers": ["Musketman", 6],
         }],
         advancement_level=2,
     )
@@ -559,7 +559,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 4],
+            "numbers": ["Cannon", 6],
         }],
         advancement_level=2,
     )
@@ -570,7 +570,7 @@ class CIVS():
             "numbers": [150],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 4],
+            "numbers": ["Pikeman", 6],
         }],
         advancement_level=2,
     )
@@ -581,7 +581,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 4],
+            "numbers": ["Musketman", 6],
         }],
         advancement_level=2,
     )
@@ -592,7 +592,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 4],
+            "numbers": ["Knight", 6],
         }],
         advancement_level=2,
     )
@@ -603,7 +603,7 @@ class CIVS():
             "numbers": ["science", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 4],
+            "numbers": ["Crossbowman", 6],
         }],
         advancement_level=2,
     )
@@ -614,7 +614,7 @@ class CIVS():
             "numbers": ["science", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 4],
+            "numbers": ["Crossbowman", 6],
         }],
         advancement_level=2,
     )
@@ -625,7 +625,7 @@ class CIVS():
             "numbers": ["rural", GainResourceEffect('metal', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 4],
+            "numbers": ["Musketman", 6],
         }],
         advancement_level=2,
     )
@@ -636,7 +636,7 @@ class CIVS():
             "numbers": ["rural", GainResourceEffect('wood', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Militia", 4],
+            "numbers": ["Militia", 6],
         }],
         advancement_level=2,
     )
@@ -647,7 +647,7 @@ class CIVS():
             "numbers": ["urban"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 4],
+            "numbers": ["Crossbowman", 6],
         }],
         advancement_level=2,
     )
@@ -658,7 +658,7 @@ class CIVS():
             "numbers": ["rural"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 4],
+            "numbers": ["Musketman", 6],
         }],
         advancement_level=2,
     )
@@ -669,7 +669,7 @@ class CIVS():
             "numbers": ["unit"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 4],
+            "numbers": ["Cavalry", 6],
         }],
         advancement_level=2,
     )
@@ -680,7 +680,7 @@ class CIVS():
             "numbers": ["urban", BuildBuildingEffect(BUILDINGS.HARBOR)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 4],
+            "numbers": ["Musketman", 6],
         }],
         advancement_level=2,
     )
@@ -691,7 +691,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 4],
+            "numbers": ["Pikeman", 6],
         }],
         advancement_level=2,
     )
@@ -702,7 +702,7 @@ class CIVS():
             "numbers": ["rural", GainResourceEffect('science', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 4],
+            "numbers": ["Knight", 6],
         }],
         advancement_level=2,
     )
@@ -713,7 +713,7 @@ class CIVS():
             "numbers": ["food", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 4],
+            "numbers": ["Musketman", 6],
         }],
         advancement_level=2,
     )
@@ -724,7 +724,7 @@ class CIVS():
             "numbers": ["urban", ResetHappinessThisCityEffect()],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 4],
+            "numbers": ["Pikeman", 6],
         }],
         advancement_level=2,
     )
@@ -735,7 +735,7 @@ class CIVS():
             "numbers": ["science", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 4],
+            "numbers": ["Knight", 6],
         }],
         advancement_level=2,
     )
@@ -746,7 +746,7 @@ class CIVS():
             "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 5],
+            "numbers": ["Cavalry", 9],
         }],
         advancement_level=4,
     )
@@ -757,7 +757,7 @@ class CIVS():
             "numbers": ["food", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 5],
+            "numbers": ["Rifleman", 9],
         }],
         advancement_level=4,
     )
@@ -768,7 +768,7 @@ class CIVS():
             "numbers": ["science", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Gatling Gun", 5],
+            "numbers": ["Gatling Gun", 9],
         }],
         advancement_level=4,
     )
@@ -779,7 +779,7 @@ class CIVS():
             "numbers": ["science", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 5],
+            "numbers": ["Rifleman", 9],
         }],
         advancement_level=4,
     )
@@ -790,7 +790,7 @@ class CIVS():
             "numbers": [250],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 5],
+            "numbers": ["Cavalry", 9],
         }],
         advancement_level=4,
     )
@@ -801,7 +801,7 @@ class CIVS():
             "numbers": ["food", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 5],
+            "numbers": ["Knight", 9],
         }],
         advancement_level=4,
     )
@@ -812,7 +812,7 @@ class CIVS():
             "numbers": ["science", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 5],
+            "numbers": ["Musketman", 9],
         }],
         advancement_level=4,
     )
@@ -823,7 +823,7 @@ class CIVS():
             "numbers": ["metal", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 5],
+            "numbers": ["Cavalry", 9],
         }],
         advancement_level=4,
     )
@@ -834,7 +834,7 @@ class CIVS():
             "numbers": ["wood", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 5],
+            "numbers": ["Rifleman", 9],
         }],
         advancement_level=4,
     )
@@ -845,7 +845,7 @@ class CIVS():
             "numbers": ["metal", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Artillery", 5],
+            "numbers": ["Artillery", 9],
         }],
         advancement_level=4,
     )
@@ -856,7 +856,7 @@ class CIVS():
             "numbers": ["science", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 5],
+            "numbers": ["Cannon", 9],
         }],
         advancement_level=4,
     )
@@ -867,7 +867,7 @@ class CIVS():
             "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 5],
+            "numbers": ["Cavalry", 9],
         }],
         advancement_level=4,
     )
@@ -878,7 +878,7 @@ class CIVS():
             "numbers": ["wood", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 5],
+            "numbers": ["Cavalry", 9],
         }],
         advancement_level=4,
     )
@@ -889,7 +889,7 @@ class CIVS():
             "numbers": ["science", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Gatling Gun", 5],
+            "numbers": ["Gatling Gun", 9],
         }],
         advancement_level=4,
     )
@@ -900,7 +900,7 @@ class CIVS():
             "numbers": ["metal", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Gatling Gun", 5],
+            "numbers": ["Gatling Gun", 9],
         }],
         advancement_level=4,
     )
@@ -911,7 +911,7 @@ class CIVS():
             "numbers": ["metal", 50],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 7],
+            "numbers": ["Rifleman", 12],
         }],
         advancement_level=5,
     )
@@ -922,7 +922,7 @@ class CIVS():
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Infantry", 7],
+            "numbers": ["Infantry", 12],
         }],
         advancement_level=5,
     )
@@ -933,7 +933,7 @@ class CIVS():
             "numbers": ["food", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Artillery", 7],
+            "numbers": ["Artillery", 12],
         }],
         advancement_level=5,
     )
@@ -944,7 +944,7 @@ class CIVS():
             "numbers": ["wood", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 7],
+            "numbers": ["Rifleman", 12],
         }],
         advancement_level=5,
     )
@@ -955,7 +955,7 @@ class CIVS():
             "numbers": ["food", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 7],
+            "numbers": ["Cannon", 12],
         }],
         advancement_level=5,
     )
@@ -966,7 +966,7 @@ class CIVS():
             "numbers": ["metal", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Swordsman", 12],
+            "numbers": ["Swordsman", 40],
         }],
         advancement_level=5,
     )
@@ -977,7 +977,7 @@ class CIVS():
             "numbers": ["science", 6],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 7],
+            "numbers": ["Cannon", 12],
         }],
         advancement_level=5,
     )
@@ -988,7 +988,7 @@ class CIVS():
             "numbers": ["science", 60],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 7],
+            "numbers": ["Rifleman", 12],
         }],
         advancement_level=5,
     )    
@@ -999,7 +999,7 @@ class CIVS():
             "numbers": ["metal", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Artillery", 7],
+            "numbers": ["Artillery", 12],
         }],
         advancement_level=5,
     )
@@ -1010,7 +1010,7 @@ class CIVS():
             "numbers": ["metal", 6],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Tank", 7],
+            "numbers": ["Tank", 12],
         }],
         advancement_level=5,
     )
@@ -1029,7 +1029,7 @@ class CIVS():
             "numbers": ["science", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Infantry", 8],
+            "numbers": ["Infantry", 16],
         }],
         advancement_level=7,
     )
@@ -1040,7 +1040,7 @@ class CIVS():
             "numbers": ["food", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Bazooka", 8],
+            "numbers": ["Bazooka", 16],
         }],
         advancement_level=7,
     )
@@ -1051,7 +1051,7 @@ class CIVS():
             "numbers": ["wood", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Bazooka", 8],
+            "numbers": ["Bazooka", 16],
         }],
         advancement_level=7,
     )
@@ -1070,7 +1070,7 @@ class CIVS():
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rocket Launcher", 8],
+            "numbers": ["Rocket Launcher", 16],
         }],
         advancement_level=7,
     )
@@ -1081,7 +1081,7 @@ class CIVS():
             "numbers": ["metal", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rocket Launcher", 8],
+            "numbers": ["Rocket Launcher", 16],
         }],
         advancement_level=7,
     )
@@ -1092,7 +1092,7 @@ class CIVS():
             "numbers": ["wood", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Infantry", 8],
+            "numbers": ["Infantry", 16],
         }],
         advancement_level=7,
     )
