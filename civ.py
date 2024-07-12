@@ -249,6 +249,18 @@ class Civ:
     def refresh_queues_cache(self, game_state: 'GameState'):
         self.buildings_in_all_queues = [entry.template.name for city in self.get_my_cities(game_state) for entry in city.buildings_queue]
 
+    def bot_predecline_moves(self, game_state: 'GameState') -> None:
+        for city in self.get_my_cities(game_state):
+            if city.can_militarize:
+                city.militarize(game_state)
+        for city in self.get_my_cities(game_state):
+            if city.can_urbanize:
+                city.urbanize(game_state)
+        for city in self.get_my_cities(game_state):
+            if city.can_expand:
+                city.expand(game_state)
+        self.bot_found_cities(game_state)
+
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
         """
         Returns the coords of the location to decline to, or None if I shouldn't decline.
@@ -393,12 +405,7 @@ class Civ:
 
         game_state.refresh_foundability_by_civ()
 
-        while not self.in_decline and self.city_power >= 100 and not self.template.name == 'Barbarians':
-            choices = [hex for hex in game_state.hexes.values() if hex.is_foundable_by_civ.get(self.id)]
-            if len(choices) == 0:
-                break
-            hex = max(choices, key=lambda h: (sum([n.yields for n in h.get_neighbors(game_state.hexes, include_self=True)], start=Yields()).total(), random.random()))
-            game_state.found_city_for_civ(self, hex, generate_unique_id())
+        self.bot_found_cities(game_state)
 
         my_production_cities = [city for city in self.get_my_cities(game_state) if city.is_territory_capital]
 
@@ -407,6 +414,14 @@ class Civ:
         self.midturn_update(game_state)
         for city in sorted(my_production_cities, key=lambda c: c.population, reverse=True):
             city.bot_move(game_state)
+
+    def bot_found_cities(self, game_state: 'GameState') -> None:
+        while not self.in_decline and self.city_power >= 100 and not self.template.name == 'Barbarians':
+            choices = [hex for hex in game_state.hexes.values() if hex.is_foundable_by_civ.get(self.id)]
+            if len(choices) == 0:
+                break
+            hex = max(choices, key=lambda h: (sum([n.yields for n in h.get_neighbors(game_state.hexes, include_self=True)], start=Yields()).total(), random.random()))
+            game_state.found_city_for_civ(self, hex, generate_unique_id())
 
     def renaissance_cost(self) -> float:
         base_cost = 100 * self.get_advancement_level()

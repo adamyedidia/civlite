@@ -884,6 +884,7 @@ class GameState:
             if (game_player is None or game_player.is_bot) and not civ.template.name == 'Barbarians':
                 # decline if they want to
                 if game_player and not civ.in_decline and (decline_coords := civ.bot_decide_decline(self)):
+                    civ.bot_predecline_moves(self)
                     self.execute_decline(decline_coords, game_player)
                     new_civ_id = game_player.civ_id
                     assert new_civ_id is not None
