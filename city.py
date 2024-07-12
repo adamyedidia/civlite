@@ -735,16 +735,31 @@ class City:
         return bldgs
 
     @property
+    def expand_used(self):
+        return self.civ.id in self.expanded_by_civ_ids
+
+    @property
     def can_expand(self):
-        return (self.civ.id not in self.expanded_by_civ_ids) \
+        return (not self.expand_used) \
             and self.num_buildings_of_type("rural", include_in_queue=False) >= self.rural_slots \
             and self.military_slots + self.urban_slots + self.rural_slots < MAX_SLOTS \
             # and self.civ.game_player is not None  # Removing this to make more expansions happen over time.
+    @property
+    def cant_expand_reason(self) -> str | None:
+        if self.expand_used:
+            return "Expansion already used"
+        if self.num_buildings_of_type("rural", include_in_queue=False) < self.rural_slots:
+            return "Rural building slots not full"
+        if self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
+            return "City is fat maxmimum slots"
+        if self.civ.city_power < DEVELOP_COST['rural'] or (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
+            return f"Not enough city power ({int(self.civ.city_power)} / {DEVELOP_COST['rural']})"
+        return None
 
     def expand(self, game_state):
         # TODO merge this with _develop()
         if STRICT_MODE:
-            assert self.can_expand
+            assert self.cant_expand_reason is None
         self.rural_slots += 1
         self.expanded_by_civ_ids.append(self.civ.id)
         if not (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
@@ -1040,7 +1055,7 @@ class City:
             self.urbanize(game_state)
         if self.can_militarize and (random.random() < AI.CHANCE_MILITARIZE or favorite_development == 'unit'):
             self.militarize(game_state)
-        if self.can_expand and (random.random() < AI.CHANCE_EXPAND or favorite_development == 'rural'):
+        if self.cant_expand_reason is None and (random.random() < AI.CHANCE_EXPAND or favorite_development == 'rural'):
             self.expand(game_state)
         self.midturn_update(game_state)
 
@@ -1176,7 +1191,8 @@ class City:
             "growth_cost": self.growth_cost(),
             "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
             "expanded_by_civ_ids": self.expanded_by_civ_ids,
-            "can_expand": self.can_expand,
+            "expand_used": self.expand_used,
+            "cant_expand_reason": self.cant_expand_reason,
             "can_militarize": self.can_militarize,
             "can_urbanize": self.can_urbanize,
 

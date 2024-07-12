@@ -130,9 +130,9 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
-export const ExpandButton = ({ expandSufficientPower, handleClickDevelop, expandFree }) => {
-    return (
-        <div className={`existing-building-card expand ${expandSufficientPower || expandFree ? 'sufficient-power' : 'insufficient-power'}`} onClick={() => handleClickDevelop('rural')}>
+export const ExpandButton = ({ cantExpandReason, handleClickDevelop, expandFree }) => {
+    let content = (
+        <div className={`existing-building-card expand ${cantExpandReason ? 'disabled' : 'enabled'}`} onClick={() => handleClickDevelop('rural')}>
             <div>Expand</div>
             {expandFree ? (
                 <div className='price-label'>Free</div>
@@ -141,6 +141,10 @@ export const ExpandButton = ({ expandSufficientPower, handleClickDevelop, expand
             )}
         </div>
     );
+    if (cantExpandReason) {
+        content = <WithTooltip tooltip={cantExpandReason}>{content}</WithTooltip>
+    }
+    return content
 };
 
 export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, handleClickDevelop,

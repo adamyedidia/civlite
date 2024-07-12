@@ -285,8 +285,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
                 ))}
-                {selectedCity.can_expand && 
-                    <ExpandButton expandSufficientPower={myCiv.city_power > 25} handleClickDevelop={handleClickDevelop} expandFree={expandFree}/>
+                {!selectedCity.expand_used && 
+                    <ExpandButton cantExpandReason={selectedCity.cant_expand_reason} handleClickDevelop={handleClickDevelop} expandFree={expandFree}/>
                 }
             </div>
             <div className="wonders-container">

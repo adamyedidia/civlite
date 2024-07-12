@@ -84,7 +84,7 @@
     width: 100px;
     height: 60px;
 }
-.existing-building-card.expand.insufficient-power {
+.existing-building-card.expand.disabled {
     opacity: .5;
 }
 
@@ -94,7 +94,7 @@
     align-self: center;
 }
 
-.existing-building-card.expand.sufficient-power:hover {
+.existing-building-card.expand.enabled:hover {
     cursor: pointer;
     background: #eecab7;
     transform: scale(1.2);
