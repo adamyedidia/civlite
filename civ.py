@@ -257,7 +257,7 @@ class Civ:
             if city.can_urbanize:
                 city.urbanize(game_state)
         for city in self.get_my_cities(game_state):
-            if city.can_expand:
+            if city.cant_expand_reason is None:
                 city.expand(game_state)
         self.bot_found_cities(game_state)
 

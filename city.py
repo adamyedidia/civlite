@@ -740,15 +740,11 @@ class City:
         return self.civ.id in self.expanded_by_civ_ids
 
     @property
-    def can_expand(self):
-        return (not self.expand_used) \
-            and self.num_buildings_of_type("rural", include_in_queue=False) >= self.rural_slots \
-            and self.military_slots + self.urban_slots + self.rural_slots < MAX_SLOTS \
-            # and self.civ.game_player is not None  # Removing this to make more expansions happen over time.
-    @property
     def cant_expand_reason(self) -> str | None:
         if self.expand_used:
             return "Expansion already used in this city"
+        if not self.is_territory_capital:
+            return "Can't expand in puppets."
         if self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
             return "City is at maxmimum slots"
         if self.civ.city_power < DEVELOP_COST['rural'] or (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
