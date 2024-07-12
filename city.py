@@ -7,7 +7,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
-from local_settings import GOD_MODE
+from settings import GOD_MODE
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
 from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY, FRESH_CITY_VITALITY_PER_TURN, REVOLT_VITALITY_PER_TURN, REVOLT_VITALITY_PER_UNHAPPINESS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE

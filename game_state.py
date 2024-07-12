@@ -10,7 +10,7 @@ from city import City, get_city_name_for_civ
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
-from local_settings import GOD_MODE
+from settings import GOD_MODE
 from unit_template import UnitTemplate
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo

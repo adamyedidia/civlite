@@ -2,7 +2,7 @@ import random
 from typing import TYPE_CHECKING, Any, Generator, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
-from local_settings import GOD_MODE
+from settings import GOD_MODE
 from wonder_templates_list import WONDERS
 from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_people_by_name
 from civ_template import CivTemplate
