@@ -21,7 +21,7 @@ class BUILDINGS():
         prereq=TECHS.FORESTRY,
         abilities=[{
             "name": "UnitsExtraStrengthByAge",
-            "numbers": [1, 1],
+            "numbers": [1, 2],
         }],
     )
     SLAVE_TRADE = BuildingTemplate(
@@ -38,7 +38,7 @@ class BUILDINGS():
         prereq=TECHS.IRRIGATION,
         abilities=[{
             "name": "UnitsExtraStrengthByTag",
-            "numbers": [UnitTag.MOUNTED, 1],
+            "numbers": [UnitTag.MOUNTED, 2],
         }],
     )
     GRANARY = BuildingTemplate(
@@ -186,7 +186,7 @@ class BUILDINGS():
         prereq=TECHS.MILITARY_SCIENCE,
         abilities=[{
             "name": "UnitsExtraStrengthByAge",
-            "numbers": [4, 5],
+            "numbers": [4, 10],
         }],
     )
     OBSERVATORY = BuildingTemplate(
