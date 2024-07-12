@@ -24,3 +24,13 @@
 .arrow.attack:after {
     border-left-color: black;
 }
+
+.arrow.support {
+    background-image: linear-gradient(to right, rgba(0, 0, 255, 0.5), white);
+    border-style: none;
+    height: 3px;
+}
+
+.arrow.support:after {
+    display: none;
+}

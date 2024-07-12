@@ -2332,7 +2332,9 @@ export default function GamePage() {
 
         if (arrowType === 'attack') {
             arrow.classList.add("attack");
-        } 
+        } else if (arrowType === 'support') {
+            arrow.classList.add("support");
+        }
 
         document.body.appendChild(arrow);
 
@@ -2393,6 +2395,9 @@ export default function GamePage() {
                         playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
                     }
                     showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
+                    json.data.support_coords.forEach(coords => {
+                        showSingleMovementArrow(coords[0], coords[1], 'support');
+                    })
                     setGameState(json.game_state);
                     break;
                 default:

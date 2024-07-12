@@ -200,7 +200,7 @@ class Unit:
             'support': 1,
         }
         seiging_my_city: bool = (target.hex.city is not None and target.hex.city.civ == self.civ and len(target.hex.units) > 0 and target.hex.units[0].civ != self.civ)
-        closest_target: Hex = self.destination or self.hex
+        closest_target: 'Hex' = self.destination or self.hex
         is_vandetta_civ: bool = target.civ.id == self.civ.vandetta_civ_id
         return seiging_my_city, is_vandetta_civ, -closest_target.distance_to(target.hex), type_scores[target.template.type], -target.strength
 
@@ -224,16 +224,16 @@ class Unit:
         # This is a very scientific formula
         return int(round(40 ** sqrt(ratio_of_strengths)))
 
-    def compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit', battle_location: 'Hex') -> int:
+    def compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit', battle_location: 'Hex',  support_hexes: set[tuple['Hex', 'Hex']] = set()) -> int:
         bonus_strength = 0
 
         if self.has_ability('BonusNextTo') and self.hex is not None:
             unit_type: str = self.numbers_of_ability('BonusNextTo')[0]
             for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
                 for unit in neighboring_hex.units:
-                    if unit.template.has_tag_by_name(unit_type):
+                    if unit.template.has_tag_by_name(unit_type) and unit.civ == self.civ:
                         bonus_strength += self.numbers_of_ability('BonusNextTo')[1]
-                        break
+                        support_hexes.add((neighboring_hex, self.hex))
 
         if self.has_ability('BonusAgainst'):
             unit_type: str = self.numbers_of_ability('BonusAgainst')[0]
@@ -241,17 +241,23 @@ class Unit:
                 bonus_strength += self.numbers_of_ability('BonusAgainst')[1]
 
         af_bonus = 0
+        af_city = None
         for city in self.civ.get_my_cities(game_state):
             assert city.hex is not None and battle_location is not None
             for ability, _ in city.passive_building_abilities_of_name('Airforce'):
                 if city.hex.distance_to(battle_location) <= ability.numbers[1]:
                     af_bonus = max(af_bonus, ability.numbers[0])
+                    af_city = city
+
+        if af_city is not None:
+            assert af_city.hex is not None and self.hex is not None
+            support_hexes.add((af_city.hex, self.hex))
 
         return bonus_strength + af_bonus
 
-    def punch(self, game_state: 'GameState', target: 'Unit', battle_location: 'Hex', damage_reduction_factor: float = 1.0) -> None:
-        self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target, battle_location)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
-        target.effective_strength = target.strength + target.compute_bonus_strength(game_state, self, battle_location)
+    def punch(self, game_state: 'GameState', target: 'Unit', battle_location: 'Hex', damage_reduction_factor: float = 1.0, support_hexes: set[tuple['Hex', 'Hex']] = set()) -> None:
+        self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target, battle_location, support_hexes)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
+        target.effective_strength = target.strength + target.compute_bonus_strength(game_state, self, battle_location, support_hexes)
         target.take_damage(self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength), from_civ=self.civ, game_state=game_state)
 
     def take_damage(self, amount: float, game_state: 'GameState', from_civ: Civ | None, from_unit: 'Unit | None' = None):
@@ -279,22 +285,23 @@ class Unit:
 
         self_hex_coords = self.hex.coords
         target_hex_coords = target.hex.coords
+        support_hexes: set[tuple['Hex', 'Hex']] = set()  # list of hexes that supported the battle for anmation. Updated a side effect of punch
 
         self_hex = self.hex
         target_hex = target.hex
 
-        self.punch(game_state, target, battle_location=target_hex)
+        self.punch(game_state, target, battle_location=target_hex, support_hexes=support_hexes)
 
         if self.has_ability('Splash'):
             for neighboring_hex in target_hex.get_neighbors(game_state.hexes):
                 for unit in neighboring_hex.units:
                     if unit.civ != self.civ:
-                        self.punch(game_state, unit, damage_reduction_factor=self.numbers_of_ability('Splash')[0], battle_location=target_hex)
+                        self.punch(game_state, unit, damage_reduction_factor=self.numbers_of_ability('Splash')[0], battle_location=target_hex, support_hexes=support_hexes)
 
         if self.template.has_tag(UnitTag.RANGED):
             pass
         else:
-            target.punch(game_state, self, battle_location=target_hex)
+            target.punch(game_state, self, battle_location=target_hex, support_hexes=support_hexes)
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
@@ -303,6 +310,7 @@ class Unit:
                             else ("gunpowder_melee" if not self.template.has_tag(UnitTag.RANGED) else "gunpowder_ranged"),
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
+            "support_coords": [(hex1.coords, hex2.coords) for hex1, hex2 in support_hexes],
         }, hexes_must_be_visible=[self_hex, target_hex], no_commit=True)
 
         if self.has_ability('Missile'):
