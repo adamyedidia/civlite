@@ -747,13 +747,11 @@ class City:
     @property
     def cant_expand_reason(self) -> str | None:
         if self.expand_used:
-            return "Expansion already used"
-        if self.num_buildings_of_type("rural", include_in_queue=False) < self.rural_slots:
-            return "Rural building slots not full"
+            return "Expansion already used in this city"
         if self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
-            return "City is fat maxmimum slots"
+            return "City is at maxmimum slots"
         if self.civ.city_power < DEVELOP_COST['rural'] or (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
-            return f"Not enough city power ({int(self.civ.city_power)} / {DEVELOP_COST['rural']})"
+            return f"City power ({int(self.civ.city_power)} / {DEVELOP_COST['rural']})"
         return None
 
     def expand(self, game_state):
