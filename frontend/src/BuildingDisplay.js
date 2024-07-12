@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import UnitDisplay from './UnitDisplay';
 import './BuildingDisplay.css';
 import woodImg from './images/wood.png';
@@ -188,12 +188,28 @@ export const ExistingMilitaryBuildingDisplay = ({ unitBuilding, templates, handl
     const unitName = unitBuilding?.template_name;
     const unit = templates.UNITS?.[unitName];
     const display_num = unitBuilding?.projected_unit_count > 3 ? 1 : unitBuilding?.projected_unit_count;
+    const nameRef = useRef(null);
+
+    useEffect(() => {
+        const element = nameRef.current;
+        let fontSize = 16;
+        const maxWidth = element.parentNode.offsetWidth - 10;
+
+        element.style.fontSize = `${fontSize}px`;
+
+        // Adjust font size until the text fits or reaches the minimum font size
+        while (element.scrollWidth > maxWidth && fontSize > 4) {
+            fontSize--; // Decrease the font size
+            element.style.fontSize = `${fontSize}px`; // Apply the new font size
+        }
+    }, []);
+
     return (
         <div className={`existing-building-card military ${unitBuilding?.delete_queued ? 'delete-queued' : ''} ${unitBuilding?.active ? 'infinite-queue' : ''} ${handleSetInfiniteQueue ? 'enabled' : 'disabled'}`} 
             onMouseEnter={() => setHoveredUnit(unit)} onMouseLeave={() => setHoveredUnit(null)}
             onClick={handleSetInfiniteQueue ? () => handleSetInfiniteQueue(unitName) : null}
         >
-            {unitName && <div className="building-name">{unit.building_name || ""}</div>}
+            {unitName && <div ref={nameRef} className="building-name">{unit.building_name || ""}</div>}
             {unitName && unitBuilding.active && <div className="build-num">
                 {Array.from(({length: display_num})).map((_, index) => 
                 <IconUnitDisplay
