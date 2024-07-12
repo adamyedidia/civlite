@@ -171,6 +171,13 @@
     white-space: nowrap;
 }
 
+.existing-building-card .queued-bldg-name {
+    font-weight: bold;
+    opacity: 0.3;
+    text-align: center;
+    margin-top: 20px;
+}
+
 .yields-display {
     display: flex;
     flex-direction: row;

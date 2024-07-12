@@ -148,13 +148,33 @@ export const ExpandButton = ({ cantExpandReason, handleClickDevelop, expandFree 
 };
 
 export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, handleClickDevelop,
-    militarizeBtn, urbanizeBtn, canAffordDevelop, militarizeFree, urbanizeFree
+    militarizeBtn, urbanizeBtn, canAffordDevelop, militarizeFree, urbanizeFree, queuedBldg
 }) => {
     const building = templates.BUILDINGS?.[buildingName];
     const developButtons = militarizeBtn || urbanizeBtn;
+    const nameRef = useRef(null);
+
+    useEffect(() => {
+        if (!nameRef.current) return;
+        const element = nameRef.current;
+        let fontSize = 16;
+        const maxWidth = element.parentNode.offsetWidth - 10;
+
+        element.style.fontSize = `${fontSize}px`;
+
+        // Adjust font size until the text fits or reaches the minimum font size
+        while (element.scrollWidth > maxWidth && fontSize > 4) {
+            fontSize--; // Decrease the font size
+            element.style.fontSize = `${fontSize}px`; // Apply the new font size
+        }
+    }, []);
+
     return (
         <div className={`existing-building-card ${emptyType || building?.type}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
-            <div className="building-name">{buildingName || ""}</div>
+            {buildingName && <div className="building-name" ref={nameRef}>{buildingName}</div>}
+            {queuedBldg && <div className="queued-bldg-name">
+                {queuedBldg.template_name}
+            </div>}
             {yields?.[buildingName] && 
                 <YieldsDisplay yields={yields[buildingName]} />
             }
@@ -184,13 +204,16 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
     );
 };
 
-export const ExistingMilitaryBuildingDisplay = ({ unitBuilding, templates, handleSetInfiniteQueue, setHoveredUnit}) => {
+export const ExistingMilitaryBuildingDisplay = ({ unitBuilding, queuedBldg, templates, handleSetInfiniteQueue, setHoveredUnit}) => {
+    // TODO: this code is very duplicative with ExistingBuildingDisplay above.
     const unitName = unitBuilding?.template_name;
     const unit = templates.UNITS?.[unitName];
     const display_num = unitBuilding?.projected_unit_count > 3 ? 1 : unitBuilding?.projected_unit_count;
     const nameRef = useRef(null);
 
     useEffect(() => {
+        if (!nameRef.current) return;
+
         const element = nameRef.current;
         let fontSize = 16;
         const maxWidth = element.parentNode.offsetWidth - 10;
@@ -210,6 +233,7 @@ export const ExistingMilitaryBuildingDisplay = ({ unitBuilding, templates, handl
             onClick={handleSetInfiniteQueue ? () => handleSetInfiniteQueue(unitName) : null}
         >
             {unitName && <div ref={nameRef} className="building-name">{unit.building_name || ""}</div>}
+            {queuedBldg && <div className="queued-bldg-name">{templates.UNITS[queuedBldg.template_name].building_name || ""}</div>}
             {unitName && unitBuilding.active && <div className="build-num">
                 {Array.from(({length: display_num})).map((_, index) => 
                 <IconUnitDisplay

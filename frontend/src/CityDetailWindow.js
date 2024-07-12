@@ -211,6 +211,10 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         </div>
     }
 
+    const ruralBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type == "rural");
+    const urbanBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type == "urban");
+    const militaryBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.UNITS?.[entry.template_name]);
+
     return (
         <div className="city-detail-window" 
             style={{borderColor: myCivTemplate?.secondary_color}}>
@@ -255,7 +259,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     />
                 ))}
                 {Array.from({ length: selectedCity?.military_slots - selectedCity?.unit_buildings.length }).map((_, index) => (
-                    <ExistingMilitaryBuildingDisplay key={`empty-${index}`} unitName={null} templates={templates} setHoveredUnit={setHoveredUnit}/>
+                    <ExistingMilitaryBuildingDisplay key={`empty-${index}`} unitName={null} templates={templates} setHoveredUnit={setHoveredUnit} queuedBldg={militaryBldgsInQueue?.[index]}/>
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
                     building.type=="rural" &&
@@ -267,6 +271,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} 
                         emptyType="rural"
+                        queuedBldg={ruralBldgsInQueue?.[index]}
                         militarizeBtn={selectedCity?.can_militarize && index === 0}
                         militarizeFree={militarizeFree}
                         urbanizeBtn={selectedCity?.can_urbanize && index === 0}
@@ -283,7 +288,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     slotsFull={selectedCity.building_slots_full.urban}/>
                 ))}
                 {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
-                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban"/>
+                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban" queuedBldg={urbanBldgsInQueue?.[index]}/>
                 ))}
                 {!selectedCity.expand_used && !puppet && !declinePreviewMode &&
                     <ExpandButton cantExpandReason={selectedCity.cant_expand_reason} handleClickDevelop={handleClickDevelop} expandFree={expandFree}/>
