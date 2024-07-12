@@ -59,6 +59,7 @@ class City:
         self.buildings_queue: list[QueueEntry] = []
         self.buildings: list[Building] = []
         self.unit_buildings: list[UnitBuilding] = [UnitBuilding(UNITS.WARRIOR)]
+        self.unit_buildings[0].active = True
         self.available_city_buildings: list[BuildingTemplate] = []
         self.available_wonders: list[WonderTemplate] = []
         self.available_unit_buildings: list[UnitTemplate] = []
