@@ -1,7 +1,7 @@
 from typing import Union, Optional
 
 from ability import Ability
-from abilities_list import ABILITIES, UNIT_ABILITIES
+from abilities_list import UNIT_ABILITIES
 from tech_templates_list import TECHS
 from tech_template import TechTemplate
 from enum import Enum

@@ -1,4 +1,4 @@
-from typing import Optional, Union, TYPE_CHECKING
+from typing import Optional, Union
 from enum import Enum
 
 from abilities_list import BUILDING_ABILITIES

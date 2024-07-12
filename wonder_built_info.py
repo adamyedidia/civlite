@@ -1,6 +1,3 @@
-from civ import Civ
-from city import City
-
 class WonderBuiltInfo:
     def __init__(self, turn_num: int) -> None:
         self.infos: list[tuple[str, str]] = []

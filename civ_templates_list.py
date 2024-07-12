@@ -2,7 +2,6 @@ from typing import Generator
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from effects_list import BuildBuildingEffect, BuildUnitsEffect, GainResourceEffect, GrowEffect, ResetHappinessThisCityEffect
-from terrain_templates_list import TERRAINS
 from unit_templates_list import UNITS
 
 def player_civs(min_advancement_level=0, max_advancement_level=9) -> Generator[CivTemplate, None, None]:

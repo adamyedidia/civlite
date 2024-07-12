@@ -1,6 +1,5 @@
-import itertools
 import math
-from typing import TYPE_CHECKING, Any, Generator, Iterable, Literal, Optional, Union
+from typing import TYPE_CHECKING, Generator, Literal, Optional, Union
 from building import Building, QueueEntry
 from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
@@ -14,14 +13,11 @@ from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CI
 from unit import Unit
 from unit_building import UnitBuilding
 from unit_template import UnitTemplate
-from unit_templates_list import UNITS, UNITS_BY_BUILDING_NAME
+from unit_templates_list import UNITS
 from wonder_template import WonderTemplate
-from wonder_templates_list import WONDERS
 from civ_templates_list import CIVS
 from utils import generate_unique_id
 import random
-from typing import Dict
-import traceback
 from city_names import CITY_NAMES_BY_CIV
 from yields import Yields
 

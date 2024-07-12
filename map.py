@@ -5,7 +5,6 @@ from terrain_templates_list import TERRAINS
 from hex import Hex
 from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY
 from utils import coords_str, get_all_coords_up_to_n
-from yields import Yields
 
 def infer_map_size_from_num_players(num_players: int) -> int:
     for map_size in range(100):

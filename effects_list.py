@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING, Callable, Literal
 
 from TechStatus import TechStatus
 from building_template import BuildingTemplate
-from terrain_template import TerrainTemplate
 from unit_templates_list import UNITS
 from effect import CityTargetEffect
 from unit_template import UnitTemplate

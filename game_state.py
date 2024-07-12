@@ -2,8 +2,6 @@ import math
 from typing import Any, Optional
 from animation_frame import AnimationFrame
 from building import QueueEntry
-from building_template import BuildingTemplate
-from building_templates_list import BUILDINGS
 from camp import Camp
 from collections import defaultdict
 from city import City, get_city_name_for_civ
@@ -11,20 +9,19 @@ from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
 from settings import GOD_MODE
-from unit_template import UnitTemplate
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
 from wonder_template import WonderTemplate
 from game_player import GamePlayer
 from hex import Hex
 from map import generate_decline_locations, is_valid_decline_location
-from redis_utils import rget_json, rlock, rset_json, rdel, rset, rget
+from redis_utils import rget_json, rlock, rdel, rset, rget
 from settings import STARTING_CIV_VITALITY, GAME_END_SCORE, BASE_SURVIVAL_BONUS, STRICT_MODE, SURVIVAL_BONUS_PER_AGE, EXTRA_GAME_END_SCORE_PER_PLAYER, BASE_WONDER_COST, WONDER_COUNT_FOR_PLAYER_NUM
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
 from unit import Unit
 import random
-from unit_templates_list import UNITS_BY_BUILDING_NAME, UNITS
+from unit_templates_list import UNITS
 from utils import dream_key, staged_moves_key, deterministic_hash
 
 from sqlalchemy import and_, func

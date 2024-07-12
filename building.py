@@ -1,6 +1,5 @@
-from enum import Enum
 import itertools
-from typing import Literal, Optional, Union
+from typing import Optional, Union
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from ability import Ability
