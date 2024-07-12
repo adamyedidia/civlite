@@ -60,8 +60,8 @@ class UNITS():
         tags=[UnitTag.INFANTRY],
         prereq=TECHS.BRONZE_WORKING,
         abilities=[{
-            "name": "BonusAgainst",
-            "numbers": [UnitTag.MOUNTED.value, 4],
+            "name": "DoubleBonusAgainst",
+            "numbers": [UnitTag.MOUNTED.value],
         }],
         great_people_names={
             "engineer": "Judah Maccabee",  # This doesn't super fit.
@@ -83,7 +83,7 @@ class UNITS():
         tags=[UnitTag.MOUNTED],
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": [UnitTag.RANGED.value, 5],
+            "numbers": [UnitTag.RANGED.value],
         }],
         great_people_names={
             "engineer": "Apollo",
@@ -124,7 +124,7 @@ class UNITS():
         prereq=TECHS.MATHEMATICS,
         abilities=[{
             "name": "BonusNextTo",
-            "numbers": [UnitTag.INFANTRY.value, 4],
+            "numbers": [UnitTag.INFANTRY.value],
         }],
         great_people_names={
             "engineer": "Vitruvius",
@@ -136,7 +136,7 @@ class UNITS():
         name="Horseman",
         building_name="Stable",
         type="military",
-        metal_cost=12,
+        metal_cost=15,
         wood_cost=15,
         strength=16,
         movement=2,
@@ -145,7 +145,7 @@ class UNITS():
         prereq=TECHS.HORSEBACK_RIDING,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": [UnitTag.SIEGE.value, 6],
+            "numbers": [UnitTag.RANGED.value],
         }],
         great_people_names={
             "engineer": "King Solomon",
@@ -166,8 +166,8 @@ class UNITS():
         tags=[UnitTag.RANGED, UnitTag.MOUNTED],
         prereq=TECHS.HORSEBACK_RIDING,
         abilities=[{
-            "name": "BonusAgainst",
-            "numbers": [UnitTag.INFANTRY.value, 8],
+            "name": "DoubleBonusAgainst",
+            "numbers": [UnitTag.INFANTRY.value],
         }],
         great_people_names={
             "engineer": "Hannibal Barca",
@@ -207,8 +207,8 @@ class UNITS():
         tags=[UnitTag.INFANTRY],
         prereq=TECHS.CIVIL_SERVICE,
         abilities=[{
-            "name": "BonusAgainst",
-            "numbers": [UnitTag.MOUNTED.value, 7],
+            "name": "DoubleBonusAgainst",
+            "numbers": [UnitTag.MOUNTED.value],
         }],
         great_people_names={
             "engineer": "Shaka Zulu",
@@ -230,7 +230,7 @@ class UNITS():
         prereq=TECHS.COMPASS,
         abilities=[{
             "name": "BonusNextTo",
-            "numbers": [UnitTag.SIEGE.value, 4],
+            "numbers": [UnitTag.SIEGE.value],
         }],
         great_people_names={
             "engineer": "Zhuge Liang",
@@ -252,7 +252,7 @@ class UNITS():
         prereq=TECHS.CHIVALRY,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": [UnitTag.RANGED.value, 8],
+            "numbers": [UnitTag.RANGED.value],
         }],
         great_people_names={
             "engineer": "Charlemagne",
@@ -273,7 +273,7 @@ class UNITS():
         prereq=TECHS.PHYSICS,
         abilities=[{
             "name": "BonusNextTo",
-            "numbers": [UnitTag.INFANTRY.value, 6],
+            "numbers": [UnitTag.INFANTRY.value],
         }],
         great_people_names={
             "engineer": "Saladin",
@@ -312,7 +312,7 @@ class UNITS():
         prereq=TECHS.METALLURGY,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": [UnitTag.DEFENSIVE.value, 10],
+            "numbers": [UnitTag.DEFENSIVE.value],
         }],
         great_people_names={
             "engineer": "Berthold the Black",
@@ -352,7 +352,7 @@ class UNITS():
         prereq=TECHS.MILITARY_SCIENCE,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": [UnitTag.SIEGE.value, 15],
+            "numbers": [UnitTag.RANGED.value],
         }],
         great_people_names={
             "engineer": "Gustavus Adolphus",
@@ -390,7 +390,7 @@ class UNITS():
         prereq=TECHS.INDUSTRIALIZATION,
         abilities=[{
             "name": "BonusAgainst",
-            "numbers": [UnitTag.INFANTRY.value, 15],
+            "numbers": [UnitTag.INFANTRY.value],
         }],
         great_people_names={
             "engineer": "Richard Gatling",
@@ -411,7 +411,7 @@ class UNITS():
         prereq=TECHS.DYNAMITE,
         abilities=[{
             "name": "BonusNextTo",
-            "numbers": [UnitTag.INFANTRY.value, 15],
+            "numbers": [UnitTag.INFANTRY.value],
         }],
         great_people_names={
             "engineer": "Henry Shrapnel",
@@ -465,8 +465,8 @@ class UNITS():
         tags=[UnitTag.RANGED, UnitTag.GUNPOWDER],
         prereq=TECHS.BALLISTICS,
         abilities=[{
-            "name": "BonusAgainst",
-            "numbers": [UnitTag.INFANTRY.value, 20],
+            "name": "DoubleBonusAgainst",
+            "numbers": [UnitTag.INFANTRY.value],
         }],
         great_people_names={
             "general_normal": "John J. Pershing", 
@@ -504,8 +504,8 @@ class UNITS():
         tags=[UnitTag.INFANTRY, UnitTag.GUNPOWDER, UnitTag.RANGED],
         prereq=TECHS.BALLISTICS,
         abilities=[{
-            "name": "BonusAgainst",
-            "numbers": [UnitTag.ARMORED.value, 30],
+            "name": "DoubleBonusAgainst",
+            "numbers": [UnitTag.ARMORED.value],
         }],
         great_people_names={
             "general_normal": "Jayne Cobb",

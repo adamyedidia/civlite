@@ -224,21 +224,29 @@ class Unit:
         # This is a very scientific formula
         return int(round(DAMAGE_EQUAL_STR ** (ratio_of_strengths ** DAMAGE_DOUBLE_EXPONENT)))
 
-    def compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit', battle_location: 'Hex',  support_hexes: set[tuple['Hex', 'Hex']] = set()) -> int:
-        bonus_strength = 0
+    def _compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit', battle_location: 'Hex',  support_hexes: set[tuple['Hex', 'Hex']] = set()) -> float:
+        assert self.hex is not None
+        bonuses = 0
 
-        if self.has_ability('BonusNextTo') and self.hex is not None:
+        if self.has_ability('BonusNextTo'):
             unit_type: str = self.numbers_of_ability('BonusNextTo')[0]
             for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
                 for unit in neighboring_hex.units:
                     if unit.template.has_tag_by_name(unit_type) and unit.civ == self.civ:
-                        bonus_strength += self.numbers_of_ability('BonusNextTo')[1]
+                        bonuses += 1
                         support_hexes.add((neighboring_hex, self.hex))
 
         if self.has_ability('BonusAgainst'):
             unit_type: str = self.numbers_of_ability('BonusAgainst')[0]
             if enemy.template.has_tag_by_name(unit_type):
-                bonus_strength += self.numbers_of_ability('BonusAgainst')[1]
+                bonuses += 1
+        if self.has_ability('DoubleBonusAgainst'):
+            unit_type: str = self.numbers_of_ability('DoubleBonusAgainst')[0]
+            if enemy.template.has_tag_by_name(unit_type):
+                bonuses += 2
+
+        # Each bonus gives 50% of base strength
+        bonus_strength = self.template.strength * (0.5 * bonuses)
 
         af_bonus = 0
         af_city = None
@@ -256,8 +264,8 @@ class Unit:
         return bonus_strength + af_bonus
 
     def punch(self, game_state: 'GameState', target: 'Unit', battle_location: 'Hex', damage_reduction_factor: float = 1.0, support_hexes: set[tuple['Hex', 'Hex']] = set()) -> None:
-        self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target, battle_location, support_hexes)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
-        target.effective_strength = target.strength + target.compute_bonus_strength(game_state, self, battle_location, support_hexes)
+        self.effective_strength = (self.strength + self._compute_bonus_strength(game_state, target, battle_location, support_hexes)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
+        target.effective_strength = target.strength + target._compute_bonus_strength(game_state, self, battle_location, support_hexes)
         target.take_damage(self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength), from_civ=self.civ, game_state=game_state)
 
     def take_damage(self, amount: float, game_state: 'GameState', from_civ: Civ | None, from_unit: 'Unit | None' = None):
@@ -327,7 +335,6 @@ class Unit:
             return        
         self.hex.units = [unit for unit in self.hex.units if unit.id != self.id]
         game_state.units = [unit for unit in game_state.units if unit.id != self.id]
-        self.hex = None        
 
     def die(self, game_state: 'GameState', killer: 'Unit | None'):
         if self.hex is None:
