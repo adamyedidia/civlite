@@ -31,7 +31,7 @@ const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) =
     }
 
     return <div className='make-territory-area'>
-        <WithTooltip tooltip={`Make this city a territory instead of a puppet. ${territoryReplacementCity ? `Will replace ${territoryReplacementCity.name} and bring its stores of wood & metal here.` : ""}`}>
+        <WithTooltip tooltip={`Make this city a territory instead of a puppet. ${territoryReplacementCity ? `${territoryReplacementCity.name} will send its stores of wood & metal to its new parent.` : ""}`}>
         <Button
             variant="contained"
             style = {{
@@ -171,6 +171,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> : <><p>Food Demand {foodDemanded}:</p> <ul> 
         <li>{(gameState.turn_num - selectedCity.founded_turn)} from age (1/turn since founding turn {selectedCity.founded_turn})</li> 
         {numPuppets > 0 ? <li>-{2 * numPuppets} from puppets (-2/puppet) </li> : ""}
+        {selectedCity.food_demand_reduction_recent_owner_change > 0 ? <li>-{selectedCity.food_demand_reduction_recent_owner_change} from recent owner change</li> : ""}
         <li>Possibly other effects from buildings in this or other cities.</li>
         </ul> </>
 

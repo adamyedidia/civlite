@@ -496,7 +496,6 @@ class GameState:
             print(f"Declining to fresh city at {coords}")
             self.register_city(self.fresh_cities_for_decline[coords])
         assert hex.city is not None, "Failed to register city!"
-        hex.city.wood = hex.city.metal = hex.city.unhappiness = 0
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.advancement_level + 1)
         hex.city.civ_to_revolt_into = None
@@ -725,13 +724,16 @@ class GameState:
                     instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False)
                     instead_of_city.orphan_territory_children(self, make_new_territory=False)
                     instead_of_city.buildings_queue = []
+
                     # Take all the wood and metal over.
-                    city.wood += instead_of_city.wood
+                    new_parent = instead_of_city.get_territory_parent(self)
+                    assert new_parent is not None
+                    new_parent.wood += instead_of_city.wood
                     instead_of_city.wood = 0
-                    for bldg in instead_of_city.unit_buildings:
-                        city.metal += bldg.metal
+                    for bldg in new_parent.unit_buildings:
+                        new_parent.metal += bldg.metal
                         bldg.metal = 0
-                    city.metal += instead_of_city.metal
+                    new_parent.metal += instead_of_city.metal
                     instead_of_city.metal = 0
                 if previous_parent is not None and previous_parent.id != instead_of_city_id:
                     previous_parent.orphan_territory_children(self, make_new_territory=False)
@@ -1052,11 +1054,8 @@ class GameState:
         self.register_camp(Camp(self.barbarians, advancement_level=camp_level), self.hexes[coords])
 
     def populate_fresh_cities_for_decline(self) -> None:
-        print(f"Fresh cities before filter: {[c.name for c in self.fresh_cities_for_decline.values()]}")
         self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()
                                              if is_valid_decline_location(self.hexes[coords], self.hexes, [self.hexes[other_coords] for other_coords in self.fresh_cities_for_decline if other_coords != coords])}
-        print(f"***********************************")
-        print(f"Fresh cities after filter: {[c.name for c in self.fresh_cities_for_decline.values()]}")
         new_locations_needed = max(2 - len(self.fresh_cities_for_decline), 0)
         if new_locations_needed == 0 and random.random() < 0.2 * len(self.game_player_by_player_num):  # Make one new camp per player per 5 turns.
             # randomly retire one of them

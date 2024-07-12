@@ -10,7 +10,7 @@ from camp import Camp
 from local_settings import GOD_MODE
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
-from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, FRESH_CITY_VITALITY_PER_TURN, REVOLT_VITALITY_PER_TURN, REVOLT_VITALITY_PER_UNHAPPINESS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
+from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY, FRESH_CITY_VITALITY_PER_TURN, REVOLT_VITALITY_PER_TURN, REVOLT_VITALITY_PER_UNHAPPINESS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
 from unit import Unit
 from unit_building import UnitBuilding
 from unit_template import UnitTemplate
@@ -49,6 +49,7 @@ class City:
         self.metal = 0.0
         self.wood = 0.0
         self.food_demand = 0
+        self.food_demand_reduction_recent_owner_change: int = 0
         self.focus: str = 'food'
         self.rural_slots = 1
         self.urban_slots = 1
@@ -372,6 +373,8 @@ class City:
         if parent is not None:
             for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
                 result -= ability.numbers[0]
+
+        result -= self.food_demand_reduction_recent_owner_change
         result = max(result, 0)
         return result
 
@@ -383,6 +386,8 @@ class City:
 
         if GOD_MODE:
             self.revolting_starting_vitality *= 10
+        
+        self.food_demand_reduction_recent_owner_change = max(0, self.food_demand_reduction_recent_owner_change - FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY)
 
     def revolt_to_rebels_if_needed(self, game_state: 'GameState') -> None:
         if self.unhappiness >= 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None:
@@ -670,7 +675,9 @@ class City:
             unit.strength += ability.numbers[0]
 
         for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByTag'):
+            print(f"Build a {unit.template.name}; bldg buffs tag {ability.numbers}")
             if unit.template.has_tag(ability.numbers[0]):
+                print(f"{unit.template.name} has tag {ability.numbers[0]}")
                 unit.strength += ability.numbers[1]
         for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByAge'):
             if unit.template.advancement_level() >= ability.numbers[0]:
@@ -885,6 +892,13 @@ class City:
         self.clear_unit_builds()
         self.ever_controlled_by_civ_ids[civ.id] = True
 
+        self.unhappiness = 0
+        self.food_demand_reduction_recent_owner_change = FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE
+        self.wood = 0
+        self.metal = 0
+        for bldg in self.unit_buildings:
+            bldg.metal = 0
+
         # Update available stuff
         self.midturn_update(game_state)
 
@@ -914,11 +928,6 @@ class City:
 
         print(f"****Captured {self.name}****")
         self.capital = False
-        self.unhappiness = 0
-        self.wood = 0
-        self.metal = 0
-        for bldg in self.unit_buildings:
-            bldg.metal = 0
 
         if civ.id not in self.ever_controlled_by_civ_ids:
             civ.gain_vps(CITY_CAPTURE_REWARD, "City Capture (5/city)")
@@ -1036,17 +1045,19 @@ class City:
         self.midturn_update(game_state)
 
         # Don't build stationary units
-        available_units = [unit for unit in self.available_units if unit.movement > 0]
-        highest_level = max([effective_advancement_level(unit, slingers_better_than_warriors=True) for unit in available_units])
+
         self.clear_unit_builds()
-        if highest_level < self.civ.get_advancement_level() - 2 and not self.is_threatened_city(game_state):
-            print(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
-        elif highest_level < self.civ.get_advancement_level() - 4:
-            print(f"  not building units even though threatened, because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
-        else:
-            high_tier_units = [unit for unit in available_units if effective_advancement_level(unit, slingers_better_than_warriors=True) >= highest_level - 1]
-            for u in high_tier_units:
-                self.toggle_unit_build(u)
+        available_units = [unit for unit in self.available_units if unit.movement > 0 or self.is_threatened_city(game_state)]
+        if len(available_units) > 0:
+            highest_level = max([effective_advancement_level(unit, slingers_better_than_warriors=True) for unit in available_units])
+            if highest_level < self.civ.get_advancement_level() - 2 and not self.is_threatened_city(game_state):
+                print(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
+            elif highest_level < self.civ.get_advancement_level() - 4:
+                print(f"  not building units even though threatened, because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
+            else:
+                high_tier_units = [unit for unit in available_units if effective_advancement_level(unit, slingers_better_than_warriors=True) >= highest_level - 1]
+                for u in high_tier_units:
+                    self.toggle_unit_build(u)
 
         # Never steal from another city's queue
         wonders: list[WonderTemplate] = [w for w in self.available_wonders if w.name not in self.civ.buildings_in_all_queues]
@@ -1177,6 +1188,7 @@ class City:
             "civ_to_revolt_into": self.civ_to_revolt_into.name if self.civ_to_revolt_into else None,
             "is_decline_view_option": self.is_decline_view_option,
             "food_demand": self.food_demand,
+            "food_demand_reduction_recent_owner_change": self.food_demand_reduction_recent_owner_change,
             "revolt_unit_count": self.revolt_unit_count,
             "founded_turn": self.founded_turn,
 
@@ -1223,6 +1235,7 @@ class City:
         city._territory_parent_id = json["territory_parent_id"]
         city._territory_parent_coords = json["territory_parent_coords"]
         city.founded_turn = json["founded_turn"]
+        city.food_demand_reduction_recent_owner_change = json["food_demand_reduction_recent_owner_change"]
 
         return city
 
