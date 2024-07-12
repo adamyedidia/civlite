@@ -129,15 +129,20 @@ BUILDING_ABILITIES: dict[str, Callable] = {
 }
 
 UNIT_ABILITIES: dict[str, Callable] = {
-    "BonusAgainst": lambda x, y: Ability(
+    "BonusAgainst": lambda tag: Ability(
         name="BonusAgainst",
-        description=f"Has +{y} strength against {x} units.",
-        numbers=[x, y],
+        description=f"Bonus vs {tag} (+50%).",
+        numbers=[tag],
     ),
-    "BonusNextTo": lambda x, y: Ability(
+    "DoubleBonusAgainst": lambda tag: Ability(
+        name="DoubleBonusAgainst",
+        description=f"Double bonus vs {tag} (+100%).",
+        numbers=[tag],
+    ),
+    "BonusNextTo": lambda tag: Ability(
         name="BonusNextTo",
-        description=f"Has +{y} strength when next to friendly {x} units.",
-        numbers=[x, y],
+        description=f"Bonus next to friendly {tag} (+50%).",
+        numbers=[tag],
     ),
     "Splash": lambda x: Ability(
         name="Splash",
