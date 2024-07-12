@@ -3,7 +3,7 @@ from random import random, shuffle
 from typing import TYPE_CHECKING, Generator, Optional
 from civ import Civ
 from wonder_templates_list import WONDERS
-from settings import UNIT_KILL_REWARD
+from settings import UNIT_KILL_REWARD, DAMAGE_DOUBLE_EXPONENT, DAMAGE_EQUAL_STR
 from unit_template import UnitTemplate, UnitTag
 from unit_templates_list import UNITS
 from utils import generate_unique_id
@@ -222,7 +222,7 @@ class Unit:
         ratio_of_strengths = effective_strength / target_effective_strength
 
         # This is a very scientific formula
-        return int(round(40 ** sqrt(ratio_of_strengths)))
+        return int(round(DAMAGE_EQUAL_STR ** (ratio_of_strengths ** DAMAGE_DOUBLE_EXPONENT)))
 
     def compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit', battle_location: 'Hex',  support_hexes: set[tuple['Hex', 'Hex']] = set()) -> int:
         bonus_strength = 0
