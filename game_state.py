@@ -491,7 +491,9 @@ class GameState:
             # This is a fake city, now it is becoming a real city.
             old_civ: Optional[Civ] = None
             print(f"Declining to fresh city at {coords}")
-            self.register_city(self.fresh_cities_for_decline[coords])
+            city = self.fresh_cities_for_decline[coords]
+            self.register_city(city)
+            city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
         assert hex.city is not None, "Failed to register city!"
         hex.city.capitalize(self)
         hex.city.population = max(hex.city.population, self.advancement_level + 1)
@@ -1022,10 +1024,16 @@ class GameState:
             if city.civ_to_revolt_into is None:
                 civ_template = self.sample_new_civs(1).pop(0)
                 city.civ_to_revolt_into = civ_template
-                print(f"{city.name} => {city.civ_to_revolt_into=}")
         for id, city in self.cities_by_id.items():
             if id not in revolt_ids:
                 city.civ_to_revolt_into = None
+
+        # Update seen_by_players to include anything visible in the fog via the decline view.
+        for city in list(self.fresh_cities_for_decline.values()) + [city for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]:
+            assert city.hex is not None
+            for neighbor in city.hex.get_hexes_within_range(self.hexes, 2):
+                if neighbor.city is not None:
+                    neighbor.city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
 
     def sample_new_civs(self, n) -> list[CivTemplate]:
         decline_choice_big_civ_pool = []
