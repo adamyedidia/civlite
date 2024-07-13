@@ -148,20 +148,26 @@ class Hex:
             self.camp.hex = self
 
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
-        return {
+        result = {
             "q": self.q,
             "r": self.r,
             "s": self.s,
             "terrain": self.terrain.name,
-            **({
+        }
+        if from_civ_perspectives is None or any([self.visible_to_civ(from_civ_perspective) for from_civ_perspective in from_civ_perspectives]):
+            result.update({
                 "yields": self.yields.to_json(),
                 "units": [unit.to_json() for unit in self.units],
                 "city": self.city.to_json() if self.city else None,
                 "camp": self.camp.to_json() if self.camp else None,
                 "visibility_by_civ": self.visibility_by_civ,
                 "is_foundable_by_civ": self.is_foundable_by_civ,
-            } if (from_civ_perspectives is None or any([self.visible_to_civ(from_civ_perspective) for from_civ_perspective in from_civ_perspectives])) and self.yields is not None else {}),
-        }
+            })
+        elif self.city is not None and any([civ.game_player is not None and civ.game_player.player_num in self.city.seen_by_players for civ in from_civ_perspectives]):
+            result.update({
+                "fog_city_name": self.city.name,
+            })
+        return result
     
     @staticmethod
     def from_json(json: dict) -> "Hex":

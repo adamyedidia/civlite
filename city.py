@@ -75,6 +75,7 @@ class City:
         self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
         self.expanded_by_civ_ids: list[str] = []
+        self.seen_by_players: set[int] = set()
 
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
@@ -321,6 +322,7 @@ class City:
 
     def roll_turn_pre_harvest(self, game_state):
         """ All the turn roll stuff up to and including harvesting yields"""
+        self.update_seen_by_players(game_state)
         self.revolt_to_rebels_if_needed(game_state)
         self.harvest_yields(game_state)
 
@@ -341,6 +343,13 @@ class City:
 
         self.handle_unhappiness(game_state)
         self.midturn_update(game_state)
+
+    def update_seen_by_players(self, game_state: 'GameState') -> None:
+        assert self.hex is not None
+        for civ in game_state.civs_by_id.values():
+            if civ.game_player is not None:
+                if self.hex.visible_to_civ(civ):
+                    self.seen_by_players.add(civ.game_player.player_num)
 
     def roll_wonders(self, game_state: 'GameState') -> None:
         for bldg in self.buildings:
@@ -1198,6 +1207,7 @@ class City:
             "food_demand_reduction_recent_owner_change": self.food_demand_reduction_recent_owner_change,
             "revolt_unit_count": self.revolt_unit_count,
             "founded_turn": self.founded_turn,
+            "seen_by_players": list(self.seen_by_players),
 
             "is_trade_hub": self.is_trade_hub(),
         }
@@ -1243,6 +1253,7 @@ class City:
         city._territory_parent_coords = json["territory_parent_coords"]
         city.founded_turn = json["founded_turn"]
         city.food_demand_reduction_recent_owner_change = json["food_demand_reduction_recent_owner_change"]
+        city.seen_by_players = set(json["seen_by_players"])
 
         return city
 
