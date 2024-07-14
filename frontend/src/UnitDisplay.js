@@ -70,20 +70,24 @@ const UnitDisplay = ({ unit }) => {
     return (
         <div className="unit-card">
             <h2>{unit?.name || unit?.template?.name}</h2>
-            <div className="cost-row">
-                <div className="cost" style={unit.building_name ? {visibility: 'visible'} : {visibility: 'hidden'}}>
-                    <ShrinkFontText text={unit.building_name + ":"} startFontSize={16}/> 
-                    <div className="cost-itself">{unit.wood_cost} <img src={woodImg} alt="" width="auto" height="12" /></div>
+            <div className="subtitle-row">
+                <div className="cost-row">
+                    <div className="cost" style={unit.building_name ? {visibility: 'visible'} : {visibility: 'hidden'}}>
+                        <div className="cost-itself">{unit.wood_cost} <img src={woodImg} alt="" width="auto" height="12" /></div>
+                        <ShrinkFontText text={unit.building_name} startFontSize={16}/> 
+                    </div>
+                    <div className="cost">
+                        <div className="cost-itself">{unit.metal_cost} <img src={metalImg} alt="" width="auto" height="12" /></div>
+                        <ShrinkFontText text={unit.name} startFontSize={16}/>
+                    </div>
                 </div>
-                <div className="cost">
-                   <ShrinkFontText text={unit.name + ":"} startFontSize={16}/>
-                   <div className="cost-itself">{unit.metal_cost} <img src={metalImg} alt="" width="auto" height="12" /></div>
+                <div className="tags">
+                    {displayTags.map((tag, i) => (
+                        <div key={i} className="tag">{tag}</div>
+                    ))}
                 </div>
             </div>
             <div className="content">
-                <div className="tags">
-                    {displayTags.join(', ')}
-                </div>
                 <div className="abilities">
                     {unitAbilities?.map((ability) => (
                         <p key={ability.name}>{ability.description}</p>
