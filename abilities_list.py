@@ -33,6 +33,11 @@ CIV_ABILITIES: dict[str, Callable] = {
         description=f"{p.plural(x)} you build have +{y} strength.",
         numbers=[x, y],
     ),
+    "IncreasedStrengthForFirstUnit": lambda x, y: Ability(
+        name="IncreasedStrengthForFirstUnit",
+        description=f"The first {x} you build has +{y} strength.",
+        numbers=[x, y],
+    ),
     "ExtraVpsPerWonder": lambda x: Ability(
         name="ExtraVpsPerWonder",
         description=f"Receive {x} extra VP for each wonder you build.",

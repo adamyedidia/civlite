@@ -107,40 +107,40 @@ class CIVS():
     CARALANS = CivTemplate(
         name="Caralans",
         abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Warrior", 1]
+            "name": "IncreasedStrengthForFirstUnit",
+            "numbers": ["Warrior", 2]
         }],
         advancement_level=0,
     )
     TROY = CivTemplate(
         name="Troy",
         abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Slinger", 1]
+            "name": "IncreasedStrengthForFirstUnit",
+            "numbers": ["Slinger", 3]
         }],
         advancement_level=0,
     )    
     ELAMITES = CivTemplate(
         name="Elamites",
         abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Archer", 1]
+            "name": "IncreasedStrengthForFirstUnit",
+            "numbers": ["Archer", 3]
         }],
         advancement_level=0,
     )
     TEOTIHUACAN = CivTemplate(
         name="Teotihuacan",
         abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Spearman", 1]
+            "name": "IncreasedStrengthForFirstUnit",
+            "numbers": ["Spearman", 3]
         }],
         advancement_level=0,
     )
     SCYTHIANS = CivTemplate(
         name="Scythians",
         abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Chariot", 2]
+            "name": "IncreasedStrengthForFirstUnit",
+            "numbers": ["Chariot", 3]
         }],
         advancement_level=0,
     )

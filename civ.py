@@ -58,6 +58,7 @@ class Civ:
         self.max_territories: int = 3
         self.vandetta_civ_id: Optional[str] = None
         self.develop_used: dict[str, bool] = {'urban': False, 'unit': False}
+        self.increased_strength_for_unit_consumed: bool = False
 
         self.score_dict: dict[str, float] = {}
 
@@ -232,6 +233,7 @@ class Civ:
             "vandetta_civ_id": self.vandetta_civ_id,
             "score_dict": self.score_dict,
             "develop_used": self.develop_used,
+            "increased_strength_for_unit_consumed": self.increased_strength_for_unit_consumed,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -555,6 +557,7 @@ class Civ:
         civ.vandetta_civ_id = json.get("vandetta_civ_id")
         civ.score_dict = json["score_dict"]
         civ.develop_used = json["develop_used"]
+        civ.increased_strength_for_unit_consumed = json["increased_strength_for_unit_consumed"]
 
         return civ
 

@@ -677,6 +677,11 @@ class City:
             if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
                 unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
 
+        if self.civ.has_ability('IncreasedStrengthForFirstUnit') and not self.civ.increased_strength_for_unit_consumed:
+            if self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[0] == unit_template.name:
+                unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[1]
+                self.civ.increased_strength_for_unit_consumed = True
+
         for ability, _ in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
             unit.strength += ability.numbers[0]
 
@@ -1035,6 +1040,10 @@ class City:
             # treat my civ's unique unit as +1 adv level.
             if self.civ.has_ability('IncreasedStrengthForUnit'):
                 special_unit_name = self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0]
+                if unit.name == special_unit_name:
+                    return unit.advancement_level() + 1
+            if self.civ.has_ability('IncreasedStrengthForFirstUnit') and not self.civ.increased_strength_for_unit_consumed:
+                special_unit_name = self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[0]
                 if unit.name == special_unit_name:
                     return unit.advancement_level() + 1
             if unit == UNITS.SLINGER and slingers_better_than_warriors:
