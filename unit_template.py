@@ -71,6 +71,7 @@ class UnitTemplate:
             "abilities": [ability.to_json() for ability in self.abilities],
             "type": self.type,
             "prereq": self.prereq.name if self.prereq else None,
+            "advancement_level": self.advancement_level(),
         }
 
     

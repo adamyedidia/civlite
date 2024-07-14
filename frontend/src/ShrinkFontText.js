@@ -18,7 +18,7 @@ export const ShrinkFontText = ({className, startFontSize, text, allowWrap}) => {
             fontSize--; // Decrease the font size
             element.style.fontSize = `${fontSize}px`; // Apply the new font size
         }
-    }, []);
+    }, [text]);
 
     return <div className={className} ref={nameRef}>
         {text}

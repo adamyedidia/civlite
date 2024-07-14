@@ -28,7 +28,7 @@
     align-items: center;
     justify-content: flex-start;
     gap: 8px;
-    max-width: 150px;
+    max-width: 160px;
 }
 
 .unit-card .cost-row .cost .cost-itself {
@@ -42,6 +42,14 @@
     display: flex;
     justify-content: space-between;
     height: 16px;
+}
+
+.unit-card .stats .stat {
+    width: 30%;
+}
+
+.unit-card .stats .stat.range {
+    text-align: right;
 }
 
 .unit-card .stats .icon-bg-text {

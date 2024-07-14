@@ -114,7 +114,7 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
                 <h2>{unitTemplatesByBuildingName[buildingName]?.building_name}</h2>
                 <p>Cost: {unitTemplatesByBuildingName[buildingName]?.wood_cost} wood</p>
                 <div className="unlocked-units">
-                    <UnitDisplay unit={unitTemplatesByBuildingName[buildingName]} />
+                    <UnitDisplay template={unitTemplatesByBuildingName[buildingName]} />
                 </div>
             </div>
             :

@@ -89,7 +89,7 @@ const HexDisplay = ({ hoveredHex, templates }) => {
             {hoveredHex.city && <p>City: {hoveredHex.city.name} ({hoveredHex.city.population})</p>}
             <div className="hex-units">
                 {hoveredHex.units && hoveredHex.units.map((unit, index) => (
-                    <UnitDisplay key={index} unit={templates.UNITS[unit]} />
+                    <UnitDisplay key={index} template={templates.UNITS[unit]} />
                 ))}
             </div>
             {`${hoveredHex.q}, ${hoveredHex.r}, ${hoveredHex.s}`}

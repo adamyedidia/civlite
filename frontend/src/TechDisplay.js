@@ -18,7 +18,7 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
             <p>Cost: {tech.cost} science</p>
             <div className="unlocked-units">
                 {tech.unlocks_units && tech.unlocks_units.map((unitName, index) => (
-                    <UnitDisplay key={index} unit={templates.UNITS[unitName]} />
+                    <UnitDisplay key={index} template={templates.UNITS[unitName]} />
                 ))}
             </div>
             <div className="unlocked-units">
