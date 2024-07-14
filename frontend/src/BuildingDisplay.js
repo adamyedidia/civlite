@@ -8,6 +8,7 @@ import metalImg from './images/metal.png';
 import cityImg from './images/city.png';
 import { WithTooltip } from './WithTooltip';
 import { IconUnitDisplay } from './UnitDisplay';
+import { ShrinkFontText } from './ShrinkFontText';
 
 const SingleYieldDisplay = ({ yield_value, img }) => {
     const rounded_val = Number.isInteger(yield_value) ? yield_value : yield_value.toFixed(0);
@@ -152,26 +153,10 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
 }) => {
     const building = templates.BUILDINGS?.[buildingName];
     const developButtons = militarizeBtn || urbanizeBtn;
-    const nameRef = useRef(null);
-
-    useEffect(() => {
-        if (!nameRef.current) return;
-        const element = nameRef.current;
-        let fontSize = 16;
-        const maxWidth = element.parentNode.offsetWidth - 10;
-
-        element.style.fontSize = `${fontSize}px`;
-
-        // Adjust font size until the text fits or reaches the minimum font size
-        while (element.scrollWidth > maxWidth && fontSize > 4) {
-            fontSize--; // Decrease the font size
-            element.style.fontSize = `${fontSize}px`; // Apply the new font size
-        }
-    }, []);
 
     return (
         <div className={`existing-building-card ${emptyType || building?.type}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
-            {buildingName && <div className="building-name" ref={nameRef}>{buildingName}</div>}
+            {buildingName && <ShrinkFontText className="building-name" text={buildingName}/>}
             {queuedBldg && <div className="queued-bldg-name">
                 {queuedBldg.template_name}
             </div>}

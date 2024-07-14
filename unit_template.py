@@ -35,6 +35,9 @@ class UnitTemplate:
             prereq.unlocks_units.append(self)
         self.great_people_names = great_people_names
 
+        if self.range > 1:
+            assert self.has_tag(UnitTag.RANGED), f"Ranged unit {self.name} has range {self.range} but does not have the RANGED tag."
+
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"
 

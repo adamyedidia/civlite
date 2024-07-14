@@ -5,6 +5,8 @@
     border-radius: 5px;
     background-color: #bbbbbb;
     width: 80%;
+    max-width: 240px;
+    height: fit-content;
 }
 
 .unit-card h2 {
@@ -13,6 +15,54 @@
 
 .unit-card p {
     margin: 5px 0;
+}
+
+.unit-card .cost-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.unit-card .cost-row .cost {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 5px;
+    max-width: 110px;
+}
+
+.unit-card .cost-row .cost .cost-itself {
+    display: flex;
+    align-items: center;
+}
+
+.unit-card .stats {
+    display: flex;
+    justify-content: space-between;
+    height: 16px;
+}
+
+.unit-card .stats .icon-bg-text {
+    /* The big shield */
+    transform: translateY(-8px);
+}
+
+.unit-card .content {
+    border-top: 2px solid #000;
+    border-bottom: 2px solid #000;
+    margin: 5px 0;
+}
+
+.unit-card .abilities {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 60px;
+}
+
+.unit-card .strength-text {
+    font-size: 1.5em;
+    font-weight: bold;
 }
 
 .unit-title-card {
@@ -58,4 +108,10 @@
     background-repeat: no-repeat;
     background-position: center;
     border: 3px solid black;
+}
+
+.all-units-display {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
 }
