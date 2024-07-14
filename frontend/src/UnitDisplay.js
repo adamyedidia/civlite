@@ -118,8 +118,8 @@ export const AllUnitsDialog = ({ units, open, onClose }) => {
     const [sortBy, setSortBy] = useState("name");
     const sort_fn = (a) => 
         a.tags.includes("wondrous") * 100
-        + a.advancement_level * (sortBy === "age")
-        + a.strength * (sortBy === "strength")
+        + (sortBy === "age") * (a.advancement_level + 0.01 * a.metal_cost)
+        + (sortBy === "strength") * (a.strength)
     const sortedUnits = Object.values(units).sort((a, b) => sort_fn(a) - sort_fn(b) + 0.01 * (a.name.localeCompare(b.name)));
     return <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
         <DialogTitle>
