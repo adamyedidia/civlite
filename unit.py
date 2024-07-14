@@ -232,7 +232,7 @@ class Unit:
             unit_type: str = self.numbers_of_ability('BonusNextTo')[0]
             for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
                 for unit in neighboring_hex.units:
-                    if unit.template.has_tag_by_name(unit_type) and unit.civ == self.civ:
+                    if (unit_type is None or unit.template.has_tag_by_name(unit_type)) and unit.civ == self.civ:
                         bonuses += 1
                         support_hexes.add((neighboring_hex, self.hex))
 

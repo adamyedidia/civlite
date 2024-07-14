@@ -141,7 +141,7 @@ UNIT_ABILITIES: dict[str, Callable] = {
     ),
     "BonusNextTo": lambda tag: Ability(
         name="BonusNextTo",
-        description=f"Bonus next to friendly {tag} (+50%).",
+        description=f"Bonus next to friendly {tag} (+50%)." if tag is not None else "Bonus next to any friendly unit (+50%).",
         numbers=[tag],
     ),
     "Splash": lambda x: Ability(

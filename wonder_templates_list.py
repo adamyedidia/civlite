@@ -110,7 +110,7 @@ class WONDERS():
     # 4th century
     HIPPODROME = WonderTemplate(
         name="Hippodrome", age=3,
-        per_turn=BuildUnitsEffect(unit_template=UNITS.CHARIOT, num=2, extra_str=4),
+        per_turn=BuildUnitsEffect(unit_template=UNITS.CHARIOT, num=2, extra_str=1),
         abilities=[BUILDING_ABILITIES["DecreaseFoodDemand"](20, 0), BUILDING_ABILITIES["DecreaseFoodDemandPuppets"](20)]
         )
 
@@ -129,7 +129,7 @@ class WONDERS():
     # Gain city power & max territories?
     # FORBIDDEN_PALACE = WonderTemplate(name="Forbidden Palace", age=4)
     # 16th-17th century
-    HIMEJI_CASTLE = WonderTemplate(name="Himeji Castle", age=4, on_build=StrengthAllUnitsEffect(amount=2))
+    HIMEJI_CASTLE = WonderTemplate(name="Himeji Castle", age=4, on_build=StrengthAllUnitsEffect(amount=1))
     # 15th century
     SISTENE_CHAPEL = WonderTemplate(
         name="Sistene Chapel", age=4,
@@ -142,7 +142,7 @@ class WONDERS():
     ########################## Age 5 ##########################
 
     # 1791
-    BRANDENBURG_GATE = WonderTemplate(name="Brandenburg Gate", age=5, abilities=[BUILDING_ABILITIES["NewUnitsGainBonusStrength"](4)])
+    BRANDENBURG_GATE = WonderTemplate(name="Brandenburg Gate", age=5, abilities=[BUILDING_ABILITIES["NewUnitsGainBonusStrength"](2)])
 
     # 1849
     KREMLIN = WonderTemplate(

@@ -255,13 +255,20 @@ class GetGreatPersonEffect(CityTargetEffect):
 class ZigguratWarriorsEffect(CityTargetEffect):
     @property
     def description(self) -> str:
-        return "Your warriors get +1 strength & -5 health"
+        return "25% of your warriors get +1 strength & -10 health"
     
     def apply(self, city: 'City', game_state: 'GameState'):
-        for unit in game_state.units:
-            if unit.civ == city.civ and unit.template == UNITS.WARRIOR:
-                unit.strength += 1
-                unit.take_damage(5 * unit.get_stack_size(), game_state=game_state, from_civ=None)
+        my_warriors = [unit for unit in game_state.units if unit.civ == city.civ and unit.template == UNITS.WARRIOR]
+        total_num = sum(unit.get_stack_size() for unit in my_warriors)
+        num_buffs_float = total_num * 0.25
+        num_buffs = int(num_buffs_float) + (random.random() < num_buffs_float % 1)
+        random.shuffle(my_warriors)
+        for unit in my_warriors:
+            unit.strength += 1
+            unit.take_damage(10 * unit.get_stack_size(), game_state=game_state, from_civ=None)
+            num_buffs -= unit.get_stack_size()
+            if num_buffs <= 0:
+                break
 
 class EndGameEffect(CityTargetEffect):
     @property
