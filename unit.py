@@ -246,7 +246,7 @@ class Unit:
                 bonuses += 2
 
         # Each bonus gives 50% of base strength
-        bonus_strength = self.template.strength * (0.5 * bonuses)
+        bonus_strength = self.strength * (0.5 * bonuses)
 
         af_bonus = 0
         af_city = None
