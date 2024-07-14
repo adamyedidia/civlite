@@ -3155,7 +3155,7 @@ export default function GamePage() {
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
                         )}
                         {hoveredUnit && (
-                            <UnitDisplay unit={hoveredUnit} />
+                            hoveredUnit?.template === undefined ? <UnitDisplay template={hoveredUnit} /> : <UnitDisplay unit={hoveredUnit} />
                         )}
                         {hoveredWonder && (
                             <WonderHover wonder={hoveredWonder} templates={templates} />
