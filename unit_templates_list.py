@@ -56,7 +56,7 @@ class UNITS():
         building_name="Spear Lodge",
         type="military",
         metal_cost=6,
-        wood_cost=10,
+        wood_cost=5,
         strength=2,
         movement=1,
         range=1,
