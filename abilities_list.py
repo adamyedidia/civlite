@@ -141,7 +141,7 @@ UNIT_ABILITIES: dict[str, Callable] = {
     ),
     "Splash": lambda x: Ability(
         name="Splash",
-        description=f"Deals damage equivalent {'{:.0%}'.format(x)}% of strength to all enemy units adjacent to the target.",
+        description=f"Splash: Also attacks adjacent enemies at {'{:.0%}'.format(x)} strength.",
         numbers=[x],
     ),
     "ConvertKills": lambda: Ability(

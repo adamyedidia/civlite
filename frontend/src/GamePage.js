@@ -23,7 +23,7 @@ import CivDisplay from './CivDisplay';
 import TechDisplay from './TechDisplay';
 import HexDisplay, { YieldImages } from './HexDisplay';
 import BuildingDisplay from './BuildingDisplay';
-import UnitDisplay from './UnitDisplay';
+import UnitDisplay, { AllUnitsDialog } from './UnitDisplay';
 import WonderHover from './WonderHover';
 import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
@@ -402,6 +402,7 @@ export default function GamePage() {
     const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
     const [declinePreemptedDialogOpen, setDeclinePreemptedDialogOpen] = useState(false);
     const [declineFailedDialogOpen, setDeclineFailedDialogOpen] = useState(false);
+    const [allUnitsDialogOpen, setAllUnitsDialogOpen] = useState(false);
 
     const [turnTimer, setTurnTimer] = useState(-1);
 
@@ -3070,6 +3071,11 @@ export default function GamePage() {
                                     Settings
                                 </Button>
                             </Grid>
+                            <Grid item>
+                                <Button onClick={() => setAllUnitsDialogOpen(!allUnitsDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', left: '250px', bottom: '10px'}}>
+                                    Civilopedia: Units
+                                </Button>
+                            </Grid>
                         </Grid>}
                     {hoveredCiv && <CivDisplay civ={hoveredCiv} templates={templates} hoveredGamePlayer={hoveredGamePlayer}/>}
                     {hoveredHex && (
@@ -3487,6 +3493,7 @@ export default function GamePage() {
                     gameConstants={gameConstants}
                 />
             )}
+            {allUnitsDialogOpen && <AllUnitsDialog open={allUnitsDialogOpen} onClose={() => setAllUnitsDialogOpen(false)} units={templates.UNITS}/>}
             {declinePreemptedDialogOpen && <DeclinePreemptedDialog open={declinePreemptedDialogOpen} onClose={() => setDeclinePreemptedDialogOpen(false)}/>}
             {declineFailedDialogOpen && <DeclineFailedDialog open={declineFailedDialogOpen} onClose={() => setDeclineFailedDialogOpen(false)}/>}
         </div>

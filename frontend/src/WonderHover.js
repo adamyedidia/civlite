@@ -12,7 +12,7 @@ const WonderHover = ({ wonder, templates}) => {
                 <div>{wonder.vp_reward} vp</div>
                 </div>
                 {wonder.description.map((desc, i) => <p key={i}>{desc}</p>)}
-                {wonder.hover_unit_name && <UnitDisplay unit={templates.UNITS[wonder.hover_unit_name]} />}
+                {wonder.hover_unit_name && <UnitDisplay template={templates.UNITS[wonder.hover_unit_name]} />}
             </div>
 };
 

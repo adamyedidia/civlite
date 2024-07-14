@@ -1,6 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import './UnitDisplay.css'; // Assuming you have a separate CSS file for styling
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores.js';
+import woodImg from './images/wood.png';
+import metalImg from './images/metal.png';
+import shieldImg from './images/shield.png';
+import { TextOnIcon } from './TextOnIcon.js';
+import { 
+    Dialog, 
+    DialogTitle, 
+    Typography, 
+    IconButton,
+    Select,
+    MenuItem,
+} from '@mui/material';
+import { ShrinkFontText } from './ShrinkFontText.js';
 
 export const BriefUnitDisplayTitle = ({ title }) => {
     return (
@@ -47,28 +60,100 @@ export const IconUnitDisplay = ({ unitName, templates, style, onClick, setHovere
     );
 };
 
-const UnitDisplay = ({ unit }) => {
-    if (!unit) {
-        return null;
+const UnitDisplay = ({ template, unit }) => {
+    if (!template) {
+        if (!unit) {
+            return null;
+        }
+        template = unit.template;
     }
 
-    const unitAbilities = unit?.abilities?.length > 0 ? unit.abilities : unit?.template?.abilities
-
+    const strength = unit ? unit.strength : template.strength;
+    const shieldSize = strength >= 100 ? 80 : strength >= 10 ? 60 : 40;
+    const tags = template.tags;
+    const displayTags = tags.filter(tag => tag !== "gunpowder").sort();
     return (
         <div className="unit-card">
-            <h2>{unit?.name || unit?.template?.name}</h2>
-            {/* <p>Type: {unit.type}</p> */}
-            <p>Costs {unit?.metal_cost || unit?.template?.metal_cost} metal</p>
-            {unit?.building_name && <p>Building: {unit?.building_name || unit?.template?.building_name} (costs {unit?.wood_cost || unit?.template?.wood_cost} wood)</p>}
-            <p>Strength: {unit?.strength || unit?.template?.strength}</p>
-            <p>Movement: {unit?.movement || unit?.template?.movement}</p>
-            <p>Range: {unit?.range || unit?.template?.range}</p>
-            <p>{unit?.tags?.join(', ') || unit?.template?.tags?.join(', ')}</p>
-            {unitAbilities?.map((ability) => (
-                <p key={ability.name}>{ability.description}</p>
-            ))}
+            <h2>{template.name}</h2>
+            <div className="subtitle-row">
+                <div className="cost-row">
+                    <div className="cost" style={template.building_name ? {visibility: 'visible'} : {visibility: 'hidden'}}>
+                        <div className="cost-itself">{template.wood_cost} <img src={woodImg} alt="" width="auto" height="12" /></div>
+                        <ShrinkFontText text={template.building_name} startFontSize={16}/> 
+                    </div>
+                    <div className="cost">
+                        <div className="cost-itself">{template.metal_cost} <img src={metalImg} alt="" width="auto" height="12" /></div>
+                        <ShrinkFontText text={template.name} startFontSize={16}/>
+                    </div>
+                </div>
+                <div className="tags">
+                    {displayTags.map((tag, i) => (
+                        <div key={i} className="tag">{tag}</div>
+                    ))}
+                </div>
+            </div>
+            <div className="content">
+                <div className="abilities">
+                    {template.abilities.map((ability) => (
+                        <p key={ability.name}>{ability.description}</p>
+                    ))}
+                </div>
+            </div>
+            <div className="stats">
+                <div className="stat move">
+                    {template.movement > 0 ? `Move: ${template.movement}` : 'IMMOBILE'}
+                </div>
+                <TextOnIcon image={shieldImg} style={{ height: `${shieldSize}px`, width: `${shieldSize}px` }} offset={-shieldSize * 0.15}>
+                    <span className='strength-text'>{strength}</span>
+                </TextOnIcon>
+                <div className="stat range">
+                    {tags.includes('ranged') ? `Range: ${template.range}` : "Melee"}
+                </div>
+            </div>
         </div>
     );
+};
+
+export const AllUnitsDialog = ({ units, open, onClose }) => {
+    const [sortBy, setSortBy] = useState("name");
+    const sortedUnits = Object.values(units).sort((a, b) => 
+        (a.tags.includes("wondrous") - b.tags.includes("wondrous")) * 10000
+        + (a.advancement_level - b.advancement_level) * 100 * (sortBy === "age")
+        + (a.strength - b.strength) * 100 * (sortBy === "strength")
+        + (a.name.localeCompare(b.name))
+    );
+    return <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
+        <DialogTitle>
+            <Typography variant="h5" component="div" style={{ textAlign: 'center' }}>
+                All Units
+            </Typography>
+            <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={{
+                    position: 'absolute',
+                    left: 30,
+                    top: 8,
+                }}>
+                <MenuItem value="name">A-Z</MenuItem>
+                <MenuItem value="age">Age</MenuItem>
+                <MenuItem value="strength">Strength</MenuItem>
+            </Select>
+            <IconButton
+                aria-label="close"
+                onClick={onClose}
+                style={{
+                    position: 'absolute',
+                    right: 30,
+                    top: 8,
+                    color: (theme) => theme.palette.grey[500],
+                }}
+                color="primary"
+            >
+                Close
+            </IconButton>
+        </DialogTitle>
+        <div className="all-units-display">
+            {sortedUnits.map((unit, i) => <UnitDisplay key={i} template={unit} width="100"/>)}
+        </div>
+    </Dialog>
 };
 
 export default UnitDisplay;
