@@ -116,12 +116,11 @@ const UnitDisplay = ({ template, unit }) => {
 
 export const AllUnitsDialog = ({ units, open, onClose }) => {
     const [sortBy, setSortBy] = useState("name");
-    const sortedUnits = Object.values(units).sort((a, b) => 
-        (a.tags.includes("wondrous") - b.tags.includes("wondrous")) * 10000
-        + (a.advancement_level - b.advancement_level) * 100 * (sortBy === "age")
-        + (a.strength - b.strength) * 100 * (sortBy === "strength")
-        + (a.name.localeCompare(b.name))
-    );
+    const sort_fn = (a) => 
+        a.tags.includes("wondrous") * 100
+        + a.advancement_level * (sortBy === "age")
+        + a.strength * (sortBy === "strength")
+    const sortedUnits = Object.values(units).sort((a, b) => sort_fn(a) - sort_fn(b) + 0.01 * (a.name.localeCompare(b.name)));
     return <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
         <DialogTitle>
             <Typography variant="h5" component="div" style={{ textAlign: 'center' }}>

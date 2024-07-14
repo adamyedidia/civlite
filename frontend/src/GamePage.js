@@ -2298,9 +2298,13 @@ export default function GamePage() {
     }
    
     useEffect(() => {
+        console.log("Loading templates ...")
         fetch(`${URL}/api/templates`)
             .then(response => response.json())
-            .then(data => setTemplates(data));
+            .then(data => {
+                setTemplates(data);
+                console.log("Loaded templates: ", data);
+            });
         fetch(`${URL}/api/game_constants`)
             .then(response => response.json())
             .then(data => setGameConstants(data));
