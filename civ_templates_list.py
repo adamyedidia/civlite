@@ -116,7 +116,7 @@ class CIVS():
         name="Troy",
         abilities=[{
             "name": "IncreasedStrengthForFirstUnit",
-            "numbers": ["Slinger", 3]
+            "numbers": ["Slinger", 2]
         }],
         advancement_level=0,
     )    
