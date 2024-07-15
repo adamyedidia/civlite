@@ -156,7 +156,7 @@ class CIVS():
         name="Jomon",
         abilities=[{
             "name": "ExtraCityPower",
-            "numbers": [50]
+            "numbers": [100]
         }],
         advancement_level=0,
     )
@@ -182,9 +182,6 @@ class CIVS():
     GREECE = CivTemplate(
         name="Greece",
         abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["science", 2],
-        }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Spearman", 1],
         }],
@@ -193,9 +190,6 @@ class CIVS():
     GOKTURKS = CivTemplate(
         name="Gokturks",
         abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["metal", 2],
-        }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer", 1],
         }],
@@ -204,9 +198,6 @@ class CIVS():
     PERSIA = CivTemplate(
         name="Persia",
         abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["food", 2],
-        }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Spearman", 1],
         }],
@@ -219,16 +210,13 @@ class CIVS():
             "numbers": [100],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 2],
+            "numbers": ["Crossbowman", 1],
         }],
         advancement_level=1,
     )
     HUNS = CivTemplate(
         name="Huns",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["metal", 20],
-        }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer", 1],
         }],
@@ -237,8 +225,8 @@ class CIVS():
     CARTHAGE = CivTemplate(
         name="Carthage",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["food", 20],
+            "name": "OnDevelop",
+            "numbers": ["rural", BuildUnitsEffect(UNITS.HORSEMAN, 1)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horseman", 1],
@@ -263,7 +251,7 @@ class CIVS():
             "numbers": ["wood", 20],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 2],
+            "numbers": ["Knight", 1],
         }],
         advancement_level=1,
     )
@@ -274,16 +262,13 @@ class CIVS():
             "numbers": ["wood", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 2],
+            "numbers": ["Pikeman", 1],
         }],
         advancement_level=1,
     )
     JOSEON = CivTemplate(
         name="Joseon",
         abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["science", 2],
-        }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Chariot", 1],
         }],
@@ -296,7 +281,7 @@ class CIVS():
             "numbers": ["food", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 2],
+            "numbers": ["Crossbowman", 1],
         }],
         advancement_level=1,
     )
@@ -318,7 +303,7 @@ class CIVS():
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Trebuchet", 2],
+            "numbers": ["Trebuchet", 1],
         }],
         advancement_level=1,
     )
@@ -336,8 +321,8 @@ class CIVS():
     POLYNESIA = CivTemplate(
         name="Polynesia",
         abilities=[{
-            "name": "ExtraCityPower",
-            "numbers": [100],
+            "name": "OnDevelop",
+            "numbers": ["rural", GrowEffect(1)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Slinger", 2],
@@ -351,7 +336,7 @@ class CIVS():
             "numbers": ["unit"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 2],
+            "numbers": ["Pikeman", 1],
         }],
         advancement_level=1,
     )
@@ -384,7 +369,7 @@ class CIVS():
             "numbers": ["rural", GainResourceEffect("science", 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 2],
+            "numbers": ["Knight", 1],
         }],
         advancement_level=1,
     )
@@ -392,19 +377,16 @@ class CIVS():
         name="Umayyads",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["urban", BuildUnitsEffect(UNITS.KNIGHT, 3)],
+            "numbers": ["urban", BuildUnitsEffect(UNITS.KNIGHT, 2)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 2],
+            "numbers": ["Knight", 1],
         }],
         advancement_level=1,
     )
     XHOSA = CivTemplate(
         name="Xhosa",
         abilities=[{
-            "name": "OnDevelop",
-            "numbers": ["rural", GrowEffect(2)],
-        }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Archer", 1],
         }],
@@ -421,9 +403,6 @@ class CIVS():
     AKSUM = CivTemplate(
         name="Aksum",
         abilities=[{
-            "name": "OnDevelop",
-            "numbers": ["rural", BuildUnitsEffect(UNITS.ARCHER, 2)],
-        }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Archer", 1],
         }],
@@ -432,9 +411,6 @@ class CIVS():
     CUMANS = CivTemplate(
         name="Cumans",
         abilities=[{
-            "name": "OnDevelop",
-            "numbers": ["unit", BuildUnitsEffect(UNITS.HORSE_ARCHER, 2)],
-        }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer", 1],
         }],
@@ -513,7 +489,7 @@ class CIVS():
             "numbers": ["metal", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horse Archer", 2],
+            "numbers": ["Horse Archer", 1],
         }],
         advancement_level=2,
     )
