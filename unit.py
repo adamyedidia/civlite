@@ -1,5 +1,5 @@
-from math import sqrt, ceil
-from random import random, shuffle
+from math import ceil
+import random
 from typing import TYPE_CHECKING, Generator, Optional
 from civ import Civ
 from wonder_templates_list import WONDERS
@@ -229,12 +229,14 @@ class Unit:
         bonuses = 0
 
         if self.has_ability('BonusNextTo'):
-            neighboring_units = [unit for hex in self.hex.get_neighbors(game_state.hexes) for unit in hex.units]
-            unit_type: str = self.numbers_of_ability('BonusNextTo')[0]
-            valid_supporting_neighbors = [unit for unit in neighboring_units if unit.civ == self.civ and unit.template.has_tag_by_name(unit_type)]
-            if len(valid_supporting_neighbors) > 0:
+            unit_tag: str = self.numbers_of_ability('BonusNextTo')[0]
+            valid_support_hexes = [hex
+                                   for hex in self.hex.get_neighbors(game_state.hexes)
+                                   if any(unit.civ == self.civ and unit.template.has_tag_by_name(unit_tag) for unit in hex.units)
+                                   ]
+            if len(valid_support_hexes) > 0:
                 bonuses += 1
-                support_hexes.add((self.hex, random.choice(valid_supporting_neighbors).hex))
+                support_hexes.add((self.hex, random.choice(valid_support_hexes)))
 
         if self.has_ability('BonusAgainst'):
             unit_type: str = self.numbers_of_ability('BonusAgainst')[0]
@@ -283,7 +285,7 @@ class Unit:
                 if from_civ.has_ability('ExtraVpsPerUnitKilled'):
                     from_civ.gain_vps(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0], from_civ.template.name)
 
-                if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders and random() < 0.20:
+                if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders and random.random() < 0.20:
                     for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos:
                         game_state.civs_by_id[civ_id].gain_vps(UNIT_KILL_REWARD, f"United Nations")
 
@@ -411,7 +413,7 @@ class Unit:
         best_distance = self.hex.distance_to(self.destination) if not sensitive else self.hex.sensitive_distance_to(self.destination)
 
         neighbors = list(self.hex.get_neighbors(game_state.hexes))
-        shuffle(neighbors)
+        random.shuffle(neighbors)
 
         for neighboring_hex in neighbors:
             neighboring_hex_sensitive_distance_to_target = 10000
