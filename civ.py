@@ -134,16 +134,23 @@ class Civ:
             self.techs_status[tech] = TechStatus.RESEARCHED
         self.get_new_tech_choices()
 
+    @property
+    def unique_unit(self) -> UnitTemplate | None:
+        if self.has_ability('IncreasedStrengthForUnit'):
+            return UNITS.by_name(self.numbers_of_ability('IncreasedStrengthForUnit')[0])
+        if self.has_ability('IncreasedStrengthForNthUnit') and self.unique_units_built < self.numbers_of_ability('IncreasedStrengthForNthUnit')[0]:
+            return UNITS.by_name(self.numbers_of_ability('IncreasedStrengthForNthUnit')[1])
+        return None
+
     def get_new_tech_choices(self):
         print(f"getting new techs for {self.moniker()}.")
         max_advancement_level = max(1, self.get_advancement_level())
 
         characteristic_tech_offered = False
 
-        if self.has_ability('IncreasedStrengthForUnit'):
-            special_unit = UNITS.by_name(self.numbers_of_ability('IncreasedStrengthForUnit')[0])
 
-            if (characteristic_tech := special_unit.prereq):
+        if self.unique_unit is not None:
+            if (characteristic_tech := self.unique_unit.prereq):
                 if characteristic_tech.advancement_level <= max_advancement_level and self.techs_status[characteristic_tech] == TechStatus.UNAVAILABLE:
                     characteristic_tech_offered = True
                     self.techs_status[characteristic_tech] = TechStatus.AVAILABLE
@@ -386,10 +393,8 @@ class Civ:
 
         if self.researching_tech is None:
             special_tech = None
-            if self.has_ability('IncreasedStrengthForUnit'):
-                special_unit_name = self.numbers_of_ability('IncreasedStrengthForUnit')[0]
-                special_unit = UNITS.by_name(special_unit_name)
-                special_tech = special_unit.prereq
+            if self.unique_unit is not None:
+                special_tech = self.unique_unit.prereq
 
             available_techs: list[TechTemplate] = [tech for tech, status in self.techs_status.items() if status == TechStatus.AVAILABLE]
 

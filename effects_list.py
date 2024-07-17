@@ -253,7 +253,7 @@ class GetGreatPersonEffect(CityTargetEffect):
 class ZigguratWarriorsEffect(CityTargetEffect):
     @property
     def description(self) -> str:
-        return "One warrior gets +1 strength & -10 health"
+        return "One warrior gets +1 strength & -20 health"
     
     def apply(self, city: 'City', game_state: 'GameState'):
         my_warriors = [unit for unit in game_state.units if unit.civ == city.civ and unit.template == UNITS.WARRIOR]
@@ -261,7 +261,7 @@ class ZigguratWarriorsEffect(CityTargetEffect):
         if len(prefer_smaller_stacks) > 0:
             unit = prefer_smaller_stacks[0]
             unit.strength += 1
-            unit.take_damage(10 * unit.get_stack_size(), game_state=game_state, from_civ=None)
+            unit.take_damage(20 * unit.get_stack_size(), game_state=game_state, from_civ=None)
 
 class EndGameEffect(CityTargetEffect):
     @property

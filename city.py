@@ -668,12 +668,11 @@ class City:
                 result += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
 
         if self.civ.has_ability('IncreasedStrengthForNthUnit'):
-            unit_type, n, bonus = self.civ.numbers_of_ability('IncreasedStrengthForNthUnit')
+            n, unit_type, bonus = self.civ.numbers_of_ability('IncreasedStrengthForNthUnit')
             if unit_type == unit_template.name:
                 self.civ.unique_units_built += 1
                 if self.civ.unique_units_built == n:
                     result += bonus
-                    self.civ.unique_units_built = True
 
         for ability, _ in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
             result += ability.numbers[0]
@@ -1038,13 +1037,8 @@ class City:
     def bot_move(self, game_state: 'GameState') -> None:
         def effective_advancement_level(unit: UnitTemplate, slingers_better_than_warriors=False) -> float:
             # treat my civ's unique unit as +1 adv level.
-            if self.civ.has_ability('IncreasedStrengthForUnit'):
-                special_unit_name = self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0]
-                if unit.name == special_unit_name:
-                    return unit.advancement_level() + 1
-            if self.civ.has_ability('IncreasedStrengthForNthUnit') and self.civ.unique_units_built < self.civ.numbers_of_ability('IncreasedStrengthForNthUnit')[0]:
-                special_unit_name = self.civ.numbers_of_ability('IncreasedStrengthForNthUnit')[1]
-                if unit.name == special_unit_name:
+            if self.civ.unique_unit is not None:
+                if unit.name == self.civ.unique_unit.name:
                     return unit.advancement_level() + 1
             if unit == UNITS.SLINGER and slingers_better_than_warriors:
                 return 0.5
