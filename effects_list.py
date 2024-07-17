@@ -46,9 +46,7 @@ class BuildUnitsEffect(CityTargetEffect):
         num_stacks = 1 if self.stacked else self.num
 
         for _ in range(num_stacks):
-            unit = city.build_unit(unit=self.unit_template, game_state=game_state, stack_size=stack_size)
-            if unit is not None:
-                unit.strength += self.extra_str
+            unit = city.build_unit(unit=self.unit_template, game_state=game_state, stack_size=stack_size, bonus_strength=self.extra_str)
 
 class BuildBuildingEffect(CityTargetEffect):
     def __init__(self, building_template: BuildingTemplate) -> None:

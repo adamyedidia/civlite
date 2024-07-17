@@ -139,7 +139,7 @@ class Unit:
         for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
             if neighboring_hex.sensitive_distance_to(closest_target) < self.hex.sensitive_distance_to(closest_target) or always_merge_if_possible:
                 for unit in neighboring_hex.units:
-                    if unit.civ.id == self.civ.id and unit.template.name == self.template.name:
+                    if unit.civ.id == self.civ.id and unit.template.name == self.template.name and unit.strength == self.strength:
                         unit.health += self.health
                         self.remove_from_game(game_state)
 
@@ -229,12 +229,12 @@ class Unit:
         bonuses = 0
 
         if self.has_ability('BonusNextTo'):
+            neighboring_units = [unit for hex in self.hex.get_neighbors(game_state.hexes) for unit in hex.units]
             unit_type: str = self.numbers_of_ability('BonusNextTo')[0]
-            for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
-                for unit in neighboring_hex.units:
-                    if (unit_type is None or unit.template.has_tag_by_name(unit_type)) and unit.civ == self.civ:
-                        bonuses += 1
-                        support_hexes.add((neighboring_hex, self.hex))
+            valid_supporting_neighbors = [unit for unit in neighboring_units if unit.civ == self.civ and (unit_type is None or unit.template.has_tag_by_name(unit_type))]
+            if len(valid_supporting_neighbors) > 0:
+                bonuses += 1
+                support_hexes.add((self.hex, random.choice(valid_supporting_neighbors).hex))
 
         if self.has_ability('BonusAgainst'):
             unit_type: str = self.numbers_of_ability('BonusAgainst')[0]

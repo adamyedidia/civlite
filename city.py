@@ -593,16 +593,18 @@ class City:
             return target2
 
 
-    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1) -> Unit | None:
+    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1, bonus_strength: int = 0) -> Unit | None:
         if not self.hex:
             return None
         
+        bonus_strength = self._spawn_strength(unit, game_state) + bonus_strength
+
         spawn_hex = self.hex
         for _ in self.passive_building_abilities_of_name('Deployment Center'):
             spawn_hex = self.civ.target1 if self.civ.target1 is not None else spawn_hex
 
         if not spawn_hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
-            return self.spawn_unit_on_hex(game_state, unit, spawn_hex, stack_size=stack_size)
+            return self.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
 
         best_hex = None
         best_hex_distance_from_target = 10000
@@ -614,85 +616,80 @@ class City:
                     best_hex = hex
                     best_hex_distance_from_target = distance_from_target
 
-        best_unit_to_reinforce = None
-        if best_hex is None:
+        if best_hex is not None:
+            return self.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
 
-            best_unit_penalty = 10000          
+        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == self.civ and u.template == unit and u.hex and u.strength == unit.strength + bonus_strength]  
+
+        if len(potential_units_to_reinforce) > 0:
+            best_unit_to_reinforce = min(potential_units_to_reinforce, key=lambda u: (
+                            u.health, 
+                            u.hex.distance_to(self.get_closest_target() or spawn_hex),
+                            random.random()
+                            ))       
+            self.reinforce_unit(best_unit_to_reinforce, stack_size=stack_size)
+            return best_unit_to_reinforce
+        
+        if give_up_if_still_impossible:
+            return None
+        num_merges = 0
+
+        # Try merging friendly units
+        for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
+            if hex.units and hex.units[0].civ.id == self.civ.id:
+                if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
+                    num_merges += 1
+            if num_merges >= 2:
+                break
+
+        # If that doesn't work, try merging enemy units, so long as they aren't on the city itself
+        if num_merges == 0:
             for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
-                if hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
-                    unit_to_possibly_reinforce = hex.units[0]
-                    if unit_to_possibly_reinforce.civ.id == self.civ.id and unit_to_possibly_reinforce.template.name == unit.name and unit_to_possibly_reinforce.hex:
-                        unit_penalty = unit_to_possibly_reinforce.health * 10 + unit_to_possibly_reinforce.hex.distance_to(self.get_closest_target() or spawn_hex)
-                        if unit_penalty < best_unit_penalty:
-                            best_unit_to_reinforce = unit_to_possibly_reinforce
-                            best_unit_penalty = unit_penalty            
-
-        if best_hex is None:
-            if best_unit_to_reinforce:
-                self.reinforce_unit(best_unit_to_reinforce, stack_size=stack_size)
-                return best_unit_to_reinforce
-            
-            else:
-                if give_up_if_still_impossible:
-                    return None
-                num_merges = 0
-
-                # Try merging friendly units
-                for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
-                    if hex.units and hex.units[0].civ.id == self.civ.id:
-                        if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
-                            num_merges += 1
-                    if num_merges >= 2:
+                if hex.units and not hex.city:
+                    if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
+                        num_merges += 1
                         break
+                if num_merges >= 2:
+                    break
 
-                # If that doesn't work, try merging enemy units, so long as they aren't on the city itself
-                if num_merges == 0:
-                    for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
-                        if hex.units and not hex.city:
-                            if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
-                                num_merges += 1
-                                break
-                        if num_merges >= 2:
-                            break
+        # If that doesn't work, and we have a lot of metal to spend, try removing friendly units altogether
+        if num_merges == 0 and self.metal > 75:
+            for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
+                if hex.units and hex.units[0].civ.id == self.civ.id and hex.units[0].health < 300:
+                    hex.units[0].remove_from_game(game_state)
+                    break
 
-                # If that doesn't work, and we have a lot of metal to spend, try removing friendly units altogether
-                if num_merges == 0 and self.metal > 75:
-                    for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
-                        if hex.units and hex.units[0].civ.id == self.civ.id and hex.units[0].health < 300:
-                            hex.units[0].remove_from_game(game_state)
-                            break
+        return self.build_unit(game_state, unit, give_up_if_still_impossible=True, stack_size=stack_size, bonus_strength=bonus_strength)
 
-                return self.build_unit(game_state, unit, give_up_if_still_impossible=True, stack_size=stack_size)
+    def _spawn_strength(self, unit_template: UnitTemplate, game_state: 'GameState') -> int:
+        result = 0
+        if self.civ.has_ability('IncreasedStrengthForUnit'):
+            if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
+                result += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
 
-        return self.spawn_unit_on_hex(game_state, unit, best_hex, stack_size=stack_size)
+        if self.civ.has_ability('IncreasedStrengthForFirstUnit') and not self.civ.increased_strength_for_unit_consumed:
+            if self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[0] == unit_template.name:
+                result += self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[1]
+                self.civ.increased_strength_for_unit_consumed = True
 
-    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', stack_size=1) -> Unit | None:
+        for ability, _ in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
+            result += ability.numbers[0]
+
+        for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByTag'):
+            if unit_template.has_tag(ability.numbers[0]):
+                result += ability.numbers[1]
+        for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByAge'):
+            if unit_template.advancement_level() >= ability.numbers[0]:
+                result += ability.numbers[1]
+        return result
+
+    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', bonus_strength: int, stack_size=1) -> Unit | None:
         unit = Unit(unit_template, self.civ)
         unit.health *= stack_size
         unit.hex = hex
         hex.units.append(unit)
         game_state.units.append(unit)
-
-        if self.civ.has_ability('IncreasedStrengthForUnit'):
-            if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
-                unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
-
-        if self.civ.has_ability('IncreasedStrengthForFirstUnit') and not self.civ.increased_strength_for_unit_consumed:
-            if self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[0] == unit_template.name:
-                unit.strength += self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[1]
-                self.civ.increased_strength_for_unit_consumed = True
-
-        for ability, _ in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
-            unit.strength += ability.numbers[0]
-
-        for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByTag'):
-            print(f"Build a {unit.template.name}; bldg buffs tag {ability.numbers}")
-            if unit.template.has_tag(ability.numbers[0]):
-                print(f"{unit.template.name} has tag {ability.numbers[0]}")
-                unit.strength += ability.numbers[1]
-        for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByAge'):
-            if unit.template.advancement_level() >= ability.numbers[0]:
-                unit.strength += ability.numbers[1]
+        unit.strength += bonus_strength
 
         return unit
 
