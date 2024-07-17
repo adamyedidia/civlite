@@ -231,7 +231,7 @@ class Unit:
         if self.has_ability('BonusNextTo'):
             neighboring_units = [unit for hex in self.hex.get_neighbors(game_state.hexes) for unit in hex.units]
             unit_type: str = self.numbers_of_ability('BonusNextTo')[0]
-            valid_supporting_neighbors = [unit for unit in neighboring_units if unit.civ == self.civ and (unit_type is None or unit.template.has_tag_by_name(unit_type))]
+            valid_supporting_neighbors = [unit for unit in neighboring_units if unit.civ == self.civ and unit.template.has_tag_by_name(unit_type)]
             if len(valid_supporting_neighbors) > 0:
                 bonuses += 1
                 support_hexes.add((self.hex, random.choice(valid_supporting_neighbors).hex))

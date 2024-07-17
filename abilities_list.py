@@ -33,10 +33,10 @@ CIV_ABILITIES: dict[str, Callable] = {
         description=f"{p.plural(x)} you build have +{y} strength.",
         numbers=[x, y],
     ),
-    "IncreasedStrengthForFirstUnit": lambda x, y: Ability(
-        name="IncreasedStrengthForFirstUnit",
-        description=f"The first {x} you build has +{y} strength.",
-        numbers=[x, y],
+    "IncreasedStrengthForNthUnit": lambda x, y, z: Ability(
+        name="IncreasedStrengthForNthUnit",
+        description=f"The {p.ordinal(x)} {y} you build has +{z} strength.",
+        numbers=[x, y, z],
     ),
     "ExtraVpsPerWonder": lambda x: Ability(
         name="ExtraVpsPerWonder",
@@ -146,7 +146,7 @@ UNIT_ABILITIES: dict[str, Callable] = {
     ),
     "BonusNextTo": lambda tag: Ability(
         name="BonusNextTo",
-        description=f"Bonus next to friendly {tag} (+50%)." if tag is not None else "Bonus next to any friendly unit (+50%).",
+        description=f"Bonus next to friendly {tag} (+50%).",
         numbers=[tag],
     ),
     "Splash": lambda x: Ability(

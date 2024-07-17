@@ -667,10 +667,13 @@ class City:
             if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
                 result += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
 
-        if self.civ.has_ability('IncreasedStrengthForFirstUnit') and not self.civ.increased_strength_for_unit_consumed:
-            if self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[0] == unit_template.name:
-                result += self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[1]
-                self.civ.increased_strength_for_unit_consumed = True
+        if self.civ.has_ability('IncreasedStrengthForNthUnit'):
+            unit_type, n, bonus = self.civ.numbers_of_ability('IncreasedStrengthForNthUnit')
+            if unit_type == unit_template.name:
+                self.civ.unique_units_built += 1
+                if self.civ.unique_units_built == n:
+                    result += bonus
+                    self.civ.unique_units_built = True
 
         for ability, _ in self.civ.passive_building_abilities_of_name('NewUnitsGainBonusStrength', game_state):
             result += ability.numbers[0]
@@ -1039,8 +1042,8 @@ class City:
                 special_unit_name = self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0]
                 if unit.name == special_unit_name:
                     return unit.advancement_level() + 1
-            if self.civ.has_ability('IncreasedStrengthForFirstUnit') and not self.civ.increased_strength_for_unit_consumed:
-                special_unit_name = self.civ.numbers_of_ability('IncreasedStrengthForFirstUnit')[0]
+            if self.civ.has_ability('IncreasedStrengthForNthUnit') and self.civ.unique_units_built < self.civ.numbers_of_ability('IncreasedStrengthForNthUnit')[0]:
+                special_unit_name = self.civ.numbers_of_ability('IncreasedStrengthForNthUnit')[1]
                 if unit.name == special_unit_name:
                     return unit.advancement_level() + 1
             if unit == UNITS.SLINGER and slingers_better_than_warriors:

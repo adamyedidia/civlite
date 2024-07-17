@@ -15,7 +15,7 @@ class UNITS():
         tags=[UnitTag.INFANTRY],
         abilities=[{
             "name": "BonusNextTo",
-            "numbers": [None],
+            "numbers": [UnitTag.INFANTRY.value],
         }],
         prereq=None,
     )
