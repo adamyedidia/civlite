@@ -103,9 +103,16 @@ const UnitDisplay = ({ template, unit }) => {
                 <div className="stat move">
                     {template.movement > 0 ? `Move: ${template.movement}` : 'IMMOBILE'}
                 </div>
+                {strength !== template.strength && <div className='base-strength'></div>} {/* So that the big one stays in the center */}
                 <TextOnIcon image={shieldImg} style={{ height: `${shieldSize}px`, width: `${shieldSize}px` }} offset={-shieldSize * 0.15}>
                     <span className='strength-text'>{strength}</span>
                 </TextOnIcon>
+                {strength !== template.strength && <div className='base-strength'>
+                    <span style={{fontSize: '0.5em'}}>Base</span>
+                    <TextOnIcon image={shieldImg} style={{ height: `${shieldSize * 0.67}px`, width: `${shieldSize * 0.67}px` }} offset={-shieldSize * 0.1}>
+                        <span className='strength-text small'>{template.strength}</span>
+                    </TextOnIcon>
+                </div>}
                 <div className="stat range">
                     {tags.includes('ranged') ? `Range: ${template.range}` : "Melee"}
                 </div>
