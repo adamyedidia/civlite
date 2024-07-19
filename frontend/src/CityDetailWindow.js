@@ -154,7 +154,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
 
     const roomForNewTerritory = myCiv && (myCiv.id == selectedCity.civ_id) && myTerritoryCapitals.length < myCiv.max_territories;
     const territoryReplacementCity = !roomForNewTerritory ? 
-        myTerritoryCapitals.reduce((minCity, city) => city.population < minCity.population ? city : minCity, myTerritoryCapitals[0])
+        myTerritoryCapitals.reduce((minCity, city) => (city.population + 1000 * city.capital) < (minCity.population + 1000 * minCity.capital) ? city : minCity, myTerritoryCapitals[0])
     : null;
 
     const foodProgressStored = selectedCity.food / selectedCity.growth_cost;
