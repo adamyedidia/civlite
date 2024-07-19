@@ -236,7 +236,11 @@ class Unit:
                                    ]
             if len(valid_support_hexes) > 0:
                 bonuses += 1
-                support_hexes.add((self.hex, random.choice(valid_support_hexes)))
+                # Pick a random one of the support hexes to display in the UI
+                # Ensure it's secretly deterministic so that if the same unit gets support in the attack and again in the coutnerattack
+                # It doesn't draw two different lines.
+                random_support_hex = valid_support_hexes[(self.hex.q * 17 + self.hex.r * 13 + self.hex.s * 11) % len(valid_support_hexes)]
+                support_hexes.add((self.hex, random_support_hex))
 
         if self.has_ability('BonusAgainst'):
             unit_type: str = self.numbers_of_ability('BonusAgainst')[0]
