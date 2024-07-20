@@ -427,6 +427,7 @@ export default function GamePage() {
     const techChoices = myCiv?.current_tech_choices;
 
     const civsById = gameState?.civs_by_id;
+    const declineViewCivsById = declineViewGameState?.civs_by_id;
 
     const myCities = Object.values(mainGameState?.cities_by_id || {}).filter(city => civsById?.[city.civ_id]?.game_player?.player_num === myGamePlayer?.player_num);
     const myTerritoryCapitals = myCities.filter(city => city.territory_parent_coords === null);
@@ -3135,6 +3136,7 @@ export default function GamePage() {
                         declineViewGameState={declineViewGameState}
                         declineOptionsView={declineOptionsView}
                         civsById={civsById}
+                        declineViewCivsById={declineViewCivsById}
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
