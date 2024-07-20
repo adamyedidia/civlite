@@ -35,7 +35,7 @@ class Camp:
 
         self.id = generate_unique_id()
         self.under_siege_by_civ: Optional[Civ] = None
-        self.hex: Optional['Hex'] = None        
+        self._hex: Optional['Hex'] = None        
         self.civ: Civ = civ
         self.civ_id: str = civ.id if civ else None  # type: ignore
         self.target: Optional['Hex'] = None
@@ -43,9 +43,15 @@ class Camp:
             assert unit is None or advancement_level == 0, f"Only set one of unit and advancement_level"
         self.unit: UnitTemplate = unit or random_unit_by_age(advancement_level)
 
+    @property
+    def hex(self) -> 'Hex':
+        assert self._hex is not None
+        return self._hex
+    
+    def set_hex(self, hex: 'Hex'):
+        self._hex = hex
+
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
-        if self.hex is None:
-            return
         if short_sighted:
             neighbors = self.hex.get_neighbors(game_state.hexes, include_self=True)
         else:
@@ -55,9 +61,6 @@ class Camp:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate) -> bool:
-        if not self.hex:
-            return False
-
         self.target = game_state.pick_random_hex()
 
         if not self.hex.is_occupied(unit.type, self.civ):
@@ -88,8 +91,6 @@ class Camp:
         return True
 
     def spawn_unit_on_hex(self, sess, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex') -> None:
-        if self.hex is None:
-            return
         unit = Unit(unit_template, self.civ)
         unit.hex = hex
         hex.units.append(unit)
@@ -113,9 +114,6 @@ class Camp:
                 self.clear(sess, siege_state, game_state)
 
     def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
-        if self.hex is None:
-            return None
-
         for unit in self.hex.units:
             if unit.civ.id != self.civ.id and unit.template.type == 'military':
                 return unit.civ
@@ -134,9 +132,6 @@ class Camp:
         return None
 
     def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:
-        if self.hex is None:
-            return
-
         for hex in self.hex.get_neighbors(hexes, include_self=True):
             for key in hex.is_foundable_by_civ:
                 if key != self.civ.id or hex == self.hex:
@@ -146,17 +141,14 @@ class Camp:
         civ.city_power += CAMP_CLEAR_CITY_POWER_REWARD
         civ.gain_vps(CAMP_CLEAR_VP_REWARD, f"Clearing Camps ({CAMP_CLEAR_VP_REWARD}/camp)")
 
-        if self.hex:
-            game_state.add_animation_frame(sess, {
-                "type": "CampClear",
-                "civ": civ.template.name,
-                "vpReward": CAMP_CLEAR_VP_REWARD,
-                "cityPowerReward": CAMP_CLEAR_CITY_POWER_REWARD,
-            }, hexes_must_be_visible=[self.hex])
+        game_state.add_animation_frame(sess, {
+            "type": "CampClear",
+            "civ": civ.template.name,
+            "vpReward": CAMP_CLEAR_VP_REWARD,
+            "cityPowerReward": CAMP_CLEAR_CITY_POWER_REWARD,
+        }, hexes_must_be_visible=[self.hex])
 
-            game_state.unregister_camp(self)
-
-        self.hex = None
+        game_state.unregister_camp(self)
 
     def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
         self.civ = civs_by_id[self.civ_id]
@@ -164,14 +156,14 @@ class Camp:
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.handle_siege(sess, game_state)
-        if self.hex and game_state.turn_num % 2 == 0:
+        if game_state.turn_num % 2 == 0:
             self.build_unit(sess, game_state, self.unit)
 
     def to_json(self):
         return {
             "id": self.id,
             "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
-            "hex": self.hex.coords if self.hex else None,
+            "hex": self.hex.coords,
             "civ_id": self.civ.id,
             "unit": self.unit.name
         }

@@ -95,7 +95,7 @@ class City:
         assert self._hex is not None
         return self._hex
     
-    def set_hex(self, hex: 'Hex | None'):
+    def set_hex(self, hex: 'Hex'):
         self._hex = hex
 
     def has_building(self, template: BuildingTemplate | UnitTemplate | WonderTemplate) -> bool:

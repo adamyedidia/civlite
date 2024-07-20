@@ -301,8 +301,8 @@ class GameState:
         city.midturn_update(self)
         return city
 
-    def register_camp(self, camp, hex):
-        camp.hex = hex
+    def register_camp(self, camp: 'Camp', hex: 'Hex'):
+        camp.set_hex(hex)
         hex.camp = camp
         self.camps.append(camp)
 
