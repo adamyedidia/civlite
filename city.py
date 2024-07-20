@@ -32,13 +32,9 @@ TRADE_HUB_CITY_POWER_PER_TURN = 20
 _DEVELOPMENT_VPS_STR = f"Development ({DEVELOP_VPS} each)"
 
 class City(MapObject):
-    def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
-        # civ actually can be None very briefly before GameState.from_json() is done, 
-        # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
-        super().__init__()
+    def __init__(self, name: str, civ: Civ | None = None, id: Optional[str] = None, hex: 'Hex | None' = None):
+        super().__init__(civ, hex)
         self.id = id or generate_unique_id()
-        self.civ: Civ = civ
-        self.civ_id: str = civ.id if civ else None  # type: ignore
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True} if civ else {}
         self.name = name
         self.population = 1
@@ -661,9 +657,8 @@ class City(MapObject):
         return result
 
     def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', bonus_strength: int, stack_size=1) -> Unit | None:
-        unit = Unit(unit_template, self.civ)
+        unit = Unit(unit_template, civ=self.civ, hex=hex)
         unit.health *= stack_size
-        unit.set_hex(hex)
         hex.units.append(unit)
         game_state.units.append(unit)
         unit.strength += bonus_strength
@@ -871,7 +866,7 @@ class City(MapObject):
         self.buildings = [b for b in self.buildings if not b.destroy_on_owner_change]
 
         # Change the civ
-        self.civ = civ
+        self.update_civ(civ)
 
         # Fix territory parent lines
         self.orphan_territory_children(game_state)
@@ -908,7 +903,7 @@ class City(MapObject):
             self.hex.city.build_unit(game_state, u)
 
         self.hex.city = None
-        game_state.register_camp(Camp(game_state.barbarians, unit=best_unit), self.hex)
+        game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex))
 
         del game_state.cities_by_id[self.id]
 
@@ -956,11 +951,6 @@ class City(MapObject):
             
             if civ.numbers_of_ability('StartWithResources')[0] == 'science':
                 self.civ.science += civ.numbers_of_ability('StartWithResources')[1]
-
-                
-    def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
-        self.civ = civs_by_id[self.civ_id]
-        self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
 
     def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
         affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost_by_age[age] <= self.wood + self.projected_income['wood']}
@@ -1122,8 +1112,8 @@ class City(MapObject):
 
     def to_json(self, include_civ_details: bool = False) -> dict:
         return {
+            **super().to_json(),
             "id": self.id,
-            "civ_id": self.civ.id,
             **({"civ": self.civ.to_json()} if include_civ_details else {}),
             "ever_controlled_by_civ_ids": self.ever_controlled_by_civ_ids,
             "name": self.name,
@@ -1188,11 +1178,11 @@ class City(MapObject):
     @staticmethod
     def from_json(json: dict) -> "City":
         city = City(
-            civ=Civ.from_json(json.get('civ')) if 'civ' in json else None,  # type: ignore
+            civ=Civ.from_json(json['civ']) if 'civ' in json else None,
             name=json["name"],
         )
+        super(City, city).from_json(json)
         city.id = json["id"]
-        city.civ_id = json["civ_id"]
         city.ever_controlled_by_civ_ids = json["ever_controlled_by_civ_ids"].copy()
         city.population = json["population"]
         city.buildings = [Building.from_json(building) for building in json["buildings"]]

@@ -176,11 +176,11 @@ def make_game_statistics_plots(sess, game_id: str):
             city = game_state.cities_by_id[city_id]
             city.adjust_projected_yields(game_state)
             total_yields = city.projected_income['food'] + city.projected_income['wood'] + city.projected_income['metal'] + city.projected_income['science']
-            yields_by_civ[city.civ_id] += total_yields
-            pop_by_civ[city.civ_id] += city.population
+            yields_by_civ[city.civ.id] += total_yields
+            pop_by_civ[city.civ.id] += city.population
 
         for unit in game_state.units:
-            total_metal_value_by_civ[unit.civ_id] += unit.template.metal_cost * unit.get_stack_size()
+            total_metal_value_by_civ[unit.civ.id] += unit.template.metal_cost * unit.get_stack_size()
 
         for civ_id, civ in game_state.civs_by_id.items():
             total_yields_by_turn[civ_id].append(yields_by_civ[civ_id])
@@ -280,7 +280,7 @@ class GameState:
 
     def fresh_cities_from_json_postprocess(self) -> None:
         for coords, city in self.fresh_cities_for_decline.items():
-            city.set_hex(self.hexes[coords])
+            city.finish_loading_hex(self.hexes[coords])
 
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
@@ -292,18 +292,16 @@ class GameState:
 
     def new_city(self, civ: Civ, hex: Hex, city_id: Optional[str] = None) -> City:
         city_name = get_city_name_for_civ(civ=civ, game_state=self)
-        city = City(civ, name=city_name, id=city_id)
+        city = City(civ=civ, hex=hex, name=city_name, id=city_id)
         assert hex.city is None, f"Creting city at {hex.coords} but it already has a city {hex.city.name}!"
         for h in hex.get_neighbors(self.hexes):
             assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
-        city.set_hex(hex)
         city.populate_terrains_dict(self)
         city.midturn_update(self)
         return city
 
-    def register_camp(self, camp: 'Camp', hex: 'Hex'):
-        camp.set_hex(hex)
-        hex.camp = camp
+    def register_camp(self, camp: 'Camp'):
+        camp.hex.camp = camp
         self.camps.append(camp)
 
     def unregister_camp(self, camp):
@@ -509,7 +507,7 @@ class GameState:
         for neighbor_hex in hexes_to_steal_from:
             for unit in neighbor_hex.units:
                 if unit.civ == old_civ or unit.civ.template == CIVS.BARBARIAN:
-                    unit.civ = new_civ
+                    unit.update_civ(new_civ)
                     stack_size: int = unit.get_stack_size()
                     unit_count += stack_size
         for neighbor_hex in hex.get_neighbors(self.hexes, include_self=True):
@@ -564,7 +562,7 @@ class GameState:
                             city.capitalize(self)
 
                         else:
-                            self.register_camp(Camp(self.barbarians), city.hex)
+                            self.register_camp(Camp(self.barbarians, hex=city.hex))
 
                             city.hex.city = None
                             self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
@@ -1054,7 +1052,7 @@ class GameState:
         self.fresh_cities_for_decline.pop(coords)
         camp_level: int = max(0, self.advancement_level - 2)
         print(f"Making camp at {coords} at level {camp_level}")
-        self.register_camp(Camp(self.barbarians, advancement_level=camp_level), self.hexes[coords])
+        self.register_camp(Camp(self.barbarians, advancement_level=camp_level, hex=self.hexes[coords]))
 
     def populate_fresh_cities_for_decline(self) -> None:
         self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()

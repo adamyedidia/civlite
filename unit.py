@@ -15,15 +15,13 @@ if TYPE_CHECKING:
 
 
 class Unit(MapObject):
-    def __init__(self, template: UnitTemplate, civ: Civ) -> None:
+    def __init__(self, template: UnitTemplate, civ: Civ | None = None, hex: 'Hex | None' = None) -> None:
         # civ actually can be None very briefly before GameState.from_json() is done, 
         # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
-        super().__init__()
+        super().__init__(civ, hex)
         self.id = generate_unique_id()
         self.template = template
         self.health = 100
-        self.civ = civ
-        self.civ_id: str = civ.id if civ else None  # type: ignore
         self.has_moved = False
         self.strength = self.template.strength
         self.attacks_used = 0
@@ -102,7 +100,7 @@ class Unit(MapObject):
         # At this point we might have moved with whole stack
         # When we should have left some behind
         if self.has_moved and self.attacks_used > 0:
-            split_unit: Unit = Unit(self.template, self.civ)
+            split_unit: Unit = Unit(self.template, civ=self.civ, hex=starting_hex)
 
             split_unit.health = self.attacks_used * 100
             self.health -= split_unit.health
@@ -110,7 +108,6 @@ class Unit(MapObject):
             split_unit.attacks_used = self.attacks_used
             self.attacks_used = 0
 
-            split_unit.set_hex(starting_hex)
             starting_hex.units.append(split_unit)
             game_state.units.append(split_unit)
 
@@ -326,8 +323,7 @@ class Unit(MapObject):
         self.remove_from_game(game_state)
 
         if killer is not None and killer.has_ability('ConvertKills'):
-            new_unit = Unit(killer.template, killer.civ)
-            new_unit.set_hex(my_hex)
+            new_unit = Unit(killer.template, civ=killer.civ, hex=my_hex)
             my_hex.units.append(new_unit)
             game_state.units.append(new_unit)
 
@@ -429,9 +425,6 @@ class Unit(MapObject):
         if self.template.has_tag(UnitTag.WONDROUS):
             self.take_damage(5, game_state, from_civ=None)
 
-    def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
-        self.civ = civs_by_id[self.civ_id]
-
     def update_nearby_hexes_friendly_foundability(self) -> None:
         self.hex.is_foundable_by_civ[self.civ.id] = True
 
@@ -443,10 +436,10 @@ class Unit(MapObject):
 
     def to_json(self) -> dict:
         return {
+            **super().to_json(),
             "id": self.id,
             "name": self.template.name,
             "health": self.health,
-            "civ_id": self.civ.id,
             "has_moved": self.has_moved,
             "coords": self.hex.coords,
             "strength": self.strength,
@@ -461,13 +454,12 @@ class Unit(MapObject):
     def from_json(json: dict,) -> "Unit":
         unit = Unit(
             template=UNITS.by_name(json["name"]),
-            civ=None,  # type: ignore
         )
+        super(Unit, unit).from_json(json)
         unit.id = json["id"]
         unit.health = json["health"]
         unit.has_moved = json["has_moved"]
         unit.strength = json["strength"]
         unit.attacks_used = json["attacks_used"]
-        unit.civ_id = json["civ_id"]
 
         return unit

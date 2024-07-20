@@ -135,17 +135,17 @@ class Hex:
 
     def from_json_postprocess(self, game_state: 'GameState') -> None:
         for unit in self.units:
-            unit.update_civ_by_id(game_state.civs_by_id)
-            unit.set_hex(self)
+            unit.finish_loading_civ(game_state.civs_by_id)
+            unit.finish_loading_hex(self)
             # Don't append here; they got added in GameState.init
             # game_state.units.append(unit)
         if self.city:
-            self.city.update_civ_by_id(game_state.civs_by_id)
-            self.city.set_hex(self)
+            self.city.finish_loading_civ(game_state.civs_by_id)
+            self.city.finish_loading_hex(self)
             game_state.cities_by_id[self.city.id] = self.city
         if self.camp:
-            self.camp.update_civ_by_id(game_state.civs_by_id)          
-            self.camp.set_hex(self)
+            self.camp.finish_loading_civ(game_state.civs_by_id)          
+            self.camp.finish_loading_hex(self)
 
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         result = {

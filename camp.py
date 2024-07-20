@@ -30,15 +30,10 @@ def random_unit_by_age(advancement_level) -> UnitTemplate:
         return random_unit_by_age(advancement_level - 1)
 
 class Camp(MapObject):
-    def __init__(self, civ: Civ, advancement_level=0, unit: UnitTemplate | None = None):
-        # civ actually can be None very briefly before GameState.from_json() is done, 
-        # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
-
-        super().__init__()
+    def __init__(self, civ: Civ | None = None, advancement_level=0, unit: UnitTemplate | None = None, hex: 'Hex | None' = None):
+        super().__init__(civ, hex)
         self.id = generate_unique_id()
         self.under_siege_by_civ: Optional[Civ] = None
-        self.civ: Civ = civ
-        self.civ_id: str = civ.id if civ else None  # type: ignore
         self.target: Optional['Hex'] = None
         if STRICT_MODE:
             assert unit is None or advancement_level == 0, f"Only set one of unit and advancement_level"
@@ -84,8 +79,7 @@ class Camp(MapObject):
         return True
 
     def spawn_unit_on_hex(self, sess, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex') -> None:
-        unit = Unit(unit_template, self.civ)
-        unit.set_hex(hex)
+        unit = Unit(unit_template, civ=self.civ, hex=hex)
         hex.units.append(unit)
         game_state.units.append(unit)
         if self.hex.coords != unit.hex.coords:
@@ -143,8 +137,8 @@ class Camp(MapObject):
 
         game_state.unregister_camp(self)
 
-    def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
-        self.civ = civs_by_id[self.civ_id]
+    def finish_loading_civ(self, civs_by_id: dict[str, Civ]) -> None:
+        super().finish_loading_civ(civs_by_id)
         self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
@@ -154,6 +148,7 @@ class Camp(MapObject):
 
     def to_json(self):
         return {
+            **super().to_json(),
             "id": self.id,
             "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords,
@@ -163,9 +158,9 @@ class Camp(MapObject):
     
     @staticmethod
     def from_json(json: dict):
-        camp = Camp(civ=None)  # type: ignore
+        camp = Camp()
+        super(Camp, camp).from_json(json)
         camp.id = json["id"]
-        camp.civ_id = json["civ_id"]
         camp.under_siege_by_civ = json["under_siege_by_civ_id"]
         camp.unit = UNITS.by_name(json["unit"])
         return camp

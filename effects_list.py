@@ -171,9 +171,9 @@ class RecruitBarbariansEffect(CityTargetEffect):
     def apply(self, city: 'City', game_state: 'GameState'):
         for hex in city.hex.get_hexes_within_range_expensive(game_state.hexes, self.range):
             if len(hex.units) > 0 and hex.units[0].civ == game_state.barbarians:
-                hex.units[0].civ = city.civ
+                hex.units[0].update_civ(city.civ)
             if hex.camp is not None and hex.camp.civ == game_state.barbarians:
-                hex.camp.civ = city.civ
+                hex.camp.update_civ(city.civ)
 
 class PointsEffect(CityTargetEffect):
     def __init__(self, calculate_points: Callable[['City', 'GameState'], int], description: str, label: str) -> None:
