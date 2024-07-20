@@ -392,17 +392,6 @@ class City(MapObject):
 
         return (BASE_FOOD_COST_OF_POP + self.population * ADDITIONAL_PER_POP_FOOD_COST) * max(1 - total_growth_cost_reduction, 0.3)
 
-    def handle_siege(self, sess, game_state: 'GameState') -> None:
-        siege_state = self.get_siege_state(game_state)
-
-        if self.under_siege_by_civ is None:
-            self.under_siege_by_civ = siege_state
-        else:
-            if siege_state is None or siege_state.id != self.under_siege_by_civ.id:
-                self.under_siege_by_civ = siege_state
-            else:
-                self.capture(sess, siege_state, game_state)
-
     def populate_terrains_dict(self, game_state: 'GameState') -> None:
         for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
             if not hex.terrain in self.terrains_dict:
@@ -635,15 +624,6 @@ class City(MapObject):
                 result += ability.numbers[1]
         return result
 
-    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', bonus_strength: int, stack_size=1) -> Unit | None:
-        unit = Unit(unit_template, civ=self.civ, hex=hex)
-        unit.health *= stack_size
-        hex.units.append(unit)
-        game_state.units.append(unit)
-        unit.strength += bonus_strength
-
-        return unit
-
     def reinforce_unit(self, unit: Unit, stack_size=1) -> None:
         unit.health += 100 * stack_size
 
@@ -818,13 +798,6 @@ class City(MapObject):
             # Clear it from any other cities immediately; you can't build two in one turn.
             for city in self.civ.get_my_cities(game_state):
                 city.buildings_queue = [b for b in city.buildings_queue if b.template != building]
-
-    def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
-        for unit in self.hex.units:
-            if unit.civ.id != self.civ.id and unit.template.type == 'military':
-                return unit.civ
-
-        return None
     
     def passive_building_abilities_of_name(self, ability_name: str) -> Generator[tuple['Ability', 'Building'], None, None]:
         for building in self.buildings:

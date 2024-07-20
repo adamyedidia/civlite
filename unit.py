@@ -399,6 +399,9 @@ class Unit(MapObject):
     def update_nearby_hexes_friendly_foundability(self) -> None:
         self.hex.is_foundable_by_civ[self.civ.id] = True
 
+    def capture(self, sess, game_state: 'GameState') -> None:
+        raise ValueError(f"Somehow a unit got sieged and captured. That should only happen to cities and camps. {self.id=} {self.template.name=} {self.hex.coords=}")
+
     def to_json(self) -> dict:
         return {
             **super().to_json(),

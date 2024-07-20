@@ -42,11 +42,11 @@ class Camp(MapObject):
     def __repr__(self):
         return f"Camp(id={self.id}, hex={self.hex.coords if self._hex else None})"
 
-    def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate) -> bool:
+    def build_unit(self, game_state: 'GameState', unit: UnitTemplate) -> bool:
         self.target = game_state.pick_random_hex()
 
         if not self.hex.is_occupied(unit.type, self.civ):
-            self.spawn_unit_on_hex(sess, game_state, unit, self.hex)
+            self.spawn_unit_on_hex(game_state, unit, self.hex)
             return True
 
         best_hex = None
@@ -69,42 +69,14 @@ class Camp(MapObject):
 
         if best_hex is None:
             return False
-        self.spawn_unit_on_hex(sess, game_state, unit, best_hex)
+        self.spawn_unit_on_hex(game_state, unit, best_hex)
         return True
-
-    def spawn_unit_on_hex(self, sess, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex') -> None:
-        unit = Unit(unit_template, civ=self.civ, hex=hex)
-        hex.units.append(unit)
-        game_state.units.append(unit)
-        if self.hex.coords != unit.hex.coords:
-            game_state.add_animation_frame_for_civ(sess, {
-                "type": "UnitSpawn",
-                "start_coords": self.hex.coords,
-                "end_coords": unit.hex.coords,
-            }, self.civ)
-
-    def handle_siege(self, sess, game_state: 'GameState') -> None:
-        siege_state = self.get_siege_state(game_state)
-
-        if self.under_siege_by_civ is None:
-            self.under_siege_by_civ = siege_state
-        else:
-            if siege_state is None or siege_state.id != self.under_siege_by_civ.id:
-                self.under_siege_by_civ = siege_state
-            else:
-                self.clear(sess, siege_state, game_state)
-
-    def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
-        for unit in self.hex.units:
-            if unit.civ.id != self.civ.id and unit.template.type == 'military':
-                return unit.civ
-        return None
 
     @property
     def no_cities_adjacent_range(self) -> int:
         return 0
 
-    def clear(self, sess, civ: Civ, game_state: 'GameState') -> None:
+    def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         civ.city_power += CAMP_CLEAR_CITY_POWER_REWARD
         civ.gain_vps(CAMP_CLEAR_VP_REWARD, f"Clearing Camps ({CAMP_CLEAR_VP_REWARD}/camp)")
 
@@ -120,7 +92,7 @@ class Camp(MapObject):
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.handle_siege(sess, game_state)
         if game_state.turn_num % 2 == 0:
-            self.build_unit(sess, game_state, self.unit)
+            self.build_unit(game_state, self.unit)
 
     def from_json_postprocess(self, game_state: 'GameState') -> None:
         super().from_json_postprocess(game_state)
