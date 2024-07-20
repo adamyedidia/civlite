@@ -280,7 +280,7 @@ class GameState:
 
     def fresh_cities_from_json_postprocess(self) -> None:
         for coords, city in self.fresh_cities_for_decline.items():
-            city.hex = self.hexes[coords]
+            city.set_hex(self.hexes[coords])
 
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
@@ -296,7 +296,7 @@ class GameState:
         assert hex.city is None, f"Creting city at {hex.coords} but it already has a city {hex.city.name}!"
         for h in hex.get_neighbors(self.hexes):
             assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
-        city.hex = hex
+        city.set_hex(hex)
         city.populate_terrains_dict(self)
         city.midturn_update(self)
         return city
@@ -361,7 +361,6 @@ class GameState:
 
     def choose_techs_for_new_civ(self, city: City) -> set[TechTemplate]:
         print("Calculating starting techs!")
-        assert city.hex is not None
         # Make this function deterministic across staging and rolling
         random.seed(deterministic_hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
         chosen_techs: set[TechTemplate] = set()
@@ -565,12 +564,10 @@ class GameState:
                             city.capitalize(self)
 
                         else:
-                            if city.hex:
-                                self.register_camp(Camp(self.barbarians), city.hex)
+                            self.register_camp(Camp(self.barbarians), city.hex)
 
-                                city.hex.city = None
-                                city.hex = None
-                                self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
+                            city.hex.city = None
+                            self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
 
                             del self.civs_by_id[city.civ.id]
 
@@ -1030,7 +1027,6 @@ class GameState:
 
         # Update seen_by_players to include anything visible in the fog via the decline view.
         for city in list(self.fresh_cities_for_decline.values()) + [city for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]:
-            assert city.hex is not None
             for neighbor in city.hex.get_hexes_within_range(self.hexes, 2):
                 if neighbor.city is not None:
                     neighbor.city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
@@ -1091,7 +1087,6 @@ class GameState:
         for city in self.cities_by_id.values():
             if city.civ_to_revolt_into is not None:
                 print(f"decline view for city {city.name}")
-                assert city.hex is not None, "Somehow got a city with no hex registered."
                 self.process_decline_option(city.hex.coords, from_civ_perspectives)
                 city.is_decline_view_option = True
         

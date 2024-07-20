@@ -153,7 +153,6 @@ class FreeNearbyCityEffect(CityTargetEffect):
                 if neighbor.city is not None:
                     return False
             return True
-        assert city.hex is not None
         for hex in city.hex.get_distance_2_hexes(game_state.hexes):
             if valid_spot(hex):
                 city.civ.city_power += 100
@@ -170,7 +169,6 @@ class RecruitBarbariansEffect(CityTargetEffect):
         return f"Recruit all barbarians within {self.range} tiles (including camps)"
     
     def apply(self, city: 'City', game_state: 'GameState'):
-        assert city.hex is not None
         for hex in city.hex.get_hexes_within_range_expensive(game_state.hexes, self.range):
             if len(hex.units) > 0 and hex.units[0].civ == game_state.barbarians:
                 hex.units[0].civ = city.civ

@@ -317,7 +317,6 @@ class Civ:
         
         option_total_yields: dict[str, float] = {}
         for city in game_state.cities_by_id.values():
-            assert city.hex is not None, "Unregistered city found!"
             if city.civ_to_revolt_into is None:
                 continue
 
