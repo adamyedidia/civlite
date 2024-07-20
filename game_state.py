@@ -1,5 +1,5 @@
 import math
-from typing import Any, Optional
+from typing import Any, Generator, Optional
 from animation_frame import AnimationFrame
 from building import QueueEntry
 from camp import Camp
@@ -8,6 +8,7 @@ from city import City, get_city_name_for_civ
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
+from map_object import MapObject
 from settings import GOD_MODE
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
@@ -279,8 +280,8 @@ class GameState:
         self.announcements.append(f'[T {self.turn_num}] {content}')
 
     def fresh_cities_from_json_postprocess(self) -> None:
-        for coords, city in self.fresh_cities_for_decline.items():
-            city.finish_loading_hex(self.hexes[coords])
+        for city in self.fresh_cities_for_decline.values():
+            city._finish_loading_hex(self.hexes)
 
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
@@ -825,15 +826,17 @@ class GameState:
         self.advancement_level = math.floor(weighted_average)
         self.advancement_level_progress = weighted_average - self.advancement_level
 
+    def all_map_objects(self) -> Generator[MapObject, Any, None]:
+        yield from self.cities_by_id.values()
+        yield from self.units
+        yield from self.camps
+
     def refresh_visibility_by_civ(self, short_sighted: bool = False) -> None:
         for hex in self.hexes.values():
             hex.visibility_by_civ.clear()
 
-        for unit in self.units:
-            unit.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
-
-        for city in self.cities_by_id.values():
-            city.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
+        for obj in self.all_map_objects():
+            obj.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
 
     def refresh_foundability_by_civ(self) -> None:
         for hex in self.hexes.values():
@@ -842,14 +845,12 @@ class GameState:
         for unit in self.units:
             unit.update_nearby_hexes_friendly_foundability()
 
-        for unit in self.units:
-            unit.update_nearby_hexes_hostile_foundability(self.hexes)
+        for obj in self.all_map_objects():
+            obj.update_nearby_hexes_hostile_foundability(self.hexes)
+            print(f"{obj} refresh_foundability_by_civ: {self.hexes['-5,3,2'].is_foundable_by_civ}")
 
-        for city in self.cities_by_id.values():
-            city.update_nearby_hexes_hostile_foundability(self.hexes)
 
-        for camp in self.camps:
-            camp.update_nearby_hexes_hostile_foundability(self.hexes)
+        print(f"refresh_foundability_by_civ: {self.hexes['-5,3,2'].is_foundable_by_civ}")
 
     def end_turn(self, sess) -> None:
         if self.game_over:
@@ -939,8 +940,9 @@ class GameState:
         print("moving units 2")
         random.shuffle(units_copy)
         for unit in units_copy:
-            unit.move(sess, self, sensitive=True)
-            unit.attack(sess, self)
+            if not unit.dead:
+                unit.move(sess, self, sensitive=True)
+                unit.attack(sess, self)
 
         print("moving units 2: commit")
         sess.commit()
@@ -1238,9 +1240,8 @@ class GameState:
 
         for civ in game_state.civs_by_id.values():
             civ.from_json_postprocess(game_state)
-        for hex in game_state.hexes.values():
-            hex.from_json_postprocess(game_state)
-            # That sets game_state.units and game_state.cities_by_id
+        for obj in game_state.all_map_objects():
+            obj.from_json_postprocess(game_state)
         game_state.fresh_cities_from_json_postprocess()
         game_state.midturn_update()
         return game_state

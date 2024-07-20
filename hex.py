@@ -100,9 +100,11 @@ class Hex:
         ], hexes)
 
     def get_hexes_within_range(self, hexes: dict[str, "Hex"], range: int) -> Generator["Hex", None, None]:
-        assert range > 0 and range <= 3
+        assert range >= 0 and range <= 3, f"Range must be between 1 and 3, got {range}"
+        if range >= 0:
+            yield self
         if range >= 1:
-            yield from self.get_neighbors(hexes, include_self=True)
+            yield from self.get_neighbors(hexes, include_self=False)
         if range >= 2:
             yield from self.get_distance_2_hexes(hexes)
         if range >= 3:
@@ -132,20 +134,6 @@ class Hex:
             if hex.units and hex.units[0].civ.id != self.city.civ.id:
                 return True
         return False
-
-    def from_json_postprocess(self, game_state: 'GameState') -> None:
-        for unit in self.units:
-            unit.finish_loading_civ(game_state.civs_by_id)
-            unit.finish_loading_hex(self)
-            # Don't append here; they got added in GameState.init
-            # game_state.units.append(unit)
-        if self.city:
-            self.city.finish_loading_civ(game_state.civs_by_id)
-            self.city.finish_loading_hex(self)
-            game_state.cities_by_id[self.city.id] = self.city
-        if self.camp:
-            self.camp.finish_loading_civ(game_state.civs_by_id)          
-            self.camp.finish_loading_hex(self)
 
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         result = {

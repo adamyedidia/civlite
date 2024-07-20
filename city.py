@@ -290,17 +290,9 @@ class City(MapObject):
                     b.harvest_yields(self.metal)
                 self.metal = 0
 
-    def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
-        # Always let cities have sight 2, even in decline mode (short_sighted = True)
-        neighbors = self.hex.get_hexes_within_range(game_state.hexes, 2)
-
-        for nearby_hex in neighbors:
-            nearby_hex.visibility_by_civ[self.civ.id] = True
-
-    def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:
-        for hex in self.hex.get_neighbors(hexes, include_self=True):
-            for key in hex.is_foundable_by_civ:
-                hex.is_foundable_by_civ[key] = False            
+    @property
+    def no_cities_adjacent_range(self) -> int:
+        return 1
 
     def roll_turn_pre_harvest(self, game_state):
         """ All the turn roll stuff up to and including harvesting yields"""
@@ -548,24 +540,11 @@ class City(MapObject):
                     if self.build_unit(game_state, bldg.template) is not None:
                         bldg.metal -= bldg.template.metal_cost
 
-    def get_closest_target(self) -> Optional['Hex']:
-        target1 = self.civ.target1
-        target2 = self.civ.target2
-
-        if target1 is None and target2 is None:
-            return None
-        
-        if target1 is None:
-            return target2
-        
-        if target2 is None:
-            return target1
-        
-        if self.hex.distance_to(target1) <= self.hex.distance_to(target2):
-            return target1
-        else:
-            return target2
-
+    def sight_range(self, short_sighted: bool) -> int:
+        """
+        Cities have sight range 2 even in decline preview mode.
+        """
+        return 2
 
     def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1, bonus_strength: int = 0) -> Unit | None:
         bonus_strength = self._spawn_strength(unit, game_state) + bonus_strength
@@ -1221,8 +1200,8 @@ class City(MapObject):
         return city
 
     def from_json_postprocess(self, game_state: 'GameState'):
+        super().from_json_postprocess(game_state)
         self.under_siege_by_civ = game_state.civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
-        self.midturn_update(game_state)
 
 CITY_NAMES = {
     "Miami",

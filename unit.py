@@ -16,8 +16,6 @@ if TYPE_CHECKING:
 
 class Unit(MapObject):
     def __init__(self, template: UnitTemplate, civ: Civ | None = None, hex: 'Hex | None' = None) -> None:
-        # civ actually can be None very briefly before GameState.from_json() is done, 
-        # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
         super().__init__(civ, hex)
         self.id = generate_unique_id()
         self.template = template
@@ -53,35 +51,8 @@ class Unit(MapObject):
     def numbers_of_ability(self, ability_name: str) -> list:
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
 
-    def get_closest_target(self) -> Optional['Hex']:
-        target1 = self.civ.target1
-        target2 = self.civ.target2
-
-        if target1 is None and target2 is None:
-            return None
-        
-        if target1 is None:
-            return target2
-        
-        if target2 is None:
-            return target1
-        
-        if self.hex.distance_to(target1) <= self.hex.distance_to(target2):
-            return target1
-        else:
-            return target2
-
     def get_stack_size(self) -> int:
         return int(ceil(self.health / 100))
-
-    def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
-        if short_sighted:
-            neighbors = self.hex.get_neighbors(game_state.hexes)
-        else:
-            neighbors = self.hex.get_hexes_within_range(game_state.hexes, 2)
-
-        for nearby_hex in neighbors:
-            nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
         if self.has_moved:
@@ -427,12 +398,6 @@ class Unit(MapObject):
 
     def update_nearby_hexes_friendly_foundability(self) -> None:
         self.hex.is_foundable_by_civ[self.civ.id] = True
-
-    def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:      
-        for hex in self.hex.get_neighbors(hexes):
-            for key in hex.is_foundable_by_civ:
-                if key != self.civ.id:
-                    hex.is_foundable_by_civ[key] = False
 
     def to_json(self) -> dict:
         return {

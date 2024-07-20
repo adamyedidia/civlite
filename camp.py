@@ -39,14 +39,8 @@ class Camp(MapObject):
             assert unit is None or advancement_level == 0, f"Only set one of unit and advancement_level"
         self.unit: UnitTemplate = unit or random_unit_by_age(advancement_level)
 
-    def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
-        if short_sighted:
-            neighbors = self.hex.get_neighbors(game_state.hexes, include_self=True)
-        else:
-            neighbors = self.hex.get_hexes_within_range(game_state.hexes, 2)
-
-        for nearby_hex in neighbors:
-            nearby_hex.visibility_by_civ[self.civ.id] = True
+    def __repr__(self):
+        return f"Camp(id={self.id}, hex={self.hex.coords if self._hex else None})"
 
     def build_unit(self, sess, game_state: 'GameState', unit: UnitTemplate) -> bool:
         self.target = game_state.pick_random_hex()
@@ -104,25 +98,11 @@ class Camp(MapObject):
         for unit in self.hex.units:
             if unit.civ.id != self.civ.id and unit.template.type == 'military':
                 return unit.civ
-
-        # num_neighboring_units_by_civ_name = defaultdict(int)
-
-        # for hex in self.hex.get_neighbors(game_state.hexes):
-        #     for unit in hex.units:
-        #         if unit.template.type == 'military':
-        #             num_neighboring_units_by_civ_name[unit.civ.template.name] += 1
-
-        # for civ_name, num_neighboring_units in num_neighboring_units_by_civ_name.items():
-        #     if num_neighboring_units >= 4 and civ_name != self.civ.template.name:
-        #         return game_state.get_civ_by_name(civ_name)
-
         return None
 
-    def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:
-        for hex in self.hex.get_neighbors(hexes, include_self=True):
-            for key in hex.is_foundable_by_civ:
-                if key != self.civ.id or hex == self.hex:
-                    hex.is_foundable_by_civ[key] = False
+    @property
+    def no_cities_adjacent_range(self) -> int:
+        return 0
 
     def clear(self, sess, civ: Civ, game_state: 'GameState') -> None:
         civ.city_power += CAMP_CLEAR_CITY_POWER_REWARD
@@ -137,14 +117,14 @@ class Camp(MapObject):
 
         game_state.unregister_camp(self)
 
-    def finish_loading_civ(self, civs_by_id: dict[str, Civ]) -> None:
-        super().finish_loading_civ(civs_by_id)
-        self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
-
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.handle_siege(sess, game_state)
         if game_state.turn_num % 2 == 0:
             self.build_unit(sess, game_state, self.unit)
+
+    def from_json_postprocess(self, game_state: 'GameState') -> None:
+        super().from_json_postprocess(game_state)
+        self.under_siege_by_civ = game_state.civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
 
     def to_json(self):
         return {
