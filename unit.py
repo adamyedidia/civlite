@@ -24,10 +24,22 @@ class Unit:
         self.civ = civ
         self.civ_id: str = civ.id if civ else None  # type: ignore
         self.has_moved = False
-        self.hex: Optional['Hex'] = None
+        self._hex: Optional['Hex'] = None
         self.strength = self.template.strength
         self.attacks_used = 0
         self.destination = None
+
+    @property
+    def hex(self):
+        assert self._hex is not None
+        return self._hex
+    
+    def set_hex(self, hex: 'Hex'):
+        self._hex = hex
+
+    @property
+    def dead(self):
+        return self.health <= 0
 
     def num_attacks(self) -> int:
         num_units = self.get_stack_size()
@@ -40,7 +52,7 @@ class Unit:
         return self.attacks_used >= self.num_attacks()
 
     def __repr__(self):
-        return f"<Unit {self.civ.moniker()} {self.template.name} @ {self.hex.coords if self.hex is not None else None}"
+        return f"<Unit {self.civ.moniker()} {self.template.name} @ {self._hex.coords if self._hex is not None else None}"
 
     def midturn_update(self, game_state):
         self.calculate_destination_hex(game_state)
@@ -52,9 +64,6 @@ class Unit:
         return [ability.numbers for ability in self.template.abilities if ability.name == ability_name][0]
 
     def get_closest_target(self) -> Optional['Hex']:
-        if not self.hex:
-            return None
-
         target1 = self.civ.target1
         target2 = self.civ.target2
 
@@ -76,8 +85,6 @@ class Unit:
         return int(ceil(self.health / 100))
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
-        if self.hex is None:
-            return
         if short_sighted:
             neighbors = self.hex.get_neighbors(game_state.hexes)
         else:
@@ -87,7 +94,7 @@ class Unit:
             nearby_hex.visibility_by_civ[self.civ.id] = True
 
     def move(self, sess, game_state: 'GameState', sensitive: bool = False) -> None:
-        if self.has_moved or self.hex is None:
+        if self.has_moved:
             return
         stack_count_not_acted: int = max(0, self.get_stack_size() - self.attacks_used)
         if stack_count_not_acted == 0:
@@ -111,7 +118,7 @@ class Unit:
             split_unit.attacks_used = self.attacks_used
             self.attacks_used = 0
 
-            split_unit.hex = starting_hex
+            split_unit.set_hex(starting_hex)
             starting_hex.units.append(split_unit)
             game_state.units.append(split_unit)
 
@@ -126,9 +133,6 @@ class Unit:
             }, hexes_must_be_visible=[starting_hex, new_hex], no_commit=True)
 
     def merge_into_neighboring_unit(self, sess, game_state: 'GameState', always_merge_if_possible: bool = False) -> bool:
-        if self.hex is None:
-            return False
-
         closest_target = self.get_closest_target()
         if closest_target is None:
             closest_target = self.hex
@@ -156,10 +160,7 @@ class Unit:
                     
         return False
 
-    def friendly_neighboring_unit_count(self, game_state: 'GameState') -> int:
-        if self.hex is None:
-            return 0
-        
+    def friendly_neighboring_unit_count(self, game_state: 'GameState') -> int:       
         units_in_neighboring_hexes: list['Unit'] = []
         for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
             units_in_neighboring_hexes.extend(neighboring_hex.units)
@@ -167,9 +168,6 @@ class Unit:
         return len([unit for unit in units_in_neighboring_hexes if unit.civ.id == self.civ.id])
 
     def attack(self, sess, game_state: 'GameState') -> None:
-        if self.hex is None or self.done_attacking:
-            return
-
         while not self.done_attacking:
             if self.hex is None:
                 return
@@ -193,8 +191,6 @@ class Unit:
         """
         Ranking function for which target to attack
         """
-        assert target.hex is not None and self.hex is not None
-
         type_scores = {
             'military': 2,
             'support': 1,
@@ -205,13 +201,10 @@ class Unit:
         return seiging_my_city, is_vandetta_civ, -closest_target.distance_to(target.hex), type_scores[target.template.type], -target.strength
 
     def valid_attack(self, target: 'Unit') -> bool:
-        visible: bool = target.hex is not None and target.hex.visible_to_civ(self.civ)
+        visible: bool = target.hex.visible_to_civ(self.civ)
         return visible and target.civ != self.civ
 
     def get_best_target(self, hexes_to_check: Generator['Hex', None, None]) -> Optional['Unit']:
-        if self.hex is None:
-            return None
-
         units: list[Unit] = [unit for hex in hexes_to_check for unit in hex.units if self.valid_attack(unit)]
         if len(units) > 0:
             return max(units, key=self.target_score)
@@ -225,7 +218,6 @@ class Unit:
         return int(round(DAMAGE_EQUAL_STR ** (ratio_of_strengths ** DAMAGE_DOUBLE_EXPONENT)))
 
     def _compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit', battle_location: 'Hex',  support_hexes: set[tuple['Hex', 'Hex']] = set()) -> float:
-        assert self.hex is not None
         bonuses = 0
 
         if self.has_ability('BonusNextTo'):
@@ -264,7 +256,6 @@ class Unit:
                     af_city = city
 
         if af_city is not None:
-            assert self.hex is not None
             support_hexes.add((af_city.hex, self.hex))
 
         return bonus_strength + af_bonus
@@ -279,7 +270,7 @@ class Unit:
         self.health = max(0, self.health - amount)
         final_stack_size = self.get_stack_size()
 
-        if self.health == 0:
+        if self.dead:
             self.die(game_state, from_unit)
 
         if from_civ is not None:
@@ -294,9 +285,6 @@ class Unit:
                         game_state.civs_by_id[civ_id].gain_vps(UNIT_KILL_REWARD, f"United Nations")
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
-        if self.hex is None or target.hex is None:
-            return
-
         self_hex_coords = self.hex.coords
         target_hex_coords = target.hex.coords
         support_hexes: set[tuple['Hex', 'Hex']] = set()  # list of hexes that supported the battle for anmation. Updated a side effect of punch
@@ -336,33 +324,25 @@ class Unit:
             self.attacks_used += 1000
             print(self.health, self.attacks_used)
 
-    def remove_from_game(self, game_state: 'GameState') -> None:
-        if self.hex is None:
-            return        
+    def remove_from_game(self, game_state: 'GameState') -> None:       
         self.hex.units = [unit for unit in self.hex.units if unit.id != self.id]
         game_state.units = [unit for unit in game_state.units if unit.id != self.id]
 
     def die(self, game_state: 'GameState', killer: 'Unit | None'):
-        if self.hex is None:
-            return
-
         my_hex = self.hex
 
         self.remove_from_game(game_state)
 
         if killer is not None and killer.has_ability('ConvertKills'):
             new_unit = Unit(killer.template, killer.civ)
-            new_unit.hex = my_hex
+            new_unit.set_hex(my_hex)
             my_hex.units.append(new_unit)
             game_state.units.append(new_unit)
 
     def currently_sieging(self):
-        if not self.hex:
-            return False
         return (self.hex.city and self.hex.city.civ != self.civ) or (self.hex.camp and self.hex.camp.civ != self.civ)
 
     def calculate_destination_hex(self, game_state):
-        assert self.hex is not None  # Not sure how this could possibly happen.
         # Stationary units don't move
         if self.template.movement == 0:
             self.destination = None
@@ -412,7 +392,6 @@ class Unit:
 
         if self.destination is None: return False
 
-        assert self.hex is not None
         best_hex = None
         best_distance = self.hex.distance_to(self.destination) if not sensitive else self.hex.sensitive_distance_to(self.destination)
 
@@ -441,16 +420,15 @@ class Unit:
         return False
 
     def take_one_step_to_hex(self, hex: 'Hex') -> None:
-        if self.hex is not None:
-            self.hex.remove_unit(self)
-        self.hex = hex
+        self.hex.remove_unit(self)
+        self.set_hex(hex)
         hex.units.append(self)
 
     def turn_end(self, game_state: 'GameState') -> None:
         self.has_moved = False
         self.attacks_used = 0
 
-        if self.has_ability('HealAllies') and self.hex is not None:
+        if self.has_ability('HealAllies'):
             for neighbor in self.hex.get_neighbors(game_state.hexes):
                 for unit in neighbor.units:
                     if unit.civ == self.civ and not unit.template.has_tag(UnitTag.WONDROUS):
@@ -463,14 +441,9 @@ class Unit:
         self.civ = civs_by_id[self.civ_id]
 
     def update_nearby_hexes_friendly_foundability(self) -> None:
-        if self.hex is None:
-            return
         self.hex.is_foundable_by_civ[self.civ.id] = True
 
-    def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:
-        if self.hex is None:
-            return
-        
+    def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:      
         for hex in self.hex.get_neighbors(hexes):
             for key in hex.is_foundable_by_civ:
                 if key != self.civ.id:
@@ -483,7 +456,7 @@ class Unit:
             "health": self.health,
             "civ_id": self.civ.id,
             "has_moved": self.has_moved,
-            "coords": self.hex.coords if self.hex is not None else None,
+            "coords": self.hex.coords,
             "strength": self.strength,
             "template": self.template.to_json(),
             "attacks_used": self.attacks_used,

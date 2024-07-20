@@ -931,8 +931,9 @@ class GameState:
         units_copy = self.units[:]
         random.shuffle(units_copy)
         for unit in units_copy:
-            unit.move(sess, self)
-            unit.attack(sess, self)
+            if not unit.dead:
+                unit.move(sess, self)
+                unit.attack(sess, self)
 
         print("moving units 1: commit")
         sess.commit()

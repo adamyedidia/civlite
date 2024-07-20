@@ -136,7 +136,7 @@ class Hex:
     def from_json_postprocess(self, game_state: 'GameState') -> None:
         for unit in self.units:
             unit.update_civ_by_id(game_state.civs_by_id)
-            unit.hex = self
+            unit.set_hex(self)
             # Don't append here; they got added in GameState.init
             # game_state.units.append(unit)
         if self.city:

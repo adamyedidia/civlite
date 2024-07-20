@@ -602,7 +602,7 @@ class City:
         if best_hex is not None:
             return self.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
 
-        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == self.civ and u.template == unit and u.hex and u.strength == unit.strength + bonus_strength]  
+        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == self.civ and u.template == unit and u.strength == unit.strength + bonus_strength]  
 
         if len(potential_units_to_reinforce) > 0:
             best_unit_to_reinforce = min(potential_units_to_reinforce, key=lambda u: (
@@ -671,7 +671,7 @@ class City:
     def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', bonus_strength: int, stack_size=1) -> Unit | None:
         unit = Unit(unit_template, self.civ)
         unit.health *= stack_size
-        unit.hex = hex
+        unit.set_hex(hex)
         hex.units.append(unit)
         game_state.units.append(unit)
         unit.strength += bonus_strength

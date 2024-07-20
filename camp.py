@@ -92,7 +92,7 @@ class Camp:
 
     def spawn_unit_on_hex(self, sess, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex') -> None:
         unit = Unit(unit_template, self.civ)
-        unit.hex = hex
+        unit.set_hex(hex)
         hex.units.append(unit)
         game_state.units.append(unit)
         if self.hex.coords != unit.hex.coords:
