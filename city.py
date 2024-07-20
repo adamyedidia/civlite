@@ -6,6 +6,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
+from map_object import MapObject
 from settings import GOD_MODE
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
@@ -30,11 +31,11 @@ TRADE_HUB_CITY_POWER_PER_TURN = 20
 
 _DEVELOPMENT_VPS_STR = f"Development ({DEVELOP_VPS} each)"
 
-class City:
+class City(MapObject):
     def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
         # civ actually can be None very briefly before GameState.from_json() is done, 
         # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
-
+        super().__init__()
         self.id = id or generate_unique_id()
         self.civ: Civ = civ
         self.civ_id: str = civ.id if civ else None  # type: ignore
@@ -51,7 +52,6 @@ class City:
         self.urban_slots = 1
         self.military_slots = 1
         self.under_siege_by_civ: Optional[Civ] = None
-        self._hex: Optional['Hex'] = None
         self.buildings_queue: list[QueueEntry] = []
         self.buildings: list[Building] = []
         self.unit_buildings: list[UnitBuilding] = [UnitBuilding(UNITS.WARRIOR)]
@@ -89,14 +89,6 @@ class City:
     
     def __hash__(self):
         return hash(self.id)
-
-    @property
-    def hex(self) -> 'Hex':
-        assert self._hex is not None
-        return self._hex
-    
-    def set_hex(self, hex: 'Hex'):
-        self._hex = hex
 
     def has_building(self, template: BuildingTemplate | UnitTemplate | WonderTemplate) -> bool:
         if isinstance(template, UnitTemplate):
@@ -431,7 +423,7 @@ class City:
                 self.terrains_dict[hex.terrain] += 1
 
     def _refresh_available_buildings_and_units(self, game_state):
-        if self.civ is None or self._hex is None:
+        if self.civ is None:
             return
         self.available_units = sorted([unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)])
         

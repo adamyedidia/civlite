@@ -2,6 +2,7 @@ from math import ceil
 import random
 from typing import TYPE_CHECKING, Generator, Optional
 from civ import Civ
+from map_object import MapObject
 from wonder_templates_list import WONDERS
 from settings import UNIT_KILL_REWARD, DAMAGE_DOUBLE_EXPONENT, DAMAGE_EQUAL_STR
 from unit_template import UnitTemplate, UnitTag
@@ -13,29 +14,20 @@ if TYPE_CHECKING:
     from hex import Hex
 
 
-class Unit:
+class Unit(MapObject):
     def __init__(self, template: UnitTemplate, civ: Civ) -> None:
         # civ actually can be None very briefly before GameState.from_json() is done, 
         # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
-
+        super().__init__()
         self.id = generate_unique_id()
         self.template = template
         self.health = 100
         self.civ = civ
         self.civ_id: str = civ.id if civ else None  # type: ignore
         self.has_moved = False
-        self._hex: Optional['Hex'] = None
         self.strength = self.template.strength
         self.attacks_used = 0
         self.destination = None
-
-    @property
-    def hex(self):
-        assert self._hex is not None
-        return self._hex
-    
-    def set_hex(self, hex: 'Hex'):
-        self._hex = hex
 
     @property
     def dead(self):
@@ -421,7 +413,7 @@ class Unit:
 
     def take_one_step_to_hex(self, hex: 'Hex') -> None:
         self.hex.remove_unit(self)
-        self.set_hex(hex)
+        self.update_hex(hex)
         hex.units.append(self)
 
     def turn_end(self, game_state: 'GameState') -> None:

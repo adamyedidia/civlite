@@ -5,6 +5,7 @@ import random
 from civ import Civ
 
 from typing import TYPE_CHECKING
+from map_object import MapObject
 from settings import CAMP_CLEAR_CITY_POWER_REWARD, CAMP_CLEAR_VP_REWARD, STRICT_MODE
 from unit import Unit
 
@@ -28,28 +29,20 @@ def random_unit_by_age(advancement_level) -> UnitTemplate:
     else:
         return random_unit_by_age(advancement_level - 1)
 
-class Camp:
+class Camp(MapObject):
     def __init__(self, civ: Civ, advancement_level=0, unit: UnitTemplate | None = None):
         # civ actually can be None very briefly before GameState.from_json() is done, 
         # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
 
+        super().__init__()
         self.id = generate_unique_id()
         self.under_siege_by_civ: Optional[Civ] = None
-        self._hex: Optional['Hex'] = None        
         self.civ: Civ = civ
         self.civ_id: str = civ.id if civ else None  # type: ignore
         self.target: Optional['Hex'] = None
         if STRICT_MODE:
             assert unit is None or advancement_level == 0, f"Only set one of unit and advancement_level"
         self.unit: UnitTemplate = unit or random_unit_by_age(advancement_level)
-
-    @property
-    def hex(self) -> 'Hex':
-        assert self._hex is not None
-        return self._hex
-    
-    def set_hex(self, hex: 'Hex'):
-        self._hex = hex
 
     def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
         if short_sighted:
