@@ -131,14 +131,14 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
-export const ExpandButton = ({ cantExpandReason, handleClickDevelop, expandFree }) => {
+export const ExpandButton = ({ cantExpandReason, handleClickDevelop, expandCost, expandFree }) => {
     let content = (
         <div className={`existing-building-card expand ${cantExpandReason ? 'disabled' : 'enabled'}`} onClick={() => handleClickDevelop('rural')}>
             <div>Expand</div>
             {expandFree ? (
                 <div className='price-label'>Free</div>
             ) : (
-                <div className='price-label'>(25 <img src={cityImg} alt="" height="16px"/>)</div>
+                <div className='price-label'>({expandCost} <img src={cityImg} alt="" height="16px"/>)</div>
             )}
         </div>
     );

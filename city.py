@@ -69,7 +69,7 @@ class City(MapObjectSpawner):
         self.projected_bulldozes: list[UnitTemplate] = []
         self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
-        self.expanded_by_civ_ids: list[str] = []
+        self.expands_this_civ = 0
         self.seen_by_players: set[int] = set()
 
         # Revolt stuff
@@ -673,19 +673,17 @@ class City(MapObjectSpawner):
         return bldgs
 
     @property
-    def expand_used(self):
-        return self.civ.id in self.expanded_by_civ_ids
+    def expand_cost(self):
+        return DEVELOP_COST['rural'] * (self.expands_this_civ + 1)
 
     @property
     def cant_expand_reason(self) -> str | None:
-        if self.expand_used:
-            return "Expansion already used in this city"
         if not self.is_territory_capital:
             return "Can't expand in puppets."
         if self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
             return "City is at maxmimum slots"
-        if self.civ.city_power < DEVELOP_COST['rural'] or (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
-            return f"City power ({int(self.civ.city_power)} / {DEVELOP_COST['rural']})"
+        if self.civ.city_power < self.expand_cost or (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
+            return f"City power ({int(self.civ.city_power)} / {self.expand_cost})"
         return None
 
     def expand(self, game_state):
@@ -693,7 +691,7 @@ class City(MapObjectSpawner):
         if STRICT_MODE:
             assert self.cant_expand_reason is None
         self.rural_slots += 1
-        self.expanded_by_civ_ids.append(self.civ.id)
+        self.expands_this_civ += 1
         if not (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
             self.civ.city_power -= DEVELOP_COST['rural']
         self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)
@@ -828,6 +826,7 @@ class City(MapObjectSpawner):
         self.buildings_queue = []
         self.clear_unit_builds()
         self.ever_controlled_by_civ_ids[civ.id] = True
+        self.expands_this_civ = 0
 
         self.unhappiness = 0
         self.food_demand_reduction_recent_owner_change = FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE
@@ -1103,8 +1102,8 @@ class City(MapObjectSpawner):
             "max_units_in_build_queue": self.military_slots <= len([entry for entry in self.buildings_queue if isinstance(entry.template, UnitTemplate)]),
             "growth_cost": self.growth_cost(),
             "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
-            "expanded_by_civ_ids": self.expanded_by_civ_ids,
-            "expand_used": self.expand_used,
+            "expands_this_civ": self.expands_this_civ,
+            "expand_cost": self.expand_cost,
             "cant_expand_reason": self.cant_expand_reason,
             "can_militarize": self.can_militarize,
             "can_urbanize": self.can_urbanize,
@@ -1155,7 +1154,7 @@ class City(MapObjectSpawner):
         city.projected_income_focus = Yields(**json["projected_income_focus"])
         city.projected_build_queue_depth = json["projected_build_queue_depth"]
         city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
-        city.expanded_by_civ_ids = json["expanded_by_civ_ids"]
+        city.expands_this_civ = json["expands_this_civ"]
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]
         city.unhappiness = json["unhappiness"]
