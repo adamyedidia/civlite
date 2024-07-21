@@ -5,9 +5,8 @@ import random
 from civ import Civ
 
 from typing import TYPE_CHECKING
-from map_object import MapObject
+from map_object_spawner import MapObjectSpawner
 from settings import CAMP_CLEAR_CITY_POWER_REWARD, CAMP_CLEAR_VP_REWARD, STRICT_MODE
-from unit import Unit
 
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
@@ -29,11 +28,10 @@ def random_unit_by_age(advancement_level) -> UnitTemplate:
     else:
         return random_unit_by_age(advancement_level - 1)
 
-class Camp(MapObject):
+class Camp(MapObjectSpawner):
     def __init__(self, civ: Civ | None = None, advancement_level=0, unit: UnitTemplate | None = None, hex: 'Hex | None' = None):
         super().__init__(civ, hex)
         self.id = generate_unique_id()
-        self.under_siege_by_civ: Optional[Civ] = None
         self.target: Optional['Hex'] = None
         if STRICT_MODE:
             assert unit is None or advancement_level == 0, f"Only set one of unit and advancement_level"
@@ -94,15 +92,10 @@ class Camp(MapObject):
         if game_state.turn_num % 2 == 0:
             self.build_unit(game_state, self.unit)
 
-    def from_json_postprocess(self, game_state: 'GameState') -> None:
-        super().from_json_postprocess(game_state)
-        self.under_siege_by_civ = game_state.civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
-
     def to_json(self):
         return {
             **super().to_json(),
             "id": self.id,
-            "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords,
             "civ_id": self.civ.id,
             "unit": self.unit.name
@@ -113,7 +106,6 @@ class Camp(MapObject):
         camp = Camp()
         super(Camp, camp).from_json(json)
         camp.id = json["id"]
-        camp.under_siege_by_civ = json["under_siege_by_civ_id"]
         camp.unit = UNITS.by_name(json["unit"])
         return camp
 

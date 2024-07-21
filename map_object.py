@@ -5,8 +5,6 @@ if TYPE_CHECKING:
     from civ import Civ
     from game_state import GameState
     from hex import Hex
-    from unit import Unit
-    from unit_template import UnitTemplate
 
 class MapObject(abc.ABC):
     def __init__(self, civ: 'Civ | None' = None, hex: 'Hex | None' = None):
@@ -92,37 +90,6 @@ class MapObject(abc.ABC):
         if self.no_cities_adjacent_range is not None:
             for hex in self.hex.get_hexes_within_range(hexes, self.no_cities_adjacent_range):
                 hex.is_foundable_by_civ[self.civ.id] = False
-
-    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: 'UnitTemplate', hex: 'Hex', bonus_strength: int=0, stack_size=1) -> 'Unit | None':
-        from unit import Unit
-        unit = Unit(unit_template, civ=self.civ, hex=hex)
-        unit.health *= stack_size
-        hex.units.append(unit)
-        game_state.units.append(unit)
-        unit.strength += bonus_strength
-
-        return unit
-
-    def get_siege_state(self, game_state: 'GameState') -> 'Civ | None':
-        for unit in self.hex.units:
-            if unit.civ.id != self.civ.id and unit.template.type == 'military':
-                return unit.civ
-        return None
-
-    def handle_siege(self, sess, game_state: 'GameState') -> None:
-        siege_state = self.get_siege_state(game_state)
-
-        if self.under_siege_by_civ is None:
-            self.under_siege_by_civ = siege_state
-        else:
-            if siege_state is None or siege_state.id != self.under_siege_by_civ.id:
-                self.under_siege_by_civ = siege_state
-            else:
-                self.capture(sess, siege_state, game_state)
-
-    @abc.abstractmethod
-    def capture(self, sess, siege_state: 'Civ', game_state: 'GameState') -> None:
-        pass
 
     def to_json(self):
         return {

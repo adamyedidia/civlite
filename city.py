@@ -6,7 +6,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
-from map_object import MapObject
+from map_object_spawner import MapObjectSpawner
 from settings import GOD_MODE
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
@@ -31,7 +31,7 @@ TRADE_HUB_CITY_POWER_PER_TURN = 20
 
 _DEVELOPMENT_VPS_STR = f"Development ({DEVELOP_VPS} each)"
 
-class City(MapObject):
+class City(MapObjectSpawner):
     def __init__(self, name: str, civ: Civ | None = None, id: Optional[str] = None, hex: 'Hex | None' = None):
         super().__init__(civ, hex)
         self.id = id or generate_unique_id()
@@ -47,7 +47,6 @@ class City(MapObject):
         self.rural_slots = 1
         self.urban_slots = 1
         self.military_slots = 1
-        self.under_siege_by_civ: Optional[Civ] = None
         self.buildings_queue: list[QueueEntry] = []
         self.buildings: list[Building] = []
         self.unit_buildings: list[UnitBuilding] = [UnitBuilding(UNITS.WARRIOR)]
@@ -1077,7 +1076,6 @@ class City(MapObject):
             "rural_slots": self.rural_slots,
             "urban_slots": self.urban_slots,
             "military_slots": self.military_slots,
-            "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
             "hex": self.hex.coords,
             "icon_unit_name": sorted(self.active_unit_buildings, key=lambda u: u.template.advancement_level(), reverse=True)[0].template.name if len(self.active_unit_buildings) > 0 else None,
             "buildings_queue": [building.to_json() for building in self.buildings_queue],
@@ -1145,7 +1143,6 @@ class City(MapObject):
         city.rural_slots = json["rural_slots"]
         city.urban_slots = json["urban_slots"]
         city.military_slots = json["military_slots"]
-        city.under_siege_by_civ = json["under_siege_by_civ_id"]
         city.capital = json["capital"]
         city.buildings_queue = [QueueEntry.from_json(entry) for entry in json["buildings_queue"]]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
@@ -1171,10 +1168,6 @@ class City(MapObject):
         city.seen_by_players = set(json["seen_by_players"])
 
         return city
-
-    def from_json_postprocess(self, game_state: 'GameState'):
-        super().from_json_postprocess(game_state)
-        self.under_siege_by_civ = game_state.civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
 
 CITY_NAMES = {
     "Miami",
