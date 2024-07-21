@@ -190,16 +190,16 @@ def make_game_statistics_plots(sess, game_id: str):
             if yields_by_civ[civ_id] == 0 and total_metal_value_by_civ[civ_id] == 0 and civ_id not in dead_turns:
                 dead_turns[civ_id] = frame.turn_num
 
-        def civ_color(hex) -> str | None:
+        def civ_color(hex: Hex) -> str | None:
             if hex.city:
-                return hex.city.civ_id
+                return hex.city.civ.id
            
-            neighbor_city_civs = {n.city.civ_id for n in hex.get_neighbors(game_state.hexes) if n.city}
+            neighbor_city_civs = {n.city.civ.id for n in hex.get_neighbors(game_state.hexes) if n.city}
             if len(neighbor_city_civs) == 1:
                 return neighbor_city_civs.pop()
             if len(neighbor_city_civs) > 1:
-                if len(hex.units) > 0 and hex.units[0].civ_id in neighbor_city_civs:
-                    return hex.units[0].civ_id
+                if len(hex.units) > 0 and hex.units[0].civ.id in neighbor_city_civs:
+                    return hex.units[0].civ.id
 
             return None
 
