@@ -46,9 +46,7 @@ class BuildUnitsEffect(CityTargetEffect):
         num_stacks = 1 if self.stacked else self.num
 
         for _ in range(num_stacks):
-            unit = city.build_unit(unit=self.unit_template, game_state=game_state, stack_size=stack_size)
-            if unit is not None:
-                unit.strength += self.extra_str
+            unit = city.build_unit(unit=self.unit_template, game_state=game_state, stack_size=stack_size, bonus_strength=self.extra_str)
 
 class BuildBuildingEffect(CityTargetEffect):
     def __init__(self, building_template: BuildingTemplate) -> None:
@@ -255,13 +253,15 @@ class GetGreatPersonEffect(CityTargetEffect):
 class ZigguratWarriorsEffect(CityTargetEffect):
     @property
     def description(self) -> str:
-        return "Your warriors get +1 strength & -5 health"
+        return "One warrior gets +1 strength & -20 health"
     
     def apply(self, city: 'City', game_state: 'GameState'):
-        for unit in game_state.units:
-            if unit.civ == city.civ and unit.template == UNITS.WARRIOR:
-                unit.strength += 1
-                unit.take_damage(5 * unit.get_stack_size(), game_state=game_state, from_civ=None)
+        my_warriors = [unit for unit in game_state.units if unit.civ == city.civ and unit.template == UNITS.WARRIOR]
+        prefer_smaller_stacks = sorted(my_warriors, key=lambda u: (u.get_stack_size(), u.strength, random.random()))
+        if len(prefer_smaller_stacks) > 0:
+            unit = prefer_smaller_stacks[0]
+            unit.strength += 1
+            unit.take_damage(20 * unit.get_stack_size(), game_state=game_state, from_civ=None)
 
 class EndGameEffect(CityTargetEffect):
     @property

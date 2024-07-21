@@ -33,6 +33,11 @@ CIV_ABILITIES: dict[str, Callable] = {
         description=f"{p.plural(x)} you build have +{y} strength.",
         numbers=[x, y],
     ),
+    "IncreasedStrengthForNthUnit": lambda x, y, z: Ability(
+        name="IncreasedStrengthForNthUnit",
+        description=f"The {p.ordinal(x)} {y} you build has +{z} strength.",
+        numbers=[x, y, z],
+    ),
     "ExtraVpsPerWonder": lambda x: Ability(
         name="ExtraVpsPerWonder",
         description=f"Receive {x} extra VP for each wonder you build.",
@@ -129,15 +134,20 @@ BUILDING_ABILITIES: dict[str, Callable] = {
 }
 
 UNIT_ABILITIES: dict[str, Callable] = {
-    "BonusAgainst": lambda x, y: Ability(
+    "BonusAgainst": lambda tag: Ability(
         name="BonusAgainst",
-        description=f"Has +{y} strength against {x} units.",
-        numbers=[x, y],
+        description=f"Bonus vs {tag} (+50%).",
+        numbers=[tag],
     ),
-    "BonusNextTo": lambda x, y: Ability(
+    "DoubleBonusAgainst": lambda tag: Ability(
+        name="DoubleBonusAgainst",
+        description=f"Double bonus vs {tag} (+100%).",
+        numbers=[tag],
+    ),
+    "BonusNextTo": lambda tag: Ability(
         name="BonusNextTo",
-        description=f"Has +{y} strength when next to friendly {x} units.",
-        numbers=[x, y],
+        description=f"Bonus next to friendly {tag} (+50%).",
+        numbers=[tag],
     ),
     "Splash": lambda x: Ability(
         name="Splash",

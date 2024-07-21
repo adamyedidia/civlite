@@ -17,7 +17,7 @@ class BUILDINGS():
     TRAINING_GROUNDS = BuildingTemplate(
         name="Training Grounds",
         type=BuildingType.RURAL,
-        cost=10,
+        cost=15,
         prereq=TECHS.FORESTRY,
         abilities=[{
             "name": "UnitsExtraStrengthByAge",
@@ -34,7 +34,7 @@ class BUILDINGS():
     PASTURE = BuildingTemplate(
         name="Pasture",
         type=BuildingType.RURAL,
-        cost=10,
+        cost=15,
         prereq=TECHS.IRRIGATION,
         abilities=[{
             "name": "UnitsExtraStrengthByTag",
@@ -186,7 +186,7 @@ class BUILDINGS():
         prereq=TECHS.MILITARY_SCIENCE,
         abilities=[{
             "name": "UnitsExtraStrengthByAge",
-            "numbers": [4, 5],
+            "numbers": [4, 3],
         }],
     )
     OBSERVATORY = BuildingTemplate(
@@ -357,7 +357,7 @@ class BUILDINGS():
         prereq=TECHS.RADIO,
         abilities=[{
             "name": "Airforce",
-            "numbers": [20, 5],
+            "numbers": [5, 5],
         }],
     )
     DEPLOYMENT_CENTER = BuildingTemplate(

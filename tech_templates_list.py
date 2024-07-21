@@ -10,7 +10,7 @@ class TECHS():
     )
     BRONZE_WORKING = TechTemplate(
         name= 'Bronze Working',
-        cost= 20,
+        cost= 15,
         advancement_level= 1,
     )
     POTTERY = TechTemplate(

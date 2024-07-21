@@ -2849,13 +2849,20 @@ export default function GamePage() {
             healthPercentage = 1;
         }
 
-        const buffedUnit = unit.strength > templates.UNITS[unit.name].strength;
-
+        const buffedUnit = unit.strength - templates.UNITS[unit.name].strength;
+        let buffIconIndex
+        if (templates.UNITS[unit.name].advancement_level <= 3) {
+            buffIconIndex = buffedUnit;
+        } else {
+            buffIconIndex = Math.ceil(buffedUnit / (0.25 * templates.UNITS[unit.name].strength))
+        }
+        const buffIcons = ['+', "▲", "★", "✸"];
+        const buffIcon = buffIconIndex < buffIcons.length ? buffIcons[buffIconIndex - 1] : buffIcons[buffIcons.length - 1];
         return (
             <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (small ? 1 : 0)}>
                 <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.3} />
-                {buffedUnit && <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${1*scale}`} cy={`${3*scale}`} r={`${0.4 * scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.15} />}
-                {buffedUnit && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1*scale}`} y={`${3*scale}`} style={{ fontSize: `${scale}px`, textAnchor: "middle", dominantBaseline: "middle" }}> + </text>}
+                {buffedUnit > 0 && <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${1*scale}`} cy={`${3*scale}`} r={`${0.4 * scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.15} />}
+                {buffedUnit > 0 && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1*scale}`} y={`${3*scale}`} style={{ fontSize: `${scale * 0.5}px`, textAnchor: "middle", dominantBaseline: "middle" }}> {buffIcon} </text>}
                 <image opacity={unit.done_attacking ? 0.5 : 1.0} href={unitImage} x={`${scale}`} y={`${scale}`} height={`${2*scale}`} width={`${2*scale}`} />
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" /> {/* Total health bar */}
                 <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" /> {/* Current health bar */}

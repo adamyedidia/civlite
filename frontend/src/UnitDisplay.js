@@ -103,9 +103,16 @@ const UnitDisplay = ({ template, unit }) => {
                 <div className="stat move">
                     {template.movement > 0 ? `Move: ${template.movement}` : 'IMMOBILE'}
                 </div>
+                {strength !== template.strength && <div className='base-strength'></div>} {/* So that the big one stays in the center */}
                 <TextOnIcon image={shieldImg} style={{ height: `${shieldSize}px`, width: `${shieldSize}px` }} offset={-shieldSize * 0.15}>
                     <span className='strength-text'>{strength}</span>
                 </TextOnIcon>
+                {strength !== template.strength && <div className='base-strength'>
+                    <span style={{fontSize: '0.5em'}}>Base</span>
+                    <TextOnIcon image={shieldImg} style={{ height: `${shieldSize * 0.67}px`, width: `${shieldSize * 0.67}px` }} offset={-shieldSize * 0.1}>
+                        <span className='strength-text small'>{template.strength}</span>
+                    </TextOnIcon>
+                </div>}
                 <div className="stat range">
                     {tags.includes('ranged') ? `Range: ${template.range}` : "Melee"}
                 </div>
@@ -118,8 +125,8 @@ export const AllUnitsDialog = ({ units, open, onClose }) => {
     const [sortBy, setSortBy] = useState("name");
     const sort_fn = (a) => 
         a.tags.includes("wondrous") * 100
-        + a.advancement_level * (sortBy === "age")
-        + a.strength * (sortBy === "strength")
+        + (sortBy === "age") * (a.advancement_level + 0.01 * a.metal_cost)
+        + (sortBy === "strength") * (a.strength)
     const sortedUnits = Object.values(units).sort((a, b) => sort_fn(a) - sort_fn(b) + 0.01 * (a.name.localeCompare(b.name)));
     return <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
         <DialogTitle>

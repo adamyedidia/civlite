@@ -1,3 +1,4 @@
+import math
 import os
 
 # Do we crash judiciously on any inconsistency? (Good for debugging, bad for prod.)
@@ -7,6 +8,10 @@ CITY_CAPTURE_REWARD = 5
 UNIT_KILL_REWARD = 1
 CAMP_CLEAR_VP_REWARD = 5
 CAMP_CLEAR_CITY_POWER_REWARD = 20
+
+DAMAGE_EQUAL_STR = 40
+# Str ratio of 2 does 100 damage
+DAMAGE_DOUBLE_EXPONENT = math.log(math.log(100, DAMAGE_EQUAL_STR), 2)
 
 BASE_FOOD_COST_OF_POP = 6
 ADDITIONAL_PER_POP_FOOD_COST = 2
@@ -88,7 +93,7 @@ class AI():
 
     CHANCE_URBANIZE = 0.5
     CHANCE_MILITARIZE=0.1
-    CHANCE_EXPAND=0.2
+    CHANCE_EXPAND=0.5
 
     RURAL_SLOT_VALUE = 4
 

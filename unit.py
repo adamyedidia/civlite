@@ -1,9 +1,9 @@
-from math import sqrt, ceil
-from random import random, shuffle
+from math import ceil
+import random
 from typing import TYPE_CHECKING, Generator, Optional
 from civ import Civ
 from wonder_templates_list import WONDERS
-from settings import UNIT_KILL_REWARD
+from settings import UNIT_KILL_REWARD, DAMAGE_DOUBLE_EXPONENT, DAMAGE_EQUAL_STR
 from unit_template import UnitTemplate, UnitTag
 from unit_templates_list import UNITS
 from utils import generate_unique_id
@@ -139,7 +139,7 @@ class Unit:
         for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
             if neighboring_hex.sensitive_distance_to(closest_target) < self.hex.sensitive_distance_to(closest_target) or always_merge_if_possible:
                 for unit in neighboring_hex.units:
-                    if unit.civ.id == self.civ.id and unit.template.name == self.template.name:
+                    if unit.civ.id == self.civ.id and unit.template.name == self.template.name and unit.strength == self.strength:
                         unit.health += self.health
                         self.remove_from_game(game_state)
 
@@ -222,23 +222,37 @@ class Unit:
         ratio_of_strengths = effective_strength / target_effective_strength
 
         # This is a very scientific formula
-        return int(round(40 ** sqrt(ratio_of_strengths)))
+        return int(round(DAMAGE_EQUAL_STR ** (ratio_of_strengths ** DAMAGE_DOUBLE_EXPONENT)))
 
-    def compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit', battle_location: 'Hex',  support_hexes: set[tuple['Hex', 'Hex']] = set()) -> int:
-        bonus_strength = 0
+    def _compute_bonus_strength(self, game_state: 'GameState', enemy: 'Unit', battle_location: 'Hex',  support_hexes: set[tuple['Hex', 'Hex']] = set()) -> float:
+        assert self.hex is not None
+        bonuses = 0
 
-        if self.has_ability('BonusNextTo') and self.hex is not None:
-            unit_type: str = self.numbers_of_ability('BonusNextTo')[0]
-            for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
-                for unit in neighboring_hex.units:
-                    if unit.template.has_tag_by_name(unit_type) and unit.civ == self.civ:
-                        bonus_strength += self.numbers_of_ability('BonusNextTo')[1]
-                        support_hexes.add((neighboring_hex, self.hex))
+        if self.has_ability('BonusNextTo'):
+            unit_tag: str = self.numbers_of_ability('BonusNextTo')[0]
+            valid_support_hexes = [hex
+                                   for hex in self.hex.get_neighbors(game_state.hexes)
+                                   if any(unit.civ == self.civ and unit.template.has_tag_by_name(unit_tag) for unit in hex.units)
+                                   ]
+            if len(valid_support_hexes) > 0:
+                bonuses += 1
+                # Pick a random one of the support hexes to display in the UI
+                # Ensure it's secretly deterministic so that if the same unit gets support in the attack and again in the coutnerattack
+                # It doesn't draw two different lines.
+                random_support_hex = valid_support_hexes[(self.hex.q * 17 + self.hex.r * 13 + self.hex.s * 11) % len(valid_support_hexes)]
+                support_hexes.add((self.hex, random_support_hex))
 
         if self.has_ability('BonusAgainst'):
             unit_type: str = self.numbers_of_ability('BonusAgainst')[0]
             if enemy.template.has_tag_by_name(unit_type):
-                bonus_strength += self.numbers_of_ability('BonusAgainst')[1]
+                bonuses += 1
+        if self.has_ability('DoubleBonusAgainst'):
+            unit_type: str = self.numbers_of_ability('DoubleBonusAgainst')[0]
+            if enemy.template.has_tag_by_name(unit_type):
+                bonuses += 2
+
+        # Each bonus gives 50% of base strength
+        bonus_strength = self.strength * (0.5 * bonuses)
 
         af_bonus = 0
         af_city = None
@@ -256,8 +270,8 @@ class Unit:
         return bonus_strength + af_bonus
 
     def punch(self, game_state: 'GameState', target: 'Unit', battle_location: 'Hex', damage_reduction_factor: float = 1.0, support_hexes: set[tuple['Hex', 'Hex']] = set()) -> None:
-        self.effective_strength = (self.strength + self.compute_bonus_strength(game_state, target, battle_location, support_hexes)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
-        target.effective_strength = target.strength + target.compute_bonus_strength(game_state, self, battle_location, support_hexes)
+        self.effective_strength = (self.strength + self._compute_bonus_strength(game_state, target, battle_location, support_hexes)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
+        target.effective_strength = target.strength + target._compute_bonus_strength(game_state, self, battle_location, support_hexes)
         target.take_damage(self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength), from_civ=self.civ, game_state=game_state)
 
     def take_damage(self, amount: float, game_state: 'GameState', from_civ: Civ | None, from_unit: 'Unit | None' = None):
@@ -275,7 +289,7 @@ class Unit:
                 if from_civ.has_ability('ExtraVpsPerUnitKilled'):
                     from_civ.gain_vps(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0], from_civ.template.name)
 
-                if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders and random() < 0.20:
+                if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders and random.random() < 0.20:
                     for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos:
                         game_state.civs_by_id[civ_id].gain_vps(UNIT_KILL_REWARD, f"United Nations")
 
@@ -327,7 +341,6 @@ class Unit:
             return        
         self.hex.units = [unit for unit in self.hex.units if unit.id != self.id]
         game_state.units = [unit for unit in game_state.units if unit.id != self.id]
-        self.hex = None        
 
     def die(self, game_state: 'GameState', killer: 'Unit | None'):
         if self.hex is None:
@@ -404,7 +417,7 @@ class Unit:
         best_distance = self.hex.distance_to(self.destination) if not sensitive else self.hex.sensitive_distance_to(self.destination)
 
         neighbors = list(self.hex.get_neighbors(game_state.hexes))
-        shuffle(neighbors)
+        random.shuffle(neighbors)
 
         for neighboring_hex in neighbors:
             neighboring_hex_sensitive_distance_to_target = 10000
