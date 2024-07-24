@@ -1,5 +1,5 @@
 import random
-from typing import TYPE_CHECKING, Any, Generator, Optional, Dict
+from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
 from settings import GOD_MODE
@@ -10,7 +10,7 @@ from civ_templates_list import player_civs, CIVS
 from game_player import GamePlayer
 from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD
 from tech_template import TechTemplate
-from building_template import BuildingTemplate
+from building_template import BuildingTemplate, BuildingType
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
@@ -57,7 +57,6 @@ class Civ:
         self._great_people_choices_queue: list[tuple[int, str]] = []  # age, city_id
         self.max_territories: int = 3
         self.vandetta_civ_id: Optional[str] = None
-        self.develop_used: dict[str, bool] = {'urban': False, 'unit': False}
         self.unique_units_built: int = 0
 
         self.score_dict: dict[str, float] = {}
@@ -239,7 +238,6 @@ class Civ:
             "max_territories": self.max_territories,
             "vandetta_civ_id": self.vandetta_civ_id,
             "score_dict": self.score_dict,
-            "develop_used": self.develop_used,
             "unique_units_built": self.unique_units_built,
         }
 
@@ -259,15 +257,12 @@ class Civ:
         self.buildings_in_all_queues = [entry.template.name for city in self.get_my_cities(game_state) for entry in city.buildings_queue]
 
     def bot_predecline_moves(self, game_state: 'GameState') -> None:
-        for city in self.get_my_cities(game_state):
-            if city.can_militarize:
-                city.militarize(game_state)
-        for city in self.get_my_cities(game_state):
-            if city.can_urbanize:
-                city.urbanize(game_state)
-        for city in self.get_my_cities(game_state):
-            if city.cant_expand_reason is None:
-                city.expand(game_state)
+        all_cities = self.get_my_cities(game_state)
+        all_develops: set[tuple[BuildingType, City]] = {(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)}
+        while all_develops:
+            type, city = min(all_develops, key=lambda x: x[1].develop_cost(x[0]))
+            city.develop(type, game_state)
+            all_develops = {(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)}
         self.bot_found_cities(game_state)
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
@@ -318,6 +313,9 @@ class Civ:
         option_total_yields: dict[str, float] = {}
         for city in game_state.cities_by_id.values():
             if city.civ_to_revolt_into is None:
+                continue
+
+            if city.civ == self:
                 continue
 
             current_total_yields = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
@@ -557,7 +555,6 @@ class Civ:
         civ.max_territories = json.get("max_territories", 3)
         civ.vandetta_civ_id = json.get("vandetta_civ_id")
         civ.score_dict = json["score_dict"]
-        civ.develop_used = json["develop_used"]
         civ.unique_units_built = json["unique_units_built"]
 
         return civ

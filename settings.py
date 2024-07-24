@@ -7,7 +7,7 @@ STRICT_MODE = False
 CITY_CAPTURE_REWARD = 5
 UNIT_KILL_REWARD = 1
 CAMP_CLEAR_VP_REWARD = 5
-CAMP_CLEAR_CITY_POWER_REWARD = 20
+CAMP_CLEAR_CITY_POWER_REWARD = 50
 
 DAMAGE_EQUAL_STR = 40
 # Str ratio of 2 does 100 damage
@@ -75,13 +75,13 @@ WONDER_COUNT_FOR_PLAYER_NUM = {
 
 UNIT_BUILDING_BONUSES = {
     1: [1.0],
-    2: [0.8, 0.55],
-    3: [0.7, 0.55, 0.45],
-    4: [0.65, 0.55, 0.45, 0.35],
+    2: [0.9, 0.6],
+    3: [0.8, 0.6, 0.6],
+    4: [0.7, 0.6, 0.6, 0.6],
 }
 
 MAX_SLOTS = 8
-DEVELOP_COST = {'rural': 25, 'urban': 100, 'unit': 100}
+DEVELOP_COST = {'rural': 50, 'urban': 100, 'unit': 100}
 MAX_SLOTS_OF_TYPE = {'urban': 4, 'unit': 4}
 DEVELOP_VPS = 2
 
@@ -93,7 +93,7 @@ class AI():
 
     CHANCE_URBANIZE = 0.5
     CHANCE_MILITARIZE=0.1
-    CHANCE_EXPAND=0.5
+    CHANCE_EXPAND=1.0
 
     RURAL_SLOT_VALUE = 4
 
