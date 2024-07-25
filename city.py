@@ -6,6 +6,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
+from map_object_spawner import MapObjectSpawner
 from settings import GOD_MODE
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
@@ -30,14 +31,10 @@ TRADE_HUB_CITY_POWER_PER_TURN = 20
 
 _DEVELOPMENT_VPS_STR = f"Development ({DEVELOP_VPS} each)"
 
-class City:
-    def __init__(self, civ: Civ, name: str, id: Optional[str] = None):
-        # civ actually can be None very briefly before GameState.from_json() is done, 
-        # but I don't want to tell the type-checker so we don't have to put a million asserts everywhere
-
+class City(MapObjectSpawner):
+    def __init__(self, name: str, civ: Civ | None = None, id: Optional[str] = None, hex: 'Hex | None' = None):
+        super().__init__(civ, hex)
         self.id = id or generate_unique_id()
-        self.civ: Civ = civ
-        self.civ_id: str = civ.id if civ else None  # type: ignore
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True} if civ else {}
         self.name = name
         self.population = 1
@@ -50,8 +47,6 @@ class City:
         self.rural_slots = 1
         self.urban_slots = 1
         self.military_slots = 1
-        self.under_siege_by_civ: Optional[Civ] = None
-        self.hex: Optional['Hex'] = None
         self.buildings_queue: list[QueueEntry] = []
         self.buildings: list[Building] = []
         self.unit_buildings: list[UnitBuilding] = [UnitBuilding(UNITS.WARRIOR)]
@@ -85,7 +80,7 @@ class City:
         self.revolt_unit_count: int = 0
 
     def __repr__(self):
-        return f"<City {self.name} @ {self.hex.coords if self.hex else None}>"
+        return f"<City {self.name} @ {self.hex.coords if self._hex else None}>"
     
     def __hash__(self):
         return hash(self.id)
@@ -132,10 +127,10 @@ class City:
             self.make_territory_capital(game_state)
         else:
             # Pick the closest one to be my parent.
-            choice: City = min(choices, key=lambda c: (self.hex.distance_to(c.hex), c.capital, -c.population, c.id))  # type: ignore
+            choice: City = min(choices, key=lambda c: (self.hex.distance_to(c.hex), c.capital, -c.population, c.id))
             self._remove_income_from_parent(game_state)
             self._territory_parent_id = choice.id
-            self._territory_parent_coords = choice.hex.coords  # type: ignore
+            self._territory_parent_coords = choice.hex.coords
             if adopt_focus:
                 self.focus = choice.focus
 
@@ -171,7 +166,6 @@ class City:
         return self.civ.trade_hub_id == self.id
     
     def is_fake_city(self) -> bool:
-        assert self.hex is not None
         return self.hex.city != self
 
     def puppet_distance_penalty(self) -> float:
@@ -225,10 +219,6 @@ class City:
             t.delete_queued = False
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
-        if self.hex is None:
-            self.projected_income = Yields()
-            self.projected_income_base = Yields()
-            self.projected_income_focus = Yields()
         self.projected_income_base = self._get_projected_yields_without_focus(game_state)
         self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
         self.food_demand: float = self._calculate_food_demand(game_state)
@@ -249,8 +239,6 @@ class City:
         # If I'm a puppet, give my yields to my parent.
         parent: City | None = self.get_territory_parent(game_state)
         if parent:
-            assert self.hex is not None
-            assert parent.hex is not None
             distance: int = self.hex.distance_to(parent.hex)
             distance_penalty: float = parent.puppet_distance_penalty() * distance
             parent.projected_income_puppets['wood'][self.name] = (self.projected_income.wood * (1 - distance_penalty), distance)
@@ -261,8 +249,6 @@ class City:
 
     def _get_projected_yields_without_focus(self, game_state) -> Yields:
         yields = Yields(food=2, science=self.population)
-
-        assert self.hex is not None
 
         for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
             yields += hex.yields
@@ -303,22 +289,9 @@ class City:
                     b.harvest_yields(self.metal)
                 self.metal = 0
 
-    def update_nearby_hexes_visibility(self, game_state: 'GameState', short_sighted: bool = False) -> None:
-        if self.hex is None:
-            return
-        # Always let cities have sight 2, even in decline mode (short_sighted = True)
-        neighbors = self.hex.get_hexes_within_range(game_state.hexes, 2)
-
-        for nearby_hex in neighbors:
-            nearby_hex.visibility_by_civ[self.civ.id] = True
-
-    def update_nearby_hexes_hostile_foundability(self, hexes: dict[str, 'Hex']) -> None:
-        if self.hex is None:
-            return
-
-        for hex in self.hex.get_neighbors(hexes, include_self=True):
-            for key in hex.is_foundable_by_civ:
-                hex.is_foundable_by_civ[key] = False            
+    @property
+    def no_cities_adjacent_range(self) -> int:
+        return 1
 
     def roll_turn_pre_harvest(self, game_state):
         """ All the turn roll stuff up to and including harvesting yields"""
@@ -345,7 +318,6 @@ class City:
         self.midturn_update(game_state)
 
     def update_seen_by_players(self, game_state: 'GameState') -> None:
-        assert self.hex is not None
         for civ in game_state.civs_by_id.values():
             if civ.game_player is not None:
                 if self.hex.visible_to_civ(civ):
@@ -398,7 +370,6 @@ class City:
     def revolt_to_rebels_if_needed(self, game_state: 'GameState') -> None:
         if self.unhappiness >= 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None:
             # Revolt to AI
-            assert self.hex is not None
             game_state.process_decline_option(self.hex.coords, [], is_game_player=False)
             game_state.make_new_civ_from_the_ashes(self)
             # Rebel civs have no great person
@@ -420,21 +391,7 @@ class City:
 
         return (BASE_FOOD_COST_OF_POP + self.population * ADDITIONAL_PER_POP_FOOD_COST) * max(1 - total_growth_cost_reduction, 0.3)
 
-    def handle_siege(self, sess, game_state: 'GameState') -> None:
-        siege_state = self.get_siege_state(game_state)
-
-        if self.under_siege_by_civ is None:
-            self.under_siege_by_civ = siege_state
-        else:
-            if siege_state is None or siege_state.id != self.under_siege_by_civ.id:
-                self.under_siege_by_civ = siege_state
-            else:
-                self.capture(sess, siege_state, game_state)
-
     def populate_terrains_dict(self, game_state: 'GameState') -> None:
-        if self.hex is None:
-            return
-
         for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
             if not hex.terrain in self.terrains_dict:
                 self.terrains_dict[hex.terrain] = 1
@@ -442,7 +399,7 @@ class City:
                 self.terrains_dict[hex.terrain] += 1
 
     def _refresh_available_buildings_and_units(self, game_state):
-        if self.civ is None or self.hex is None:
+        if self.civ is None:
             return
         self.available_units = sorted([unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)])
         
@@ -571,32 +528,13 @@ class City:
                     if self.build_unit(game_state, bldg.template) is not None:
                         bldg.metal -= bldg.template.metal_cost
 
-    def get_closest_target(self) -> Optional['Hex']:
-        if not self.hex:
-            return None
-
-        target1 = self.civ.target1
-        target2 = self.civ.target2
-
-        if target1 is None and target2 is None:
-            return None
-        
-        if target1 is None:
-            return target2
-        
-        if target2 is None:
-            return target1
-        
-        if self.hex.distance_to(target1) <= self.hex.distance_to(target2):
-            return target1
-        else:
-            return target2
-
+    def sight_range(self, short_sighted: bool) -> int:
+        """
+        Cities have sight range 2 even in decline preview mode.
+        """
+        return 2
 
     def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1, bonus_strength: int = 0) -> Unit | None:
-        if not self.hex:
-            return None
-        
         bonus_strength = self._spawn_strength(unit, game_state) + bonus_strength
 
         spawn_hex = self.hex
@@ -619,7 +557,7 @@ class City:
         if best_hex is not None:
             return self.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
 
-        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == self.civ and u.template == unit and u.hex and u.strength == unit.strength + bonus_strength]  
+        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == self.civ and u.template == unit and u.strength == unit.strength + bonus_strength]  
 
         if len(potential_units_to_reinforce) > 0:
             best_unit_to_reinforce = min(potential_units_to_reinforce, key=lambda u: (
@@ -684,16 +622,6 @@ class City:
             if unit_template.advancement_level() >= ability.numbers[0]:
                 result += ability.numbers[1]
         return result
-
-    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: UnitTemplate, hex: 'Hex', bonus_strength: int, stack_size=1) -> Unit | None:
-        unit = Unit(unit_template, self.civ)
-        unit.health *= stack_size
-        unit.hex = hex
-        hex.units.append(unit)
-        game_state.units.append(unit)
-        unit.strength += bonus_strength
-
-        return unit
 
     def reinforce_unit(self, unit: Unit, stack_size=1) -> None:
         unit.health += 100 * stack_size
@@ -869,16 +797,6 @@ class City:
             # Clear it from any other cities immediately; you can't build two in one turn.
             for city in self.civ.get_my_cities(game_state):
                 city.buildings_queue = [b for b in city.buildings_queue if b.template != building]
-
-    def get_siege_state(self, game_state: 'GameState') -> Optional[Civ]:
-        if self.hex is None:
-            return None
-
-        for unit in self.hex.units:
-            if unit.civ.id != self.civ.id and unit.template.type == 'military':
-                return unit.civ
-
-        return None
     
     def passive_building_abilities_of_name(self, ability_name: str) -> Generator[tuple['Ability', 'Building'], None, None]:
         for building in self.buildings:
@@ -899,7 +817,7 @@ class City:
         self.buildings = [b for b in self.buildings if not b.destroy_on_owner_change]
 
         # Change the civ
-        self.civ = civ
+        self.update_civ(civ)
 
         # Fix territory parent lines
         self.orphan_territory_children(game_state)
@@ -929,14 +847,14 @@ class City:
 
         best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level(), random.random()))
 
-        assert self.hex and self.hex.city
+        assert self.hex.city is not None
 
         # Also build a handful of units out of the ruins of the city
         for u in self.available_units:
             self.hex.city.build_unit(game_state, u)
 
         self.hex.city = None
-        game_state.register_camp(Camp(game_state.barbarians, unit=best_unit), self.hex)
+        game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex))
 
         del game_state.cities_by_id[self.id]
 
@@ -960,13 +878,12 @@ class City:
 
         self.change_owner(civ, game_state)
 
-        if self.hex:
-            game_state.add_animation_frame(sess, {
-                "type": "CityCapture",
-                "civ": civ.template.name,
-                "city": self.name,
-                "vpReward": CITY_CAPTURE_REWARD,
-            }, hexes_must_be_visible=[self.hex])
+        game_state.add_animation_frame(sess, {
+            "type": "CityCapture",
+            "civ": civ.template.name,
+            "city": self.name,
+            "vpReward": CITY_CAPTURE_REWARD,
+        }, hexes_must_be_visible=[self.hex])
 
     def capitalize(self, game_state: 'GameState') -> None:
         civ = self.civ
@@ -985,11 +902,6 @@ class City:
             
             if civ.numbers_of_ability('StartWithResources')[0] == 'science':
                 self.civ.science += civ.numbers_of_ability('StartWithResources')[1]
-
-                
-    def update_civ_by_id(self, civs_by_id: dict[str, Civ]) -> None:
-        self.civ = civs_by_id[self.civ_id]
-        self.under_siege_by_civ = civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
 
     def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
         affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost_by_age[age] <= self.wood + self.projected_income['wood']}
@@ -1031,7 +943,6 @@ class City:
         return None
 
     def is_threatened_city(self, game_state: 'GameState') -> bool:
-        assert self.hex is not None
         return self.hex.is_threatened_city(game_state)
 
     def bot_move(self, game_state: 'GameState') -> None:
@@ -1152,8 +1063,8 @@ class City:
 
     def to_json(self, include_civ_details: bool = False) -> dict:
         return {
+            **super().to_json(),
             "id": self.id,
-            "civ_id": self.civ.id,
             **({"civ": self.civ.to_json()} if include_civ_details else {}),
             "ever_controlled_by_civ_ids": self.ever_controlled_by_civ_ids,
             "name": self.name,
@@ -1165,8 +1076,7 @@ class City:
             "rural_slots": self.rural_slots,
             "urban_slots": self.urban_slots,
             "military_slots": self.military_slots,
-            "under_siege_by_civ_id": self.under_siege_by_civ.id if self.under_siege_by_civ else None,
-            "hex": self.hex.coords if self.hex else None,
+            "hex": self.hex.coords,
             "icon_unit_name": sorted(self.active_unit_buildings, key=lambda u: u.template.advancement_level(), reverse=True)[0].template.name if len(self.active_unit_buildings) > 0 else None,
             "buildings_queue": [building.to_json() for building in self.buildings_queue],
             "buildings": [building.to_json() for building in self.buildings],
@@ -1218,11 +1128,11 @@ class City:
     @staticmethod
     def from_json(json: dict) -> "City":
         city = City(
-            civ=Civ.from_json(json.get('civ')) if 'civ' in json else None,  # type: ignore
+            civ=Civ.from_json(json['civ']) if 'civ' in json else None,
             name=json["name"],
         )
+        super(City, city).from_json(json)
         city.id = json["id"]
-        city.civ_id = json["civ_id"]
         city.ever_controlled_by_civ_ids = json["ever_controlled_by_civ_ids"].copy()
         city.population = json["population"]
         city.buildings = [Building.from_json(building) for building in json["buildings"]]
@@ -1233,7 +1143,6 @@ class City:
         city.rural_slots = json["rural_slots"]
         city.urban_slots = json["urban_slots"]
         city.military_slots = json["military_slots"]
-        city.under_siege_by_civ = json["under_siege_by_civ_id"]
         city.capital = json["capital"]
         city.buildings_queue = [QueueEntry.from_json(entry) for entry in json["buildings_queue"]]
         city.available_buildings_to_descriptions = (json.get("available_buildings_to_descriptions") or {}).copy()
@@ -1259,10 +1168,6 @@ class City:
         city.seen_by_players = set(json["seen_by_players"])
 
         return city
-
-    def from_json_postprocess(self, game_state: 'GameState'):
-        self.under_siege_by_civ = game_state.civs_by_id[self.under_siege_by_civ] if self.under_siege_by_civ else None  # type: ignore
-        self.midturn_update(game_state)
 
 CITY_NAMES = {
     "Miami",

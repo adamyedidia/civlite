@@ -1,5 +1,5 @@
 import math
-from typing import Any, Optional
+from typing import Any, Generator, Optional
 from animation_frame import AnimationFrame
 from building import QueueEntry
 from camp import Camp
@@ -8,6 +8,7 @@ from city import City, get_city_name_for_civ
 from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
+from map_object import MapObject
 from settings import GOD_MODE
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
@@ -176,11 +177,11 @@ def make_game_statistics_plots(sess, game_id: str):
             city = game_state.cities_by_id[city_id]
             city.adjust_projected_yields(game_state)
             total_yields = city.projected_income['food'] + city.projected_income['wood'] + city.projected_income['metal'] + city.projected_income['science']
-            yields_by_civ[city.civ_id] += total_yields
-            pop_by_civ[city.civ_id] += city.population
+            yields_by_civ[city.civ.id] += total_yields
+            pop_by_civ[city.civ.id] += city.population
 
         for unit in game_state.units:
-            total_metal_value_by_civ[unit.civ_id] += unit.template.metal_cost * unit.get_stack_size()
+            total_metal_value_by_civ[unit.civ.id] += unit.template.metal_cost * unit.get_stack_size()
 
         for civ_id, civ in game_state.civs_by_id.items():
             total_yields_by_turn[civ_id].append(yields_by_civ[civ_id])
@@ -189,16 +190,16 @@ def make_game_statistics_plots(sess, game_id: str):
             if yields_by_civ[civ_id] == 0 and total_metal_value_by_civ[civ_id] == 0 and civ_id not in dead_turns:
                 dead_turns[civ_id] = frame.turn_num
 
-        def civ_color(hex) -> str | None:
+        def civ_color(hex: Hex) -> str | None:
             if hex.city:
-                return hex.city.civ_id
+                return hex.city.civ.id
            
-            neighbor_city_civs = {n.city.civ_id for n in hex.get_neighbors(game_state.hexes) if n.city}
+            neighbor_city_civs = {n.city.civ.id for n in hex.get_neighbors(game_state.hexes) if n.city}
             if len(neighbor_city_civs) == 1:
                 return neighbor_city_civs.pop()
             if len(neighbor_city_civs) > 1:
-                if len(hex.units) > 0 and hex.units[0].civ_id in neighbor_city_civs:
-                    return hex.units[0].civ_id
+                if len(hex.units) > 0 and hex.units[0].civ.id in neighbor_city_civs:
+                    return hex.units[0].civ.id
 
             return None
 
@@ -279,8 +280,8 @@ class GameState:
         self.announcements.append(f'[T {self.turn_num}] {content}')
 
     def fresh_cities_from_json_postprocess(self) -> None:
-        for coords, city in self.fresh_cities_for_decline.items():
-            city.hex = self.hexes[coords]
+        for city in self.fresh_cities_for_decline.values():
+            city._finish_loading_hex(self.hexes)
 
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
@@ -292,18 +293,16 @@ class GameState:
 
     def new_city(self, civ: Civ, hex: Hex, city_id: Optional[str] = None) -> City:
         city_name = get_city_name_for_civ(civ=civ, game_state=self)
-        city = City(civ, name=city_name, id=city_id)
+        city = City(civ=civ, hex=hex, name=city_name, id=city_id)
         assert hex.city is None, f"Creting city at {hex.coords} but it already has a city {hex.city.name}!"
         for h in hex.get_neighbors(self.hexes):
             assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
-        city.hex = hex
         city.populate_terrains_dict(self)
         city.midturn_update(self)
         return city
 
-    def register_camp(self, camp, hex):
-        camp.hex = hex
-        hex.camp = camp
+    def register_camp(self, camp: 'Camp'):
+        camp.hex.camp = camp
         self.camps.append(camp)
 
     def unregister_camp(self, camp):
@@ -361,7 +360,6 @@ class GameState:
 
     def choose_techs_for_new_civ(self, city: City) -> set[TechTemplate]:
         print("Calculating starting techs!")
-        assert city.hex is not None
         # Make this function deterministic across staging and rolling
         random.seed(deterministic_hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
         chosen_techs: set[TechTemplate] = set()
@@ -510,7 +508,7 @@ class GameState:
         for neighbor_hex in hexes_to_steal_from:
             for unit in neighbor_hex.units:
                 if unit.civ == old_civ or unit.civ.template == CIVS.BARBARIAN:
-                    unit.civ = new_civ
+                    unit.update_civ(new_civ)
                     stack_size: int = unit.get_stack_size()
                     unit_count += stack_size
         for neighbor_hex in hex.get_neighbors(self.hexes, include_self=True):
@@ -565,12 +563,10 @@ class GameState:
                             city.capitalize(self)
 
                         else:
-                            if city.hex:
-                                self.register_camp(Camp(self.barbarians), city.hex)
+                            self.register_camp(Camp(self.barbarians, hex=city.hex))
 
-                                city.hex.city = None
-                                city.hex = None
-                                self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
+                            city.hex.city = None
+                            self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
 
                             del self.civs_by_id[city.civ.id]
 
@@ -830,15 +826,17 @@ class GameState:
         self.advancement_level = math.floor(weighted_average)
         self.advancement_level_progress = weighted_average - self.advancement_level
 
+    def all_map_objects(self) -> Generator[MapObject, Any, None]:
+        yield from self.cities_by_id.values()
+        yield from self.units
+        yield from self.camps
+
     def refresh_visibility_by_civ(self, short_sighted: bool = False) -> None:
         for hex in self.hexes.values():
             hex.visibility_by_civ.clear()
 
-        for unit in self.units:
-            unit.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
-
-        for city in self.cities_by_id.values():
-            city.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
+        for obj in self.all_map_objects():
+            obj.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
 
     def refresh_foundability_by_civ(self) -> None:
         for hex in self.hexes.values():
@@ -847,14 +845,12 @@ class GameState:
         for unit in self.units:
             unit.update_nearby_hexes_friendly_foundability()
 
-        for unit in self.units:
-            unit.update_nearby_hexes_hostile_foundability(self.hexes)
+        for obj in self.all_map_objects():
+            obj.update_nearby_hexes_hostile_foundability(self.hexes)
+            print(f"{obj} refresh_foundability_by_civ: {self.hexes['-5,3,2'].is_foundable_by_civ}")
 
-        for city in self.cities_by_id.values():
-            city.update_nearby_hexes_hostile_foundability(self.hexes)
 
-        for camp in self.camps:
-            camp.update_nearby_hexes_hostile_foundability(self.hexes)
+        print(f"refresh_foundability_by_civ: {self.hexes['-5,3,2'].is_foundable_by_civ}")
 
     def end_turn(self, sess) -> None:
         if self.game_over:
@@ -934,8 +930,9 @@ class GameState:
         units_copy = self.units[:]
         random.shuffle(units_copy)
         for unit in units_copy:
-            unit.move(sess, self)
-            unit.attack(sess, self)
+            if not unit.dead:
+                unit.move(sess, self)
+                unit.attack(sess, self)
 
         print("moving units 1: commit")
         sess.commit()
@@ -943,8 +940,9 @@ class GameState:
         print("moving units 2")
         random.shuffle(units_copy)
         for unit in units_copy:
-            unit.move(sess, self, sensitive=True)
-            unit.attack(sess, self)
+            if not unit.dead:
+                unit.move(sess, self, sensitive=True)
+                unit.attack(sess, self)
 
         print("moving units 2: commit")
         sess.commit()
@@ -1030,7 +1028,6 @@ class GameState:
 
         # Update seen_by_players to include anything visible in the fog via the decline view.
         for city in list(self.fresh_cities_for_decline.values()) + [city for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]:
-            assert city.hex is not None
             for neighbor in city.hex.get_hexes_within_range(self.hexes, 2):
                 if neighbor.city is not None:
                     neighbor.city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
@@ -1057,7 +1054,7 @@ class GameState:
         self.fresh_cities_for_decline.pop(coords)
         camp_level: int = max(0, self.advancement_level - 2)
         print(f"Making camp at {coords} at level {camp_level}")
-        self.register_camp(Camp(self.barbarians, advancement_level=camp_level), self.hexes[coords])
+        self.register_camp(Camp(self.barbarians, advancement_level=camp_level, hex=self.hexes[coords]))
 
     def populate_fresh_cities_for_decline(self) -> None:
         self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()
@@ -1091,7 +1088,6 @@ class GameState:
         for city in self.cities_by_id.values():
             if city.civ_to_revolt_into is not None:
                 print(f"decline view for city {city.name}")
-                assert city.hex is not None, "Somehow got a city with no hex registered."
                 self.process_decline_option(city.hex.coords, from_civ_perspectives)
                 city.is_decline_view_option = True
         
@@ -1191,7 +1187,7 @@ class GameState:
                 return civ
         raise Exception(f"Civ not found: {civ_name}, {self.civs_by_id}")
     
-    def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None, include_city_civ_details: bool = False) -> dict:
+    def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         if self.game_over:
             from_civ_perspectives = None
 
@@ -1199,7 +1195,7 @@ class GameState:
             "game_id": self.game_id,
             "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
             "civs_by_id": {civ_id: civ.to_json() for civ_id, civ in self.civs_by_id.items()},
-            "cities_by_id": {city_id: city.to_json(include_civ_details=include_city_civ_details) for city_id, city in self.cities_by_id.items()},
+            "cities_by_id": {city_id: city.to_json() for city_id, city in self.cities_by_id.items()},
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
             "turn_num": self.turn_num,
             "wonders_by_age": {age: [wonder.name for wonder in wonders] for age, wonders in self.wonders_by_age.items()},
@@ -1244,9 +1240,8 @@ class GameState:
 
         for civ in game_state.civs_by_id.values():
             civ.from_json_postprocess(game_state)
-        for hex in game_state.hexes.values():
-            hex.from_json_postprocess(game_state)
-            # That sets game_state.units and game_state.cities_by_id
+        for obj in game_state.all_map_objects():
+            obj.from_json_postprocess(game_state)
         game_state.fresh_cities_from_json_postprocess()
         game_state.midturn_update()
         return game_state

@@ -317,7 +317,6 @@ class Civ:
         
         option_total_yields: dict[str, float] = {}
         for city in game_state.cities_by_id.values():
-            assert city.hex is not None, "Unregistered city found!"
             if city.civ_to_revolt_into is None:
                 continue
 
@@ -375,20 +374,17 @@ class Civ:
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             vandetta_cities: list[City] = [city for city in enemy_cities if city.civ.id == self.vandetta_civ_id]
             if len(vandetta_cities) > 0:
-                possible_target_hexes: list[Hex | None] = [city.hex for city in vandetta_cities]
+                possible_target_hexes: list[Hex] = [city.hex for city in vandetta_cities]
             else:
-                possible_target_hexes: list[Hex | None] = [*[city.hex for city in enemy_cities], *[camp.hex for camp in game_state.camps]]
+                possible_target_hexes: list[Hex] = [*[city.hex for city in enemy_cities], *[camp.hex for camp in game_state.camps]]
 
-            # These all aren't None, but we've got to make the type checker happy
-            possible_target_hexes_filtered: list[Hex] = [hex for hex in possible_target_hexes if hex is not None]
+            random.shuffle(possible_target_hexes)
 
-            random.shuffle(possible_target_hexes_filtered)
-
-            if len(possible_target_hexes_filtered) > 0:
-                self.target1 = possible_target_hexes_filtered[0]
+            if len(possible_target_hexes) > 0:
+                self.target1 = possible_target_hexes[0]
                 self.target1_coords = self.target1.coords
-            if len(possible_target_hexes_filtered) > 1:
-                self.target2 = possible_target_hexes_filtered[1]
+            if len(possible_target_hexes) > 1:
+                self.target2 = possible_target_hexes[1]
                 self.target2_coords = self.target2.coords
 
         if self.researching_tech is None:

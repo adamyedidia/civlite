@@ -537,7 +537,7 @@ def get_decline_view(sess, game_id):
 
     game_state = GameState.from_json(animation_frame.game_state)
 
-    game_state_json = game_state.to_json(include_city_civ_details=True)
+    game_state_json = game_state.to_json()
 
     return jsonify({
         'game_state': game_state_json,
