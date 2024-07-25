@@ -719,6 +719,9 @@ class GameState:
                     instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False)
                     instead_of_city.orphan_territory_children(self, make_new_territory=False)
                     instead_of_city.buildings_queue = []
+                    # Transfer the expansion costs.
+                    city.develops_this_civ = instead_of_city.develops_this_civ
+                    instead_of_city.develops_this_civ = {key: 0 for key in instead_of_city.develops_this_civ}
 
                     # Take all the wood and metal over.
                     new_parent = instead_of_city.get_territory_parent(self)
