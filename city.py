@@ -660,20 +660,25 @@ class City(MapObjectSpawner):
         return [b for b in self.buildings if b.type == type]
 
     def num_buildings_of_type(self, type: BuildingType, include_in_queue=False):
-        def type_from_template(t: WonderTemplate | UnitTemplate | BuildingTemplate) -> Literal['wonder', 'unit', 'rural', 'urban']:
-            if isinstance(t, WonderTemplate): return "wonder"
-            if isinstance(t, UnitTemplate): return "unit"
-            if isinstance(t, BuildingTemplate): return t.type.value
-        if type == "unit":
+        def type_from_template(t: WonderTemplate | UnitTemplate | BuildingTemplate) -> BuildingType | None:
+            if isinstance(t, WonderTemplate): return None
+            if isinstance(t, UnitTemplate): return BuildingType.UNIT
+            if isinstance(t, BuildingTemplate): return t.type
+        if type == BuildingType.UNIT:
             bldgs = len(self.unit_buildings)
         else:
             bldgs = len(self.buildings_of_type(type))
         if include_in_queue:
             bldgs += len([b for b in self.buildings_queue if type_from_template(b.template) == type])
+        if self.name == "Timbuktu":
+            print(f"num_buildings_of_type {type} = {bldgs}")
         return bldgs
 
     def develop_cost(self, type: BuildingType):
-        return DEVELOP_COST[type.value] * 2 ** self.develops_this_civ[type]
+        result = DEVELOP_COST[type.value] * 2 ** self.develops_this_civ[type]
+        if (self.civ.has_ability("DevelopCheap") and self.civ.numbers_of_ability("DevelopCheap")[0] == type):
+            result /= 2
+        return result
 
     def show_develop_button(self, type: BuildingType) -> bool:
         if not self.is_territory_capital:
@@ -711,8 +716,7 @@ class City(MapObjectSpawner):
             self.military_slots += 1
         if type == BuildingType.RURAL:
             self.rural_slots += 1
-        if not (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == type):
-            self.civ.city_power -= self.develop_cost(type)
+        self.civ.city_power -= self.develop_cost(type)
         self.develops_this_civ[type] += 1
         self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)    
         if self.civ.has_ability("OnDevelop"):
@@ -941,8 +945,8 @@ class City(MapObjectSpawner):
 
         if self.civ.has_ability('OnDevelop'):
             favorite_development = self.civ.numbers_of_ability('OnDevelop')[0]
-        elif self.civ.has_ability('DevelopFree'):
-            favorite_development = self.civ.numbers_of_ability('DevelopFree')[0]
+        elif self.civ.has_ability('DevelopCheap'):
+            favorite_development = self.civ.numbers_of_ability('DevelopCheap')[0]
         else:
             favorite_development = None
 
