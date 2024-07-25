@@ -310,7 +310,7 @@ class CIVS():
     GUPTA = CivTemplate(
         name="Gupta",
         abilities=[{
-            "name": "DevelopFree",
+            "name": "DevelopCheap",
             "numbers": ["urban"],
         }, {
             "name": "IncreasedStrengthForUnit",
@@ -332,7 +332,7 @@ class CIVS():
     SUKHOTHAI = CivTemplate(
         name="Sukhothai",
         abilities=[{
-            "name": "DevelopFree",
+            "name": "DevelopCheap",
             "numbers": ["unit"],
         }, {
             "name": "IncreasedStrengthForUnit",
@@ -354,7 +354,7 @@ class CIVS():
     SASSANIDS = CivTemplate(
         name="Sassanids",
         abilities=[{
-            "name": "DevelopFree",
+            "name": "DevelopCheap",
             "numbers": ["rural"],
         }, {
             "name": "IncreasedStrengthForUnit",
@@ -377,7 +377,7 @@ class CIVS():
         name="Umayyads",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["urban", BuildUnitsEffect(UNITS.KNIGHT, 2)],
+            "numbers": ["urban", BuildUnitsEffect(UNITS.KNIGHT, 1)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 1],
@@ -614,7 +614,7 @@ class CIVS():
     ENGLAND = CivTemplate(
         name="England",
         abilities=[{
-            "name": "DevelopFree",
+            "name": "DevelopCheap",
             "numbers": ["urban"],
         }, {
             "name": "IncreasedStrengthForUnit",
@@ -625,7 +625,7 @@ class CIVS():
     NOVGOROD = CivTemplate(
         name="Novgorod",
         abilities=[{
-            "name": "DevelopFree",
+            "name": "DevelopCheap",
             "numbers": ["rural"],
         }, {
             "name": "IncreasedStrengthForUnit",
@@ -636,7 +636,7 @@ class CIVS():
     CASTILE = CivTemplate(
         name="Castile",
         abilities=[{
-            "name": "DevelopFree",
+            "name": "DevelopCheap",
             "numbers": ["unit"],
         }, {
             "name": "IncreasedStrengthForUnit",

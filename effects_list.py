@@ -57,7 +57,8 @@ class BuildBuildingEffect(CityTargetEffect):
         return f"Build a free {self.building_template.name}."
 
     def apply(self, city: 'City', game_state: 'GameState'):
-        city.build_building(building=self.building_template, game_state=game_state, free=True)
+        if not city.has_building(self.building_template):
+            city.build_building(building=self.building_template, game_state=game_state, free=True)
 
 class FreeRandomTechEffect(CityTargetEffect):
     def __init__(self, age) -> None:
