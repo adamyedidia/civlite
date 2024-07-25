@@ -131,6 +131,11 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Units built by this city will be built at the location of your primary flag rather than the city.",
         numbers=[],
     ),
+    "CityPowerPerKill": lambda x: Ability(
+        name="CityPowerPerKill",
+        description=f"Gain {x} city power for each enemy unit you kill.",
+        numbers=[x],
+    ),
 }
 
 UNIT_ABILITIES: dict[str, Callable] = {

@@ -2,7 +2,7 @@ from typing import Generator
 from abilities_list import BUILDING_ABILITIES
 from TechStatus import TechStatus
 from unit_templates_list import UNITS
-from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GetGreatPersonEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
+from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GetGreatPersonEffect, GreatWallEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
 from wonder_template import WonderTemplate
 
 class WONDERS():
@@ -74,8 +74,7 @@ class WONDERS():
     )
 
     # 3rd century BC
-    # Build a bunch of Garrisons around your periphery
-    # GREAT_WALL = WonderTemplate(name="Great Wall", age=2)
+    GREAT_WALL = WonderTemplate(name="Great Wall", age=2, on_build=GreatWallEffect(12))
 
     # 3rd century BC
     COLOSSUS = WonderTemplate(
@@ -113,6 +112,10 @@ class WONDERS():
         per_turn=BuildUnitsEffect(unit_template=UNITS.CHARIOT, num=2, extra_str=1),
         abilities=[BUILDING_ABILITIES["DecreaseFoodDemand"](20, 0), BUILDING_ABILITIES["DecreaseFoodDemandPuppets"](20)]
         )
+    # 80 AD
+    COLOSSEUM = WonderTemplate(name="Colosseum", age=3,
+        abilities=[BUILDING_ABILITIES["CityPowerPerKill"](10)]
+        )
 
     ########################## Age 4 ##########################
     # Options:
@@ -126,8 +129,9 @@ class WONDERS():
     # 13th century
     NOTRE_DAME = WonderTemplate(name="Notre Dame", age=4, vp_reward=20)
     # 15th century
-    # Gain city power & max territories?
-    # FORBIDDEN_PALACE = WonderTemplate(name="Forbidden Palace", age=4)
+    FORBIDDEN_PALACE = WonderTemplate(name="Forbidden Palace", age=4, on_build=GainResourceEffect(resource='city_power', amount=200),
+        abilities=[BUILDING_ABILITIES["ExtraTerritory"]()]
+    )
     # 16th-17th century
     HIMEJI_CASTLE = WonderTemplate(name="Himeji Castle", age=4, on_build=StrengthAllUnitsEffect(amount=1))
     # 15th century

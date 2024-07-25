@@ -298,6 +298,10 @@ class Unit(MapObject):
             my_hex.units.append(new_unit)
             game_state.units.append(new_unit)
 
+        if killer is not None:
+            for ability, _ in killer.civ.passive_building_abilities_of_name('CityPowerPerKill', game_state):
+                killer.civ.city_power += ability.numbers[0]
+
     def currently_sieging(self):
         return (self.hex.city and self.hex.city.civ != self.civ) or (self.hex.camp and self.hex.camp.civ != self.civ)
 
