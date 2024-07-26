@@ -850,10 +850,7 @@ class GameState:
 
         for obj in self.all_map_objects():
             obj.update_nearby_hexes_hostile_foundability(self.hexes)
-            print(f"{obj} refresh_foundability_by_civ: {self.hexes['-5,3,2'].is_foundable_by_civ}")
 
-
-        print(f"refresh_foundability_by_civ: {self.hexes['-5,3,2'].is_foundable_by_civ}")
 
     def end_turn(self, sess) -> None:
         if self.game_over:
