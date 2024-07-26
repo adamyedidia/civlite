@@ -2,9 +2,10 @@
 from ability import Ability
 from effects_list import BuildUnitsEffect
 from effect import CityTargetEffect
+from yields import YieldsCalculation
 
 class WonderTemplate:
-    def __init__(self, name: str, age: int, on_build: CityTargetEffect | list[CityTargetEffect] = [], per_turn: CityTargetEffect | list[CityTargetEffect] = [], vp_reward: int = 5, abilities: list[Ability] = [], override_description: str | None = None):
+    def __init__(self, name: str, age: int, on_build: CityTargetEffect | list[CityTargetEffect] = [], per_turn: CityTargetEffect | list[CityTargetEffect] = [], vp_reward: int = 5, abilities: list[Ability] = [], override_description: str | None = None, calculate_yields: YieldsCalculation | None = None):
         self.name = name
         self.age = age
         self.on_build: list[CityTargetEffect] = on_build if isinstance(on_build, list) else [on_build]
@@ -12,6 +13,7 @@ class WonderTemplate:
         self.vp_reward = vp_reward
         self.abilities = abilities
         self._override_description = override_description
+        self.calculate_yields = calculate_yields
 
     def __repr__(self):
         return f"<WonderTemplate {self.name})>"
@@ -33,6 +35,8 @@ class WonderTemplate:
             return [self._override_description]
         effect_descs = [f"On build: {e.description}" for e in self.on_build] + [f"Per turn: {e.description}" for e in self.per_turn]
         effect_descs.extend([f"Passive: {a.description}" for a in self.abilities])
+        if self.calculate_yields is not None:
+            effect_descs.append(f"Yields per turn: {self.calculate_yields.description} (ignores vitality)")
         return effect_descs
     
     def hover_unit_name(self) -> str:

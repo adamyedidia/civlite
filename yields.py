@@ -1,12 +1,13 @@
 import abc
 
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
-from building_template import BuildingType
 
 if TYPE_CHECKING:
     from terrain_template import TerrainTemplate
     from city import City
+    from building_template import BuildingType
+
 
 class Yields:
     def __init__(self, food: int | float = 0, metal: int | float = 0, wood: int | float = 0, science: int | float = 0, unhappiness: int | float = 0, city_power: int | float = 0) -> None:
@@ -140,7 +141,7 @@ class YieldsPerPopulation(YieldsCalculation):
         return f"{self.yields.pretty_print()} per population"
     
 class YieldsPerBuildingType(YieldsCalculation):
-    def __init__(self, building_type: BuildingType, yields: Yields) -> None:
+    def __init__(self, building_type: 'BuildingType', yields: Yields) -> None:
         self.building_type = building_type
         self.yields = yields
 
@@ -149,4 +150,4 @@ class YieldsPerBuildingType(YieldsCalculation):
     
     @property
     def description(self) -> str:
-        return f"{self.yields.pretty_print()} per {self.building_type} building"
+        return f"{self.yields.pretty_print()} per {self.building_type.value} building"

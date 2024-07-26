@@ -703,9 +703,9 @@ class City(MapObjectSpawner):
     def can_develop(self, type: BuildingType) -> bool:
         return self.cant_develop_reason(type) is None
     
-    def develop(self, type: BuildingType, game_state):
+    def develop(self, type: BuildingType, game_state, free=False):
         if STRICT_MODE:
-            assert self.can_develop(type)
+            assert free or self.can_develop(type)
         if type == BuildingType.URBAN:
             self.rural_slots -= 1
             self.urban_slots += 1
@@ -714,8 +714,9 @@ class City(MapObjectSpawner):
             self.military_slots += 1
         if type == BuildingType.RURAL:
             self.rural_slots += 1
-        self.civ.city_power -= self.develop_cost(type)
-        self.develops_this_civ[type] += 1
+        if not free:
+            self.civ.city_power -= self.develop_cost(type)
+            self.develops_this_civ[type] += 1
         self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)    
         if self.civ.has_ability("OnDevelop"):
             civ_type, effect = self.civ.numbers_of_ability("OnDevelop")

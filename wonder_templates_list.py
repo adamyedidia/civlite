@@ -1,14 +1,16 @@
 from typing import Generator
 from abilities_list import BUILDING_ABILITIES
 from TechStatus import TechStatus
+from building_template import BuildingType
+from building_templates_list import BUILDINGS
 from unit_templates_list import UNITS
-from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GetGreatPersonEffect, GreatWallEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
+from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GainSlotsEffect, GetGreatPersonEffect, GreatWallEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
 from wonder_template import WonderTemplate
+from yields import ConstantYields, Yields, YieldsPerBuildingType
 
 class WONDERS():
     ########################## Age 0 ##########################
     # Options:
-    # * SPHINX
     # * Gilgamesh?
     # * Beowulf?
 
@@ -29,6 +31,11 @@ class WONDERS():
     HANGING_GARDENS = WonderTemplate(
         name="Hanging Gardens", age=0,
         on_build=PointsEffect(calculate_points=lambda city, _: 3 * city.population, description="+3 vp per population in this city", label="Hanging Gardens")
+    )
+
+    SPHINX = WonderTemplate(name="Sphinx", age=0,
+        on_build=GainSlotsEffect(num=2, type=BuildingType.RURAL),
+        calculate_yields=YieldsPerBuildingType(BuildingType.RURAL, Yields(science=3))
     )
 
     ########################## Age 1 ##########################
@@ -80,7 +87,7 @@ class WONDERS():
     COLOSSUS = WonderTemplate(
         name="Colossus", age=2,
         on_build=BuildUnitsEffect(unit_template=UNITS.COLOSSUS, num=1),
-        per_turn=GainResourceEffect(resource='metal', amount=2)
+        calculate_yields=ConstantYields(Yields(metal=2))
     )
 
     # 4th century BC
@@ -167,10 +174,6 @@ class WONDERS():
     )
 
     ########################## Age 6 ##########################
-    # Options
-    # * Cristo Redentor (1931)
-    # * Empire State Building (1931)
-
     # 1886
     STATUE_OF_LIBERTY = WonderTemplate(
         name="Statue of Liberty", age=6,
@@ -188,6 +191,12 @@ class WONDERS():
         name="Cristo Redentor", age=6,
         on_build=BuildUnitsEffect(unit_template=UNITS.RIFLEMAN, num=8),
         per_turn=GrowEffect(amount=3)
+    )
+
+    # 1931
+    EMPIRE_STATE_BUILDING = WonderTemplate(
+        name="Empire State Building", age=6,
+        on_build=GainSlotsEffect(num=1, type=BuildingType.URBAN, free_building=BUILDINGS.COMMERCIAL_CENTER)
     )
 
     # 1886

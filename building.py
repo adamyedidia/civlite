@@ -93,11 +93,14 @@ class Building:
     def calculate_yields(self, city: 'City', game_state: 'GameState') -> Yields:
         if isinstance(self._template, BuildingTemplate) and self._template.calculate_yields is not None:
             return self._template.calculate_yields.calculate(city)
+        if isinstance(self._template, WonderTemplate) and self._template.calculate_yields is not None:
+            # Ignores vitality
+            return self._template.calculate_yields.calculate(city) * (1 / city.civ.vitality)
         return Yields()
 
     def to_json(self) -> dict:
         return {
-            "type": self.type.value if self.type else None,
+            "type": self.type.value if self.type else "wonder",
             "template_name": self._template.name,
             "building_name": self.building_name,
             "ruined": self.ruined,
@@ -107,8 +110,7 @@ class Building:
     @staticmethod
     def from_json(json: dict) -> "Building":
         type_str = json.get('type')
-        if type_str == "wonder": type_str = None
-        type = BuildingType(type_str) if type_str else None
+        type = BuildingType(type_str) if type_str != "wonder" else None
         proto_dict = WONDERS if type == None else BUILDINGS
         b = Building(template=proto_dict.by_name(json['template_name']))
         b.ruined = json['ruined']

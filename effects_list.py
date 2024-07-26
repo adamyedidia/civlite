@@ -2,7 +2,7 @@ import random
 from typing import TYPE_CHECKING, Callable, Literal
 
 from TechStatus import TechStatus
-from building_template import BuildingTemplate
+from building_template import BuildingTemplate, BuildingType
 from settings import STRICT_MODE
 from unit_templates_list import UNITS
 from effect import CityTargetEffect
@@ -328,3 +328,27 @@ class GreatWallEffect(CityTargetEffect):
                 city = random.choice(my_cities)
                 city.build_unit(game_state=game_state, unit=UNITS.GARRISON)
         return
+    
+class GainSlotsEffect(CityTargetEffect):
+    def __init__(self, num: int, type: BuildingType, free_building: BuildingTemplate | None = None) -> None:
+        self.num = num
+        self.type = type
+        self.free_building = free_building
+        assert self.free_building is None or self.free_building.type == self.type
+
+    @property
+    def description(self) -> str:
+        if self.free_building is not None:
+            return f"Gain {self.num} free {self.type.value} {p.plural('slot', self.num)} with a free {self.free_building.name}."  # type: ignore
+        else:
+            return f"Gain {self.num} free {self.type.value} {p.plural('slot', self.num)}."  # type: ignore
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        for _ in range(self.num):
+            # Need a rural slot no matter what
+            city.develop(BuildingType.RURAL, game_state, free=True)
+            # If it's supposed to be an advanced on, turn a rural into it.
+            if self.type in (BuildingType.URBAN, BuildingType.UNIT):
+                city.develop(self.type, game_state, free=True)
+        if self.free_building is not None:
+            city.build_building(game_state=game_state, building=self.free_building, free=True)

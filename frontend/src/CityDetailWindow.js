@@ -284,7 +284,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             </div>
             <div className="wonders-container">
                 {selectedCity?.buildings.map((building, index) => (
-                    building.type=="wonder" &&
+                    building.type==="wonder" &&
                     <BriefBuildingDisplay key={index} buildingName={building.building_name} faded={building.ruined} clickable={false} hideCost={true} templates={templates} setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder}/>
                 ))}
             </div>
