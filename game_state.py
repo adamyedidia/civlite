@@ -494,7 +494,6 @@ class GameState:
             city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
         assert hex.city is not None, "Failed to register city!"
         hex.city.capitalize(self)
-        hex.city.population = max(hex.city.population, self.advancement_level + 1)
         hex.city.civ_to_revolt_into = None
         hex.city.buildings = [b for b in hex.city.buildings if not b.destroy_on_owner_change]
 
@@ -1074,6 +1073,11 @@ class GameState:
             new_civ = Civ(civ_template, game_player=None)
 
             city = self.new_city(new_civ, hex)
+
+            # Give it some minimal stuff
+            city.population = self.advancement_level + 1
+            city.rural_slots = {0: 1, 1: 1, 2: 1, 3: 1, 4: 2, 5: 2, 6: 3, 7: 4, 8: 5, 9: 6, 10: 6}[self.advancement_level]
+
             # Note that city is NOT registered; i.e. hex.city is not this city, since this is a fake city.
             self.fresh_cities_for_decline[hex.coords] = city
 
