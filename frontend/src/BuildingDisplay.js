@@ -68,6 +68,7 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCost
         descriptionObj = `+${rounded_val}`;
     }
 
+    const bldg_level = building.advancement_level === undefined ? building.age : building.advancement_level;
     const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.type == "urban" ? 'urban' : 'rural';
     const cost = !hideCost && (building_type == 'UNIT' ? building.wood_cost : building_type == 'BUILDING' ? building.cost : building_type == 'WONDER' ? wonderCostsByAge[building.age] : null);
     return (
@@ -80,7 +81,7 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCost
         >
             <span className="building-name">
                 <WithTooltip alignBottom={true} tooltip={payoffTime ? <><div>With vitality decay, a {buildingName} will take {payoffTime} turns to pay back building cost.</div> <div>Assumes resources equally valuable & building income doesn't change.</div></> : null}>
-                {romanNumeral(building.advancement_level || building.age)}. {building?.building_name || building?.name}
+                {romanNumeral(bldg_level)}. {building?.building_name || building?.name}
                 {descriptionObj ? <span> ({descriptionObj}) </span>: ""}
                 {payoffTime && displayYields ? <span> ({payoffTime}⏱) </span> : ""}
                 </WithTooltip>
