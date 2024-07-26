@@ -2,6 +2,8 @@ import abc
 
 from typing import TYPE_CHECKING, Literal
 
+from building_template import BuildingType
+
 if TYPE_CHECKING:
     from terrain_template import TerrainTemplate
     from city import City
@@ -138,8 +140,8 @@ class YieldsPerPopulation(YieldsCalculation):
         return f"{self.yields.pretty_print()} per population"
     
 class YieldsPerBuildingType(YieldsCalculation):
-    def __init__(self, building_type: Literal["urban", "rural", "wonder"], yields: Yields) -> None:
-        self.building_type: Literal["urban", "rural", "wonder"] = building_type
+    def __init__(self, building_type: BuildingType, yields: Yields) -> None:
+        self.building_type = building_type
         self.yields = yields
 
     def calculate(self, city: 'City') -> Yields:

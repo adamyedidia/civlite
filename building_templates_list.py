@@ -141,7 +141,7 @@ class BUILDINGS():
         name="Tax Office",
         type=BuildingType.URBAN,
         cost=20,
-        calculate_yields=YieldsPerBuildingType("rural", Yields(wood=2, metal=2)),
+        calculate_yields=YieldsPerBuildingType(BuildingType.RURAL, Yields(wood=2, metal=2)),
         prereq=TECHS.COMPASS,
     )
     PLANTATION = BuildingTemplate(
@@ -341,14 +341,14 @@ class BUILDINGS():
         type=BuildingType.RURAL,
         cost=50,
         prereq=TECHS.COMBINED_ARMS,
-        calculate_yields=YieldsPerBuildingType("rural", Yields(food=4, wood=4, metal=4, science=4)),
+        calculate_yields=YieldsPerBuildingType(BuildingType.RURAL, Yields(food=4, wood=4, metal=4, science=4)),
     )
     PUBLIC_TRANSIT = BuildingTemplate(
         name="Public Transit",
         type=BuildingType.URBAN,
         cost=20,
         prereq=TECHS.MASS_MARKETS,
-        calculate_yields=YieldsPerBuildingType("urban", Yields(food=2, wood=2, metal=2, science=2)),
+        calculate_yields=YieldsPerBuildingType(BuildingType.URBAN, Yields(food=2, wood=2, metal=2, science=2)),
     )
     AIRFORCE_BASE = BuildingTemplate(
         name="Airforce Base",
