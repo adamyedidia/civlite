@@ -91,6 +91,8 @@ class Building:
         return [ability for ability in self._template.abilities if ability.name == ability_name]
 
     def calculate_yields(self, city: 'City', game_state: 'GameState') -> Yields:
+        if self.ruined:
+            return Yields()
         if isinstance(self._template, BuildingTemplate) and self._template.calculate_yields is not None:
             return self._template.calculate_yields.calculate(city)
         if isinstance(self._template, WonderTemplate) and self._template.calculate_yields is not None:
