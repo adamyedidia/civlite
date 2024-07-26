@@ -717,7 +717,6 @@ class GameState:
                     instead_of_city: City = self.cities_by_id[instead_of_city_id]
                     instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False)
                     instead_of_city.orphan_territory_children(self, make_new_territory=False)
-                    instead_of_city.buildings_queue = []
                     # Transfer the expansion costs.
                     city.develops_this_civ = instead_of_city.develops_this_civ
                     instead_of_city.develops_this_civ = {key: 0 for key in instead_of_city.develops_this_civ}

@@ -131,6 +131,9 @@ class City(MapObjectSpawner):
             self._remove_income_from_parent(game_state)
             self._territory_parent_id = choice.id
             self._territory_parent_coords = choice.hex.coords
+            self.buildings_queue = []
+            self.clear_unit_builds()
+
             if adopt_focus:
                 self.focus = choice.focus
 

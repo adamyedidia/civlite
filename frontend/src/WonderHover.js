@@ -6,7 +6,7 @@ import { romanNumeral } from './TechListDialog';
 
 const WonderHover = ({ wonder, templates}) => {
         return <div className={`wonder-card`}>
-                <h2>{wonder.name}</h2>
+                <h2>{romanNumeral(wonder.age)}. {wonder.name}</h2>
                 <div className="wonder-card-subtitle">
                 <div>Age {romanNumeral(wonder.age)} Wonder</div>
                 <div>{wonder.vp_reward} vp</div>

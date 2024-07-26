@@ -14,6 +14,7 @@ import {
     MenuItem,
 } from '@mui/material';
 import { ShrinkFontText } from './ShrinkFontText.js';
+import { romanNumeral } from './TechListDialog.js';
 
 export const BriefUnitDisplayTitle = ({ title }) => {
     return (
@@ -74,7 +75,7 @@ const UnitDisplay = ({ template, unit }) => {
     const displayTags = tags.filter(tag => tag !== "gunpowder").sort();
     return (
         <div className="unit-card">
-            <h2>{template.name}</h2>
+            <h2>{romanNumeral(template.advancement_level)}. {template.name}</h2>
             <div className="subtitle-row">
                 <div className="cost-row">
                     <div className="cost" style={template.building_name ? {visibility: 'visible'} : {visibility: 'hidden'}}>

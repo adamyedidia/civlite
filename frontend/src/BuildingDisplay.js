@@ -9,6 +9,7 @@ import cityImg from './images/city.png';
 import { WithTooltip } from './WithTooltip';
 import { IconUnitDisplay } from './UnitDisplay';
 import { ShrinkFontText } from './ShrinkFontText';
+import { romanNumeral } from './TechListDialog';
 
 const SingleYieldDisplay = ({ yield_value, img }) => {
     const rounded_val = Number.isInteger(yield_value) ? yield_value : yield_value.toFixed(0);
@@ -79,7 +80,7 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCost
         >
             <span className="building-name">
                 <WithTooltip alignBottom={true} tooltip={payoffTime ? <><div>With vitality decay, a {buildingName} will take {payoffTime} turns to pay back building cost.</div> <div>Assumes resources equally valuable & building income doesn't change.</div></> : null}>
-                {building?.building_name || building?.name}
+                {romanNumeral(building.advancement_level || building.age)}. {building?.building_name || building?.name}
                 {descriptionObj ? <span> ({descriptionObj}) </span>: ""}
                 {payoffTime && displayYields ? <span> ({payoffTime}⏱) </span> : ""}
                 </WithTooltip>
@@ -110,20 +111,19 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     return (
         building_type == 'UNIT' ? 
             <div className="building-card" onClick={onClick}>
-                {buildingName}
-                <h2>{unitTemplatesByBuildingName[buildingName]?.building_name}</h2>
-                <p>Cost: {unitTemplatesByBuildingName[buildingName]?.wood_cost} wood</p>
+                <h2>{building.building_name}</h2>
+                <p>Cost: {building.wood_cost} wood</p>
                 <div className="unlocked-units">
-                    <UnitDisplay template={unitTemplatesByBuildingName[buildingName]} />
+                    <UnitDisplay template={building} />
                 </div>
             </div>
             :
             <div className={`building-card ${building_class}`} onClick={onClick}>
-                <h2>{templates.BUILDINGS[buildingName]?.name}</h2>
-                <p>Cost: {templates.BUILDINGS[buildingName]?.cost} wood</p>
-                {templates.BUILDINGS[buildingName]?.vp_reward && <p>VP reward: {templates.BUILDINGS[buildingName]?.vp_reward}</p>}
+                <h2>{romanNumeral(building.advancement_level)}. {building.name}</h2>
+                <p>Cost: {building.cost} wood</p>
+                {building.vp_reward && <p>VP reward: {building.vp_reward}</p>}
                 <ul>
-                    {templates.BUILDINGS[buildingName]?.description.map((description, index) => (
+                    {building.description.map((description, index) => (
                         <li key={index}>{description}</li>
                     ))}
                 </ul>

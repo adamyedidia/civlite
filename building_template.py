@@ -61,6 +61,7 @@ class BuildingTemplate:
                 ([f"Yields: {self.calculate_yields.description}"] if self.calculate_yields else []),
             "vp_reward": self.vp_reward,
             "prereq": self.prereq.name if self.prereq else None,
+            "advancement_level": self.advancement_level(),
         }
 
     
