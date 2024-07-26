@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING, Callable, Literal
 
 from TechStatus import TechStatus
 from building_template import BuildingTemplate
+from settings import STRICT_MODE
 from unit_templates_list import UNITS
 from effect import CityTargetEffect
 from unit_template import UnitTemplate
@@ -278,3 +279,52 @@ class BuildEeachUnitEffect(CityTargetEffect):
     def apply(self, city: 'City', game_state: 'GameState'):
         for unit in city.available_units:
             city.build_unit(game_state=game_state, unit=unit)
+
+class GreatWallEffect(CityTargetEffect):
+    def __init__(self, num_garrisons: int) -> None:
+        self.num_garrisons = num_garrisons
+
+    @property
+    def description(self) -> str:
+        return f"Build {self.num_garrisons} garrisons around your border"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        my_cities = city.civ.get_my_cities(game_state=game_state)
+        all_distance_2 = {hex for c in my_cities for hex in c.hex.get_distance_2_hexes(game_state.hexes)}
+        # Remove ones that are interior
+        border_hexes = {hex for hex in all_distance_2 if min(hex.distance_to(c.hex) for c in my_cities) == 2}
+        # if any contain an enemy, add the ones closer.
+        for _ in range(2):
+            for hex in border_hexes.copy():
+                if hex.city or hex.camp or any(u.civ != city.civ for u in hex.units):
+                    border_hexes.remove(hex)
+                    for n in hex.get_neighbors(game_state.hexes, include_self=False):
+                        if min(n.distance_to(c.hex) for c in my_cities) <= 1:
+                            border_hexes.add(n)
+        # Remove any that still contain a unit
+        border_hexes = {hex for hex in border_hexes if not hex.is_occupied(UNITS.GARRISON.type, city.civ)}
+        built_hexes = set()
+        for _ in range(self.num_garrisons):
+            if len(border_hexes) > 0:
+                hex = random.choice(list(border_hexes))
+                success = city.spawn_unit_on_hex(game_state=game_state, unit_template=UNITS.GARRISON, hex=hex, bonus_strength=0)
+                if success:
+                    built_hexes.add(hex)
+                    for n in hex.get_neighbors(game_state.hexes, include_self=True):
+                        if n in border_hexes:
+                            border_hexes.remove(n)
+                else:
+                    if STRICT_MODE:
+                        raise ValueError(f"Failed to build garrison on {hex.q}, {hex.r}, {hex.s}")
+                    else: 
+                        print(f"Failed to build garrison on {hex.q}, {hex.r}, {hex.s}")
+            elif len(built_hexes) > 0:
+                hex = min(built_hexes, key=lambda h: (h.units[0].get_stack_size(), random.random()))
+                unit = hex.units[0]
+                city.reinforce_unit(unit=unit)
+                if unit.get_stack_size() >= 3:
+                    built_hexes.remove(hex)
+            else:
+                city = random.choice(my_cities)
+                city.build_unit(game_state=game_state, unit=UNITS.GARRISON)
+        return
