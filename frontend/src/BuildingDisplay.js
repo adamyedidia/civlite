@@ -131,15 +131,11 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     );
 };
 
-export const ExpandButton = ({ cantExpandReason, handleClickDevelop, expandFree }) => {
+export const ExpandButton = ({ cantExpandReason, handleClickDevelop, expandCost }) => {
     let content = (
         <div className={`existing-building-card expand ${cantExpandReason ? 'disabled' : 'enabled'}`} onClick={() => handleClickDevelop('rural')}>
             <div>Expand</div>
-            {expandFree ? (
-                <div className='price-label'>Free</div>
-            ) : (
-                <div className='price-label'>(25 <img src={cityImg} alt="" height="16px"/>)</div>
-            )}
+            <div className='price-label'>({expandCost} <img src={cityImg} alt="" height="16px"/>)</div>
         </div>
     );
     if (cantExpandReason) {
@@ -148,8 +144,25 @@ export const ExpandButton = ({ cantExpandReason, handleClickDevelop, expandFree 
     return content
 };
 
+const DevelopButton = ({ cantDevelopReason, handleClickDevelop, developCost, hidden, text, type }) => {
+    let content = (
+        <>
+            <div>{text}</div>
+            <div>({developCost} <img src={cityImg} alt="" height="14px" width="auto"/>)</div>
+        </>
+    );
+    if (cantDevelopReason) {
+        content = <WithTooltip tooltip={cantDevelopReason}>{content}</WithTooltip>
+    }
+    return         <div className={`develop-btn ${type} ${cantDevelopReason ? 'disabled' : 'enabled'} ${hidden ? 'hidden' : ''}`}
+    onClick={() => handleClickDevelop(type)}>
+        {content}
+    </div>
+}
+
 export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, handleClickDevelop,
-    militarizeBtn, urbanizeBtn, canAffordDevelop, militarizeFree, urbanizeFree, queuedBldg
+    militarizeBtn, urbanizeBtn, queuedBldg, urbanizeCost, militarizeCost, cityPower,
+    cantMilitarizeReason, cantUrbanizeReason
 }) => {
     const building = templates.BUILDINGS?.[buildingName];
     const developButtons = militarizeBtn || urbanizeBtn;
@@ -165,24 +178,22 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
             }
             {developButtons && <>
                 <div className="develop-btns">
-                <div className={`develop-btn unit ${canAffordDevelop || militarizeFree ? 'enabled' : 'disabled'} ${militarizeBtn ? '' : 'hidden'}`}
-                onClick={() => handleClickDevelop('unit')}>
-                    <div>Militarize</div>
-                    {militarizeFree ? (
-                        <div>Free</div>
-                    ) : (
-                        <div>(100 <img src={cityImg} alt="" height="14px" width="auto"/>)</div>
-                    )}
-                </div>
-                <div className={`develop-btn urban ${canAffordDevelop || urbanizeFree ? 'enabled' : 'disabled'} ${urbanizeBtn ? '' : 'hidden'}`}
-                onClick={() => handleClickDevelop('urban')}>
-                    <div>Urbanize</div>
-                    {urbanizeFree ? (
-                        <div>Free</div>
-                    ) : (
-                        <div>(100 <img src={cityImg} alt="" height="14px" width="auto"/>)</div>
-                    )}
-                </div>
+                <DevelopButton 
+                    cantDevelopReason={cantMilitarizeReason}
+                    handleClickDevelop={handleClickDevelop}
+                    developCost={militarizeCost}
+                    hidden={!militarizeBtn}
+                    text="Militarize"
+                    type="unit"
+                />
+                <DevelopButton 
+                    cantDevelopReason={cantUrbanizeReason}
+                    handleClickDevelop={handleClickDevelop}
+                    developCost={urbanizeCost}
+                    hidden={!urbanizeBtn}
+                    text="Urbanize"
+                    type="urban"
+                />
                 </div>
             </>}
         </div>

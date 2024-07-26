@@ -1,6 +1,6 @@
 import itertools
 from typing import Optional, Union
-from building_template import BuildingTemplate
+from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
 from ability import Ability
 from effect import CityTargetEffect
@@ -32,8 +32,8 @@ class Building:
         return self._template.name
  
     @property
-    def type(self) -> str:
-        return self._template.type.value if isinstance(self._template, BuildingTemplate) else "wonder"
+    def type(self) -> BuildingType | None:
+        return self._template.type if isinstance(self._template, BuildingTemplate) else None
 
     @property
     def one_per_civ_key(self) -> str | None:
@@ -97,7 +97,7 @@ class Building:
 
     def to_json(self) -> dict:
         return {
-            "type": self.type,
+            "type": self.type.value if self.type else None,
             "template_name": self._template.name,
             "building_name": self.building_name,
             "ruined": self.ruined,
@@ -106,8 +106,10 @@ class Building:
     
     @staticmethod
     def from_json(json: dict) -> "Building":
-        type = json.get('type')
-        proto_dict = WONDERS if type == 'wonder' else BUILDINGS
+        type_str = json.get('type')
+        if type_str == "wonder": type_str = None
+        type = BuildingType(type_str) if type_str else None
+        proto_dict = WONDERS if type == None else BUILDINGS
         b = Building(template=proto_dict.by_name(json['template_name']))
         b.ruined = json['ruined']
         b.projected_bulldoze = json["projected_bulldoze"]

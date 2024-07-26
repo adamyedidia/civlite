@@ -13,9 +13,9 @@ CIV_ABILITIES: dict[str, Callable] = {
         description=f"Increase {x} yields in the capital by {y}.",
         numbers=[x, y],
     ),
-    "DevelopFree": lambda x: Ability(
-        name="DevelopFree",
-        description=f"{dict(urban='Urbanize', rural='Expand', unit='Militarize')[x]} without paying the usual cost.",
+    "DevelopCheap": lambda x: Ability(
+        name="DevelopCheap",
+        description=f"First {dict(urban='Urbanize', rural='Expand', unit='Militarize')[x]} in each city costs half as much.",
         numbers=[x],
     ),
     "OnDevelop": lambda x, y: Ability(

@@ -177,20 +177,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
 
 
     const abilities = myCiv ? templates.CIVS[myCiv.name].abilities : [];
-    let militarizeFree = false;
-    let urbanizeFree = false;
-    let expandFree = false;
-    for (const ability of abilities) {
-        if (ability.name === "DevelopFree") {
-            if (ability.numbers[0] == 'unit') {
-                militarizeFree = true;
-            } else if (ability.numbers[0] == 'urban') {
-                urbanizeFree = true;
-            } else if (ability.numbers[0] == 'rural') {
-                expandFree = true;
-            }
-        }
-    }
 
     const bldgQueueMaxIndexFinishing = selectedCity.projected_build_queue_depth - 1;
     const availableBuildingEntry = (buildingName, index) => {
@@ -272,12 +258,14 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} 
                         emptyType="rural"
                         queuedBldg={ruralBldgsInQueue?.[index]}
-                        militarizeBtn={selectedCity?.can_militarize && index === 0}
-                        militarizeFree={militarizeFree}
-                        urbanizeBtn={selectedCity?.can_urbanize && index === 0}
-                        urbanizeFree={urbanizeFree}
-                        canAffordDevelop={myCiv?.city_power > 100}
+                        militarizeBtn={selectedCity?.show_develop_buttons.unit && index === selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type == "rural").length}
+                        cantMilitarizeReason={selectedCity.cant_develop_reason.unit}
+                        urbanizeBtn={selectedCity?.show_develop_buttons.urban && index === selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type == "rural").length}
+                        cantUrbanizeReason={selectedCity.cant_develop_reason.urban}
                         handleClickDevelop={handleClickDevelop}
+                        urbanizeCost={selectedCity.develop_costs.urban}
+                        militarizeCost={selectedCity.develop_costs.unit}
+                        cityPower={myCiv?.city_power}
                     />
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
@@ -290,8 +278,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban" queuedBldg={urbanBldgsInQueue?.[index]}/>
                 ))}
-                {!selectedCity.expand_used && !puppet && !declinePreviewMode &&
-                    <ExpandButton cantExpandReason={selectedCity.cant_expand_reason} handleClickDevelop={handleClickDevelop} expandFree={expandFree}/>
+                {!puppet && !declinePreviewMode &&
+                    <ExpandButton expandCost={selectedCity.develop_costs.rural} cantExpandReason={selectedCity.cant_develop_reason.rural} handleClickDevelop={handleClickDevelop}/>
                 }
             </div>
             <div className="wonders-container">

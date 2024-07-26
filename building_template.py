@@ -11,6 +11,7 @@ from yields import YieldsCalculation
 class BuildingType(Enum):
     RURAL = "rural"
     URBAN = "urban"
+    UNIT = "unit"
 
 class BuildingTemplate:
     def __init__(self, 

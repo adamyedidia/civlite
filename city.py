@@ -69,7 +69,7 @@ class City(MapObjectSpawner):
         self.projected_bulldozes: list[UnitTemplate] = []
         self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
-        self.expanded_by_civ_ids: list[str] = []
+        self.develops_this_civ: dict[BuildingType, int] = {d: 0 for d in BuildingType}
         self.seen_by_players: set[int] = set()
 
         # Revolt stuff
@@ -209,9 +209,9 @@ class City(MapObjectSpawner):
         cumsum_cost = [sum(costs[:i + 1]) for i in range(len(costs))]
         self.projected_build_queue_depth = sum([c < wood_available for c in cumsum_cost])
 
-        unit_buildings_to_bulldoze = max(0, self.num_buildings_of_type("unit", include_in_queue=True) - self.military_slots)
+        unit_buildings_to_bulldoze = max(0, self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) - self.military_slots)
         if STRICT_MODE:
-            assert unit_buildings_to_bulldoze <= self.num_buildings_of_type("unit", include_in_queue=True)
+            assert unit_buildings_to_bulldoze <= self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True)
         targets = self.unit_buildings_ranked_for_bulldoze()
         for t in targets[:unit_buildings_to_bulldoze]:
             t.delete_queued = True
@@ -438,7 +438,7 @@ class City(MapObjectSpawner):
         return payoff_turns
 
     def _update_city_building_descriptions(self) -> None:
-        for building_template in self.available_city_buildings + [b._template for b in self.buildings_of_type("rural") + self.buildings_of_type("urban")]:
+        for building_template in self.available_city_buildings + [b._template for b in self.buildings_of_type(BuildingType.RURAL) + self.buildings_of_type(BuildingType.URBAN)]:
             assert isinstance(building_template, BuildingTemplate)
             total_pseudoyields: float = 0
             is_economic_building = False
@@ -635,9 +635,9 @@ class City(MapObjectSpawner):
         if isinstance(building_template, BuildingTemplate):
             if building_template not in self.available_city_buildings:
                 return False
-            if building_template.type == BuildingType.URBAN and self.urban_slots <= self.num_buildings_of_type("urban", include_in_queue=True):
+            if building_template.type == BuildingType.URBAN and self.urban_slots <= self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True):
                 return False
-            if building_template.type == BuildingType.RURAL and self.rural_slots <= self.num_buildings_of_type("rural", include_in_queue=True):
+            if building_template.type == BuildingType.RURAL and self.rural_slots <= self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True):
                 return False
         if isinstance(building_template, WonderTemplate):
             if building_template not in self.available_wonders:
@@ -656,97 +656,82 @@ class City(MapObjectSpawner):
             else:
                 break
 
-    def buildings_of_type(self, type: Literal["rural", "urban", "wonder"]) -> list[Building]:
+    def buildings_of_type(self, type: BuildingType) -> list[Building]:
         return [b for b in self.buildings if b.type == type]
 
-    def num_buildings_of_type(self, type: Literal['wonder', 'unit', 'rural', 'urban'], include_in_queue=False):
-        def type_from_template(t: WonderTemplate | UnitTemplate | BuildingTemplate) -> Literal['wonder', 'unit', 'rural', 'urban']:
-            if isinstance(t, WonderTemplate): return "wonder"
-            if isinstance(t, UnitTemplate): return "unit"
-            if isinstance(t, BuildingTemplate): return t.type.value
-        if type == "unit":
+    def num_buildings_of_type(self, type: BuildingType, include_in_queue=False):
+        def type_from_template(t: WonderTemplate | UnitTemplate | BuildingTemplate) -> BuildingType | None:
+            if isinstance(t, WonderTemplate): return None
+            if isinstance(t, UnitTemplate): return BuildingType.UNIT
+            if isinstance(t, BuildingTemplate): return t.type
+        if type == BuildingType.UNIT:
             bldgs = len(self.unit_buildings)
         else:
             bldgs = len(self.buildings_of_type(type))
         if include_in_queue:
             bldgs += len([b for b in self.buildings_queue if type_from_template(b.template) == type])
+        if self.name == "Timbuktu":
+            print(f"num_buildings_of_type {type} = {bldgs}")
         return bldgs
 
-    @property
-    def expand_used(self):
-        return self.civ.id in self.expanded_by_civ_ids
+    def develop_cost(self, type: BuildingType):
+        result = DEVELOP_COST[type.value] * 2 ** self.develops_this_civ[type]
+        if (self.civ.has_ability("DevelopCheap") and self.civ.numbers_of_ability("DevelopCheap")[0] == type):
+            result /= 2
+        return result
 
-    @property
-    def cant_expand_reason(self) -> str | None:
-        if self.expand_used:
-            return "Expansion already used in this city"
+    def show_develop_button(self, type: BuildingType) -> bool:
         if not self.is_territory_capital:
-            return "Can't expand in puppets."
-        if self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
-            return "City is at maxmimum slots"
-        if self.civ.city_power < DEVELOP_COST['rural'] or (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
-            return f"City power ({int(self.civ.city_power)} / {DEVELOP_COST['rural']})"
-        return None
-
-    def expand(self, game_state):
-        # TODO merge this with _develop()
-        if STRICT_MODE:
-            assert self.cant_expand_reason is None
-        self.rural_slots += 1
-        self.expanded_by_civ_ids.append(self.civ.id)
-        if not (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == 'rural'):
-            self.civ.city_power -= DEVELOP_COST['rural']
-        self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)
-        if self.civ.has_ability("OnDevelop"):
-            civ_type, effect = self.civ.numbers_of_ability("OnDevelop")
-            if civ_type == 'rural':
-                effect.apply(self, game_state)
-
-    def _can_develop(self, type: Literal['unit', 'urban']):
-        if self.civ.develop_used[type]:
-            return False
-        slots_of_type = self.urban_slots if type == 'urban' else self.military_slots
-        if self.num_buildings_of_type(type, include_in_queue=False) < slots_of_type:
-            return False
-        if slots_of_type == MAX_SLOTS_OF_TYPE[type]:
-            return False
-        if self.num_buildings_of_type("rural", include_in_queue=True) == self.rural_slots:
             return False
         if self.civ.game_player is None:
             return False
-        if not self.is_territory_capital:
-            return False
         return True
 
-    @property
-    def can_urbanize(self):
-        return self._can_develop('urban')
-    @property
-    def can_militarize(self):
-        return self._can_develop('unit')
+    def cant_develop_reason(self, type: BuildingType) -> str | None:
+        if not self.show_develop_button(type):
+            return "Can't develop here."
+        if type == 'rural' and self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
+            return "City is at maximum slots"
+        if type == 'urban' and self.urban_slots >= MAX_SLOTS_OF_TYPE['urban']:
+            return "City is at maximum urban slots"
+        if type == 'unit' and self.military_slots >= MAX_SLOTS_OF_TYPE['unit']:
+            return "City is at maximum military slots"
+        if type in [BuildingType.URBAN, BuildingType.UNIT] and self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) == self.rural_slots:
+            return "No rural slots available"
+        if self.civ.city_power < self.develop_cost(type):
+            return f"City power ({int(self.civ.city_power)} / {self.develop_cost(type)})"
+        return None
     
-    def _develop(self, type: Literal['urban', 'unit'], game_state):
+    def can_develop(self, type: BuildingType) -> bool:
+        return self.cant_develop_reason(type) is None
+    
+    def develop(self, type: BuildingType, game_state):
         if STRICT_MODE:
-            assert self._can_develop(type)
-        self.rural_slots -= 1
-        if type == 'urban':
+            assert self.can_develop(type)
+        if type == BuildingType.URBAN:
+            self.rural_slots -= 1
             self.urban_slots += 1
-        if type == 'unit':
+        if type == BuildingType.UNIT:
+            self.rural_slots -= 1
             self.military_slots += 1
-        self.civ.develop_used[type] = True
-        if not (self.civ.has_ability("DevelopFree") and self.civ.numbers_of_ability("DevelopFree")[0] == type):
-            self.civ.city_power -= DEVELOP_COST[type]
+        if type == BuildingType.RURAL:
+            self.rural_slots += 1
+        self.civ.city_power -= self.develop_cost(type)
+        self.develops_this_civ[type] += 1
         self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)    
         if self.civ.has_ability("OnDevelop"):
             civ_type, effect = self.civ.numbers_of_ability("OnDevelop")
             if civ_type == type:
                 effect.apply(self, game_state)
-    
+
+    def expand(self, game_state):
+        self.develop(BuildingType.RURAL, game_state)
+
     def urbanize(self, game_state):
-        self._develop('urban', game_state)
+        self.develop(BuildingType.URBAN, game_state)
 
     def militarize(self, game_state):
-        self._develop('unit', game_state)
+        self.develop(BuildingType.UNIT, game_state)
 
     def unit_buildings_ranked_for_bulldoze(self) -> list[UnitBuilding]:
         targets = self.unit_buildings.copy()
@@ -828,6 +813,7 @@ class City(MapObjectSpawner):
         self.buildings_queue = []
         self.clear_unit_builds()
         self.ever_controlled_by_civ_ids[civ.id] = True
+        self.develops_this_civ = {d: 0 for d in BuildingType}
 
         self.unhappiness = 0
         self.food_demand_reduction_recent_owner_change = FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE
@@ -912,9 +898,9 @@ class City(MapObjectSpawner):
         return max(affordable_choices, key=lambda x: (x.age, random.random()))
 
     def bot_pick_economic_building(self, choices: list[BuildingTemplate], remaining_wood: float) -> Optional[BuildingTemplate]:
-        if self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots:
+        if self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) >= self.rural_slots:
             choices = [b for b in choices if b.type != BuildingType.RURAL]
-        if self.num_buildings_of_type("urban", include_in_queue=True) >= self.urban_slots:
+        if self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots:
             choices = [b for b in choices if b.type != BuildingType.URBAN]
 
         # Don't build libraries
@@ -959,17 +945,23 @@ class City(MapObjectSpawner):
 
         if self.civ.has_ability('OnDevelop'):
             favorite_development = self.civ.numbers_of_ability('OnDevelop')[0]
-        elif self.civ.has_ability('DevelopFree'):
-            favorite_development = self.civ.numbers_of_ability('DevelopFree')[0]
+        elif self.civ.has_ability('DevelopCheap'):
+            favorite_development = self.civ.numbers_of_ability('DevelopCheap')[0]
         else:
             favorite_development = None
 
         self.midturn_update(game_state)
-        if self.can_urbanize and (random.random() < AI.CHANCE_URBANIZE or favorite_development == 'urban'):
+        if self.can_develop(BuildingType.URBAN) \
+            and (random.random() < AI.CHANCE_URBANIZE or favorite_development == "urban") \
+            and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots:
             self.urbanize(game_state)
-        if self.can_militarize and (random.random() < AI.CHANCE_MILITARIZE or favorite_development == 'unit'):
+        if self.can_develop(BuildingType.UNIT) \
+            and (random.random() < AI.CHANCE_MILITARIZE or favorite_development == "unit") \
+            and self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) >= self.military_slots:
             self.militarize(game_state)
-        if self.cant_expand_reason is None and (random.random() < AI.CHANCE_EXPAND or favorite_development == 'rural'):
+        if self.can_develop(BuildingType.RURAL) \
+            and self.rural_slots == self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) \
+            and (random.random() < AI.CHANCE_EXPAND or favorite_development == "rural"):
             self.expand(game_state)
         self.midturn_update(game_state)
 
@@ -1054,7 +1046,7 @@ class City(MapObjectSpawner):
         focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
         if len(production_city.active_unit_buildings) > 0 and 'metal' in focuses_with_best_yields and production_city.is_threatened_city(game_state):
             self.focus = 'metal'
-        elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type("urban", include_in_queue=True) < production_city.urban_slots and parent_wants_wood:
+        elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) < production_city.urban_slots and parent_wants_wood:
             self.focus = 'wood'
         else:
             self.focus = random.choice(list(focuses_with_best_yields))
@@ -1089,9 +1081,9 @@ class City(MapObjectSpawner):
             "available_urban_building_names": [template.name for template in self.available_city_buildings if not self.building_in_queue(template) and template.type==BuildingType.URBAN],
             "available_rural_building_names": [template.name for template in self.available_city_buildings if not self.building_in_queue(template) and template.type==BuildingType.RURAL],
             "building_slots_full": {
-                "rural": self.num_buildings_of_type("rural", include_in_queue=True) >= self.rural_slots,
-                "urban": self.num_buildings_of_type("urban", include_in_queue=True) >= self.urban_slots,
-                "military": self.num_buildings_of_type("unit", include_in_queue=True) >= self.military_slots,
+                "rural": self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) >= self.rural_slots,
+                "urban": self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots,
+                "military": self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) >= self.military_slots,
             },
             "capital": self.capital,
             "available_units": [u.name for u in self.available_units],
@@ -1103,11 +1095,10 @@ class City(MapObjectSpawner):
             "max_units_in_build_queue": self.military_slots <= len([entry for entry in self.buildings_queue if isinstance(entry.template, UnitTemplate)]),
             "growth_cost": self.growth_cost(),
             "terrains_dict": {terrain.name: count for terrain, count in self.terrains_dict.items()},
-            "expanded_by_civ_ids": self.expanded_by_civ_ids,
-            "expand_used": self.expand_used,
-            "cant_expand_reason": self.cant_expand_reason,
-            "can_militarize": self.can_militarize,
-            "can_urbanize": self.can_urbanize,
+            "develops_this_civ": {d.value: self.develops_this_civ[d] for d in BuildingType},
+            "develop_costs": {d.value: self.develop_cost(d) for d in BuildingType},
+            "show_develop_buttons": {d.value: self.show_develop_button(d) for d in BuildingType},
+            "cant_develop_reason": {d.value: self.cant_develop_reason(d) for d in BuildingType},
 
             "territory_parent_id": self._territory_parent_id,
             "territory_parent_coords": self._territory_parent_coords,
@@ -1155,7 +1146,7 @@ class City(MapObjectSpawner):
         city.projected_income_focus = Yields(**json["projected_income_focus"])
         city.projected_build_queue_depth = json["projected_build_queue_depth"]
         city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
-        city.expanded_by_civ_ids = json["expanded_by_civ_ids"]
+        city.develops_this_civ = {BuildingType(k): v for k, v in json["develops_this_civ"].items()}
         city.civ_to_revolt_into = CIVS.by_name(json["civ_to_revolt_into"]) if json["civ_to_revolt_into"] else None
         city.revolting_starting_vitality = json["revolting_starting_vitality"]
         city.unhappiness = json["unhappiness"]
