@@ -670,8 +670,6 @@ class City(MapObjectSpawner):
             bldgs = len(self.buildings_of_type(type))
         if include_in_queue:
             bldgs += len([b for b in self.buildings_queue if type_from_template(b.template) == type])
-        if self.name == "Timbuktu":
-            print(f"num_buildings_of_type {type} = {bldgs}")
         return bldgs
 
     def develop_cost(self, type: BuildingType):
