@@ -674,7 +674,7 @@ class City(MapObjectSpawner):
 
     def develop_cost(self, type: BuildingType):
         result = DEVELOP_COST[type.value] * 2 ** self.develops_this_civ[type]
-        if (self.civ.has_ability("DevelopCheap") and self.civ.numbers_of_ability("DevelopCheap")[0] == type):
+        if (self.civ.has_ability("DevelopCheap") and self.civ.numbers_of_ability("DevelopCheap")[0] == type.value) and self.develops_this_civ[type] == 0:
             result /= 2
         return result
 

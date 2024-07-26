@@ -1,4 +1,5 @@
 from typing import Generator
+from building_template import BuildingType
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from effects_list import BuildBuildingEffect, BuildUnitsEffect, GainResourceEffect, GrowEffect, ResetHappinessThisCityEffect
@@ -226,7 +227,7 @@ class CIVS():
         name="Carthage",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["rural", BuildUnitsEffect(UNITS.HORSEMAN, 1)],
+            "numbers": [BuildingType.RURAL, BuildUnitsEffect(UNITS.HORSEMAN, 1)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horseman", 1],
@@ -322,7 +323,7 @@ class CIVS():
         name="Polynesia",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["rural", GrowEffect(1)],
+            "numbers": [BuildingType.RURAL, GrowEffect(1)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Slinger", 2],
@@ -344,7 +345,7 @@ class CIVS():
         name="Srivijaya",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["rural", GainResourceEffect("wood", 20)],
+            "numbers": [BuildingType.RURAL, GainResourceEffect("wood", 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Garrison", 1],
@@ -366,7 +367,7 @@ class CIVS():
         name="Abbasids",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["rural", GainResourceEffect("science", 20)],
+            "numbers": [BuildingType.RURAL, GainResourceEffect("science", 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 1],
@@ -377,7 +378,7 @@ class CIVS():
         name="Umayyads",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["urban", BuildUnitsEffect(UNITS.KNIGHT, 1)],
+            "numbers": [BuildingType.URBAN, BuildUnitsEffect(UNITS.KNIGHT, 1)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 1],
@@ -593,7 +594,7 @@ class CIVS():
         name="Burgundy",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["rural", GainResourceEffect('metal', 20)],
+            "numbers": [BuildingType.RURAL, GainResourceEffect('metal', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 2],
@@ -604,7 +605,7 @@ class CIVS():
         name="Bohemia",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["rural", GainResourceEffect('wood', 20)],
+            "numbers": [BuildingType.RURAL, GainResourceEffect('wood', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Militia", 2],
@@ -648,7 +649,7 @@ class CIVS():
         name="Venice",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["urban", BuildBuildingEffect(BUILDINGS.HARBOR)],
+            "numbers": [BuildingType.URBAN, BuildBuildingEffect(BUILDINGS.HARBOR)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman", 2],
@@ -670,7 +671,7 @@ class CIVS():
         name="Mamluks",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["rural", GainResourceEffect('science', 20)],
+            "numbers": [BuildingType.RURAL, GainResourceEffect('science', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight", 2],
@@ -692,7 +693,7 @@ class CIVS():
         name="Bahmani",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": ["urban", ResetHappinessThisCityEffect()],
+            "numbers": [BuildingType.URBAN, ResetHappinessThisCityEffect()],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman", 2],

@@ -20,7 +20,7 @@ CIV_ABILITIES: dict[str, Callable] = {
     ),
     "OnDevelop": lambda x, y: Ability(
         name="OnDevelop",
-        description=f"On {dict(urban='Urbanize', rural='Expand', unit='Militarize')[x]}: {y.description}.",
+        description=f"On {dict(urban='Urbanize', rural='Expand', unit='Militarize')[x.value]}: {y.description}.",
         numbers=[x, y],
     ),
     "IncreaseFocusYields": lambda x, y: Ability(
