@@ -537,30 +537,31 @@ class City(MapObjectSpawner):
         """
         return 2
 
-    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1, bonus_strength: int = 0) -> Unit | None:
+    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1, bonus_strength: int = 0, override_civ: Civ | None = None) -> Unit | None:
         bonus_strength = self._spawn_strength(unit, game_state) + bonus_strength
+        civ = override_civ or self.civ
 
         spawn_hex = self.hex
         for _ in self.passive_building_abilities_of_name('Deployment Center'):
-            spawn_hex = self.civ.target1 if self.civ.target1 is not None else spawn_hex
+            spawn_hex = civ.target1 if civ.target1 is not None else spawn_hex
 
-        if not spawn_hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
-            return self.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
+        if not spawn_hex.is_occupied(unit.type, civ, allow_enemy_city=False):
+            return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
 
         best_hex = None
         best_hex_distance_from_target = 10000
 
         for hex in spawn_hex.get_neighbors(game_state.hexes):
-            if not hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):    
+            if not hex.is_occupied(unit.type, civ, allow_enemy_city=False):    
                 distance_from_target = hex.distance_to(self.get_closest_target() or spawn_hex)
                 if distance_from_target < best_hex_distance_from_target:
                     best_hex = hex
                     best_hex_distance_from_target = distance_from_target
 
         if best_hex is not None:
-            return self.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
+            return civ.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
 
-        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == self.civ and u.template == unit and u.strength == unit.strength + bonus_strength]  
+        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == civ and u.template == unit and u.strength == unit.strength + bonus_strength]  
 
         if len(potential_units_to_reinforce) > 0:
             best_unit_to_reinforce = min(potential_units_to_reinforce, key=lambda u: (
@@ -577,7 +578,7 @@ class City(MapObjectSpawner):
 
         # Try merging friendly units
         for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
-            if hex.units and hex.units[0].civ.id == self.civ.id:
+            if hex.units and hex.units[0].civ.id == civ.id:
                 if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
                     num_merges += 1
             if num_merges >= 2:
@@ -596,11 +597,11 @@ class City(MapObjectSpawner):
         # If that doesn't work, and we have a lot of metal to spend, try removing friendly units altogether
         if num_merges == 0 and self.metal > 75:
             for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
-                if hex.units and hex.units[0].civ.id == self.civ.id and hex.units[0].health < 300:
+                if hex.units and hex.units[0].civ.id == civ.id and hex.units[0].health < 300:
                     hex.units[0].remove_from_game(game_state)
                     break
 
-        return self.build_unit(game_state, unit, give_up_if_still_impossible=True, stack_size=stack_size, bonus_strength=bonus_strength)
+        return self.build_unit(game_state, unit, give_up_if_still_impossible=True, stack_size=stack_size, bonus_strength=bonus_strength, override_civ=override_civ)
 
     def _spawn_strength(self, unit_template: UnitTemplate, game_state: 'GameState') -> int:
         result = 0

@@ -28,11 +28,11 @@ class GreatPerson(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def apply(self, game_state, city: City):
+    def apply(self, game_state, city: City, civ: Civ):
         raise NotImplementedError()
     
-    def valid_for_city(self, city: City) -> bool:
-        return True
+    def valid_for_city(self, city: City, civ: Civ) -> bool:
+        return city.civ == civ
     
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.name}>"
@@ -59,9 +59,9 @@ class GreatGeneral(GreatPerson):
     def description(self) -> str:
         return f"Immediately build {self.number} free {p.plural(self.unit_template.name)}"  # type: ignore
 
-    def apply(self, game_state, city: City):
+    def apply(self, game_state, city: City, civ: Civ):
         for _ in range(self.number):
-            city.build_unit(game_state, self.unit_template)
+            city.build_unit(game_state, self.unit_template, override_civ=civ)
 
 class GreatMerchant(GreatPerson):
     def __init__(self, name, amount: float, resource: str):
@@ -72,7 +72,7 @@ class GreatMerchant(GreatPerson):
     def description(self) -> str:
         return f"Immediately gain {self.amount} {self.resource}"
 
-    def apply(self, game_state, city: City):
+    def apply(self, game_state, city: City, civ: Civ):
         if self.resource == "metal":
             city.metal += self.amount
         elif self.resource == "wood":
@@ -81,7 +81,12 @@ class GreatMerchant(GreatPerson):
             city.food += self.amount
             city.grow(game_state)
         elif self.resource == "science":
-            city.civ.science += self.amount
+            civ.science += self.amount
+
+    def valid_for_city(self, city: City, civ: Civ) -> bool:
+        if self.resource in ["metal", "wood", "food"]:
+            return city.civ == civ
+        return True
 
 class GreatScientist(GreatPerson):
     def __init__(self, name, tech_template: TechTemplate, extra_science: float):
@@ -95,12 +100,12 @@ class GreatScientist(GreatPerson):
             desc += f" and gain {int(self.extra_science)} science."
         return desc
 
-    def apply(self, game_state, city: City):
-        city.civ.gain_tech(game_state, self.tech_template)
-        city.civ.science += self.extra_science
+    def apply(self, game_state, city: City, civ: Civ):
+        civ.gain_tech(game_state, self.tech_template)
+        civ.science += self.extra_science
 
-    def valid_for_city(self, city: City) -> bool:
-        return city.civ.techs_status[self.tech_template] in (TechStatus.AVAILABLE, TechStatus.UNAVAILABLE)
+    def valid_for_city(self, city: City, civ: Civ) -> bool:
+        return civ.techs_status[self.tech_template] in (TechStatus.AVAILABLE, TechStatus.UNAVAILABLE)
 
 class GreatEngineer(GreatPerson):
     def __init__(self, name, unit_template: UnitTemplate, extra_wood: float):
@@ -114,13 +119,13 @@ class GreatEngineer(GreatPerson):
             desc += f" and gain {int(self.extra_wood)} wood."
         return desc
 
-    def apply(self, game_state, city: City):
+    def apply(self, game_state, city: City, civ: Civ):
         city.build_building(game_state, self.unit_template, free=True)
         city.midturn_update(game_state)
         city.wood += self.extra_wood
 
-    def valid_for_city(self, city: City) -> bool:
-        return not city.has_building(self.unit_template)
+    def valid_for_city(self, city: City, civ: Civ) -> bool:
+        return city.civ == civ and not city.has_building(self.unit_template)
 
 _great_people_by_age: dict[int, list[GreatPerson]] = defaultdict(list)
 

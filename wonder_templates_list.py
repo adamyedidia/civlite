@@ -105,7 +105,7 @@ class WONDERS():
 
     ########################## Age 3 ##########################
     # Options:
-    # * Some Viking saga? Valkyries would be cool. Give poins when friendly units die.
+    # * Bifrost? Valkyries would be cool. Give points when friendly units die.
 
     CAMELOT = WonderTemplate(
         name="Camelot", age=3,

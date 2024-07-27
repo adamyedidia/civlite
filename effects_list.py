@@ -307,7 +307,7 @@ class GreatWallEffect(CityTargetEffect):
         for _ in range(self.num_garrisons):
             if len(border_hexes) > 0:
                 hex = random.choice(list(border_hexes))
-                success = city.spawn_unit_on_hex(game_state=game_state, unit_template=UNITS.GARRISON, hex=hex, bonus_strength=0)
+                success = city.civ.spawn_unit_on_hex(game_state=game_state, unit_template=UNITS.GARRISON, hex=hex, bonus_strength=0)
                 if success:
                     built_hexes.add(hex)
                     for n in hex.get_neighbors(game_state.hexes, include_self=True):

@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Index, Integer, String, func
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Index, Integer, String, func
 from sqlalchemy.orm import relationship
 from database import Base
 from game import Game
@@ -21,8 +21,16 @@ class Player(Base):
     created_at = Column(DateTime, nullable=False, server_default=func.now(), index=True)
 
     is_bot = Column(Boolean, nullable=False, default=False, server_default="false")
+    vitality_multiplier = Column(Float, nullable=False, default=1.0, server_default="1.0")
 
     __table_args__ = (
         Index("player_idx_game_player_num", "game_id", "player_num", unique=True),
         Index("player_idx_user_game", "user_id", "game_id", unique=True),
     )
+
+    def to_json(self):
+        return {
+            "is_bot": self.is_bot,
+            "vitality_multiplier": self.vitality_multiplier,
+            "username": self.user.username,
+        }
