@@ -542,6 +542,7 @@ class Civ:
         hex.units.append(unit)
         game_state.units.append(unit)
         unit.strength += bonus_strength
+        game_state.refresh_visibility_by_civ()
         return unit
 
     @staticmethod

@@ -692,12 +692,12 @@ class City(MapObjectSpawner):
     def cant_develop_reason(self, type: BuildingType) -> str | None:
         if not self.show_develop_button(type):
             return "Can't develop here."
-        if type == 'rural' and self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
-            return "City is at maximum slots"
-        if type == 'urban' and self.urban_slots >= MAX_SLOTS_OF_TYPE['urban']:
-            return "City is at maximum urban slots"
-        if type == 'unit' and self.military_slots >= MAX_SLOTS_OF_TYPE['unit']:
-            return "City is at maximum military slots"
+        if type == BuildingType.RURAL and self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
+            return f"Max slots ({MAX_SLOTS})"
+        if type == BuildingType.URBAN and self.urban_slots >= MAX_SLOTS_OF_TYPE['urban']:
+            return f"Max urban slots ({MAX_SLOTS_OF_TYPE['urban']})"
+        if type == BuildingType.UNIT and self.military_slots >= MAX_SLOTS_OF_TYPE['unit']:
+            return f"Max military slots ({MAX_SLOTS_OF_TYPE['unit']})"
         if type in [BuildingType.URBAN, BuildingType.UNIT] and self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) == self.rural_slots:
             return "No rural slots available"
         if self.civ.city_power < self.develop_cost(type):
@@ -795,17 +795,26 @@ class City(MapObjectSpawner):
         """
         Called when an existing city changes owner; called by capture() and process_decline_option().
         """
+        old_civ = self.civ
+
         # Remove trade hub
         if self.is_trade_hub():
-            self.civ.trade_hub_id = None
+            old_civ.trade_hub_id = None
 
         for building in self.buildings:
-            if building.one_per_civ_key and game_state.one_per_civs_built_by_civ_id.get(self.civ.id, {}).get(building.building_name) == self.id:
-                del game_state.one_per_civs_built_by_civ_id[self.civ.id][building.building_name]
+            if building.one_per_civ_key and game_state.one_per_civs_built_by_civ_id.get(old_civ.id, {}).get(building.building_name) == self.id:
+                del game_state.one_per_civs_built_by_civ_id[old_civ.id][building.building_name]
         self.buildings = [b for b in self.buildings if not b.destroy_on_owner_change]
 
         # Change the civ
         self.update_civ(civ)
+
+        # If they have a great person, reset the choices to make sure they are all valid
+        if old_civ._great_people_choices_city_id == self.id:
+            print(f"Resetting great people choices for {old_civ.moniker()}")
+            age = old_civ.great_people_choices[0].advancement_level
+            old_civ.great_people_choices = []
+            old_civ.get_great_person(age=age, city=self, game_state=game_state)
 
         # Fix territory parent lines
         self.orphan_territory_children(game_state)
