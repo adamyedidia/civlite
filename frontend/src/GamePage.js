@@ -3506,14 +3506,15 @@ export default function GamePage() {
                                     },
                                 }}
                                 >
+                                <MenuItem value={20}>Debug</MenuItem>
                                 <MenuItem value={2.0}>Settler</MenuItem>
                                 <MenuItem value={1.5}>Chieftan</MenuItem>
                                 <MenuItem value={1.25}>Warlord</MenuItem>
                                 <MenuItem value={1.0}>Prince</MenuItem>
                                 <MenuItem value={0.9}>King</MenuItem>
                                 <MenuItem value={0.75}>Emperor</MenuItem>
-                                <MenuItem value={0.5}>King</MenuItem>
-                                <MenuItem value={0.3}>Emperor</MenuItem>
+                                <MenuItem value={0.5}>Immortal</MenuItem>
+                                <MenuItem value={0.3}>Diety</MenuItem>
                             </Select>
                         </Grid>
                     </Grid>
