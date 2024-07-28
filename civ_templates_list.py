@@ -4,6 +4,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from effects_list import BuildBuildingEffect, BuildUnitsEffect, GainResourceEffect, GrowEffect, ResetHappinessThisCityEffect
 from unit_templates_list import UNITS
+import settings
 
 def player_civs(min_advancement_level=0, max_advancement_level=9) -> Generator[CivTemplate, None, None]:
     for civ_template in CIVS.all():
@@ -1108,3 +1109,7 @@ class CIVS():
         }],
         advancement_level=9,
     )
+
+
+_num_a0_civs = len([civ for civ in CIVS.all() if civ.advancement_level ==0])
+assert _num_a0_civs >= settings.MAX_PLAYERS * settings.NUM_STARTING_LOCATION_OPTIONS, f"There are only {_num_a0_civs} age 0 civs, but we need {settings.MAX_PLAYERS * settings.NUM_STARTING_LOCATION_OPTIONS} for a maximum size game to fit."

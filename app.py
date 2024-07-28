@@ -26,7 +26,7 @@ from settings import (
     LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, 
     BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, 
     NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, 
-    BASE_SURVIVAL_BONUS, SURVIVAL_BONUS_PER_AGE, EXTRA_GAME_END_SCORE_PER_PLAYER
+    BASE_SURVIVAL_BONUS, SURVIVAL_BONUS_PER_AGE, EXTRA_GAME_END_SCORE_PER_PLAYER, MAX_PLAYERS
 )
 from tech_template import TechTemplate
 from tech_templates_list import TECHS
@@ -287,7 +287,7 @@ def _launch_game_inner(sess, game: Game) -> None:
 
     game_state = GameState(game_id, hexes)
 
-    assert num_players <= 8
+    assert num_players <= MAX_PLAYERS
 
     starting_locations = generate_starting_locations(hexes, 3 * num_players)
 
@@ -827,6 +827,7 @@ def get_game_constants(sess):
         'base_city_power_income': BASE_CITY_POWER_INCOME,
         'base_survival_bonus': BASE_SURVIVAL_BONUS,
         'survival_bonus_per_age': SURVIVAL_BONUS_PER_AGE,
+        'max_players': MAX_PLAYERS,
     })
 
 

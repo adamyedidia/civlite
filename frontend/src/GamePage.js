@@ -3460,8 +3460,12 @@ export default function GamePage() {
             {!gameState && playersInGame ? <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
                 <Typography variant="h2">{lobbyGameName}</Typography>
                 <div style={{display: 'flex', gap: '10px', padding: '20px 50px', alignItems: 'center'}}>
-                    <Button onClick={launchGame} variant="contained" style={{backgroundColor: '#008800'}}>Launch Game</Button>
-                    <Button onClick={handleAddBotPlayer} variant="contained" style={{backgroundColor: '#880088'}}>Add Bot Player</Button>
+                    <Button onClick={launchGame} variant="contained" style={{backgroundColor: '#008800', width:'160px'}}>Launch Game</Button>
+                    <Button onClick={handleAddBotPlayer} variant="contained" style={{backgroundColor: '#AA44AA', width:'160px'}}
+                        disabled={gameConstants.max_players <= playersInGame.length}
+                    >
+                        {gameConstants.max_players > playersInGame.length ? "Add Bot Player" : "Max players"}
+                    </Button>
                     <Select
                         value={turnTimer}
                         onChange={(e) => handleChangeTurnTimer(e.target.value)}

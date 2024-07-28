@@ -9,7 +9,7 @@ from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_p
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
 from game_player import GamePlayer
-from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD
+from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD, MAX_PLAYERS
 from tech_template import TechTemplate
 from building_template import BuildingTemplate, BuildingType
 from unit_template import UnitTemplate
@@ -579,7 +579,7 @@ class Civ:
         return f"<Civ {self.id}: {self.template.name}>"
 
 def create_starting_civ_options_for_players(game_players: list[GamePlayer], starting_locations: list['Hex']) -> dict[int, list[tuple[Civ, 'Hex']]]:
-    assert len(game_players) <= 8
+    assert len(game_players) <= MAX_PLAYERS
 
     starting_civ_template_options = random.sample(list(player_civs(max_advancement_level=0)), NUM_STARTING_LOCATION_OPTIONS * len(game_players))
 
