@@ -2,7 +2,7 @@ from typing import Generator
 from building_template import BuildingType
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
-from effects_list import BuildBuildingEffect, BuildUnitsEffect, GainResourceEffect, GrowEffect, ResetHappinessThisCityEffect
+from effects_list import BuildBuildingEffect, BuildUnitsEffect, GainResourceEffect, GrowEffect, PointsEffect, ResetHappinessThisCityEffect
 from unit_templates_list import UNITS
 import settings
 
@@ -122,8 +122,8 @@ class CIVS():
         }],
         advancement_level=0,
     )    
-    ELAMITES = CivTemplate(
-        name="Elamites",
+    NUBIANS = CivTemplate(
+        name="Nubians",
         abilities=[{
             "name": "IncreasedStrengthForNthUnit",
             "numbers": [2, "Archer", 3]
@@ -167,6 +167,54 @@ class CIVS():
         abilities=[{
             "name": "ExtraVpsPerUnitKilled",
             "numbers": [1]
+        }],
+        advancement_level=0,
+    )
+    OLMECS = CivTemplate(
+        name="Olmecs",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, GainResourceEffect("food", 15)]
+        }],
+        advancement_level=0,
+    )
+    HITTITES = CivTemplate(
+        name="Hittites",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, GainResourceEffect("metal", 15)]
+        }],
+        advancement_level=0,
+    )
+    PHOENICIANS = CivTemplate(
+        name="Phoenicians",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, GainResourceEffect("science", 15)]
+        }],
+        advancement_level=0,
+    )
+    ELAMITES = CivTemplate(
+        name="Elamites",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, GainResourceEffect("wood", 15)]
+        }],
+        advancement_level=0,
+    )
+    LYDIA = CivTemplate(
+        name="Lydia",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, PointsEffect(lambda city, game_state: 5, "Gain 4 points", "Lydians")]
+        }],
+        advancement_level=0,
+    )
+    THRACE = CivTemplate(
+        name="Thrace",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, BuildUnitsEffect(UNITS.HORSE_ARCHER, 1)]
         }],
         advancement_level=0,
     )
