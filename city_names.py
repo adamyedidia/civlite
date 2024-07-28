@@ -52,6 +52,14 @@ bantu_cities = [
     "Great Zimbabwe", "Mapungubwe", "Thulamela", "Bulawayo", "Lusaka",
     "Harare", "Kilwa", "Sofala", "Manikeni", "Mombasa"
 ]
+lydia_cities = [
+    "Colophon", "Miletus", "Sardis", "Halicarnassus", "Caria",
+    "Pergamum", "Aspendos", "Miletus", "Sardis", "Halicarnassus"
+]
+thrace_cities = [
+    "Smyrna", "Pergamum", "Aspendos", "Miletus", "Sardis",
+    "Halicarnassus", "Caria", "Pergamum", "Sardis", "Halicarnassus"
+]
 olmec_cities = [
     "San Lorenzo", "La Venta", "Tres Zapotes", "Laguna de los Cerros", "El Manatí",
     "Las Limas", "Potrero Nuevo", "Arroyo Sonso", "Chalcatzingo", "El Azuzul"
@@ -477,6 +485,8 @@ CITY_NAMES_BY_CIV = {
     "Minoans": minoan_cities,
     "Babylon": babylon_cities,
     "Hittites": hittite_cities,
+    "Lydia": lydia_cities,
+    "Thrace": thrace_cities,
     "Phoenicia": phoenician_cities,
     "Nazca": nazca_cities,
     "Bantu": bantu_cities,

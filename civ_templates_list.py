@@ -186,8 +186,8 @@ class CIVS():
         }],
         advancement_level=0,
     )
-    PHOENICIANS = CivTemplate(
-        name="Phoenicians",
+    PHOENICIA = CivTemplate(
+        name="Phoenicia",
         abilities=[{
             "name": "OnDevelop",
             "numbers": [BuildingType.RURAL, GainResourceEffect("science", 15)]
@@ -206,7 +206,7 @@ class CIVS():
         name="Lydia",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": [BuildingType.RURAL, PointsEffect(lambda city, game_state: 5, "Gain 4 points", "Lydians")]
+            "numbers": [BuildingType.RURAL, PointsEffect(lambda city, game_state: 5, "Gain 4 points", "Lydia")]
         }],
         advancement_level=0,
     )
@@ -1161,3 +1161,7 @@ class CIVS():
 
 _num_a0_civs = len([civ for civ in CIVS.all() if civ.advancement_level ==0])
 assert _num_a0_civs >= settings.MAX_PLAYERS * settings.NUM_STARTING_LOCATION_OPTIONS, f"There are only {_num_a0_civs} age 0 civs, but we need {settings.MAX_PLAYERS * settings.NUM_STARTING_LOCATION_OPTIONS} for a maximum size game to fit."
+
+import city_names
+for civ in CIVS.all():
+    assert civ.name in city_names.CITY_NAMES_BY_CIV, f"Civ {civ.name} does not have a corresponding city list in city_names.py"

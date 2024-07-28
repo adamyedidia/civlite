@@ -2324,7 +2324,10 @@ export default function GamePage() {
             });
         fetch(`${URL}/api/game_constants`)
             .then(response => response.json())
-            .then(data => setGameConstants(data));
+            .then(data => {
+                setGameConstants(data);
+                console.log("Loaded game constants: ", data);
+            });
     }, [])
 
     const showSingleMovementArrow = (fromHexCoords, toHexCoords, arrowType = null) => {
