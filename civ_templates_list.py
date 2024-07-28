@@ -174,7 +174,7 @@ class CIVS():
         name="Olmecs",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": [BuildingType.RURAL, GainResourceEffect("food", 15)]
+            "numbers": [BuildingType.RURAL, GainResourceEffect("food", 10)]
         }],
         advancement_level=0,
     )
@@ -182,7 +182,7 @@ class CIVS():
         name="Hittites",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": [BuildingType.RURAL, GainResourceEffect("metal", 15)]
+            "numbers": [BuildingType.RURAL, GainResourceEffect("metal", 10)]
         }],
         advancement_level=0,
     )
@@ -190,7 +190,7 @@ class CIVS():
         name="Phoenicia",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": [BuildingType.RURAL, GainResourceEffect("science", 15)]
+            "numbers": [BuildingType.RURAL, GainResourceEffect("science", 10)]
         }],
         advancement_level=0,
     )
@@ -198,7 +198,7 @@ class CIVS():
         name="Elamites",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": [BuildingType.RURAL, GainResourceEffect("wood", 15)]
+            "numbers": [BuildingType.RURAL, GainResourceEffect("wood", 10)]
         }],
         advancement_level=0,
     )
@@ -206,7 +206,7 @@ class CIVS():
         name="Lydia",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": [BuildingType.RURAL, PointsEffect(lambda city, game_state: 5, "Gain 4 points", "Lydia")]
+            "numbers": [BuildingType.RURAL, PointsEffect(lambda city, game_state: 3, "Gain 3 points", "Lydia")]
         }],
         advancement_level=0,
     )
