@@ -39,6 +39,7 @@ class WONDERS():
     )
 
     ########################## Age 1 ##########################
+    # * Ishtar Gate (6th century BC)
 
     # 6th century BC
     TEMPLE_OF_ARTEMIS = WonderTemplate(

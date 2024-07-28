@@ -82,7 +82,7 @@ const UnitDisplay = ({ template, unit }) => {
                         <div className="cost-itself">{template.wood_cost} <img src={woodImg} alt="" width="auto" height="12" /></div>
                         <ShrinkFontText text={template.building_name} startFontSize={16}/> 
                     </div>
-                    <div className="cost">
+                    <div className="cost" style={template.tags.includes("wondrous") ? {visibility: 'hidden'} : {visibility: 'visible'}}>
                         <div className="cost-itself">{template.metal_cost} <img src={metalImg} alt="" width="auto" height="12" /></div>
                         <ShrinkFontText text={template.name} startFontSize={16}/>
                     </div>

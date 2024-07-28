@@ -457,7 +457,7 @@ class UNITS():
         great_people_names={
             "engineer": "Ernest Swinton",
             "general_normal": "Erwin Rommel",
-            "general_advanced": "George Patton", 
+            "general_advanced": "George Patton",
         },
     )
     MACHINE_GUN = UnitTemplate(
@@ -499,6 +499,7 @@ class UNITS():
         great_people_names={
             "engineer": "Robert Oppenheimer",  # Issue: Rocket Launcher isn't really the same as Atomic Bomb
             "general_advanced": "Douglas MacArthur",  # Issue: Rocket Launcher isn't really the same as Atomic Bomb
+            "general_normal": "Kim Il Sung",
         },
     )
     BAZOOKA = UnitTemplate(
