@@ -68,7 +68,7 @@ class UNITS():
         }],
         great_people_names={
             "engineer": "Judah Maccabee",  # This doesn't super fit.
-            "general_advanced": "Achilles and Patroclus",
+            "general_advanced": "Conan the Barbarian",
             "general_normal": "Lysander",
             "general_horde": "Boudicca",
         },
@@ -131,6 +131,7 @@ class UNITS():
         }],
         great_people_names={
             "engineer": "Vitruvius",
+            "general_advanced": "Odysseus",
             "general_normal": "Philip II of Macedonia",
             "general_horde": "Edward Longshanks",
         }
@@ -153,7 +154,7 @@ class UNITS():
         great_people_names={
             "engineer": "King Solomon",
             "general_advanced": "Alexander the Great",
-            # "general_normal": "The Nazgul",  # Because there's 9 of them  # Now there's 6
+            "general_normal": "Riders of Rohan",
             "general_horde": "Gengis Khan",
         },
     )
@@ -258,6 +259,7 @@ class UNITS():
             "engineer": "Charlemagne",
             "general_advanced": "Roland and Oliver",
             "general_normal": "William of Orange",
+            "general_horde": "Joan of Arc",
         },
     )
     TREBUCHET = UnitTemplate(
@@ -278,7 +280,6 @@ class UNITS():
         great_people_names={
             "engineer": "Saladin",
             "general_advanced": "Richard the Lionheart",
-            "general_normal": "Joan of Arc",
             "general_horde": "Tokugawa Ieyasu",
         },
     )
@@ -295,6 +296,7 @@ class UNITS():
         prereq=TECHS.GUNPOWDER,
         abilities=[],
         great_people_names={
+            "general_advanced": "Jan Zizka",
             "general_normal": "Hernan Cortes",
             "general_horde": "George Washington",
         },
@@ -357,7 +359,8 @@ class UNITS():
         great_people_names={
             "engineer": "Gustavus Adolphus",
             "general_advanced": "Sitting Bull",
-            "general_normal": "Jeb Stuart",
+            "general_normal": "Geronimo",
+            "general_horde": "Zorro",
         },
     )
     RIFLEMAN = UnitTemplate(
@@ -373,8 +376,10 @@ class UNITS():
         prereq=TECHS.MEDICINE,
         abilities=[],
         great_people_names={
+            "engineer": "Oliver Winchester",
             "general_normal": "Robert E Lee",
             "general_advanced": "Duke of Wellington",
+            "general_horde": "Giuseppe Garibaldi",
         },
     )
     GATLING_GUN = UnitTemplate(
@@ -434,6 +439,7 @@ class UNITS():
             "engineer": "Winston Churchill",
             "general_advanced": "Catherine the Great",
             "general_normal": "Dwight D. Eisenhower",
+            "general_horde": "Joseph Stalin",
         },
     )
     TANK = UnitTemplate(
@@ -449,6 +455,7 @@ class UNITS():
         prereq=TECHS.COMBINED_ARMS,
         abilities=[],
         great_people_names={
+            "engineer": "Ernest Swinton",
             "general_normal": "Erwin Rommel",
             "general_advanced": "George Patton", 
         },
@@ -469,7 +476,9 @@ class UNITS():
             "numbers": [UnitTag.INFANTRY.value],
         }],
         great_people_names={
-            "general_normal": "John J. Pershing", 
+            "engineer": "Woodrow Wilson",
+            "general_normal": "John J. Pershing",
+            "general_advanced": "Benito Mussolini",
         }
     )
     ROCKET_LAUNCHER = UnitTemplate(
@@ -508,6 +517,7 @@ class UNITS():
             "numbers": [UnitTag.ARMORED.value],
         }],
         great_people_names={
+            "engineer": "Che Guevara",
             "general_normal": "Jayne Cobb",
             "general_advanced": "Rocket Raccoon",
         }

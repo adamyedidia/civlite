@@ -180,17 +180,16 @@ scientist_names = {
     'Physics': 'Isaac Newton',
     'Printing Press': 'Johannes Gutenberg',
     'Gunpowder': 'Li Tian',
-    # 'Metallurgy': 'TODO',
+    'Metallurgy': 'Niccolo Machiavelli',
     'Architecture': 'Michelangelo',
     "Medicine": 'Louis Pasteur',
     # 'Economics': 'Adam Smith',
     'Military Science': 'Frederick the Great',
-    # 'Rifling': 'Oliver Winchester',
     'Industrialization': 'James Watt',
     'Dynamite': 'Alfred Nobel',
     'Radio': 'Nikola Tesla',
     'Mass Markets': 'Henry Ford',
-    # 'Combined Arms': 'TODO',
+    'Combined Arms': 'Vladimir Lenin',
     # 'Ballistics': 'TODO',
     'Mechanized Agriculture': 'Norman Borlaug',
     'Rocketry': 'Marie Curie',
@@ -264,19 +263,23 @@ for age, people in _great_people_by_age.items():
 
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 
-# Set some numbers to their correct values, even if it's not balanced.
-great_people_by_name["Achilles and Patroclus"].number = 2  # Should be 3  #type: ignore
-great_people_by_name["Roland and Oliver"].number = 2  # Should be 2  #type: ignore
-
 print(f"****************** Unnamed great people ({len(unnamed_list)}) ******************")
 for person in unnamed_list:
     if isinstance(person, GreatGeneral):
-        print(person.number, person.unit_template.name)
+        print(person.advancement_level, person.number, person.unit_template.name)
     elif isinstance(person, GreatMerchant):
-        print(person.amount, person.resource)
+        print(person.advancement_level, person.amount, person.resource)
     elif isinstance(person, GreatScientist):
-        print(person.tech_template.name)
+        print(person.advancement_level, person.tech_template.name)
     elif isinstance(person, GreatEngineer):
-        print(f"{person.unit_template.building_name} ({person.unit_template.name})")
+        print(f"{person.advancement_level} {person.unit_template.building_name} ({person.unit_template.name})")
     else:
-        print(person.name)
+        print(person.advancement_level, person.name)
+
+# Set some numbers to their correct values, even if it's not balanced.
+for name, number in [("Roland and Oliver", 2), ("The Horatii", 3)]:
+    gp = great_people_by_name[name]
+    assert isinstance(gp, GreatGeneral)
+    if gp.number != number:
+        print(f"Setting {name} to {number} for flavor (should have been {gp.number})")
+    gp.number = number
