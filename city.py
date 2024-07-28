@@ -814,6 +814,8 @@ class City(MapObjectSpawner):
 
         # Change the civ
         self.update_civ(civ)
+        for building in self.buildings:
+            building.update_ruined_status(city=self, game_state=game_state)
 
         # If they have a great person, reset the choices to make sure they are all valid
         if old_civ._great_people_choices_city_id == self.id:
