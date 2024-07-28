@@ -6,6 +6,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
+from effects_list import GainResourceEffect
 from map_object_spawner import MapObjectSpawner
 from settings import GOD_MODE
 from terrain_templates_list import TERRAINS
@@ -209,6 +210,11 @@ class City(MapObjectSpawner):
     def adjust_projected_builds(self, game_state):
         wood_available = self.wood + self.projected_income["wood"]
         costs = [entry.get_cost(game_state) for entry in self.buildings_queue]
+        free_wood = [sum(effect.amount for effect in b.template.on_build if isinstance(effect, GainResourceEffect) and effect.resource == "wood")
+                    if not isinstance(b.template, UnitTemplate) else 0
+                    for b in self.buildings_queue]
+        costs = [cost - w for cost, w in zip(costs, free_wood)]
+
         cumsum_cost = [sum(costs[:i + 1]) for i in range(len(costs))]
         self.projected_build_queue_depth = sum([c < wood_available for c in cumsum_cost])
 
