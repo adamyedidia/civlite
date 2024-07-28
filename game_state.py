@@ -465,6 +465,7 @@ class GameState:
         game_player.civ_id = civ.id
         game_player.all_civ_ids.append(civ.id)
         game_player.decline_this_turn = True
+        civ.vitality *= game_player.vitality_multiplier
         self.make_new_civ_from_the_ashes(city)
         civ.get_great_person(self.advancement_level, city, self)
         print(f"New civ {civ} great people choices: {civ.great_people_choices}")
@@ -557,7 +558,7 @@ class GameState:
                             game_player_to_return.civ_id = city.civ.id
                             game_player_to_return.all_civ_ids.append(city.civ.id)
                             self.game_player_by_player_num[player_num].civ_id = city.civ.id
-                            city.civ.vitality = STARTING_CIV_VITALITY if not GOD_MODE else 10
+                            city.civ.vitality = (STARTING_CIV_VITALITY if not GOD_MODE else 10) * game_player.vitality_multiplier
 
                             city.capitalize(self)
 

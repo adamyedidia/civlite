@@ -537,30 +537,31 @@ class City(MapObjectSpawner):
         """
         return 2
 
-    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1, bonus_strength: int = 0) -> Unit | None:
+    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, give_up_if_still_impossible: bool = False, stack_size=1, bonus_strength: int = 0, override_civ: Civ | None = None) -> Unit | None:
         bonus_strength = self._spawn_strength(unit, game_state) + bonus_strength
+        civ = override_civ or self.civ
 
         spawn_hex = self.hex
         for _ in self.passive_building_abilities_of_name('Deployment Center'):
-            spawn_hex = self.civ.target1 if self.civ.target1 is not None else spawn_hex
+            spawn_hex = civ.target1 if civ.target1 is not None else spawn_hex
 
-        if not spawn_hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
-            return self.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
+        if not spawn_hex.is_occupied(unit.type, civ, allow_enemy_city=False):
+            return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
 
         best_hex = None
         best_hex_distance_from_target = 10000
 
         for hex in spawn_hex.get_neighbors(game_state.hexes):
-            if not hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):    
+            if not hex.is_occupied(unit.type, civ, allow_enemy_city=False):    
                 distance_from_target = hex.distance_to(self.get_closest_target() or spawn_hex)
                 if distance_from_target < best_hex_distance_from_target:
                     best_hex = hex
                     best_hex_distance_from_target = distance_from_target
 
         if best_hex is not None:
-            return self.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
+            return civ.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
 
-        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == self.civ and u.template == unit and u.strength == unit.strength + bonus_strength]  
+        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == civ and u.template == unit and u.strength == unit.strength + bonus_strength]  
 
         if len(potential_units_to_reinforce) > 0:
             best_unit_to_reinforce = min(potential_units_to_reinforce, key=lambda u: (
@@ -577,7 +578,7 @@ class City(MapObjectSpawner):
 
         # Try merging friendly units
         for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
-            if hex.units and hex.units[0].civ.id == self.civ.id:
+            if hex.units and hex.units[0].civ.id == civ.id:
                 if hex.units[0].merge_into_neighboring_unit(None, game_state, always_merge_if_possible=True):
                     num_merges += 1
             if num_merges >= 2:
@@ -596,11 +597,11 @@ class City(MapObjectSpawner):
         # If that doesn't work, and we have a lot of metal to spend, try removing friendly units altogether
         if num_merges == 0 and self.metal > 75:
             for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True):
-                if hex.units and hex.units[0].civ.id == self.civ.id and hex.units[0].health < 300:
+                if hex.units and hex.units[0].civ.id == civ.id and hex.units[0].health < 300:
                     hex.units[0].remove_from_game(game_state)
                     break
 
-        return self.build_unit(game_state, unit, give_up_if_still_impossible=True, stack_size=stack_size, bonus_strength=bonus_strength)
+        return self.build_unit(game_state, unit, give_up_if_still_impossible=True, stack_size=stack_size, bonus_strength=bonus_strength, override_civ=override_civ)
 
     def _spawn_strength(self, unit_template: UnitTemplate, game_state: 'GameState') -> int:
         result = 0
@@ -691,12 +692,12 @@ class City(MapObjectSpawner):
     def cant_develop_reason(self, type: BuildingType) -> str | None:
         if not self.show_develop_button(type):
             return "Can't develop here."
-        if type == 'rural' and self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
-            return "City is at maximum slots"
-        if type == 'urban' and self.urban_slots >= MAX_SLOTS_OF_TYPE['urban']:
-            return "City is at maximum urban slots"
-        if type == 'unit' and self.military_slots >= MAX_SLOTS_OF_TYPE['unit']:
-            return "City is at maximum military slots"
+        if type == BuildingType.RURAL and self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
+            return f"Max slots ({MAX_SLOTS})"
+        if type == BuildingType.URBAN and self.urban_slots >= MAX_SLOTS_OF_TYPE['urban']:
+            return f"Max urban slots ({MAX_SLOTS_OF_TYPE['urban']})"
+        if type == BuildingType.UNIT and self.military_slots >= MAX_SLOTS_OF_TYPE['unit']:
+            return f"Max military slots ({MAX_SLOTS_OF_TYPE['unit']})"
         if type in [BuildingType.URBAN, BuildingType.UNIT] and self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) == self.rural_slots:
             return "No rural slots available"
         if self.civ.city_power < self.develop_cost(type):
@@ -794,17 +795,26 @@ class City(MapObjectSpawner):
         """
         Called when an existing city changes owner; called by capture() and process_decline_option().
         """
+        old_civ = self.civ
+
         # Remove trade hub
         if self.is_trade_hub():
-            self.civ.trade_hub_id = None
+            old_civ.trade_hub_id = None
 
         for building in self.buildings:
-            if building.one_per_civ_key and game_state.one_per_civs_built_by_civ_id.get(self.civ.id, {}).get(building.building_name) == self.id:
-                del game_state.one_per_civs_built_by_civ_id[self.civ.id][building.building_name]
+            if building.one_per_civ_key and game_state.one_per_civs_built_by_civ_id.get(old_civ.id, {}).get(building.building_name) == self.id:
+                del game_state.one_per_civs_built_by_civ_id[old_civ.id][building.building_name]
         self.buildings = [b for b in self.buildings if not b.destroy_on_owner_change]
 
         # Change the civ
         self.update_civ(civ)
+
+        # If they have a great person, reset the choices to make sure they are all valid
+        if old_civ._great_people_choices_city_id == self.id:
+            print(f"Resetting great people choices for {old_civ.moniker()}")
+            age = old_civ.great_people_choices[0].advancement_level
+            old_civ.great_people_choices = []
+            old_civ.get_great_person(age=age, city=self, game_state=game_state)
 
         # Fix territory parent lines
         self.orphan_territory_children(game_state)

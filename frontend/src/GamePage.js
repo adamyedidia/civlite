@@ -353,6 +353,7 @@ export default function GamePage() {
     const [animationActiveDelay, setAnimationActiveDelay] = useState(null);
     const animationsLastStartedAtRef = React.useRef(null);
 
+    const [lobbyGameName, setLobbyGameName] = useState(null);
     const [playersInGame, setPlayersInGame] = useState(null);
     const [nextForcedRollAt, setNextForcedRollAt] = useState(null);
 
@@ -798,6 +799,21 @@ export default function GamePage() {
         }
 
         fetch(`${URL}/api/set_turn_timer/${gameId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data),
+        })
+    }
+
+    const handleChangeVitalityMultiplier = (playerNum, value) => {
+        const data = {
+            vitality_multiplier: value,
+            player_num: playerNum,
+        }
+
+        fetch(`${URL}/api/set_vitality_multiplier/${gameId}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -2726,7 +2742,7 @@ export default function GamePage() {
         </CityRectangle>
     }
 
-    const City = ({ city, isHovered, isSelected, isUnitInHex, everControlled }) => {
+    const City = ({ city, isHovered, isSelected, isUnitInHex, everControlled, myGamePlayer }) => {
         const civTemplate = templates.CIVS[civsById?.[city.civ_id]?.name]
         
         const primaryColor = civTemplate?.primary_color;
@@ -2805,7 +2821,7 @@ export default function GamePage() {
                 {declineOptionsView && city.is_decline_view_option && <>
                     <image href={vitalityImg} x="-1.8" y="-1" height="3.6" width="3.6" />
                     <text x="0" y="0.4" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
-                        {Math.floor(city.revolting_starting_vitality * 100)}%
+                        {Math.floor(city.revolting_starting_vitality * 100 * myGamePlayer.vitality_multiplier)}%
                     </text>
                     </>
                 }
@@ -2999,7 +3015,7 @@ export default function GamePage() {
         return Object.values(yields).reduce((a, b) => a + b, 0);
     }
 
-    const displayGameState = (gameState) => {
+    const displayGameState = (gameState, myGamePlayer) => {
         // return <Typography>{JSON.stringify(gameState)}</Typography>
         const hexagons = Object.values(gameState.hexes).sort((a, b) => {
             // This sorts them so ones higher on teh screen come first.
@@ -3053,6 +3069,7 @@ export default function GamePage() {
                                         isSelected={hex?.city?.id === selectedCity?.id}  
                                         isUnitInHex={hex?.units?.length > 0}
                                         everControlled={hex?.city?.ever_controlled_by_civ_ids[myCivId]}
+                                        myGamePlayer={myGamePlayer}
                                     />}
                                     {hex.fog_city_name && <FogCity 
                                         cityName={hex.fog_city_name}  
@@ -3290,9 +3307,14 @@ export default function GamePage() {
                     fetchTurnStartGameState(false);
                 } else {
                     // Game is in lobby state.
-                    console.log("Updating players in the game", data.players);
+                    console.log("Updating lobby data", data);
+                    setLobbyGameName(data.game_name);
                     setPlayersInGame(data.players);
                     setTurnTimer(!data.turn_timer ? -1 : data.turn_timer);
+                    // Check if I've been booted from the game.
+                    if (!(data.players.find(player => player.username === username))) {
+                        window.location.href = '/';
+                    }
                 }
             });
     
@@ -3417,6 +3439,12 @@ export default function GamePage() {
         })
     }
 
+    const handleDeletePlayer = (username) => {
+        fetch(`${URL}/api/delete_player/${gameId}/${username}`, {
+            method: 'DELETE',
+        })
+    }
+
     if (!templates) {
         return (
             <div>
@@ -3428,40 +3456,72 @@ export default function GamePage() {
 
     return (
         <div>
-            {gameState ? null : playersInGame ? (
-                <>
-                    <Typography variant="h5">Players in game:</Typography>
-                    {playersInGame.map((playerUsername, i) => <Typography key={i}>{playerUsername}</Typography>)}
-                </>
-            ) : 'Loading...'}
-            {gameState ? displayGameState(gameState) : (
-                <Grid item container direction="column" spacing={2}>
-                    <Grid item>
-                        <Select
-                            value={turnTimer}
-                            onChange={(e) => handleChangeTurnTimer(e.target.value)}
-                            variant="outlined"
-                        >
-                            <MenuItem value={5}>5 seconds per turn</MenuItem>
-                            <MenuItem value={10}>10 seconds per turn</MenuItem>
-                            <MenuItem value={15}>15 seconds per turn</MenuItem>
-                            <MenuItem value={20}>20 seconds per turn</MenuItem>
-                            <MenuItem value={30}>30 seconds per turn</MenuItem>
-                            <MenuItem value={45}>45 seconds per turn</MenuItem>
-                            <MenuItem value={60}>60 seconds per turn</MenuItem>
-                            <MenuItem value={90}>90 seconds per turn</MenuItem>
-                            <MenuItem value={120}>2 minutes per turn</MenuItem>
-                            <MenuItem value={-1}>No timer</MenuItem>                            
-                        </Select>
+            {gameState && displayGameState(gameState, myGamePlayer)}
+            {!gameState && playersInGame ? <div style={{width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center'}}>
+                <Typography variant="h2">{lobbyGameName}</Typography>
+                <div style={{display: 'flex', gap: '10px', padding: '20px 50px', alignItems: 'center'}}>
+                    <Button onClick={launchGame} variant="contained" style={{backgroundColor: '#008800'}}>Launch Game</Button>
+                    <Button onClick={handleAddBotPlayer} variant="contained" style={{backgroundColor: '#880088'}}>Add Bot Player</Button>
+                    <Select
+                        value={turnTimer}
+                        onChange={(e) => handleChangeTurnTimer(e.target.value)}
+                        variant="outlined"
+                    >
+                        <MenuItem value={5}>5 seconds per turn</MenuItem>
+                        <MenuItem value={10}>10 seconds per turn</MenuItem>
+                        <MenuItem value={15}>15 seconds per turn</MenuItem>
+                        <MenuItem value={20}>20 seconds per turn</MenuItem>
+                        <MenuItem value={30}>30 seconds per turn</MenuItem>
+                        <MenuItem value={45}>45 seconds per turn</MenuItem>
+                        <MenuItem value={60}>60 seconds per turn</MenuItem>
+                        <MenuItem value={90}>90 seconds per turn</MenuItem>
+                        <MenuItem value={120}>2 minutes per turn</MenuItem>
+                        <MenuItem value={-1}>No timer</MenuItem>                            
+                    </Select>
+                </div>
+                <Grid style={{ width: '500px', backgroundColor: 'lightblue', margin: '10px', borderRadius: '10px', overflow: 'hidden' }}>
+                    {playersInGame.map((player, index) => (
+                    <Grid item key={player.username} container spacing={2} alignItems="center" style={{ width: '100%', padding: '0 10px', margin: '0px', backgroundColor: index % 2 === 0 ? '#3377FF' : '#5599FF'}}>
+                        <Grid item xs={2} style={{ padding: '0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <IconButton
+                                onClick={() => handleDeletePlayer(player.username)}
+                            >
+                                ❌
+                            </IconButton>
+                        </Grid>
+                        <Grid item xs={5} style={{ padding: '0', display: 'flex', justifyContent: 'left', alignItems: 'center' }}>
+                            <Typography variant="subtitle1">{player.username}</Typography>
+                        </Grid>
+                        <Grid item xs={5} style={{ padding: '0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                            <Select
+                                value={player.vitality_multiplier}
+                                onChange={(e) => handleChangeVitalityMultiplier(index, e.target.value)}
+                                style={{
+                                    width: '150px',
+                                }}
+                                sx={{
+                                    '& .MuiSelect-select': {
+                                        paddingTop: '6px',
+                                        paddingBottom: '6px'
+                                    },
+                                }}
+                                >
+                                <MenuItem value={20}>Debug</MenuItem>
+                                <MenuItem value={2.0}>Settler</MenuItem>
+                                <MenuItem value={1.5}>Chieftan</MenuItem>
+                                <MenuItem value={1.25}>Warlord</MenuItem>
+                                <MenuItem value={1.0}>Prince</MenuItem>
+                                <MenuItem value={0.9}>King</MenuItem>
+                                <MenuItem value={0.75}>Emperor</MenuItem>
+                                <MenuItem value={0.5}>Immortal</MenuItem>
+                                <MenuItem value={0.3}>Diety</MenuItem>
+                            </Select>
+                        </Grid>
                     </Grid>
-                    <Grid item>
-                        <Button onClick={handleAddBotPlayer} variant="contained" style={{backgroundColor: '#880088'}}>Add Bot Player</Button>
-                    </Grid>
-                    <Grid item>
-                        <Button onClick={launchGame} variant="contained" style={{backgroundColor: '#008800'}}>Launch Game</Button>
-                    </Grid>
+                    ))}
                 </Grid>
-            )}
+            </div>
+            : 'Loading...'}
             {techChoiceDialogOpen && (
                 <div className="tech-choices-container">
                     <DialogTitle>

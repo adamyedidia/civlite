@@ -22,14 +22,6 @@ class MapObjectSpawner(MapObject):
             self.under_siege_by_civ = civs_by_id[self._partially_loaded_under_siege_by_civ_id]
             self._partially_loaded_under_siege_by_civ_id = None
 
-    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: 'UnitTemplate', hex: 'Hex', bonus_strength: int=0, stack_size=1) -> 'Unit | None':
-        unit = Unit(unit_template, civ=self.civ, hex=hex)
-        unit.health *= stack_size
-        hex.units.append(unit)
-        game_state.units.append(unit)
-        unit.strength += bonus_strength
-        return unit
-
     def get_siege_state(self, game_state: 'GameState') -> 'Civ | None':
         for unit in self.hex.units:
             if unit.civ.id != self.civ.id and unit.template.type == 'military':

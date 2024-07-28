@@ -1,7 +1,6 @@
 from math import ceil
 import random
 from typing import TYPE_CHECKING, Generator, Optional
-from civ import Civ
 from map_object import MapObject
 from wonder_templates_list import WONDERS
 from settings import UNIT_KILL_REWARD, DAMAGE_DOUBLE_EXPONENT, DAMAGE_EQUAL_STR
@@ -12,10 +11,11 @@ from utils import generate_unique_id
 if TYPE_CHECKING:
     from game_state import GameState
     from hex import Hex
+    from civ import Civ
 
 
 class Unit(MapObject):
-    def __init__(self, template: UnitTemplate, civ: Civ | None = None, hex: 'Hex | None' = None) -> None:
+    def __init__(self, template: UnitTemplate, civ: 'Civ | None' = None, hex: 'Hex | None' = None) -> None:
         super().__init__(civ, hex)
         self.id = generate_unique_id()
         self.template = template
@@ -225,13 +225,13 @@ class Unit(MapObject):
         target.effective_strength = target.strength + target._compute_bonus_strength(game_state, self, battle_location, support_hexes)
         target.take_damage(self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength), from_civ=self.civ, game_state=game_state)
 
-    def take_damage(self, amount: float, game_state: 'GameState', from_civ: Civ | None, from_unit: 'Unit | None' = None):
+    def take_damage(self, amount: float, game_state: 'GameState', from_civ: 'Civ | None', from_unit: 'Unit | None' = None):
         original_stack_size = self.get_stack_size()
         self.health = max(0, self.health - amount)
         final_stack_size = self.get_stack_size()
 
         if self.dead:
-            self.die(game_state, from_unit)
+            self.remove_from_game(game_state)
 
         if from_civ is not None:
             for _ in range(original_stack_size - final_stack_size):
@@ -243,6 +243,12 @@ class Unit(MapObject):
                 if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders and random.random() < 0.20:
                     for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos:
                         game_state.civs_by_id[civ_id].gain_vps(UNIT_KILL_REWARD, f"United Nations")
+
+                if from_unit is not None and from_unit.has_ability('ConvertKills'):
+                    from_unit.health += 100
+
+                for ability, _ in from_civ.passive_building_abilities_of_name('CityPowerPerKill', game_state):
+                    from_civ.city_power += ability.numbers[0]
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
         self_hex_coords = self.hex.coords
@@ -287,20 +293,6 @@ class Unit(MapObject):
     def remove_from_game(self, game_state: 'GameState') -> None:       
         self.hex.units = [unit for unit in self.hex.units if unit.id != self.id]
         game_state.units = [unit for unit in game_state.units if unit.id != self.id]
-
-    def die(self, game_state: 'GameState', killer: 'Unit | None'):
-        my_hex = self.hex
-
-        self.remove_from_game(game_state)
-
-        if killer is not None and killer.has_ability('ConvertKills'):
-            new_unit = Unit(killer.template, civ=killer.civ, hex=my_hex)
-            my_hex.units.append(new_unit)
-            game_state.units.append(new_unit)
-
-        if killer is not None:
-            for ability, _ in killer.civ.passive_building_abilities_of_name('CityPowerPerKill', game_state):
-                killer.civ.city_power += ability.numbers[0]
 
     def currently_sieging(self):
         return (self.hex.city and self.hex.city.civ != self.civ) or (self.hex.camp and self.hex.camp.civ != self.civ)

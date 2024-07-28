@@ -184,6 +184,24 @@ def set_turn_timer(sess, game_id: str):
     return jsonify(game.to_json())
 
 
+@app.route('/api/set_vitality_multiplier/<game_id>', methods=['POST'])
+@api_endpoint
+def set_vitality_multiplier(sess, game_id: str):
+    game = Game.get(sess, socketio, game_id)
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    data: dict[str, float] = request.json  # type: ignore
+
+    vitality_multiplier = data['vitality_multiplier']
+    player_num = int(data['player_num'])
+    game.players[player_num].vitality_multiplier = vitality_multiplier
+    sess.commit()
+    socketio.emit('update', room=game.id)  # type: ignore
+    return jsonify(game.to_json())
+
+
 @app.route('/api/add_bot_to_game/<game_id>', methods=['POST'])
 @api_endpoint
 def add_bot_to_game(sess, game_id: str):
@@ -192,11 +210,13 @@ def add_bot_to_game(sess, game_id: str):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    num_players_in_game = (
-        sess.query(func.count(Player.id))
-        .filter(Player.game_id == game_id)
-        .scalar()
-    ) or 0
+    # Fetch all current player numbers in the game to find the first available slot
+    existing_player_nums = {player.player_num for player in sess.query(Player.player_num).filter(Player.game_id == game_id).all()}
+
+    # Find the smallest non-negative integer not in the existing player numbers
+    new_player_num = 0
+    while new_player_num in existing_player_nums:
+        new_player_num += 1
 
     user = None
     for username in BOT_USERNAMES:
@@ -213,8 +233,9 @@ def add_bot_to_game(sess, game_id: str):
     bot_player = Player(
         user=user,
         game=game,
-        player_num=num_players_in_game,
+        player_num=new_player_num,
         is_bot=True,
+        vitality_multiplier=1.25,
     )
 
     sess.add(bot_player)
@@ -222,8 +243,32 @@ def add_bot_to_game(sess, game_id: str):
 
     socketio.emit('update', room=game.id)  # type: ignore
 
-    return jsonify({'game': game.to_json(), 'player_num': num_players_in_game})
+    return jsonify({'game': game.to_json(), 'player_num': new_player_num})
 
+
+@app.route('/api/delete_player/<game_id>/<username>', methods=['DELETE'])
+@api_endpoint
+def delete_player(sess, game_id: str, username: str):
+    game = Game.get(sess, socketio, game_id)
+
+    if not game:
+        return jsonify({"error": "Game not found"}), 404
+    
+    player = (
+        sess.query(Player)
+        .join(User)  # Explicitly join the User table
+        .filter(Player.game_id == game_id)
+        .filter(User.username == username)  # Use User.username instead of Player.user.username
+        .one_or_none()
+    )
+
+    if not player:
+        return jsonify({"error": "Player not found"}), 404
+
+    sess.delete(player)
+    sess.commit()
+    socketio.emit('update', room=game.id)  # type: ignore
+    return jsonify({"success": True})
 
 def _launch_game_inner(sess, game: Game) -> None:
     game_id: str = game.id
@@ -246,7 +291,7 @@ def _launch_game_inner(sess, game: Game) -> None:
 
     starting_locations = generate_starting_locations(hexes, 3 * num_players)
 
-    game_players = [GamePlayer(player_num=player.player_num, username=player.user.username, is_bot=player.is_bot) for player in players]
+    game_players = [GamePlayer(player_num=player.player_num, username=player.user.username, is_bot=player.is_bot, vitality_multiplier=player.vitality_multiplier) for player in players]
 
     starting_civ_options_for_players = create_starting_civ_options_for_players(game_players, starting_locations)
 
@@ -266,7 +311,7 @@ def _launch_game_inner(sess, game: Game) -> None:
             starting_city.capitalize(game_state)
 
             game_state.civs_by_id[civ.id] = civ
-            civ.vitality = STARTING_CIV_VITALITY
+            civ.vitality = STARTING_CIV_VITALITY * game_player.vitality_multiplier
             starting_civs_for_players[player_num] = [civ]
             game_player.civ_id = civ.id
             game_player.all_civ_ids.append(civ.id)
@@ -279,7 +324,7 @@ def _launch_game_inner(sess, game: Game) -> None:
                 starting_city = game_state.new_city(civ, starting_location)
                 game_state.register_city(starting_city)
                 game_state.civs_by_id[civ.id] = civ
-                civ.vitality = STARTING_CIV_VITALITY
+                civ.vitality = STARTING_CIV_VITALITY * game_player.vitality_multiplier
 
     game_state.special_mode_by_player_num = {game_player.player_num: 'starting_location' if not game_player.is_bot else None for game_player in game_players}
 
@@ -370,8 +415,10 @@ def get_game_state(sess, game_id):
                 .all()
             )
 
-            return jsonify({'players': [player.user.username for player in players],
-                            "turn_timer": game.seconds_per_turn,})
+            return jsonify({
+                'game_name': game.name,
+                'players': [player.to_json() for player in players],
+                "turn_timer": game.seconds_per_turn,})
 
         return jsonify({"error": "Animation frame not found"}), 404
      

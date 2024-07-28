@@ -176,7 +176,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         </ul> </>
 
 
-    const abilities = myCiv ? templates.CIVS[myCiv.name].abilities : [];
 
     const bldgQueueMaxIndexFinishing = selectedCity.projected_build_queue_depth - 1;
     const availableBuildingEntry = (buildingName, index) => {
@@ -232,7 +231,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 </h1>
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
             </div>
-            {puppet && (territoryReplacementCity === null || selectedCity.population > territoryReplacementCity.population) &&
+            {puppet && (territoryReplacementCity !== undefined) && (territoryReplacementCity === null || selectedCity.population > territoryReplacementCity.population) &&
                 <MakeTerritory myCiv={myCiv} territoryReplacementCity={territoryReplacementCity} handleMakeTerritory={handleMakeTerritory}/>                    
             }
             <div className="existing-buildings-container">

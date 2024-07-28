@@ -39,6 +39,7 @@ class WONDERS():
     )
 
     ########################## Age 1 ##########################
+    # * Ishtar Gate (6th century BC)
 
     # 6th century BC
     TEMPLE_OF_ARTEMIS = WonderTemplate(
@@ -105,7 +106,7 @@ class WONDERS():
 
     ########################## Age 3 ##########################
     # Options:
-    # * Some Viking saga? Valkyries would be cool. Give poins when friendly units die.
+    # * Bifrost? Valkyries would be cool. Give points when friendly units die.
 
     CAMELOT = WonderTemplate(
         name="Camelot", age=3,

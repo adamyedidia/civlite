@@ -115,7 +115,7 @@ const WonderListDisplay = ({ wonders_by_age, game_age, built_wonders, cost_by_ag
     </CivDetailPanel>
 }
 
-const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templates, centerMap, setHoveredCiv, setHoveredUnit, setHoveredBuilding, setSelectedCity, declineViewCivsById}) => {
+const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templates, centerMap, setHoveredCiv, setHoveredUnit, setHoveredBuilding, setSelectedCity, declineViewCivsById, myGamePlayer}) => {
     const civ = declineViewCivsById[city.civ_id];
     const civTemplate = templates.CIVS[civ.name];
     return <div className="decline-option-row"
@@ -137,7 +137,7 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
                 position: "absolute",
                 left: "-10px",
             }}>
-                {Math.floor(city.revolting_starting_vitality * 100)}%
+                {Math.floor(city.revolting_starting_vitality * 100 * myGamePlayer.vitality_multiplier)}%
             </TextOnIcon>
             <TextOnIcon image={workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
                 <b>{city.population}</b>
@@ -186,9 +186,9 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
     </div>
 }
 
-const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, 
+const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer,
     setDeclineOptionsView, declineViewGameState, mainGameState, declineOptionsView, 
-    templates,
+    templates, 
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding, declineViewCivsById}) => {
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.is_decline_view_option);
     const unhappinessThreshold = mainGameState?.unhappiness_threshold
@@ -216,7 +216,7 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap,
                     return <DeclineOptionRow key={city.id} city={city} isMyCity={isMyCity} myCiv={myCiv} setDeclineOptionsView={setDeclineOptionsView} centerMap={centerMap}
                         templates={templates} setHoveredCiv={setHoveredCiv} 
                         setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} setSelectedCity={setSelectedCity} 
-                        declineViewCivsById={declineViewCivsById}/>
+                        declineViewCivsById={declineViewCivsById} myGamePlayer={myGamePlayer}/>
                     })}
             </>}
         </div>

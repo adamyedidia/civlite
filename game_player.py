@@ -1,7 +1,7 @@
 from typing import Optional
 
 class GamePlayer:
-    def __init__(self, player_num: int, username: str, is_bot: bool = False):
+    def __init__(self, player_num: int, username: str, is_bot: bool = False, vitality_multiplier: float = 1.0):
         self.player_num = player_num
         self.username = username
         self.score_dict = {}  # TODO(dfarhi) it would be nice to not store this duplicative with civ's score_dicts.
@@ -13,6 +13,7 @@ class GamePlayer:
         self.civ_id: Optional[str] = None
 
         self.is_bot = is_bot
+        self.vitality_multiplier = vitality_multiplier
 
     @property
     def score(self) -> int:
@@ -30,6 +31,7 @@ class GamePlayer:
             "decline_this_turn": self.decline_this_turn,
             "failed_to_decline_this_turn": self.failed_to_decline_this_turn,
             "all_civ_ids": self.all_civ_ids,
+            "vitality_multiplier": self.vitality_multiplier,
         }
     
     @staticmethod
@@ -38,6 +40,7 @@ class GamePlayer:
             player_num=json["player_num"],
             username=json["username"],
             is_bot=json["is_bot"],
+            vitality_multiplier=json["vitality_multiplier"],
         )
         game_player.civ_id = json["civ_id"]
         game_player.score_dict = json["score_dict"]

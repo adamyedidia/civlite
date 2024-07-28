@@ -2,6 +2,7 @@ import random
 from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
+from unit import Unit
 from settings import GOD_MODE
 from wonder_templates_list import WONDERS
 from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_people_by_name
@@ -499,8 +500,14 @@ class Civ:
         if self.target2_coords:
             self.target2 = game_state.hexes[self.target2_coords]
 
-    def capital_city(self, game_state) -> 'City':
-        return next(city for city in game_state.cities_by_id.values() if city.civ == self and city.capital)
+    def capital_city(self, game_state) -> 'City | None':
+        lst = [city for city in game_state.cities_by_id.values() if city.civ == self and city.capital]
+        if len(lst) > 1 and STRICT_MODE:
+            raise ValueError(f"Civ {self.moniker()} has multiple capital cities: {lst}")
+        if len(lst) > 0:
+            return lst[0]
+        else:
+            return None
 
     def get_great_person(self, age: int, city: 'City', game_state: 'GameState'):
         self._great_people_choices_queue.append((age, city.id))
@@ -511,7 +518,7 @@ class Civ:
             age, city_id = self._great_people_choices_queue.pop(0)
             city = game_state.cities_by_id[city_id]
             all_great_people = great_people_by_age(age)
-            valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_city(city)]
+            valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_city(city, civ=self)]
             random.shuffle(valid_great_people)
             self.great_people_choices = valid_great_people[:3]
             self._great_people_choices_city_id = city_id
@@ -523,11 +530,20 @@ class Civ:
         assert self._great_people_choices_city_id is not None
         city = game_state.cities_by_id[self._great_people_choices_city_id]
         great_person: GreatPerson = great_people_by_name[great_person_name]
-        great_person.apply(city=city, game_state=game_state)
+        great_person.apply(city=city, civ=self, game_state=game_state)
         game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
         self.great_people_choices = []
         self._great_people_choices_city_id = None
         self._pop_great_people_choices_queue_if_needed(game_state)
+
+    def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: 'UnitTemplate', hex: 'Hex', bonus_strength: int=0, stack_size=1) -> 'Unit | None':
+        unit = Unit(unit_template, civ=self, hex=hex)
+        unit.health *= stack_size
+        hex.units.append(unit)
+        game_state.units.append(unit)
+        unit.strength += bonus_strength
+        game_state.refresh_visibility_by_civ()
+        return unit
 
     @staticmethod
     def from_json(json: dict) -> "Civ":

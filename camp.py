@@ -44,7 +44,7 @@ class Camp(MapObjectSpawner):
         self.target = game_state.pick_random_hex()
 
         if not self.hex.is_occupied(unit.type, self.civ):
-            self.spawn_unit_on_hex(game_state, unit, self.hex)
+            self.civ.spawn_unit_on_hex(game_state, unit, self.hex)
             return True
 
         best_hex = None
@@ -67,7 +67,7 @@ class Camp(MapObjectSpawner):
 
         if best_hex is None:
             return False
-        self.spawn_unit_on_hex(game_state, unit, best_hex)
+        self.civ.spawn_unit_on_hex(game_state, unit, best_hex)
         return True
 
     @property
