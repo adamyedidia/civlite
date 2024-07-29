@@ -212,7 +212,7 @@ class WONDERS():
 
     FAST_FOOD_CHAINS = WonderTemplate(
         name="Fast Food Chains", age=7,
-        on_build=GrowEffect(amount_fn=lambda city, _: city.population * 2, description="Double city population")
+        on_build=GrowEffect(amount_fn=lambda city, _: city.population, description="Double city population")
     )
 
     MANHATTAN_PROJECT = WonderTemplate(
