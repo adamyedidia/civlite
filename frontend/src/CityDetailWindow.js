@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, {  } from 'react';
 import './CityDetailWindow.css';
 
-import { Button, Select, MenuItem } from '@mui/material';
+import { Button } from '@mui/material';
 
 import { BriefBuildingDisplay, BriefBuildingDisplayTitle, ExistingBuildingDisplay, ExistingMilitaryBuildingDisplay, ExpandButton } from './BuildingDisplay';
 import foodImg from './images/food.png';
@@ -23,7 +23,7 @@ import { WithTooltip } from './WithTooltip.js';
 const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) => {
     if (myCiv === null) {return}
     const submitClickIfValid = () => {
-        if (territoryReplacementCity == null) {
+        if (territoryReplacementCity === null) {
             handleMakeTerritory(null);
         } else {
             handleMakeTerritory(territoryReplacementCity.id);
@@ -152,7 +152,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         return null;
     }
 
-    const roomForNewTerritory = myCiv && (myCiv.id == selectedCity.civ_id) && myTerritoryCapitals.length < myCiv.max_territories;
+    const roomForNewTerritory = myCiv && (myCiv.id === selectedCity.civ_id) && myTerritoryCapitals.length < myCiv.max_territories;
     const territoryReplacementCity = !roomForNewTerritory ? 
         myTerritoryCapitals.reduce((minCity, city) => (city.population + 1000 * city.capital) < (minCity.population + 1000 * minCity.capital) ? city : minCity, myTerritoryCapitals[0])
     : null;
@@ -196,8 +196,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
         </div>
     }
 
-    const ruralBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type == "rural");
-    const urbanBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type == "urban");
+    const ruralBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type === "rural");
+    const urbanBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type === "urban");
     const militaryBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.UNITS?.[entry.template_name]);
 
     return (
@@ -247,19 +247,19 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     <ExistingMilitaryBuildingDisplay key={`empty-${index}`} unitName={null} templates={templates} setHoveredUnit={setHoveredUnit} queuedBldg={militaryBldgsInQueue?.[index]}/>
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
-                    building.type=="rural" &&
+                    building.type === "rural" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
                     templates={templates} setHoveredBuilding={setHoveredBuilding} 
                     yields={selectedCity.building_yields} 
                     slotsFull={selectedCity.building_slots_full.rural}/>
                 ))}
-                {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type=="rural").length }).map((_, index) => (
+                {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type === "rural").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} 
                         emptyType="rural"
                         queuedBldg={ruralBldgsInQueue?.[index]}
-                        militarizeBtn={selectedCity?.show_develop_buttons.unit && index === selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type == "rural").length}
+                        militarizeBtn={selectedCity?.show_develop_buttons.unit && index === selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type === "rural").length}
                         cantMilitarizeReason={selectedCity.cant_develop_reason.unit}
-                        urbanizeBtn={selectedCity?.show_develop_buttons.urban && index === selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type == "rural").length}
+                        urbanizeBtn={selectedCity?.show_develop_buttons.urban && index === selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type === "rural").length}
                         cantUrbanizeReason={selectedCity.cant_develop_reason.urban}
                         handleClickDevelop={handleClickDevelop}
                         urbanizeCost={selectedCity.develop_costs.urban}
@@ -268,13 +268,13 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     />
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
-                    building.type=="urban" &&
+                    building.type === "urban" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
                     templates={templates} setHoveredBuilding={setHoveredBuilding} 
                     yields={selectedCity.building_yields} 
                     slotsFull={selectedCity.building_slots_full.urban}/>
                 ))}
-                {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type=="urban").length }).map((_, index) => (
+                {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type === "urban").length }).map((_, index) => (
                     <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} emptyType="urban" queuedBldg={urbanBldgsInQueue?.[index]}/>
                 ))}
                 {!puppet && !declinePreviewMode &&

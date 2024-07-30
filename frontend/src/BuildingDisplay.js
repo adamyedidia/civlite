@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, {  } from 'react';
 import UnitDisplay from './UnitDisplay';
 import './BuildingDisplay.css';
 import woodImg from './images/wood.png';
@@ -69,14 +69,14 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCost
     }
 
     const bldg_level = building.advancement_level === undefined ? building.age : building.advancement_level;
-    const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.type == "urban" ? 'urban' : 'rural';
-    const cost = !hideCost && (building_type == 'UNIT' ? building.wood_cost : building_type == 'BUILDING' ? building.cost : building_type == 'WONDER' ? wonderCostsByAge[building.age] : null);
+    const building_class = building_type === 'WONDER' ? 'wonder' : building_type === 'UNIT' ? 'military' : building?.type === "urban" ? 'urban' : 'rural';
+    const cost = !hideCost && (building_type === 'UNIT' ? building.wood_cost : building_type === 'BUILDING' ? building.cost : building_type === 'WONDER' ? wonderCostsByAge[building.age] : null);
     return (
         <div 
             className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''} ${faded ? 'faded' : ''}`} 
             onClick={onClick}
-            onMouseEnter={() => building_type == 'WONDER' ? setHoveredWonder(building) : building_type == 'UNIT' ? setHoveredUnit(building) : setHoveredBuilding(buildingName)} // set on mouse enter
-            onMouseLeave={() => building_type == 'WONDER' ? setHoveredWonder(null) : building_type == 'UNIT' ? setHoveredUnit(null) : setHoveredBuilding(null)} // clear on mouse leave
+            onMouseEnter={() => building_type === 'WONDER' ? setHoveredWonder(building) : building_type === 'UNIT' ? setHoveredUnit(building) : setHoveredBuilding(buildingName)} // set on mouse enter
+            onMouseLeave={() => building_type === 'WONDER' ? setHoveredWonder(null) : building_type === 'UNIT' ? setHoveredUnit(null) : setHoveredBuilding(null)} // clear on mouse leave
             style={style}
         >
             <span className="building-name">
@@ -107,10 +107,10 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
         building_type = 'UNIT';
         building = unitTemplatesByBuildingName[buildingName];
     }
-    const building_class = building_type == 'WONDER' ? 'wonder' : building_type == 'UNIT' ? 'military' : building?.type == "urban" ? 'urban' : 'rural';
+    const building_class = building_type === 'WONDER' ? 'wonder' : building_type === 'UNIT' ? 'military' : building?.type === "urban" ? 'urban' : 'rural';
 
     return (
-        building_type == 'UNIT' ? 
+        building_type === 'UNIT' ? 
             <div className="building-card" onClick={onClick}>
                 <h2>{building.building_name}</h2>
                 <p>Cost: {building.wood_cost} wood</p>
