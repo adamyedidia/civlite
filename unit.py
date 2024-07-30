@@ -74,6 +74,7 @@ class Unit(MapObject):
             split_unit: Unit = Unit(self.template, civ=self.civ, hex=starting_hex)
 
             split_unit.health = self.attacks_used * 100
+            split_unit.strength = self.strength
             self.health -= split_unit.health
 
             split_unit.attacks_used = self.attacks_used
