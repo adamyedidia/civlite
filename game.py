@@ -271,11 +271,9 @@ class Game(Base):
     def _staged_game_state_key(self, player_num: int, turn_num: int) -> str:
         return f'staged_game_state:{self.id}:{player_num}:{turn_num}'
 
-    def update_staged_moves(self, sess, player_num: int, moves: list[dict]) -> tuple[GameState, Optional[list[Civ]], dict, Optional[int]]:
+    def update_staged_moves(self, sess, player_num: int, moves: list[dict]) -> tuple[dict, Optional[int]]:
         """
         Returns
-        - game_state: ???
-        - from_civ_perspectives: ???
         - game_state_to_return_json: game state to give to the client
         - decline_eviction_player: if a player was evicted from a decline.
         """
@@ -288,11 +286,10 @@ class Game(Base):
                 game_state = GameState.from_json(game_state_json)
             else:
                 game_state = self.get_turn_start_game_state(sess)
-            from_civ_perspectives, game_state_to_return_json, game_state_to_store_json, should_stage_moves, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
+            game_state_to_return_json, game_state_to_store_json, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
-            if should_stage_moves:
-                print("Done processing, commiting staged moves")
-                staged_moves.extend(moves)
+            print("Done processing, commiting staged moves")
+            staged_moves.extend(moves)
 
             rset_json(staged_moves_key(self.id, player_num, self.turn_num), staged_moves, ex=7 * 24 * 60 * 60)
             rset_json(self._staged_game_state_key(player_num, self.turn_num), game_state_to_store_json, ex=7 * 24 * 60 * 60)
@@ -314,7 +311,7 @@ class Game(Base):
                 recalc_game_state.update_from_player_moves(decline_eviction_player, staged_moves, speculative=True)
                 rset_json(self._staged_game_state_key(decline_eviction_player, self.turn_num), recalc_game_state.to_json(), ex=7 * 24 * 60 * 60)
 
-        return game_state, from_civ_perspectives, game_state_to_return_json, decline_eviction_player
+        return game_state_to_return_json, decline_eviction_player
 
 def load_and_roll_turn_in_game(sess, socketio, game_id: str, turn_num: int):
     with SessionLocal() as sess:

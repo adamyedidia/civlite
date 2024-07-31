@@ -522,21 +522,16 @@ class GameState:
 
 
     def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False, 
-                                 city_owner_by_city_id: Optional[dict] = None) -> tuple[Optional[list[Civ]], dict, dict, bool, Optional[int]]:
+                                 city_owner_by_city_id: Optional[dict] = None) -> tuple[dict, dict, Optional[int]]:
         """
         Returns:
-          - from_civ_perspectives: the set of players from whose perspectives the game state should be seen
           - game_state_to_return: game_state to send to the client
           - game_state_to_store: game_state to put in redis
-          - should_stage_moves: should we add these moves to the player's staged moves?
           - decline_eviction_player: if not None, we need to evict this player number from the decline choice they've already taken.
         """
-        game_player_to_return: Optional[GamePlayer] = None
-        from_civ_perspectives: Optional[list[Civ]] = None
-        game_state_to_return_json: Optional[dict] = None
-        game_state_to_store_json: Optional[dict] = None
-        should_stage_moves = True
         decline_eviction_player: Optional[int] = None
+        game_player = self.game_player_by_player_num[player_num]
+        civ: Civ | None = None # Set a bit later in the function, to support the case where the move is choosing a starting civ so it's not defined yet here.
 
         for move_index, move in enumerate(moves):
             # This has to be deterministic to allow speculative and non-speculative calls to agree
@@ -551,13 +546,11 @@ class GameState:
                 self.special_mode_by_player_num[player_num] = None
 
                 for city in self.cities_by_id.values():
-                    if city.civ.game_player is not None and (game_player := city.civ.game_player) and game_player.player_num == player_num:
+                    if city.civ.game_player == game_player:
                         if city.id == city_id:
                             game_player.decline_this_turn = True
-                            game_player_to_return = game_player
-                            game_player_to_return.civ_id = city.civ.id
-                            game_player_to_return.all_civ_ids.append(city.civ.id)
-                            self.game_player_by_player_num[player_num].civ_id = city.civ.id
+                            game_player.civ_id = city.civ.id
+                            game_player.all_civ_ids.append(city.civ.id)
                             city.civ.vitality = (STARTING_CIV_VITALITY if not GOD_MODE else 10) * game_player.vitality_multiplier
 
                             city.capitalize(self)
@@ -574,24 +567,19 @@ class GameState:
 
                 for civ in self.civs_by_id.values():
                     civ.fill_out_available_buildings(self)
-                self.midturn_update()
 
                 rdel(dream_key(self.game_id, player_num, self.turn_num))
+
+            assert game_player.civ_id
+            civ = self.civs_by_id[game_player.civ_id]
 
             if move['move_type'] == 'choose_tech':
                 tech_name = move['tech_name']
                 tech = TECHS.by_name(tech_name)
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
                 civ.select_tech(tech)
-                game_player_to_return = game_player
 
             if move['move_type'] == 'choose_building':
                 building_name = move['building_name']
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
@@ -601,14 +589,9 @@ class GameState:
                     for other_city in city.civ.get_my_cities(self):
                         if other_city != city:
                             other_city.buildings_queue = [b for b in other_city.buildings_queue if not b.template == building]
-                game_player_to_return = game_player
-                self.midturn_update()
 
             if move['move_type'] == 'cancel_building':
                 building_name = move['building_name']
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
@@ -618,28 +601,16 @@ class GameState:
                         city.buildings_queue.pop(i)
                         break
 
-                game_player_to_return = game_player
-
-                self.midturn_update()
-
             if move['move_type'] == 'select_infinite_queue':
                 unit_name = move['unit_name']
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
                 unit = UNITS.by_name(unit_name)
 
                 city.toggle_unit_build(unit)
-                self.midturn_update()
-                game_player_to_return = game_player
 
             if move['move_type'] == 'develop':
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
 
@@ -651,66 +622,37 @@ class GameState:
                     city.militarize(self)
                 else:
                     raise ValueError(f"Invalid type: {move['type']}")
-                self.midturn_update()
-                game_player_to_return = game_player
 
             if move['move_type'] == 'set_civ_primary_target':
                 target_coords = move['target_coords']
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
                 civ.target1_coords = target_coords
-                civ.target1 = self.hexes[target_coords]                
-                game_player_to_return = game_player
-                self.midturn_update()
+                civ.target1 = self.hexes[target_coords]
 
             if move['move_type'] == 'set_civ_secondary_target':
                 target_coords = move['target_coords']
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
                 civ.target2_coords = target_coords
                 civ.target2 = self.hexes[target_coords]
-                game_player_to_return = game_player
-                self.midturn_update()
 
             if move['move_type'] == 'remove_civ_primary_target':
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
                 civ.target1_coords = None
                 civ.target1 = None
-                game_player_to_return = game_player
-                self.midturn_update()
 
             if move['move_type'] == 'remove_civ_secondary_target':
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ = self.civs_by_id[game_player.civ_id]
                 civ.target2_coords = None
                 civ.target2 = None
-                game_player_to_return = game_player
-                self.midturn_update()
 
             if move['move_type'] == 'choose_focus':
-                print(f"{move=}")
-                game_player = self.game_player_by_player_num[player_num]
                 city_id = move['city_id']
                 city = self.cities_by_id[city_id]
                 city.focus = move['focus']
                 if move.get('with_puppets'):
                     for puppet in city.get_puppets(self):
                         puppet.focus = move['focus']
-                        
-                game_player_to_return = game_player
-                self.midturn_update()
 
             if move['move_type'] == 'make_territory':
-                game_player = self.game_player_by_player_num[player_num]
                 city_id: str = move['city_id']
                 city: City = self.cities_by_id[city_id]
                 previous_parent: City | None = city.get_territory_parent(self)
-                civ = city.civ
                 city.make_territory_capital(self)
 
                 instead_of_city_id: str = move['other_city_id']
@@ -735,42 +677,22 @@ class GameState:
                 if previous_parent is not None and previous_parent.id != instead_of_city_id:
                     previous_parent.orphan_territory_children(self, make_new_territory=False)
 
-                game_player_to_return = game_player
-                self.midturn_update()
 
             if move['move_type'] == 'trade_hub':
-                game_player = self.game_player_by_player_num[player_num]
                 city_id = move['city_id']
-                assert game_player.civ_id is not None
-                civ: Civ = self.civs_by_id[game_player.civ_id]
                 if civ.trade_hub_id == city_id:
                     civ.trade_hub_id = None
                 else:
                     civ.trade_hub_id = city_id
-                game_player_to_return = game_player
-                self.midturn_update()
 
             if move['move_type'] == 'select_great_person':
-                game_player: GamePlayer = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                civ: Civ = self.civs_by_id[game_player.civ_id]
                 civ.select_great_person(self, move['great_person_name'])
-                game_player_to_return = game_player
-                self.midturn_update()
 
             if move['move_type'] == 'found_city':
-                game_player = self.game_player_by_player_num[player_num]
-                assert game_player.civ_id
-                self.found_city_for_civ(self.civs_by_id[game_player.civ_id], self.hexes[move['coords']], move['city_id'])
-                game_player_to_return = game_player
-                self.midturn_update()
+                self.found_city_for_civ(civ, self.hexes[move['coords']], move['city_id'])
 
             if move['move_type'] == 'choose_decline_option':
                 print(f'player {player_num} is choosing a decline option')
-
-                game_player = self.game_player_by_player_num[player_num]
-                game_player_to_return = game_player
-
                 if 'preempted' in move:
                     game_player.failed_to_decline_this_turn = True
                     continue
@@ -810,15 +732,14 @@ class GameState:
                     print(f"{proceed=}")
                     if proceed:
                         rset(redis_key, game_player.player_num)
-                        from_civ_perspectives = self.execute_decline(coords, game_player)
+                        self.execute_decline(coords, game_player)
 
-
-        if game_player_to_return is not None and (game_player_to_return.civ_id is not None or from_civ_perspectives is not None):
-            if from_civ_perspectives is None and game_player_to_return.civ_id is not None:
-                from_civ_perspectives = [self.civs_by_id[game_player_to_return.civ_id]]
-            return (from_civ_perspectives, game_state_to_return_json or self.to_json(from_civ_perspectives=from_civ_perspectives), game_state_to_store_json or self.to_json(), should_stage_moves, decline_eviction_player)
-
-        return (None, self.to_json(), self.to_json(), should_stage_moves, decline_eviction_player)
+            # Processing to do regardless of move.
+            self.midturn_update()
+        
+        assert game_player.civ_id is not None
+        from_civ_perspectives = [self.civs_by_id[game_player.civ_id]]
+        return (self.to_json(from_civ_perspectives=from_civ_perspectives), self.to_json(), decline_eviction_player)
 
     def sync_advancement_level(self) -> None:
         # Population-weighted average civ advancement level.
