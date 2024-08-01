@@ -522,11 +522,10 @@ class GameState:
 
 
     def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False, 
-                                 city_owner_by_city_id: Optional[dict] = None) -> tuple[dict, dict, Optional[int]]:
+                                 city_owner_by_city_id: Optional[dict] = None) -> tuple[dict, Optional[int]]:
         """
         Returns:
           - game_state_to_return: game_state to send to the client
-          - game_state_to_store: game_state to put in redis
           - decline_eviction_player: if not None, we need to evict this player number from the decline choice they've already taken.
         """
         decline_eviction_player: Optional[int] = None
@@ -739,7 +738,7 @@ class GameState:
         
         assert game_player.civ_id is not None
         from_civ_perspectives = [self.civs_by_id[game_player.civ_id]]
-        return (self.to_json(from_civ_perspectives=from_civ_perspectives), self.to_json(), decline_eviction_player)
+        return (self.to_json(from_civ_perspectives=from_civ_perspectives), decline_eviction_player)
 
     def sync_advancement_level(self) -> None:
         # Population-weighted average civ advancement level.

@@ -286,13 +286,13 @@ class Game(Base):
                 game_state = GameState.from_json(game_state_json)
             else:
                 game_state = self.get_turn_start_game_state(sess)
-            game_state_to_return_json, game_state_to_store_json, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
+            game_state_to_return_json, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
             print("Done processing, commiting staged moves")
             staged_moves.extend(moves)
 
             rset_json(staged_moves_key(self.id, player_num, self.turn_num), staged_moves, ex=7 * 24 * 60 * 60)
-            rset_json(self._staged_game_state_key(player_num, self.turn_num), game_state_to_store_json, ex=7 * 24 * 60 * 60)
+            rset_json(self._staged_game_state_key(player_num, self.turn_num), game_state.to_json(), ex=7 * 24 * 60 * 60)
         print(f"Move staged {moves[0]}")
         if decline_eviction_player is not None:
             print(f"evicting player {decline_eviction_player}")
