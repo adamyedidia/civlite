@@ -9,6 +9,7 @@ from civ import Civ
 from civ_template import CivTemplate
 from civ_templates_list import CIVS, player_civs
 from map_object import MapObject
+from move_type import MoveType
 from settings import GOD_MODE
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
@@ -266,7 +267,6 @@ class GameState:
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
     def midturn_update(self):
-        print("midturn update triggered")
         for city in self.cities_by_id.values():
             if city.is_territory_capital:
                 city.midturn_update(self)
@@ -520,6 +520,217 @@ class GameState:
 
         return hex.city
 
+    def resolve_game_player_move(self, move_type: MoveType, move_data: dict, speculative: bool, game_player: GamePlayer) -> None:
+        if move_type == MoveType.CHOOSE_STARTING_CITY:
+            assert game_player is not None
+            city_id = move_data['city_id']
+            self.special_mode_by_player_num[game_player.player_num] = None
+
+            for city in self.cities_by_id.values():
+                if city.civ.game_player == game_player:
+                    if city.id == city_id:
+                        game_player.decline_this_turn = True
+                        game_player.civ_id = city.civ.id
+                        game_player.all_civ_ids.append(city.civ.id)
+                        city.civ.vitality = (STARTING_CIV_VITALITY if not GOD_MODE else 10) * game_player.vitality_multiplier
+
+                        city.capitalize(self)
+
+                    else:
+                        self.register_camp(Camp(self.barbarians, hex=city.hex))
+
+                        city.hex.city = None
+                        self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
+
+                        del self.civs_by_id[city.civ.id]
+
+            self.refresh_visibility_by_civ()
+
+            for civ in self.civs_by_id.values():
+                civ.fill_out_available_buildings(self)
+
+            rdel(dream_key(self.game_id, game_player.player_num, self.turn_num))
+
+        elif move_type == MoveType.CHOOSE_DECLINE_OPTION:
+            print(f'player {game_player.player_num} is choosing a decline option')
+            if 'preempted' in move_data:
+                game_player.failed_to_decline_this_turn = True
+                return
+
+            coords = move_data['coords']
+
+            if STRICT_MODE:
+                assert not game_player.decline_this_turn, f"Player {game_player.player_num} is trying to decline twice in one turn."
+
+            # If speculative is False, then there should be no collisions
+            # We could be less strict here and not even check, but that seems dangerous
+            with rlock(f'decline-claimed-{self.game_id}-{self.turn_num}-lock'):
+                redis_key = f"decline-claimed-{self.game_id}-{self.turn_num}-{coords}"
+                already_claimed_by = rget(redis_key)
+                print(f"{already_claimed_by=}")
+                proceed = False
+                if not speculative:
+                    # End turn roll; there should be no collisions here.
+                    assert already_claimed_by is not None and int(already_claimed_by) == game_player.player_num, f"During end turn roll, trying to execute a decline that wasn't claimed during the turn. {self.game_id} {self.turn_num} {coords} {already_claimed_by} {game_player.player_num}"
+                    proceed = True
+                elif speculative and already_claimed_by is None:
+                    # Non collision
+                    proceed = True
+                elif speculative and already_claimed_by is not None:
+                    # Collision
+                    proceed: bool = self.decline_priority(first_player_num=int(already_claimed_by), new_player_num=game_player.player_num)
+                    if proceed:
+                        decline_eviction_player = int(already_claimed_by)
+                    else:
+                        # The client figures out the action failed based on the fact that I'm still the same civ.
+                        # That isn't super robust.
+                        move_data['preempted'] = True
+                        game_player.failed_to_decline_this_turn = True
+
+                else:
+                    raise ValueError("There are no other logical possibilities.")
+                print(f"{proceed=}")
+                if proceed:
+                    rset(redis_key, game_player.player_num)
+                    self.execute_decline(coords, game_player)
+        else:
+            raise ValueError(f"Invalid move type: {move_type}")
+
+    def resolve_move(self, move_type: MoveType, move_data: dict, speculative: bool = False, game_player: GamePlayer | None = None, civ: Civ | None = None) -> None:
+        """
+        Can be submitted by GamePlayer (for things like choose starting city or decline)
+        or by Civ (for normal moves submitted by declined civs)
+        """
+        if move_type in (MoveType.CHOOSE_STARTING_CITY, MoveType.CHOOSE_DECLINE_OPTION):
+            assert game_player is not None, f"GamePlayer is required for move type {move_type}"
+            self.resolve_game_player_move(move_type, move_data, speculative, game_player)
+            return
+
+        if civ is None:
+            assert game_player is not None, f"Must set GamePlayer or Civ for move type {move_type}"
+            assert game_player.civ_id is not None, f"GamePlayer {game_player.player_num} has no civ_id"
+            civ = self.civs_by_id[game_player.civ_id]
+
+        if move_type == MoveType.CHOOSE_TECH:
+            tech_name = move_data['tech_name']
+            tech = TECHS.by_name(tech_name)
+            civ.select_tech(tech)
+
+        if move_type == MoveType.CHOOSE_BUILDING:
+            building_name = move_data['building_name']
+            city_id = move_data['city_id']
+            city = self.cities_by_id[city_id]
+
+            building = QueueEntry.find_queue_template_by_name(building_name)
+            if city.validate_building_queueable(building):
+                city.enqueue_build(building)
+                for other_city in city.civ.get_my_cities(self):
+                    if other_city != city:
+                        other_city.buildings_queue = [b for b in other_city.buildings_queue if not b.template == building]
+
+        if move_type == MoveType.CANCEL_BUILDING:
+            building_name = move_data['building_name']
+            city_id = move_data['city_id']
+            city = self.cities_by_id[city_id]
+
+            for i, entry in enumerate(city.buildings_queue):
+                if entry.template.name == building_name:
+                    # TODO could check it has the right delete/build type
+                    city.buildings_queue.pop(i)
+                    break
+
+        if move_type == MoveType.SELECT_INFINITE_QUEUE:
+            unit_name = move_data['unit_name']
+            city_id = move_data['city_id']
+            city = self.cities_by_id[city_id]
+
+            unit = UNITS.by_name(unit_name)
+
+            city.toggle_unit_build(unit)
+
+        if move_type == MoveType.DEVELOP:
+            city_id = move_data['city_id']
+            city = self.cities_by_id[city_id]
+
+            if move_data['type'] == 'rural':
+                city.expand(self)
+            elif move_data['type'] == 'urban':
+                city.urbanize(self)
+            elif move_data['type'] == 'unit':
+                city.militarize(self)
+            else:
+                raise ValueError(f"Invalid type: {move_data['type']}")
+
+        if move_type == MoveType.SET_CIV_PRIMARY_TARGET:
+            target_coords = move_data['target_coords']
+            civ.target1_coords = target_coords
+            civ.target1 = self.hexes[target_coords]
+
+        if move_type == MoveType.SET_CIV_SECONDARY_TARGET:
+            target_coords = move_data['target_coords']
+            civ.target2_coords = target_coords
+            civ.target2 = self.hexes[target_coords]
+
+        if move_type == MoveType.REMOVE_CIV_PRIMARY_TARGET:
+            civ.target1_coords = None
+            civ.target1 = None
+
+        if move_type == MoveType.REMOVE_CIV_SECONDARY_TARGET:
+            civ.target2_coords = None
+            civ.target2 = None
+
+        if move_type == MoveType.CHOOSE_FOCUS:
+            city_id = move_data['city_id']
+            city = self.cities_by_id[city_id]
+            city.focus = move_data['focus']
+            if move_data.get('with_puppets'):
+                for puppet in city.get_puppets(self):
+                    puppet.focus = move_data['focus']
+
+        if move_type == MoveType.MAKE_TERRITORY:
+            city_id: str = move_data['city_id']
+            city: City = self.cities_by_id[city_id]
+            previous_parent: City | None = city.get_territory_parent(self)
+            city.make_territory_capital(self)
+
+            instead_of_city_id: str = move_data['other_city_id']
+            if instead_of_city_id is not None:
+                instead_of_city: City = self.cities_by_id[instead_of_city_id]
+                instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False)
+                instead_of_city.orphan_territory_children(self, make_new_territory=False)
+                # Transfer the expansion costs.
+                city.develops_this_civ = instead_of_city.develops_this_civ
+                instead_of_city.develops_this_civ = {key: 0 for key in instead_of_city.develops_this_civ}
+
+                # Take all the wood and metal over.
+                new_parent = instead_of_city.get_territory_parent(self)
+                assert new_parent is not None
+                new_parent.wood += instead_of_city.wood
+                instead_of_city.wood = 0
+                for bldg in new_parent.unit_buildings:
+                    new_parent.metal += bldg.metal
+                    bldg.metal = 0
+                new_parent.metal += instead_of_city.metal
+                instead_of_city.metal = 0
+            if previous_parent is not None and previous_parent.id != instead_of_city_id:
+                previous_parent.orphan_territory_children(self, make_new_territory=False)
+
+
+        if move_type == MoveType.TRADE_HUB:
+            city_id = move_data['city_id']
+            if civ.trade_hub_id == city_id:
+                civ.trade_hub_id = None
+            else:
+                civ.trade_hub_id = city_id
+
+        if move_type == MoveType.SELECT_GREAT_PERSON:
+            civ.select_great_person(self, move_data['great_person_name'])
+
+        if move_type == MoveType.FOUND_CITY:
+            self.found_city_for_civ(civ, self.hexes[move_data['coords']], move_data['city_id'])
+
+        # Processing to do regardless of move.
+        self.midturn_update()
 
     def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False, 
                                  city_owner_by_city_id: Optional[dict] = None) -> tuple[dict, Optional[int]]:
@@ -530,211 +741,19 @@ class GameState:
         """
         decline_eviction_player: Optional[int] = None
         game_player = self.game_player_by_player_num[player_num]
-        civ: Civ | None = None # Set a bit later in the function, to support the case where the move is choosing a starting civ so it's not defined yet here.
 
         for move_index, move in enumerate(moves):
             # This has to be deterministic to allow speculative and non-speculative calls to agree
             seed_value = deterministic_hash(f"{self.game_id} {player_num} {self.turn_num}")
             random.seed(seed_value)
-            if ('city_id' in move and (city_id := move['city_id']) is not None 
-                    and (city_owner := (city_owner_by_city_id or {}).get(city_id)) is not None 
-                    and city_owner != player_num):
+            if city_owner_by_city_id is not None \
+                and 'city_id' in move \
+                and move['city_id'] in city_owner_by_city_id \
+                and city_owner_by_city_id[move['city_id']] != player_num:
                 continue
-            if move['move_type'] == 'choose_starting_city':
-                city_id = move['city_id']
-                self.special_mode_by_player_num[player_num] = None
 
-                for city in self.cities_by_id.values():
-                    if city.civ.game_player == game_player:
-                        if city.id == city_id:
-                            game_player.decline_this_turn = True
-                            game_player.civ_id = city.civ.id
-                            game_player.all_civ_ids.append(city.civ.id)
-                            city.civ.vitality = (STARTING_CIV_VITALITY if not GOD_MODE else 10) * game_player.vitality_multiplier
-
-                            city.capitalize(self)
-
-                        else:
-                            self.register_camp(Camp(self.barbarians, hex=city.hex))
-
-                            city.hex.city = None
-                            self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
-
-                            del self.civs_by_id[city.civ.id]
-
-                self.refresh_visibility_by_civ()
-
-                for civ in self.civs_by_id.values():
-                    civ.fill_out_available_buildings(self)
-
-                rdel(dream_key(self.game_id, player_num, self.turn_num))
-
-            assert game_player.civ_id
-            civ = self.civs_by_id[game_player.civ_id]
-
-            if move['move_type'] == 'choose_tech':
-                tech_name = move['tech_name']
-                tech = TECHS.by_name(tech_name)
-                civ.select_tech(tech)
-
-            if move['move_type'] == 'choose_building':
-                building_name = move['building_name']
-                city_id = move['city_id']
-                city = self.cities_by_id[city_id]
-
-                building = QueueEntry.find_queue_template_by_name(building_name)
-                if city.validate_building_queueable(building):
-                    city.enqueue_build(building)
-                    for other_city in city.civ.get_my_cities(self):
-                        if other_city != city:
-                            other_city.buildings_queue = [b for b in other_city.buildings_queue if not b.template == building]
-
-            if move['move_type'] == 'cancel_building':
-                building_name = move['building_name']
-                city_id = move['city_id']
-                city = self.cities_by_id[city_id]
-
-                for i, entry in enumerate(city.buildings_queue):
-                    if entry.template.name == building_name:
-                        # TODO could check it has the right delete/build type
-                        city.buildings_queue.pop(i)
-                        break
-
-            if move['move_type'] == 'select_infinite_queue':
-                unit_name = move['unit_name']
-                city_id = move['city_id']
-                city = self.cities_by_id[city_id]
-
-                unit = UNITS.by_name(unit_name)
-
-                city.toggle_unit_build(unit)
-
-            if move['move_type'] == 'develop':
-                city_id = move['city_id']
-                city = self.cities_by_id[city_id]
-
-                if move['type'] == 'rural':
-                    city.expand(self)
-                elif move['type'] == 'urban':
-                    city.urbanize(self)
-                elif move['type'] == 'unit':
-                    city.militarize(self)
-                else:
-                    raise ValueError(f"Invalid type: {move['type']}")
-
-            if move['move_type'] == 'set_civ_primary_target':
-                target_coords = move['target_coords']
-                civ.target1_coords = target_coords
-                civ.target1 = self.hexes[target_coords]
-
-            if move['move_type'] == 'set_civ_secondary_target':
-                target_coords = move['target_coords']
-                civ.target2_coords = target_coords
-                civ.target2 = self.hexes[target_coords]
-
-            if move['move_type'] == 'remove_civ_primary_target':
-                civ.target1_coords = None
-                civ.target1 = None
-
-            if move['move_type'] == 'remove_civ_secondary_target':
-                civ.target2_coords = None
-                civ.target2 = None
-
-            if move['move_type'] == 'choose_focus':
-                city_id = move['city_id']
-                city = self.cities_by_id[city_id]
-                city.focus = move['focus']
-                if move.get('with_puppets'):
-                    for puppet in city.get_puppets(self):
-                        puppet.focus = move['focus']
-
-            if move['move_type'] == 'make_territory':
-                city_id: str = move['city_id']
-                city: City = self.cities_by_id[city_id]
-                previous_parent: City | None = city.get_territory_parent(self)
-                city.make_territory_capital(self)
-
-                instead_of_city_id: str = move['other_city_id']
-                if instead_of_city_id is not None:
-                    instead_of_city: City = self.cities_by_id[instead_of_city_id]
-                    instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False)
-                    instead_of_city.orphan_territory_children(self, make_new_territory=False)
-                    # Transfer the expansion costs.
-                    city.develops_this_civ = instead_of_city.develops_this_civ
-                    instead_of_city.develops_this_civ = {key: 0 for key in instead_of_city.develops_this_civ}
-
-                    # Take all the wood and metal over.
-                    new_parent = instead_of_city.get_territory_parent(self)
-                    assert new_parent is not None
-                    new_parent.wood += instead_of_city.wood
-                    instead_of_city.wood = 0
-                    for bldg in new_parent.unit_buildings:
-                        new_parent.metal += bldg.metal
-                        bldg.metal = 0
-                    new_parent.metal += instead_of_city.metal
-                    instead_of_city.metal = 0
-                if previous_parent is not None and previous_parent.id != instead_of_city_id:
-                    previous_parent.orphan_territory_children(self, make_new_territory=False)
-
-
-            if move['move_type'] == 'trade_hub':
-                city_id = move['city_id']
-                if civ.trade_hub_id == city_id:
-                    civ.trade_hub_id = None
-                else:
-                    civ.trade_hub_id = city_id
-
-            if move['move_type'] == 'select_great_person':
-                civ.select_great_person(self, move['great_person_name'])
-
-            if move['move_type'] == 'found_city':
-                self.found_city_for_civ(civ, self.hexes[move['coords']], move['city_id'])
-
-            if move['move_type'] == 'choose_decline_option':
-                print(f'player {player_num} is choosing a decline option')
-                if 'preempted' in move:
-                    game_player.failed_to_decline_this_turn = True
-                    continue
-
-                coords = move['coords']
-
-                if STRICT_MODE:
-                    assert not game_player.decline_this_turn, f"Player {player_num} is trying to decline twice in one turn."
-
-                # If speculative is False, then there should be no collisions
-                # We could be less strict here and not even check, but that seems dangerous
-                with rlock(f'decline-claimed-{self.game_id}-{self.turn_num}-lock'):
-                    redis_key = f"decline-claimed-{self.game_id}-{self.turn_num}-{coords}"
-                    already_claimed_by = rget(redis_key)
-                    print(f"{already_claimed_by=}")
-                    proceed = False
-                    if not speculative:
-                        # End turn roll; there should be no collisions here.
-                        assert already_claimed_by is not None and int(already_claimed_by) == game_player.player_num, f"During end turn roll, trying to execute a decline that wasn't claimed during the turn. {self.game_id} {self.turn_num} {coords} {already_claimed_by} {game_player.player_num}"
-                        proceed = True
-                    elif speculative and already_claimed_by is None:
-                        # Non collision
-                        proceed = True
-                    elif speculative and already_claimed_by is not None:
-                        # Collision
-                        proceed: bool = self.decline_priority(first_player_num=int(already_claimed_by), new_player_num=game_player.player_num)
-                        if proceed:
-                            decline_eviction_player = int(already_claimed_by)
-                        else:
-                            # The client figures out the action failed based on the fact that I'm still the same civ.
-                            # That isn't super robust.
-                            move['preempted'] = True
-                            game_player.failed_to_decline_this_turn = True
-
-                    else:
-                        raise ValueError("There are no other logical possibilities.")
-                    print(f"{proceed=}")
-                    if proceed:
-                        rset(redis_key, game_player.player_num)
-                        self.execute_decline(coords, game_player)
-
-            # Processing to do regardless of move.
-            self.midturn_update()
+            move_type = MoveType(move['move_type'])
+            self.resolve_move(move_type, move, speculative, game_player=game_player)
         
         assert game_player.civ_id is not None
         from_civ_perspectives = [self.civs_by_id[game_player.civ_id]]

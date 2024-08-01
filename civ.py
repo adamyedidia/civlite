@@ -2,6 +2,7 @@ import random
 from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
+from move_type import MoveType
 from unit import Unit
 from settings import GOD_MODE
 from wonder_templates_list import WONDERS
@@ -343,8 +344,7 @@ class Civ:
     def bot_move(self, game_state: 'GameState') -> None:
         if  len(self.great_people_choices) > 0:
             choice: GreatPerson = max(self.great_people_choices, key=lambda g: (isinstance(g, GreatGeneral), random.random()))
-            self.select_great_person(game_state, choice.name)
-
+            game_state.resolve_move(MoveType.SELECT_GREAT_PERSON, {'great_person_name': choice.name}, civ=self)
         # Choose trade hub:
         unhappy_cities = [city for city in self.get_my_cities(game_state) if city.unhappiness + city.projected_income["unhappiness"] > 0]
         def trade_hub_priority(city: 'City'):
@@ -354,7 +354,7 @@ class Civ:
             close_to_leaderboard = unhappiness >= game_state.unhappiness_threshold
             return on_leaderboard, close_to_leaderboard, income
         if len(unhappy_cities) > 0:
-            self.trade_hub_id = max(unhappy_cities, key=trade_hub_priority).id
+            game_state.resolve_move(MoveType.TRADE_HUB, {'city_id': max(unhappy_cities, key=trade_hub_priority).id}, civ=self)
 
         if WONDERS.UNITED_NATIONS in game_state.built_wonders:
             un_owner_ids: list[str] = [civ_id for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos]
@@ -366,8 +366,10 @@ class Civ:
                 # If only one person has UN, follow them for first and second flag
                 un_owner_ids = [un_owner_ids[0], un_owner_ids[0]]
             un_owner_civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in un_owner_ids]
-            self.target1 = un_owner_civs[0].target1
-            self.target2 = un_owner_civs[1].target2
+            target1_coords = un_owner_civs[0].target1_coords
+            target2_coords = un_owner_civs[1].target2_coords
+            game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': target1_coords}, civ=self)
+            game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': target2_coords}, civ=self)
         elif random.random() < AI.CHANCE_MOVE_FLAG or self.target1 is None or self.target2 is None or \
             (self.target1.city is not None and self.target1.city.civ == self) or (self.target2.city is not None and self.target2.city.civ == self):
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
@@ -380,11 +382,9 @@ class Civ:
             random.shuffle(possible_target_hexes)
 
             if len(possible_target_hexes) > 0:
-                self.target1 = possible_target_hexes[0]
-                self.target1_coords = self.target1.coords
+                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': possible_target_hexes[0].coords}, civ=self)
             if len(possible_target_hexes) > 1:
-                self.target2 = possible_target_hexes[1]
-                self.target2_coords = self.target2.coords
+                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': possible_target_hexes[1].coords}, civ=self)
 
         if self.researching_tech is None:
             special_tech = None
@@ -402,18 +402,14 @@ class Civ:
                 else:
                     print(f"{self.moniker()} has no available techs")
                     chosen_tech = None
-            self.select_tech(chosen_tech)
-            print(f"  {self.moniker()} chose tech {chosen_tech} from {available_techs}")
-
-        game_state.refresh_foundability_by_civ()
+            if chosen_tech is not None:
+                game_state.resolve_move(MoveType.CHOOSE_TECH, {'tech_name': chosen_tech.name}, civ=self)
+                print(f"  {self.moniker()} chose tech {chosen_tech} from {available_techs}")
 
         self.bot_found_cities(game_state)
 
         my_production_cities = [city for city in self.get_my_cities(game_state) if city.is_territory_capital]
 
-        for city in my_production_cities:
-            city.buildings_queue = []
-        self.midturn_update(game_state)
         for city in sorted(my_production_cities, key=lambda c: c.population, reverse=True):
             city.bot_move(game_state)
 
@@ -423,7 +419,7 @@ class Civ:
             if len(choices) == 0:
                 break
             hex = max(choices, key=lambda h: (sum([n.yields for n in h.get_neighbors(game_state.hexes, include_self=True)], start=Yields()).total(), random.random()))
-            game_state.found_city_for_civ(self, hex, generate_unique_id())
+            game_state.resolve_move(MoveType.FOUND_CITY, {'coords': hex.coords, 'city_id': generate_unique_id()}, civ=self)
 
     def renaissance_cost(self) -> float:
         base_cost = 100 * self.get_advancement_level()
