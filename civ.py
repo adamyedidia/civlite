@@ -263,7 +263,7 @@ class Civ:
         all_develops: set[tuple[BuildingType, City]] = {(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)}
         while all_develops:
             type, city = min(all_develops, key=lambda x: x[1].develop_cost(x[0]))
-            city.develop(type, game_state)
+            city.bot_single_move(game_state, MoveType.DEVELOP, {'type': type.name})
             all_develops = {(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)}
         self.bot_found_cities(game_state)
 

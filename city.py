@@ -209,15 +209,18 @@ class City(MapObjectSpawner):
             unit_building.adjust_projected_unit_builds(total_metal=total_metal)
 
     def adjust_projected_builds(self, game_state):
-        wood_available = self.wood + self.projected_income["wood"]
-        costs = [entry.get_cost(game_state) for entry in self.buildings_queue]
-        free_wood = [sum(effect.amount for effect in b.template.on_build if isinstance(effect, GainResourceEffect) and effect.resource == "wood")
+        if self.revolting_to_rebels_this_turn:
+            self.projected_build_queue_depth = 0
+        else:
+            wood_available = self.wood + self.projected_income["wood"]
+            costs = [entry.get_cost(game_state) for entry in self.buildings_queue]
+            free_wood = [sum(effect.amount for effect in b.template.on_build if isinstance(effect, GainResourceEffect) and effect.resource == "wood")
                     if not isinstance(b.template, UnitTemplate) else 0
                     for b in self.buildings_queue]
-        costs = [cost - w for cost, w in zip(costs, free_wood)]
+            costs = [cost - w for cost, w in zip(costs, free_wood)]
 
-        cumsum_cost = [sum(costs[:i + 1]) for i in range(len(costs))]
-        self.projected_build_queue_depth = sum([c < wood_available for c in cumsum_cost])
+            cumsum_cost = [sum(costs[:i + 1]) for i in range(len(costs))]
+            self.projected_build_queue_depth = sum([c < wood_available for c in cumsum_cost])
 
         unit_buildings_to_bulldoze = max(0, self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) - self.military_slots)
         if STRICT_MODE:
@@ -229,9 +232,15 @@ class City(MapObjectSpawner):
             t.delete_queued = False
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
-        self.projected_income_base = self._get_projected_yields_without_focus(game_state)
-        self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
-        self.food_demand: float = self._calculate_food_demand(game_state)
+        if self.revolting_to_rebels_this_turn:
+            self.projected_income_base = Yields(food=0, metal=0, wood=0, science=0)
+            self.projected_income_focus = Yields(food=0, metal=0, wood=0, science=0)
+            self.food_demand = 0
+            self.projected_income_puppets = {resource: {} for resource in self.projected_income_puppets}
+        else:
+            self.projected_income_base = self._get_projected_yields_without_focus(game_state)
+            self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
+            self.food_demand: float = self._calculate_food_demand(game_state)
 
         self.projected_income = self.projected_income_base + {self.focus: self.projected_income_focus[self.focus]}
  
@@ -306,7 +315,6 @@ class City(MapObjectSpawner):
     def roll_turn_pre_harvest(self, game_state):
         """ All the turn roll stuff up to and including harvesting yields"""
         self.update_seen_by_players(game_state)
-        self.revolt_to_rebels_if_needed(game_state)
         self.harvest_yields(game_state)
 
     def roll_turn_post_harvest(self, sess, game_state: 'GameState', fake: bool = False) -> None:
@@ -325,7 +333,6 @@ class City(MapObjectSpawner):
             self.handle_siege(sess, game_state)
 
         self.handle_unhappiness(game_state)
-        self.midturn_update(game_state)
 
     def update_seen_by_players(self, game_state: 'GameState') -> None:
         for civ in game_state.civs_by_id.values():
@@ -377,13 +384,18 @@ class City(MapObjectSpawner):
         
         self.food_demand_reduction_recent_owner_change = max(0, self.food_demand_reduction_recent_owner_change - FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY)
 
+    @property
+    def revolting_to_rebels_this_turn(self) -> bool:
+        return self.unhappiness >= 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None
+
     def revolt_to_rebels_if_needed(self, game_state: 'GameState') -> None:
-        if self.unhappiness >= 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None:
-            # Revolt to AI
-            game_state.process_decline_option(self.hex.coords, [], is_game_player=False)
-            game_state.make_new_civ_from_the_ashes(self)
-            # Rebel civs have no great person
-            self.civ.great_people_choices = []
+        if STRICT_MODE:
+            assert self.revolting_to_rebels_this_turn, f"City {self.name} shouldn't be revolting to rebels this turn."
+        # Revolt to AI
+        game_state.process_decline_option(self.hex.coords, [], is_game_player=False)
+        game_state.make_new_civ_from_the_ashes(self)
+        # Rebel civs have no great person
+        self.civ.great_people_choices = []
 
     def grow_inner(self, game_state: 'GameState') -> None:
         self.population += 1
@@ -699,6 +711,8 @@ class City(MapObjectSpawner):
     def cant_develop_reason(self, type: BuildingType) -> str | None:
         if not self.show_develop_button(type):
             return "Can't develop here."
+        if self.revolting_to_rebels_this_turn:
+            return "City revolting this turn."
         if type == BuildingType.RURAL and self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
             return f"Max slots ({MAX_SLOTS})"
         if type == BuildingType.URBAN and self.urban_slots >= MAX_SLOTS_OF_TYPE['urban']:
@@ -1141,6 +1155,7 @@ class City(MapObjectSpawner):
             "revolt_unit_count": self.revolt_unit_count,
             "founded_turn": self.founded_turn,
             "seen_by_players": list(self.seen_by_players),
+            "revolting_to_rebels_this_turn": self.revolting_to_rebels_this_turn,
 
             "is_trade_hub": self.is_trade_hub(),
         }

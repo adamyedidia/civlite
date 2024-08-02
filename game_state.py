@@ -265,8 +265,15 @@ class GameState:
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
+        self.midturn_update_forbidden_flag = False
 
     def midturn_update(self):
+        if self.midturn_update_forbidden_flag:
+            if STRICT_MODE:
+                raise ValueError("Midturn update forbidden")
+            else:
+                print("Midturn update forbidden")
+                return
         for city in self.cities_by_id.values():
             if city.is_territory_capital:
                 city.midturn_update(self)
@@ -298,7 +305,6 @@ class GameState:
         for h in hex.get_neighbors(self.hexes):
             assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
         city.populate_terrains_dict(self)
-        city.midturn_update(self)
         return city
 
     def register_camp(self, camp: 'Camp'):
@@ -345,7 +351,6 @@ class GameState:
         civ.gain_vps(2, "Founded Cities (2/city)")
     
         self.refresh_foundability_by_civ()
-        self.midturn_update() 
         return city
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
@@ -422,9 +427,6 @@ class GameState:
 
         if civ.has_ability('ExtraCityPower'):
             civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
-
-        self.midturn_update()
-
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
 
     def decline_priority(self, first_player_num: int, new_player_num: int) -> bool:
@@ -515,8 +517,6 @@ class GameState:
             if neighbor_hex.camp is not None:
                 self.unregister_camp(neighbor_hex.camp)
         hex.city.revolt_unit_count = unit_count
-
-        hex.city.midturn_update(self)
 
         return hex.city
 
@@ -798,6 +798,12 @@ class GameState:
         # only commands from that player's player num get respected
         city_owner_by_city_id: dict[str, int] = {}
 
+        for city in self.cities_by_id.values():
+            if city.revolting_to_rebels_this_turn:
+                city.revolt_to_rebels_if_needed(self)
+                self.midturn_update()
+                city_owner_by_city_id[city.id] = -1
+
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
 
@@ -818,7 +824,7 @@ class GameState:
                 # decline if they want to
                 if game_player and not civ.in_decline and (decline_coords := civ.bot_decide_decline(self)):
                     civ.bot_predecline_moves(self)
-                    self.execute_decline(decline_coords, game_player)
+                    self.resolve_move(MoveType.CHOOSE_DECLINE_OPTION, {'coords': decline_coords}, game_player=game_player)
                     new_civ_id = game_player.civ_id
                     assert new_civ_id is not None
                     assert new_civ_id != civ.id, f"Bot player {game_player.player_num} is trying to decline but somehow failed? {civ.id=} {new_civ_id=}"
@@ -850,7 +856,7 @@ class GameState:
 
     def roll_turn(self, sess) -> None:
         print(f"GameState incrementing turn {self.turn_num} -> {self.turn_num + 1}")
-
+        self.midturn_update_forbidden_flag = True
         self.turn_num += 1
 
         self.barbarians.target1 = self.pick_random_hex()
@@ -921,8 +927,6 @@ class GameState:
             game_player.decline_this_turn = False
             game_player.failed_to_decline_this_turn = False
 
-        self.midturn_update()      
-
         self.sync_advancement_level()
 
         self.refresh_visibility_by_civ()
@@ -932,18 +936,17 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
-        for city in self.cities_by_id.values():
-            city.midturn_update(self)
-
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= self.game_end_score():
                 self.game_over = True
-
                 break
 
         self.handle_decline_options()
         for city in self.fresh_cities_for_decline.values():
             city.roll_turn_post_harvest(sess, self, fake=True)
+
+        self.midturn_update_forbidden_flag = False
+        self.midturn_update()
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
@@ -1036,6 +1039,7 @@ class GameState:
         
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ(short_sighted=True)
+        self.midturn_update()
 
         sess.add(AnimationFrame(
             game_id=self.game_id,
