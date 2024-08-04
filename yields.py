@@ -21,6 +21,9 @@ class Yields:
     def increase(self, yield_type: str, amount: int) -> None:
         setattr(self, yield_type, self[yield_type] + amount)
 
+    def __eq__(self, other: "Yields") -> bool:
+        return self.to_json() == other.to_json()
+
     def __mul__(self, multiplier: int | float) -> "Yields":
         return Yields(
             food=self.food * multiplier,
