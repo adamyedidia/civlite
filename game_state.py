@@ -601,6 +601,7 @@ class GameState:
         Can be submitted by GamePlayer (for things like choose starting city or decline)
         or by Civ (for normal moves submitted by declined civs)
         """
+        print(f"GameState.resolve_move {self.game_id} {self.turn_num} {game_player.player_num if game_player else 'None'}: {move_type} {move_data}")
         if move_type in (MoveType.CHOOSE_STARTING_CITY, MoveType.CHOOSE_DECLINE_OPTION):
             assert game_player is not None, f"GamePlayer is required for move type {move_type}"
             self.resolve_game_player_move(move_type, move_data, speculative, game_player)
@@ -790,10 +791,7 @@ class GameState:
             obj.update_nearby_hexes_hostile_foundability(self.hexes)
 
 
-    def end_turn(self, sess) -> None:
-        if self.game_over:
-            return
-
+    def load_and_update_from_player_moves(self, moves_by_player_num: dict[int, list]) -> None:
         # Defaults to being permissive; city_ids that exist will cause it to be the case that
         # only commands from that player's player num get respected
         city_owner_by_city_id: dict[str, int] = {}
@@ -805,17 +803,19 @@ class GameState:
                 city_owner_by_city_id[city.id] = -1
 
         for player_num in self.game_player_by_player_num.keys():
-            staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
+            staged_moves = moves_by_player_num.get(player_num, [])
 
             for move in staged_moves:
                 if move['move_type'] == 'choose_decline_option' and 'preempted' not in move:
                     if (city := self.hexes[move['coords']].city):
                         city_owner_by_city_id[city.id] = player_num
+        print(f"{city_owner_by_city_id=}")
 
         for player_num in self.game_player_by_player_num.keys():
-            staged_moves = rget_json(staged_moves_key(self.game_id, player_num, self.turn_num)) or []
+            staged_moves = moves_by_player_num.get(player_num, [])
             self.update_from_player_moves(player_num, staged_moves, city_owner_by_city_id=city_owner_by_city_id)
 
+    def all_bot_moves(self):
         civs: list[Civ] = list(self.civs_by_id.values())
 
         for civ in civs:
@@ -824,7 +824,8 @@ class GameState:
                 # decline if they want to
                 if game_player and not civ.in_decline and (decline_coords := civ.bot_decide_decline(self)):
                     civ.bot_predecline_moves(self)
-                    self.resolve_move(MoveType.CHOOSE_DECLINE_OPTION, {'coords': decline_coords}, game_player=game_player)
+                    self.execute_decline(decline_coords, game_player)
+                    self.midturn_update()
                     new_civ_id = game_player.civ_id
                     assert new_civ_id is not None
                     assert new_civ_id != civ.id, f"Bot player {game_player.player_num} is trying to decline but somehow failed? {civ.id=} {new_civ_id=}"
@@ -832,13 +833,15 @@ class GameState:
                 else:
                     civ.bot_move(self)
 
-        print(f'GameState ending turn {self.turn_num}')
+    def end_turn(self, sess) -> None:
+        print(f'GameState.end_turn(): ending turn {self.turn_num}')
 
         self.roll_turn(sess)
 
-        print("committing changes")
+        print("GameState.end_turn(): committing changes")
         sess.commit()
 
+        print("GameState.end_turn(): Creating StartOfNewTurn AnimationFrame")
         self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
 
         self.add_animation_frame(sess, {
@@ -846,17 +849,16 @@ class GameState:
         })
         sess.commit()
 
-        print("Creating decline view")
+        print("GameState.end_turn(): Creating decline view")
         self.create_decline_view(sess)   
 
-        print("roll complete")
+        print("GameState.end_turn() complete")
 
     def game_end_score(self):
         return GAME_END_SCORE + EXTRA_GAME_END_SCORE_PER_PLAYER * len(self.game_player_by_player_num)
 
     def roll_turn(self, sess) -> None:
         print(f"GameState incrementing turn {self.turn_num} -> {self.turn_num + 1}")
-        self.midturn_update_forbidden_flag = True
         self.turn_num += 1
 
         self.barbarians.target1 = self.pick_random_hex()

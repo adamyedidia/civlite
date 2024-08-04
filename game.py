@@ -137,7 +137,7 @@ class Game(Base):
         self.socketio.emit(
             signal, 
             data or {},
-            room=self.id,
+            room=self.id,  # type: ignore
         )
 
     def get_overtime_decline_civs(self) -> list[int]:
@@ -157,6 +157,8 @@ class Game(Base):
         return False
 
     def roll_turn(self, sess) -> None:
+        if self.game_over:
+            return
         print(f"rolling turn {self.turn_num} in game {self.id}")
 
         # Don't roll if there's a person who has declined and not ended turn
@@ -183,13 +185,22 @@ class Game(Base):
                     lock.release()
                     return
 
+                print(f"Game.roll_turn (game {self.id} turn {self.turn_num}): Reprocessing all moves")
                 # need to load the game state here, after await_empty_counter on the moves in flight.
                 # or else we'll have a stale version.
                 game_state: GameState = self.get_turn_start_game_state(sess)
+                player_moves_by_player_num: dict[int, list] = {}
+                for player in self.players:
+                    player_moves_by_player_num[player.player_num] = rget_json(staged_moves_key(self.id, player.player_num, self.turn_num)) or []
+                game_state.load_and_update_from_player_moves(player_moves_by_player_num)
 
-                print(f'Game telling GameState to end turn {self.turn_num}, {game_state.turn_num}')
+                print(f"Game.roll_turn (game {self.id} turn {self.turn_num}, {game_state.turn_num}): Calling all_bot_moves()")
+                game_state.all_bot_moves()
+
+                print(f'Game.roll_turn (game {self.id} turn {self.turn_num}, {game_state.turn_num}): Calling end_turn()')
                 game_state.end_turn(sess)
 
+                print(f'Game.roll_turn (game {self.id} turn {self.turn_num}): Setting next_forced_roll_at')
                 if self.seconds_per_turn is not None and not self.game_over and self.turn_num < 200:
                     seconds_until_next_forced_roll: float = int(self.seconds_per_turn) + min(self.turn_num, 30)
                     next_forced_roll_at: float = (datetime.now() + timedelta(seconds=seconds_until_next_forced_roll)).timestamp()
@@ -271,6 +282,13 @@ class Game(Base):
     def _staged_game_state_key(self, player_num: int, turn_num: int) -> str:
         return f'staged_game_state:{self.id}:{player_num}:{turn_num}'
 
+    def _staged_game_state(self, player_num: int) -> GameState | None:
+            game_state_json = rget_json(self._staged_game_state_key(player_num, self.turn_num))
+            if game_state_json is not None:
+                return GameState.from_json(game_state_json)
+            else:
+                return None
+
     def update_staged_moves(self, sess, player_num: int, moves: list[dict]) -> tuple[dict, Optional[int]]:
         """
         Returns
@@ -281,10 +299,8 @@ class Game(Base):
             decline_eviction_player = None
 
             staged_moves = rget_json(staged_moves_key(self.id, player_num, self.turn_num)) or []
-            game_state_json = rget_json(self._staged_game_state_key(player_num, self.turn_num))
-            if game_state_json is not None:
-                game_state = GameState.from_json(game_state_json)
-            else:
+            game_state = self._staged_game_state(player_num)
+            if game_state is None:
                 game_state = self.get_turn_start_game_state(sess)
             game_state_to_return_json, decline_eviction_player = game_state.update_from_player_moves(player_num, moves, speculative=True)
 
