@@ -73,6 +73,7 @@ class City(MapObjectSpawner):
         self.founded_turn: int | None = None
         self.develops_this_civ: dict[BuildingType, int] = {d: 0 for d in BuildingType}
         self.seen_by_players: set[int] = set()
+        self.already_harvested_this_turn: bool = False
 
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
@@ -203,16 +204,30 @@ class City(MapObjectSpawner):
         for bldg, bonus in zip(units_active, reversed(UNIT_BUILDING_BONUSES[len(units_active)])):
             bldg.production_rate = bonus
 
-        total_metal = self.metal + self.projected_income['metal']
+        total_metal = self.projected_total_metal
         for unit_building in units_active:
             # print(f"{self.name} projecting {unit_building.template} {total_metal}")
             unit_building.adjust_projected_unit_builds(total_metal=total_metal)
+
+    @property
+    def projected_total_wood(self) -> float:
+        if self.already_harvested_this_turn:
+            return self.wood
+        else:
+            return self.wood + self.projected_income["wood"]
+        
+    @property
+    def projected_total_metal(self) -> float:
+        if self.already_harvested_this_turn:
+            return self.metal
+        else:
+            return self.metal + self.projected_income["metal"]
 
     def adjust_projected_builds(self, game_state):
         if self.revolting_to_rebels_this_turn:
             self.projected_build_queue_depth = 0
         else:
-            wood_available = self.wood + self.projected_income["wood"]
+            wood_available = self.projected_total_wood
             costs = [entry.get_cost(game_state) for entry in self.buildings_queue]
             free_wood = [sum(effect.amount for effect in b.template.on_build if isinstance(effect, GainResourceEffect) and effect.resource == "wood")
                     if not isinstance(b.template, UnitTemplate) else 0
@@ -307,6 +322,7 @@ class City(MapObjectSpawner):
                     # print(f"{self.name} harvesting {b.template} {self.metal}")
                     b.harvest_yields(self.metal)
                 self.metal = 0
+        self.already_harvested_this_turn = True
 
     @property
     def no_cities_adjacent_range(self) -> int:
@@ -388,7 +404,7 @@ class City(MapObjectSpawner):
     def revolting_to_rebels_this_turn(self) -> bool:
         return self.unhappiness >= 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None
 
-    def revolt_to_rebels_if_needed(self, game_state: 'GameState') -> None:
+    def revolt_to_rebels(self, game_state: 'GameState') -> None:
         if STRICT_MODE:
             assert self.revolting_to_rebels_this_turn, f"City {self.name} shouldn't be revolting to rebels this turn."
         # Revolt to AI
@@ -925,7 +941,7 @@ class City(MapObjectSpawner):
                 self.civ.science += civ.numbers_of_ability('StartWithResources')[1]
 
     def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
-        affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost_by_age[age] <= self.wood + self.projected_income['wood']}
+        affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost_by_age[age] <= self.projected_total_wood}
         affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.age in affordable_ages]
         if len(affordable_choices) == 0:
             return None
@@ -1039,7 +1055,7 @@ class City(MapObjectSpawner):
             best_military_building = None
             best_military_building_age = -1
         
-        remaining_wood_budget = self.wood + self.projected_income['wood']
+        remaining_wood_budget = self.projected_total_wood
         best_current_available_unit_age = max([effective_advancement_level(u, slingers_better_than_warriors=lotsa_wood) for u in self.available_units]) if len(self.available_units) > 0 else -1
         if best_military_building is not None \
                 and best_military_building_age > best_current_available_unit_age \

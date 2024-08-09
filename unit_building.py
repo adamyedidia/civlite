@@ -11,6 +11,7 @@ class UnitBuilding:
         self.metal: float = 0
         self.projected_metal_income: float = 0
         self.delete_queued = False
+        self.already_harvested_this_turn = False
 
     @property
     def one_per_civ_key(self):
@@ -21,9 +22,16 @@ class UnitBuilding:
         return self.template.prereq
     
     @property
+    def projected_total_metal(self) -> float:
+        if self.already_harvested_this_turn:
+            return self.metal
+        else:
+            return self.metal + self.projected_metal_income
+    
+    @property
     def projected_unit_count(self) -> int:
         if self.active:
-            return int((self.metal + self.projected_metal_income) / self.template.metal_cost)
+            return int(self.projected_total_metal / self.template.metal_cost)
         else:
             return 0
     
@@ -36,6 +44,7 @@ class UnitBuilding:
             assert round(amount, 3) == round(self.projected_metal_income, 3), f"Projection failure in {self.template.building_name}! {amount} != {self.projected_metal_income}"
         self.metal += self.projected_metal_income
         self.projected_metal_income = 0
+        self.already_harvested_this_turn = True
 
     def to_json(self):
         return {
