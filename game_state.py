@@ -513,7 +513,7 @@ class GameState:
 
         return hex.city
 
-    def resolve_game_player_move(self, move_type: MoveType, move_data: dict, speculative: bool, game_player: GamePlayer) -> None:
+    def resolve_game_player_move(self, move_type: MoveType, move_data: dict, speculative: bool, game_player: GamePlayer) -> int | None:
         if move_type == MoveType.CHOOSE_STARTING_CITY:
             assert game_player is not None
             city_id = move_data['city_id']
@@ -543,6 +543,7 @@ class GameState:
                 civ.fill_out_available_buildings(self)
 
             rdel(dream_key(self.game_id, game_player.player_num, self.turn_num))
+            return None
 
         elif move_type == MoveType.CHOOSE_DECLINE_OPTION:
             print(f'player {game_player.player_num} is choosing a decline option')
@@ -566,9 +567,11 @@ class GameState:
                     # End turn roll; there should be no collisions here.
                     assert already_claimed_by is not None and int(already_claimed_by) == game_player.player_num, f"During end turn roll, trying to execute a decline that wasn't claimed during the turn. {self.game_id} {self.turn_num} {coords} {already_claimed_by} {game_player.player_num}"
                     proceed = True
+                    decline_eviction_player = None
                 elif speculative and already_claimed_by is None:
                     # Non collision
                     proceed = True
+                    decline_eviction_player = None
                 elif speculative and already_claimed_by is not None:
                     # Collision
                     proceed: bool = self.decline_priority(first_player_num=int(already_claimed_by), new_player_num=game_player.player_num)
@@ -579,6 +582,7 @@ class GameState:
                         # That isn't super robust.
                         move_data['preempted'] = True
                         game_player.failed_to_decline_this_turn = True
+                        decline_eviction_player = None
 
                 else:
                     raise ValueError("There are no other logical possibilities.")
@@ -586,10 +590,16 @@ class GameState:
                 if proceed:
                     rset(redis_key, game_player.player_num)
                     self.execute_decline(coords, game_player)
+                return decline_eviction_player
         else:
             raise ValueError(f"Invalid move type: {move_type}")
 
-    def resolve_move(self, move_type: MoveType, move_data: dict, speculative: bool = False, game_player: GamePlayer | None = None, civ: Civ | None = None) -> None:
+    def resolve_move(self,
+                     move_type: MoveType, 
+                     move_data: dict, 
+                     speculative: bool = False, 
+                     game_player: GamePlayer | None = None, 
+                     civ: Civ | None = None) -> int | None:
         """
         Can be submitted by GamePlayer (for things like choose starting city or decline)
         or by Civ (for normal moves submitted by declined civs)
@@ -597,8 +607,7 @@ class GameState:
         print(f"GameState.resolve_move {self.game_id} {self.turn_num} {game_player.player_num if game_player else 'None'}: {move_type} {move_data}")
         if move_type in (MoveType.CHOOSE_STARTING_CITY, MoveType.CHOOSE_DECLINE_OPTION):
             assert game_player is not None, f"GamePlayer is required for move type {move_type}"
-            self.resolve_game_player_move(move_type, move_data, speculative, game_player)
-            return
+            return self.resolve_game_player_move(move_type, move_data, speculative, game_player)
 
         if civ is None:
             assert game_player is not None, f"Must set GamePlayer or Civ for move type {move_type}"
@@ -747,7 +756,7 @@ class GameState:
                 continue
 
             move_type = MoveType(move['move_type'])
-            self.resolve_move(move_type, move, speculative, game_player=game_player)
+            decline_eviction_player = self.resolve_move(move_type, move, speculative, game_player=game_player)
         
         assert game_player.civ_id is not None
         from_civ_perspectives = [self.civs_by_id[game_player.civ_id]]
