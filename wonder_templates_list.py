@@ -30,7 +30,7 @@ class WONDERS():
     # 7th century BC
     HANGING_GARDENS = WonderTemplate(
         name="Hanging Gardens", age=0,
-        on_build=PointsEffect(calculate_points=lambda city, _: 3 * city.population, description="+3 vp per population in this city", label="Hanging Gardens")
+        on_build=PointsEffect(calculate_points=lambda city, _: 2 * city.population, description="+2 vp per population in this city", label="Hanging Gardens")
     )
 
     SPHINX = WonderTemplate(name="Sphinx", age=0,
@@ -135,7 +135,8 @@ class WONDERS():
     # * Taj Mahal (16th century)
 
     # 13th century
-    NOTRE_DAME = WonderTemplate(name="Notre Dame", age=4, vp_reward=20)
+    NOTRE_DAME = WonderTemplate(name="Notre Dame", age=4,
+                                on_build=PointsEffect(calculate_points=lambda city, _: 10, description="+10 vp (on top of the normal 5vp)", label="Notre Dame"))
     # 15th century
     FORBIDDEN_PALACE = WonderTemplate(name="Forbidden Palace", age=4, on_build=GainResourceEffect(resource='city_power', amount=200),
         abilities=[BUILDING_ABILITIES["ExtraTerritory"]()]
