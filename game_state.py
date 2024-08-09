@@ -265,15 +265,8 @@ class GameState:
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
-        self.midturn_update_forbidden_flag = False
 
     def midturn_update(self):
-        if self.midturn_update_forbidden_flag:
-            if STRICT_MODE:
-                raise ValueError("Midturn update forbidden")
-            else:
-                print("Midturn update forbidden")
-                return
         for city in self.cities_by_id.values():
             if city.is_territory_capital:
                 city.midturn_update(self)
@@ -798,7 +791,7 @@ class GameState:
 
         for city in self.cities_by_id.values():
             if city.revolting_to_rebels_this_turn:
-                city.revolt_to_rebels_if_needed(self)
+                city.revolt_to_rebels(self)
                 self.midturn_update()
                 city_owner_by_city_id[city.id] = -1
 
@@ -947,7 +940,6 @@ class GameState:
         for city in self.fresh_cities_for_decline.values():
             city.roll_turn_post_harvest(sess, self, fake=True)
 
-        self.midturn_update_forbidden_flag = False
         self.midturn_update()
 
     def handle_decline_options(self):
