@@ -196,7 +196,8 @@ def set_vitality_multiplier(sess, game_id: str):
 
     vitality_multiplier = data['vitality_multiplier']
     player_num = int(data['player_num'])
-    game.players[player_num].vitality_multiplier = vitality_multiplier
+    player = game.player_by_num(player_num)
+    player.vitality_multiplier = vitality_multiplier
     sess.commit()
     socketio.emit('update', room=game.id)  # type: ignore
     return jsonify(game.to_json())

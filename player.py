@@ -33,4 +33,5 @@ class Player(Base):
             "is_bot": self.is_bot,
             "vitality_multiplier": self.vitality_multiplier,
             "username": self.user.username,
+            "player_num": self.player_num,
         }

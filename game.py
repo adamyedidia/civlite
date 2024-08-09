@@ -5,7 +5,7 @@ from sqlalchemy.orm import reconstructor
 from database import Base, SessionLocal
 from datetime import datetime, timedelta
 from threading import Timer
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from flask_socketio import SocketIO
 
 from enum import Enum as PyEnum
@@ -15,6 +15,8 @@ from animation_frame import AnimationFrame
 from utils import moves_processing_key, staged_moves_key
 from redis_utils import rset, rget, rdel, await_empty_counter, rlock, rget_json, rset_json, rkeys
 
+if TYPE_CHECKING:
+    from player import Player
 
 class TimerStatus(PyEnum):
     NORMAL = "NORMAL"
@@ -51,6 +53,9 @@ class Game(Base):
             "created_at": self.created_at.timestamp(),
         }
        
+    def player_by_num(self, player_num: int) -> 'Player':
+        return [p for p in self.players if p.player_num == player_num].pop()
+
     def roll_turn_lock_key(self, turn_num):
         return f"roll_turn_lock:{self.id}:{turn_num}"
     
@@ -81,7 +86,7 @@ class Game(Base):
         return f"turn_ended_by_player:{self.id}:{player_num}"
 
     def turn_ended_by_player(self, player_num) -> bool:
-        if self.players[player_num].is_bot:
+        if self.player_by_num(player_num).is_bot:
             return True
         ended: str | None = rget(self.turn_ended_by_player_key(player_num))
         assert ended is not None, f"turn_ended_by_player_key {self.turn_ended_by_player_key(player_num)} not set"
@@ -89,7 +94,7 @@ class Game(Base):
         return ended == "true"
     
     def get_turn_ended_all_players(self) -> dict[int, bool]:   
-        return {player_num: self.turn_ended_by_player(player_num) for player_num in range(len(self.players))}
+        return {player.player_num: self.turn_ended_by_player(player.player_num) for player in self.players}
 
     def set_turn_ended_by_player_num(self, player_num, ended: bool, broadcast=True, via_player_input=False) -> None:
         # Don't let manual turn sets go through in mid-roll
@@ -102,8 +107,8 @@ class Game(Base):
             self.broadcast('turn_end_change', {'player_num': player_num, 'turn_ended': ended})
 
     def roll_turn_if_needed(self, sess):
-        for player_num in range(len(self.players)):
-            if not self.turn_ended_by_player(player_num):
+        for player in self.players:
+            if not self.turn_ended_by_player(player.player_num):
                 return
         self.roll_turn(sess)
 
@@ -141,7 +146,7 @@ class Game(Base):
         )
 
     def get_overtime_decline_civs(self) -> list[int]:
-        return [player_num for player_num in range(len(self.players)) if self.has_player_declined(player_num, self.turn_num)]
+        return [player.player_num for player in self.players if self.has_player_declined(player.player_num, self.turn_num)]
 
     def _enter_overtime_if_needed(self, sess) -> bool:
         declined_players: set[int] = {player_num for player_num in self.get_overtime_decline_civs() if not self.turn_ended_by_player(player_num)}
@@ -150,9 +155,9 @@ class Game(Base):
             self.timer_status = TimerStatus.OVERTIME
             sess.commit()
             self.broadcast("overtime", {"turn_num": self.turn_num})
-            for player in range(len(self.players)):
-                if player not in declined_players and not self.turn_ended_by_player(player):
-                    self.set_turn_ended_by_player_num(player, True)
+            for player in self.players:
+                if player.player_num not in declined_players and not self.turn_ended_by_player(player.player_num):
+                    self.set_turn_ended_by_player_num(player.player_num, True)
             return True
         return False
 
@@ -230,16 +235,16 @@ class Game(Base):
 
     def start_turn(self) -> None:
         self.broadcast('update')
-        for player_num, player in enumerate(self.players):
+        for player in self.players:
             if not player.is_bot:
-                self.set_turn_ended_by_player_num(player_num, False, broadcast=False)
+                self.set_turn_ended_by_player_num(player.player_num, False, broadcast=False)
 
     def reset_to_turn(self, turn_num: int, sess):
         for turn in range(turn_num, self.turn_num + 1):
             rdel(self._turn_over_key(turn))
-            for player_num in range(len(self.players)):
-                rdel(staged_moves_key(self.id, player_num, turn))
-                rdel(self._staged_game_state_key(player_num, turn))
+            for player in self.players:
+                rdel(staged_moves_key(self.id, player.player_num, turn))
+                rdel(self._staged_game_state_key(player.player_num, turn))
             decline_claimed_keys_pattern = f"decline-claimed-{self.id}-{turn}-*"
             for key in rkeys(decline_claimed_keys_pattern):
                 rdel(key)

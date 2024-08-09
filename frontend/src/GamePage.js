@@ -3502,7 +3502,7 @@ export default function GamePage() {
                         <Grid item xs={5} style={{ padding: '0', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                             <Select
                                 value={player.vitality_multiplier}
-                                onChange={(e) => handleChangeVitalityMultiplier(index, e.target.value)}
+                                onChange={(e) => handleChangeVitalityMultiplier(player.player_num, e.target.value)}
                                 style={{
                                     width: '150px',
                                 }}
