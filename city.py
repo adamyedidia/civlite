@@ -8,6 +8,7 @@ from civ import Civ
 from camp import Camp
 from effects_list import GainResourceEffect
 from map_object_spawner import MapObjectSpawner
+from move_type import MoveType
 from settings import GOD_MODE
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
@@ -208,15 +209,18 @@ class City(MapObjectSpawner):
             unit_building.adjust_projected_unit_builds(total_metal=total_metal)
 
     def adjust_projected_builds(self, game_state):
-        wood_available = self.wood + self.projected_income["wood"]
-        costs = [entry.get_cost(game_state) for entry in self.buildings_queue]
-        free_wood = [sum(effect.amount for effect in b.template.on_build if isinstance(effect, GainResourceEffect) and effect.resource == "wood")
+        if self.revolting_to_rebels_this_turn:
+            self.projected_build_queue_depth = 0
+        else:
+            wood_available = self.wood + self.projected_income["wood"]
+            costs = [entry.get_cost(game_state) for entry in self.buildings_queue]
+            free_wood = [sum(effect.amount for effect in b.template.on_build if isinstance(effect, GainResourceEffect) and effect.resource == "wood")
                     if not isinstance(b.template, UnitTemplate) else 0
                     for b in self.buildings_queue]
-        costs = [cost - w for cost, w in zip(costs, free_wood)]
+            costs = [cost - w for cost, w in zip(costs, free_wood)]
 
-        cumsum_cost = [sum(costs[:i + 1]) for i in range(len(costs))]
-        self.projected_build_queue_depth = sum([c < wood_available for c in cumsum_cost])
+            cumsum_cost = [sum(costs[:i + 1]) for i in range(len(costs))]
+            self.projected_build_queue_depth = sum([c < wood_available for c in cumsum_cost])
 
         unit_buildings_to_bulldoze = max(0, self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) - self.military_slots)
         if STRICT_MODE:
@@ -228,9 +232,15 @@ class City(MapObjectSpawner):
             t.delete_queued = False
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
-        self.projected_income_base = self._get_projected_yields_without_focus(game_state)
-        self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
-        self.food_demand: float = self._calculate_food_demand(game_state)
+        if self.revolting_to_rebels_this_turn:
+            self.projected_income_base = Yields(food=0, metal=0, wood=0, science=0)
+            self.projected_income_focus = Yields(food=0, metal=0, wood=0, science=0)
+            self.food_demand = 0
+            self.projected_income_puppets = {resource: {} for resource in self.projected_income_puppets}
+        else:
+            self.projected_income_base = self._get_projected_yields_without_focus(game_state)
+            self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
+            self.food_demand: float = self._calculate_food_demand(game_state)
 
         self.projected_income = self.projected_income_base + {self.focus: self.projected_income_focus[self.focus]}
  
@@ -305,7 +315,6 @@ class City(MapObjectSpawner):
     def roll_turn_pre_harvest(self, game_state):
         """ All the turn roll stuff up to and including harvesting yields"""
         self.update_seen_by_players(game_state)
-        self.revolt_to_rebels_if_needed(game_state)
         self.harvest_yields(game_state)
 
     def roll_turn_post_harvest(self, sess, game_state: 'GameState', fake: bool = False) -> None:
@@ -324,7 +333,6 @@ class City(MapObjectSpawner):
             self.handle_siege(sess, game_state)
 
         self.handle_unhappiness(game_state)
-        self.midturn_update(game_state)
 
     def update_seen_by_players(self, game_state: 'GameState') -> None:
         for civ in game_state.civs_by_id.values():
@@ -376,13 +384,18 @@ class City(MapObjectSpawner):
         
         self.food_demand_reduction_recent_owner_change = max(0, self.food_demand_reduction_recent_owner_change - FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY)
 
+    @property
+    def revolting_to_rebels_this_turn(self) -> bool:
+        return self.unhappiness >= 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None
+
     def revolt_to_rebels_if_needed(self, game_state: 'GameState') -> None:
-        if self.unhappiness >= 100 and self.civ_to_revolt_into is not None and self.under_siege_by_civ is None:
-            # Revolt to AI
-            game_state.process_decline_option(self.hex.coords, [], is_game_player=False)
-            game_state.make_new_civ_from_the_ashes(self)
-            # Rebel civs have no great person
-            self.civ.great_people_choices = []
+        if STRICT_MODE:
+            assert self.revolting_to_rebels_this_turn, f"City {self.name} shouldn't be revolting to rebels this turn."
+        # Revolt to AI
+        game_state.process_decline_option(self.hex.coords, [], is_game_player=False)
+        game_state.make_new_civ_from_the_ashes(self)
+        # Rebel civs have no great person
+        self.civ.great_people_choices = []
 
     def grow_inner(self, game_state: 'GameState') -> None:
         self.population += 1
@@ -698,6 +711,8 @@ class City(MapObjectSpawner):
     def cant_develop_reason(self, type: BuildingType) -> str | None:
         if not self.show_develop_button(type):
             return "Can't develop here."
+        if self.revolting_to_rebels_this_turn:
+            return "City revolting this turn."
         if type == BuildingType.RURAL and self.military_slots + self.urban_slots + self.rural_slots >= MAX_SLOTS:
             return f"Max slots ({MAX_SLOTS})"
         if type == BuildingType.URBAN and self.urban_slots >= MAX_SLOTS_OF_TYPE['urban']:
@@ -951,6 +966,10 @@ class City(MapObjectSpawner):
     def is_threatened_city(self, game_state: 'GameState') -> bool:
         return self.hex.is_threatened_city(game_state)
 
+    def bot_single_move(self, game_state: 'GameState', move_type: MoveType, move_data: dict) -> None:
+        move_data['city_id'] = self.id
+        game_state.resolve_move(move_type, move_data, civ=self.civ)
+
     def bot_move(self, game_state: 'GameState') -> None:
         def effective_advancement_level(unit: UnitTemplate, slingers_better_than_warriors=False) -> float:
             # treat my civ's unique unit as +1 adv level.
@@ -970,22 +989,18 @@ class City(MapObjectSpawner):
         else:
             favorite_development = None
 
-        self.midturn_update(game_state)
         if self.can_develop(BuildingType.URBAN) \
             and (random.random() < AI.CHANCE_URBANIZE or favorite_development == "urban") \
             and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots:
-            self.urbanize(game_state)
+            self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'urban'})
         if self.can_develop(BuildingType.UNIT) \
             and (random.random() < AI.CHANCE_MILITARIZE or favorite_development == "unit") \
             and self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) >= self.military_slots:
-            self.militarize(game_state)
+            self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'unit'})
         if self.can_develop(BuildingType.RURAL) \
             and self.rural_slots == self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) \
             and (random.random() < AI.CHANCE_EXPAND or favorite_development == "rural"):
-            self.expand(game_state)
-        self.midturn_update(game_state)
-
-        # Don't build stationary units
+            self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'rural'})
 
         self.clear_unit_builds()
         available_units = [unit for unit in self.available_units if unit.movement > 0 or self.is_threatened_city(game_state)]
@@ -993,13 +1008,20 @@ class City(MapObjectSpawner):
             highest_level = max([effective_advancement_level(unit, slingers_better_than_warriors=True) for unit in available_units])
             if highest_level < self.civ.get_advancement_level() - 2 and not self.is_threatened_city(game_state):
                 print(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
+                build_units = []
             elif highest_level < self.civ.get_advancement_level() - 4:
                 print(f"  not building units even though threatened, because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
+                build_units = []
             else:
-                high_tier_units = [unit for unit in available_units if effective_advancement_level(unit, slingers_better_than_warriors=True) >= highest_level - 1]
-                for u in high_tier_units:
-                    self.toggle_unit_build(u)
+                build_units = [unit for unit in available_units if effective_advancement_level(unit, slingers_better_than_warriors=True) >= highest_level - 1]
+        else:
+            build_units = []
+        for u in self.unit_buildings:
+            if (u.template in build_units) != u.active:
+                self.bot_single_move(game_state, MoveType.SELECT_INFINITE_QUEUE, {'unit_name': u.template.name})
+        
 
+        self.buildings_queue = []
         # Never steal from another city's queue
         wonders: list[WonderTemplate] = [w for w in self.available_wonders if w.name not in self.civ.buildings_in_all_queues]
         economic_buildings: list[BuildingTemplate] = [b for b in self.available_city_buildings if b.name not in self.civ.buildings_in_all_queues]
@@ -1023,18 +1045,18 @@ class City(MapObjectSpawner):
                 and best_military_building_age > best_current_available_unit_age \
                 and remaining_wood_budget > best_military_building.wood_cost:
             self.buildings_queue = []
-            self.enqueue_build(best_military_building)
+            self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': best_military_building.name})
             print(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)}): {self.buildings_queue}")
             if not self.is_threatened_city(game_state):
                 print(f"  not building units to wait for new military building.")
                 self.clear_unit_builds()
         while len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None and remaining_wood_budget > (cost := game_state.wonder_cost_by_age[wonder_choice.age]):
-            self.enqueue_build(wonder_choice)
+            self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': wonder_choice.name})
             wonders.remove(wonder_choice)
             remaining_wood_budget -= cost
             print(f"  adding wonder to buildings queue: {self.buildings_queue}")
         while len(economic_buildings) > 0 and (choice := self.bot_pick_economic_building(economic_buildings, remaining_wood_budget)) is not None and remaining_wood_budget > choice.cost:
-            self.enqueue_build(choice)
+            self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': choice.name})
             economic_buildings.remove(choice)
             remaining_wood_budget -= choice.cost
             print(f"  adding economic building to buildings queue: {self.buildings_queue}")
@@ -1043,35 +1065,36 @@ class City(MapObjectSpawner):
         self.bot_choose_focus(game_state, parent_wants_wood=i_want_wood)
         for city in self.get_puppets(game_state):
             city.bot_choose_focus(game_state, parent_wants_wood=i_want_wood)
-        game_state.midturn_update()
 
     def bot_choose_focus(self, game_state, parent_wants_wood: bool):
         if self.civ_to_revolt_into is not None or self.unhappiness + self.projected_income['unhappiness'] > game_state.unhappiness_threshold:
-            self.focus = 'food'
+            choice = 'food'
             print(f"  chose focus: {self.focus} to prevent revolt")
-            return
-        parent = self.get_territory_parent(game_state)
-        production_city: City = self if parent is None else parent
-
-        plausible_focuses = {"food", "wood", "metal", "science"}
-        if self.growth_cost() >= 30:
-            # At some point it's time to use our pop
-            plausible_focuses.remove('food')
-        if self.civ.researching_tech is None:
-            plausible_focuses.remove('science')
-        if production_city.wood >= 150:
-            plausible_focuses.remove('wood')
-            
-        max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
-        focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
-        if len(production_city.active_unit_buildings) > 0 and 'metal' in focuses_with_best_yields and production_city.is_threatened_city(game_state):
-            self.focus = 'metal'
-        elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) < production_city.urban_slots and parent_wants_wood:
-            self.focus = 'wood'
+        
         else:
-            self.focus = random.choice(list(focuses_with_best_yields))
+            parent = self.get_territory_parent(game_state)
+            production_city: City = self if parent is None else parent
 
-        print(f"  chose focus: {self.focus} (max yield choices were {focuses_with_best_yields})")
+            plausible_focuses = {"food", "wood", "metal", "science"}
+            if self.growth_cost() >= 30:
+                # At some point it's time to use our pop
+                plausible_focuses.remove('food')
+            if self.civ.researching_tech is None:
+                plausible_focuses.remove('science')
+            if production_city.wood >= 150:
+                plausible_focuses.remove('wood')
+                
+            max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
+            focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
+            if len(production_city.active_unit_buildings) > 0 and 'metal' in focuses_with_best_yields and production_city.is_threatened_city(game_state):
+                choice = 'metal'
+            elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) < production_city.urban_slots and parent_wants_wood:
+                choice = 'wood'
+            else:
+                choice = random.choice(list(focuses_with_best_yields))
+            print(f"  chose focus: {choice} (max yield choices were {focuses_with_best_yields})")
+
+        self.bot_single_move(game_state, MoveType.CHOOSE_FOCUS, {'focus': choice})
 
     def to_json(self, include_civ_details: bool = False) -> dict:
         return {
@@ -1132,6 +1155,7 @@ class City(MapObjectSpawner):
             "revolt_unit_count": self.revolt_unit_count,
             "founded_turn": self.founded_turn,
             "seen_by_players": list(self.seen_by_players),
+            "revolting_to_rebels_this_turn": self.revolting_to_rebels_this_turn,
 
             "is_trade_hub": self.is_trade_hub(),
         }

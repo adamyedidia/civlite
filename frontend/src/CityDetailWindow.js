@@ -231,7 +231,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 </h1>
                 <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
             </div>
-            {puppet && (territoryReplacementCity !== undefined) && (territoryReplacementCity === null || selectedCity.population > territoryReplacementCity.population) &&
+            {puppet && (!selectedCity.revolting_to_rebels_this_turn) && (territoryReplacementCity !== undefined) && (territoryReplacementCity === null || selectedCity.population > territoryReplacementCity.population) &&
                 <MakeTerritory myCiv={myCiv} territoryReplacementCity={territoryReplacementCity} handleMakeTerritory={handleMakeTerritory}/>                    
             }
             <div className="existing-buildings-container">

@@ -646,9 +646,9 @@ def choose_initial_civ(sess, game_id):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    game_state, from_civ_perspectives, _, _ = game.update_staged_moves(sess, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
+    game_state_to_return_json, _ = game.update_staged_moves(sess, player_num, [{'move_type': 'choose_starting_city', 'city_id': city_id}])
   
-    return jsonify({'game_state': game_state.to_json(from_civ_perspectives=from_civ_perspectives)})
+    return jsonify({'game_state': game_state_to_return_json})
 
 
 @app.route('/api/player_input/<game_id>', methods=['POST'])
@@ -690,7 +690,7 @@ def enter_player_input(sess, game_id):
             return jsonify({"error": "Turn is over"}), 400
         
         # Now do the actual update.
-        _, _, game_state_to_return_json, decline_eviction_player = game.update_staged_moves(sess, player_num, [player_input])      
+        game_state_to_return_json, decline_eviction_player = game.update_staged_moves(sess, player_num, [player_input])      
 
         if decline_eviction_player is not None:
             print(f"app.py evicting player {decline_eviction_player}")

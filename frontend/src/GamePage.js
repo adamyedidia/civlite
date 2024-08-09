@@ -2828,8 +2828,8 @@ export default function GamePage() {
                     </text>
                     </>
                 }
-                {!declineOptionsView && friendly && city.unhappiness >= 100 && <>
-                    <image href={declineImg} x="-1.5" y="-2.5" height="3" width="3" />
+                {!declineOptionsView && friendly && city.revolting_to_rebels_this_turn && <>
+                    <image href={declineImg} x="-1.5" y="-2.5" height="3" width="3" style={{ pointerEvents: 'none' }}/>
                     </>
                 }
             </>
