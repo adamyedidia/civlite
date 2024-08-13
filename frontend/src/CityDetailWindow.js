@@ -1,4 +1,4 @@
-import React, {  } from 'react';
+import React, { useState } from 'react';
 import './CityDetailWindow.css';
 
 import { Button } from '@mui/material';
@@ -53,6 +53,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     unitTemplatesByBuildingName, templates, descriptions,
     setHoveredUnit, setHoveredBuilding, setHoveredWonder, setSelectedCity, centerMap
      }) => {
+    const [showBuildingChoices, setShowBuildingChoices] = useState(true);
 
     const canBuild = !declinePreviewMode && !puppet;
 
@@ -201,8 +202,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const militaryBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.UNITS?.[entry.template_name]);
 
     return (
-        <div className="city-detail-window" 
-            style={{borderColor: myCivTemplate?.secondary_color}}>
+        <div className="city-detail-window">
+            <div className="main" style={{borderColor: myCivTemplate?.secondary_color}}>
             <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate?.primary_color}e0`}}>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
                     <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
@@ -389,33 +390,36 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     </div>}
                 </CityDetailPanel>
             </div>
-            </div>
+            </div></div>
             {selectedCity && canBuild && 
-            <div className="available-buildings city-detail-columns">
-                <div className="city-detail-column">
-                    <div className="building-choices-container">
-                        {selectedCity.available_wonders.map(availableBuildingEntry)}
-                    </div>
-                    <div className="building-choices-container">
+            <div className="building-choices-area" style={{borderColor: myCivTemplate?.secondary_color}}>
+                <div className="building-choices-area-inner" style={{maxWidth: showBuildingChoices ? "none": "30px"}}>
+                {selectedCity.available_unit_building_names.length > 0 && <div className="building-choices-container">
                         {selectedCity.available_unit_building_names.map(availableBuildingEntry)}
                         {selectedCity.max_units_in_build_queue && <div className="building-slots-full-banner">
                             <span>Queued Max Units</span>
                         </div>}
-                    </div>
-                </div>
-                <div className="city-detail-column">
-                    <div className="building-choices-container">
+                </div>}
+                {selectedCity.available_wonders.length > 0 && <div className="building-choices-container">
+                        {selectedCity.available_wonders.map(availableBuildingEntry)}
+                </div>}
+                {selectedCity.available_urban_building_names.length > 0 && <div className="building-choices-container">
                         {selectedCity.available_urban_building_names.map(availableBuildingEntry)}
                         {selectedCity.building_slots_full.urban && <div className="building-slots-full-banner">
                             <span>No Urban Slots</span>
                         </div>}
-                    </div>
-                    <div className="building-choices-container">
+                </div>}
+                {selectedCity.available_rural_building_names.length > 0 && <div className="building-choices-container">
                         {selectedCity.available_rural_building_names.map(availableBuildingEntry)}
                         {selectedCity.building_slots_full.rural && <div className="building-slots-full-banner">
                             <span>No Rural Slots</span>
                         </div>}
-                    </div>
+                </div>}
+                </div>
+                <div className="building-choices-area-button" 
+                    style={{backgroundColor: myCivTemplate?.secondary_color, color: myCivTemplate?.primary_color}} 
+                    onClick={() => setShowBuildingChoices(!showBuildingChoices)}>
+                    <span>{showBuildingChoices ? "◀️" : "▶️"}</span>
                 </div>
             </div>}
         </div>
