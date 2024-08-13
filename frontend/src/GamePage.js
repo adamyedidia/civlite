@@ -3,7 +3,7 @@ import React, {useState, useEffect} from 'react';
 import { HexGrid, Layout, Hexagon } from 'react-hexgrid';
 import './arrow.css';
 import './GamePage.css';
-import { Typography, IconButton, Tooltip } from '@mui/material';
+import { Typography, IconButton } from '@mui/material';
 import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
@@ -47,18 +47,6 @@ import declineImg from './images/phoenix.png';
 import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 import { WithTooltip } from './WithTooltip.js';
-
-const difficultyLevels = {
-    'Debug': 20,
-    'Settler': 2.0,
-    'Chieftan': 1.5,
-    'Warlord': 1.25,
-    'Prince': 1.0,
-    'King': 0.9,
-    'Emperor': 0.75,
-    'Immortal': 0.5,
-    'Diety': 0.3
-};
 
 const coordsToObject = (coords) => {
     if (!coords) {
@@ -3191,7 +3179,7 @@ export default function GamePage() {
                         setSelectedCity={setSelectedCity}
                         centerMap={centerMap}
                         />}
-                    <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 1000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center'}}>                             
+                    <div style={{position: 'fixed', top: '10px', left: '50%', transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center'}}>                             
                         {hoveredBuilding && (
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
                         )}
@@ -3525,16 +3513,15 @@ export default function GamePage() {
                                     },
                                 }}
                                 >
-                                {Object.entries(difficultyLevels).map(([name, value]) => (
-                                    <MenuItem value={value} key={name}>
-                                        <Tooltip 
-                                            title={<span style={{ fontSize: '20px' }}>Vitality x{Math.round(value * 100)}%</span>} 
-                                            placement="right" 
-                                            style={{ width: '100%' }}>
-                                            {name}
-                                        </Tooltip>
-                                    </MenuItem>
-                                ))}
+                                <MenuItem value={20}>Debug</MenuItem>
+                                <MenuItem value={2.0}>Settler</MenuItem>
+                                <MenuItem value={1.5}>Chieftan</MenuItem>
+                                <MenuItem value={1.25}>Warlord</MenuItem>
+                                <MenuItem value={1.0}>Prince</MenuItem>
+                                <MenuItem value={0.9}>King</MenuItem>
+                                <MenuItem value={0.75}>Emperor</MenuItem>
+                                <MenuItem value={0.5}>Immortal</MenuItem>
+                                <MenuItem value={0.3}>Diety</MenuItem>
                             </Select>
                         </Grid>
                     </Grid>

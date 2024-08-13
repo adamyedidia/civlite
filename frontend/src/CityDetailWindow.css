@@ -1,43 +1,11 @@
 .city-detail-window {
-    z-index: 2;
+    border: 8px solid; /* color overwridden from js */
+    background-color: #ffffffa0;
+    z-index: 1000;
 
     position: fixed;
     top: 10px;
     left: 10px;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-}
-.city-detail-window .main {
-  border: 8px solid; /* color overwridden from js */
-  background-color: #ffffffa0;
-  height: fit-content;
-}
-.city-detail-window .building-choices-area {
-  border: 8px solid; /* color overwridden from js */
-  border-top-right-radius: 20px;
-  border-bottom-right-radius: 20px;
-  margin: 20px -8px;
-  display: flex;
-  height: fit-content;
-}
-.city-detail-window .building-choices-area-inner {
-  background-color: #ffeedde0;
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  flex-wrap: wrap;
-  max-height: 600px;
-  height: fit-content;
-  overflow-y: auto;
-}
-.building-choices-area-button {
-  width: 30px;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
 .city-detail-header {
   display: flex;
@@ -157,7 +125,10 @@
 
 .building-choices-container {
   position: relative; /* for purpose of positioning the building-slots-full-banner */
+  overflow-y: auto; /* Enable vertical scrolling */
+  max-height: 140px;
   width: 300px;
+  margin-bottom: 10px;;
 }
 
 .building-slots-full-banner {
@@ -190,7 +161,8 @@
   /* transform: translate(-50%, -50%); */
   overflow-y: auto; /* Enable vertical scrolling */
   flex-direction: column;
-  height: 260px;
+  margin-bottom: 50px;
+  max-height: 300px;
 }
 
 .existing-buildings-container {
@@ -491,4 +463,11 @@
 .city-navigation-icon:hover {
   transform: scale(1.2);
   color: #666;
+}
+
+.available-buildings {
+  margin: 10px;
+  background-color: #ffeedde0;
+  border: 10px solid #e46c2b;
+  border-radius: 20px;
 }
