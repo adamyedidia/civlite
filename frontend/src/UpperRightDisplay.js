@@ -328,7 +328,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
     turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, setHoveredWonder, civsById, declineViewCivsById}) => {
     return (
         <div className="upper-right-display">
-            <WonderListDisplay wonders_by_age={mainGameState?.wonders_by_age} game_age={mainGameState?.advancement_level} built_wonders={mainGameState?.built_wonders} cost_by_age={mainGameState?.wonder_cost_by_age} templates={templates} setHoveredWonder={setHoveredWonder}/>
+            {myCiv && <WonderListDisplay wonders_by_age={mainGameState.wonders_by_age} game_age={mainGameState.advancement_level} built_wonders={mainGameState.built_wonders} cost_by_age={mainGameState.wonder_cost_by_age} templates={templates} setHoveredWonder={setHoveredWonder}/>}
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} templates={templates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} templates={templates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay playerNum={myGamePlayer?.player_num} myCiv={myCiv} myGamePlayer={myGamePlayer} turnNum={turnNum}
