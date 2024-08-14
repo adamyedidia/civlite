@@ -7,8 +7,12 @@ import workerImg from "./images/worker.png";
 import { WithTooltip } from './WithTooltip';
 import { TextOnIcon } from './TextOnIcon';
 
+const toFixedRndDown = (value, digits) => {
+    return Math.floor(value * Math.pow(10, digits)) / Math.pow(10, digits);
+}
+
 const roundValue = (value) => {
-    return value < 10 ? value.toFixed(1) : Math.round(value);
+    return value < 10 ? toFixedRndDown(value, 1) : Math.floor(value);
 };
 
 const FocusSelectionOption = ({ focus, amount, onClick, onDoubleClick, hasPuppets, isSelected }) => {
@@ -27,7 +31,7 @@ const FocusSelectionOption = ({ focus, amount, onClick, onDoubleClick, hasPuppet
         }
     };
     const tooltip = <>
-        {isSelected ? <p>{`+${amount.toFixed(2)} ${focus} from focus`}</p> : <p>Click to focus</p>}
+        {isSelected ? <p>{`+${toFixedRndDown(amount, 2)} ${focus} from focus`}</p> : <p>Click to focus</p>}
         {hasPuppets && <p>dbl click = include puppets</p>}
     </>
 
@@ -37,7 +41,7 @@ const FocusSelectionOption = ({ focus, amount, onClick, onDoubleClick, hasPuppet
             onClick={hasPuppets ? handleClick : onClick}
         >
             <TextOnIcon image={workerImg} tooltip={tooltip}>
-                {amount.toFixed(1)}
+                {toFixedRndDown(amount, 1)}
             </TextOnIcon>
         </div>
     );
@@ -45,9 +49,9 @@ const FocusSelectionOption = ({ focus, amount, onClick, onDoubleClick, hasPuppet
 
 const PuppetIncomeTooltip = ({projectedIncomePuppets, projectedIncomePuppetsTotal, title}) => {
     return (<>
-        <b>{projectedIncomePuppetsTotal.toFixed(2)} {title} from puppets:</b>
+        <b>{toFixedRndDown(projectedIncomePuppetsTotal, 2)} {title} from puppets:</b>
         <table><tbody>
-            {Object.entries(projectedIncomePuppets).map(([puppetId, incomeAndDistance]) => <tr key={puppetId}><td>+{incomeAndDistance[0].toFixed(2)}</td><td>{puppetId}</td></tr>)}
+            {Object.entries(projectedIncomePuppets).map(([puppetId, incomeAndDistance]) => <tr key={puppetId}><td>+{toFixedRndDown(incomeAndDistance[0], 2)}</td><td>{puppetId}</td></tr>)}
         </tbody></table>
     </>);
 }
@@ -84,9 +88,9 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
 
                 <div className="panel-banner">
                     =
-                    <TextOnIcon image={crateImg} style={storedStyle} tooltip={hideStored ? null : `${storedAmount.toFixed(2)} ${title} stored from last turn.`}> {roundValue(storedAmount)} </TextOnIcon>
+                    <TextOnIcon image={crateImg} style={storedStyle} tooltip={hideStored ? null : `${toFixedRndDown(storedAmount, 2)} ${title} stored from last turn.`}> {roundValue(storedAmount)} </TextOnIcon>
                     <div>+</div>
-                    <TextOnIcon image={hexesImg} tooltip={`${projected_income_base.toFixed(2)} ${title} produced this turn.`}> {roundValue(projected_income_base)} </TextOnIcon>
+                    <TextOnIcon image={hexesImg} tooltip={`${toFixedRndDown(projected_income_base, 2)} ${title} produced this turn.`}> {roundValue(projected_income_base)} </TextOnIcon>
                     {!noFocus && (
                         <>
                             +
