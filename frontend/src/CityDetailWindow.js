@@ -393,7 +393,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             </div></div>
             {selectedCity && canBuild && 
             <div className="building-choices-area" style={{borderColor: myCivTemplate?.secondary_color}}>
-                <div className="building-choices-area-inner" style={{maxWidth: showBuildingChoices ? "none": "30px"}}>
+                <div className="building-choices-area-inner" style={!showBuildingChoices ? {maxWidth: "30px", overflow: "hidden"} : {}}>
                 {selectedCity.available_unit_building_names.length > 0 && <div className="building-choices-container">
                         {selectedCity.available_unit_building_names.map(availableBuildingEntry)}
                         {selectedCity.max_units_in_build_queue && <div className="building-slots-full-banner">
