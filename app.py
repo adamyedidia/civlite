@@ -25,7 +25,7 @@ from utils import dream_key, dream_key_from_civ_perspectives, generate_unique_id
 from settings import (
     LOCAL, STARTING_CIV_VITALITY, CITY_CAPTURE_REWARD, UNIT_KILL_REWARD, CAMP_CLEAR_VP_REWARD, CAMP_CLEAR_CITY_POWER_REWARD, 
     BASE_FOOD_COST_OF_POP, ADDITIONAL_PER_POP_FOOD_COST, VITALITY_DECAY_RATE, MAP_HOMOGENEITY_LEVEL, 
-    NUM_STARTING_LOCATION_OPTIONS, PER_PLAYER_AREA, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, 
+    NUM_STARTING_LOCATION_OPTIONS, GOOD_HEX_PROBABILITY, TECH_VP_REWARD, GAME_END_SCORE, BASE_CITY_POWER_INCOME, 
     BASE_SURVIVAL_BONUS, SURVIVAL_BONUS_PER_AGE, EXTRA_GAME_END_SCORE_PER_PLAYER, MAX_PLAYERS
 )
 from tech_template import TechTemplate
@@ -817,7 +817,6 @@ def get_game_constants(sess):
         'vitality_decay_rate': VITALITY_DECAY_RATE,
         'map_homogeneity_level': MAP_HOMOGENEITY_LEVEL,
         'num_starting_location_options': NUM_STARTING_LOCATION_OPTIONS,
-        'per_player_area': PER_PLAYER_AREA,
         'starting_civ_vitality': STARTING_CIV_VITALITY,
         'good_hex_probability': GOOD_HEX_PROBABILITY,
         'tech_vp_reward': TECH_VP_REWARD,

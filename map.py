@@ -3,14 +3,14 @@ from civ_templates_list import CIVS
 from terrain_template import TerrainTemplate
 from terrain_templates_list import TERRAINS
 from hex import Hex
-from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA, PER_PLAYER_AVERAGE_OCEAN_BITES, GOOD_HEX_PROBABILITY
+from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA_MIN, PER_PLAYER_AREA_MAX, GOOD_HEX_PROBABILITY
 from utils import coords_str, get_all_coords_up_to_n
 
 def infer_map_size_from_num_players(num_players: int) -> int:
     for map_size in range(100):
         num_hexes_for_map_size = 3 * map_size * (map_size - 1) + 1
 
-        if num_hexes_for_map_size >= num_players * (PER_PLAYER_AREA + PER_PLAYER_AVERAGE_OCEAN_BITES):
+        if num_hexes_for_map_size >= num_players * PER_PLAYER_AREA_MAX:
             return map_size
 
     raise Exception('Uh oh')
@@ -31,9 +31,10 @@ def _hex_has_opposite_land_neighbors(hex: Hex, hexes: dict[str, Hex]) -> bool:
 def create_hex_map(num_players: int) -> dict[str, Hex]:
     map_size = infer_map_size_from_num_players(num_players)
     total_hexes = map_size * (map_size - 1) * 3 + 1
-    excess_hexes = total_hexes - num_players * PER_PLAYER_AREA
-    num_ocean_bites = int(excess_hexes * (random.random() + 0.5))
-    return _create_hex_map(map_size, num_ocean_bites)
+    target_hexes = random.randint(num_players * PER_PLAYER_AREA_MIN, num_players * PER_PLAYER_AREA_MAX)
+    excess_hexes = total_hexes - target_hexes
+    print(f"Creating map with {target_hexes} land hexes by making a map of size {map_size} ({total_hexes} hexes) and removing {excess_hexes} excess hexes")
+    return _create_hex_map(map_size, num_ocean_bites=excess_hexes)
 
 def _create_hex_map(map_size: int, num_ocean_bites: int) -> dict[str, Hex]:
     coords = get_all_coords_up_to_n(map_size + 1)
