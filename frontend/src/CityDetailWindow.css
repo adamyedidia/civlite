@@ -13,6 +13,7 @@
   border: 8px solid; /* color overwridden from js */
   background-color: #ffffffa0;
   height: fit-content;
+  pointer-events: auto;
 }
 .city-detail-window .building-choices-area {
   border: 8px solid; /* color overwridden from js */
@@ -21,6 +22,7 @@
   margin: 20px -8px;
   display: flex;
   height: fit-content;
+  pointer-events: auto;
 }
 .city-detail-window .building-choices-area-inner {
   background-color: #ffeedde0;
