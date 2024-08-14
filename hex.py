@@ -43,13 +43,13 @@ class Hex:
     def remove_unit(self, unit: Unit) -> None:
         self.units = [u for u in self.units if u.id != unit.id]
 
-    def hexes_at_offsets(self, offsets: list[tuple[int, int, int]], hexes: dict[str, "Hex"]) -> Generator["Hex", None, None]:
+    def hexes_at_offsets(self, offsets: list[tuple[int, int, int]], hexes: dict[str, "Hex"], exclude_ocean=False) -> Generator["Hex", None, None]:
         for (delta_q, delta_r, delta_s) in offsets:
             neighbor = hexes.get(coords_str((self.q + delta_q, self.r + delta_r, self.s + delta_s)))
-            if neighbor:
+            if neighbor and (not exclude_ocean or neighbor.terrain != TERRAINS.OCEAN):
                 yield neighbor
 
-    def get_neighbors(self, hexes: dict[str, "Hex"], include_self=False) -> Generator["Hex", None, None]:
+    def get_neighbors(self, hexes: dict[str, "Hex"], include_self=False, exclude_ocean=False) -> Generator["Hex", None, None]:
         yield from self.hexes_at_offsets([
             (1, 0, -1),
             (1, -1, 0),
@@ -57,11 +57,11 @@ class Hex:
             (-1, 0, 1),
             (-1, 1, 0),
             (0, 1, -1),
-        ], hexes)
+        ], hexes, exclude_ocean=exclude_ocean)
         if include_self:
             yield self
 
-    def get_distance_2_hexes(self, hexes: dict[str, "Hex"]) -> Generator["Hex", None, None]:
+    def get_distance_2_hexes(self, hexes: dict[str, "Hex"], exclude_ocean=False) -> Generator["Hex", None, None]:
         yield from self.hexes_at_offsets([
             (2, 0, -2),
             (2, -2, 0),
@@ -75,9 +75,9 @@ class Hex:
             (-2, 1, 1),
             (-1, 2, -1),
             (1, 1, -2),
-        ], hexes)
+        ], hexes, exclude_ocean=exclude_ocean)
     
-    def get_distance_3_hexes(self, hexes: dict[str, "Hex"]) -> Generator["Hex", None, None]:
+    def get_distance_3_hexes(self, hexes: dict[str, "Hex"], exclude_ocean=False) -> Generator["Hex", None, None]:
         yield from self.hexes_at_offsets([
             (3, 0, -3),
             (3, -3, 0),
@@ -97,7 +97,7 @@ class Hex:
             (-1, 3, -2),
             (1, 2, -3),
             (2, 1, -3),
-        ], hexes)
+        ], hexes, exclude_ocean=exclude_ocean)
 
     def get_hexes_within_range(self, hexes: dict[str, "Hex"], range: int) -> Generator["Hex", None, None]:
         assert range >= 0 and range <= 3, f"Range must be between 1 and 3, got {range}"

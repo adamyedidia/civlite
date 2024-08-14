@@ -282,9 +282,7 @@ def _launch_game_inner(sess, game: Game) -> None:
 
     num_players = len(players)
 
-    map_size = infer_map_size_from_num_players(num_players)
-
-    hexes = create_hex_map(map_size)
+    hexes = create_hex_map(num_players)
 
     game_state = GameState(game_id, hexes)
 

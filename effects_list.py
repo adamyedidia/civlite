@@ -155,7 +155,7 @@ class FreeNearbyCityEffect(CityTargetEffect):
                 if neighbor.city is not None:
                     return False
             return True
-        for hex in city.hex.get_distance_2_hexes(game_state.hexes):
+        for hex in city.hex.get_distance_2_hexes(game_state.hexes, exclude_ocean=True):
             if valid_spot(hex):
                 city.civ.city_power += 100
                 city = game_state.found_city_for_civ(civ=city.civ, city_id=None, hex=hex)
@@ -290,7 +290,7 @@ class GreatWallEffect(CityTargetEffect):
     
     def apply(self, city: 'City', game_state: 'GameState'):
         my_cities = city.civ.get_my_cities(game_state=game_state)
-        all_distance_2 = {hex for c in my_cities for hex in c.hex.get_distance_2_hexes(game_state.hexes)}
+        all_distance_2 = {hex for c in my_cities for hex in c.hex.get_distance_2_hexes(game_state.hexes, exclude_ocean=True)}
         # Remove ones that are interior
         border_hexes = {hex for hex in all_distance_2 if min(hex.distance_to(c.hex) for c in my_cities) == 2}
         # if any contain an enemy, add the ones closer.
@@ -298,7 +298,7 @@ class GreatWallEffect(CityTargetEffect):
             for hex in border_hexes.copy():
                 if hex.city or hex.camp or any(u.civ != city.civ for u in hex.units):
                     border_hexes.remove(hex)
-                    for n in hex.get_neighbors(game_state.hexes, include_self=False):
+                    for n in hex.get_neighbors(game_state.hexes, include_self=False, exclude_ocean=True):
                         if min(n.distance_to(c.hex) for c in my_cities) <= 1:
                             border_hexes.add(n)
         # Remove any that still contain a unit

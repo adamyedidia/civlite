@@ -2954,13 +2954,20 @@ export default function GamePage() {
             'plains': '#CBC553',
             'hills': '#9B9553',
             'mountain': '#8B4513',
+            'ocean': '#4488FF',
             // 'grassland': '#AAFF77',
             'tundra': '#BBAABB',
             // 'jungle': '#00BB00',
             // 'marsh': '#00FFFF',
         }
-
-        return { fill: inFog ? greyOutHexColor(terrainToColor[terrain], '#AAAAAA') : terrainToColor[terrain], fillOpacity: '0.8', ...(pointer ? {cursor: 'pointer'} : {})}; // example color for forest
+        const ocean = terrain === 'ocean';
+        const fillColor = !inFog ? terrainToColor[terrain] : greyOutHexColor(terrainToColor[terrain], '#AAAAAA');
+        return { 
+                fill: ocean ? 'none' : fillColor, 
+                fillOpacity: '0.8', 
+                strokeWidth: 0.2,
+                stroke: ocean ? 'none' : 'black',
+                ...(pointer ? {cursor: 'pointer'} : {})}; // example color for forest
     };
 
     const handleMouseLeaveHex = (hex) => {
@@ -3058,9 +3065,6 @@ export default function GamePage() {
                                         cx="0" 
                                         cy="0" 
                                         r="0.01" 
-                                        fill="none" 
-                                        stroke="black" 
-                                        strokeWidth="0.2" 
                                         ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
                                         style={{visibility: 'hidden'}}
                                     />

@@ -21,6 +21,12 @@ class TERRAINS():
         bonus_yields= Yields(food=0, wood=1, metal=3, science=0),
         frequency= 1,
     )
+    OCEAN = TerrainTemplate(
+        name= 'ocean',
+        yields= Yields(food=1, wood=0, metal=0, science=1),
+        bonus_yields= Yields(food=3, wood=0, metal=0, science=1),
+        frequency= 0.0,
+    )
 
     MOUNTAINS = TerrainTemplate(
         name= 'mountain',
