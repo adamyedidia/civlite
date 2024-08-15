@@ -11,6 +11,7 @@ from civ_templates_list import CIVS, player_civs
 from map_object import MapObject
 from move_type import MoveType
 from settings import GOD_MODE
+from terrain_templates_list import TERRAINS
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
 from wonder_template import WonderTemplate
@@ -213,7 +214,7 @@ def make_game_statistics_plots(sess, game_id: str):
                 'puppet': hex.city is not None and not hex.city.is_territory_capital,
                 'camp': hex.camp is not None,
                 }
-                for hex in game_state.hexes.values()],
+                for hex in game_state.hexes.values() if hex.terrain != TERRAINS.OCEAN],
         })
 
     civ_infos = {

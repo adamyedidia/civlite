@@ -38,6 +38,11 @@ class TECHS():
         cost=20,
         advancement_level=1,
     )
+    FISHING = TechTemplate(
+        name='Fishing',
+        cost=20,
+        advancement_level=1,
+    )
     MATHEMATICS = TechTemplate(
         name='Mathematics',
         cost=45,
