@@ -4,7 +4,7 @@ from TechStatus import TechStatus
 from building_template import BuildingType
 from building_templates_list import BUILDINGS
 from unit_templates_list import UNITS
-from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GainSlotsEffect, GetGreatPersonEffect, GreatWallEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
+from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GainSlotsEffect, GetGreatPersonEffect, GreatLighthouseEffect, GreatWallEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
 from wonder_template import WonderTemplate
 from yields import ConstantYields, Yields, YieldsPerBuildingType
 
@@ -89,6 +89,13 @@ class WONDERS():
         name="Colossus", age=2,
         on_build=BuildUnitsEffect(unit_template=UNITS.COLOSSUS, num=1),
         calculate_yields=ConstantYields(Yields(metal=2))
+    )
+
+    # 3rd century BC
+    GREAT_LIGHTHOUSE = WonderTemplate(
+        name="Great Lighthouse", age=2,
+        on_build=GainSlotsEffect(num=1, type=BuildingType.RURAL, free_building=BUILDINGS.LIGHTHOUSE),
+        per_turn=GreatLighthouseEffect()
     )
 
     # 4th century BC
@@ -176,6 +183,8 @@ class WONDERS():
     )
 
     ########################## Age 6 ##########################
+    # Panama Canal
+
     # 1886
     STATUE_OF_LIBERTY = WonderTemplate(
         name="Statue of Liberty", age=6,
@@ -210,6 +219,7 @@ class WONDERS():
     ########################## Age 7 ##########################
     # Options
     # * Pentagon
+    # * USS Nimitz
 
     FAST_FOOD_CHAINS = WonderTemplate(
         name="Fast Food Chains", age=7,

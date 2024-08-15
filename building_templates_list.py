@@ -72,6 +72,13 @@ class BUILDINGS():
         calculate_yields=YieldsPerTerrainType(TERRAINS.HILLS, Yields(metal=1)),
         prereq=TECHS.MINING,
     )
+    FISHERY = BuildingTemplate(
+        name="Fishery",
+        type=BuildingType.RURAL,
+        cost=5,
+        calculate_yields=YieldsPerTerrainType(TERRAINS.OCEAN, Yields(food=1)),
+        prereq=TECHS.FISHING,
+    )
     AQUEDUCT = BuildingTemplate(
         name="Aqueduct",
         type=BuildingType.RURAL,
@@ -123,6 +130,13 @@ class BUILDINGS():
         calculate_yields=ConstantYields(Yields(wood=4)),
         prereq=TECHS.ENGINEERING,
     )
+    LIGHTHOUSE = BuildingTemplate(
+        name="Lighthouse",
+        type=BuildingType.RURAL,
+        cost=10,
+        calculate_yields=YieldsPerTerrainType(TERRAINS.OCEAN, Yields(food=1, science=1)),
+        prereq=TECHS.MATHEMATICS,
+    )
     UNIVERSITY = BuildingTemplate(
         name="University",
         type=BuildingType.URBAN,
@@ -134,15 +148,22 @@ class BUILDINGS():
         name="Harbor",
         type=BuildingType.URBAN,
         cost=20,
-        calculate_yields=YieldsPerPopulation(Yields(wood=1)),
+        calculate_yields=YieldsPerTerrainType(TERRAINS.OCEAN, Yields(wood=3)),
         prereq=TECHS.COMPASS,
     )
     TAX_OFFICE = BuildingTemplate(
         name="Tax Office",
         type=BuildingType.URBAN,
-        cost=20,
+        cost=10,
         calculate_yields=YieldsPerBuildingType(BuildingType.RURAL, Yields(wood=2, metal=2)),
         prereq=TECHS.COMPASS,
+    )
+    WATERMILL = BuildingTemplate(
+        name="Watermill",
+        type=BuildingType.URBAN,
+        cost=20,
+        calculate_yields=YieldsPerPopulation(Yields(wood=1)),
+        prereq=TECHS.MACHINERY,
     )
     PLANTATION = BuildingTemplate(
         name="Plantation",

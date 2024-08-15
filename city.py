@@ -586,7 +586,7 @@ class City(MapObjectSpawner):
         best_hex = None
         best_hex_distance_from_target = 10000
 
-        for hex in spawn_hex.get_neighbors(game_state.hexes):
+        for hex in spawn_hex.get_neighbors(game_state.hexes, exclude_ocean=True):
             if not hex.is_occupied(unit.type, civ, allow_enemy_city=False):    
                 distance_from_target = hex.distance_to(self.get_closest_target() or spawn_hex)
                 if distance_from_target < best_hex_distance_from_target:

@@ -8,7 +8,8 @@ import { WithTooltip } from './WithTooltip';
 import { TextOnIcon } from './TextOnIcon';
 
 const toFixedRndDown = (value, digits) => {
-    return Math.floor(value * Math.pow(10, digits)) / Math.pow(10, digits);
+    const result = Math.floor(value * Math.pow(10, digits)) / Math.pow(10, digits);
+    return result.toFixed(digits);
 }
 
 const roundValue = (value) => {

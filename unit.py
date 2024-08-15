@@ -351,7 +351,7 @@ class Unit(MapObject):
         best_hex = None
         best_distance = self.hex.distance_to(self.destination) if not sensitive else self.hex.sensitive_distance_to(self.destination)
 
-        neighbors = list(self.hex.get_neighbors(game_state.hexes))
+        neighbors = list(self.hex.get_neighbors(game_state.hexes, exclude_ocean=True))
         random.shuffle(neighbors)
 
         for neighboring_hex in neighbors:
