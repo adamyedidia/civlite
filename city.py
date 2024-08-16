@@ -23,6 +23,9 @@ from utils import deterministic_hash, generate_unique_id
 import random
 from city_names import CITY_NAMES_BY_CIV
 from yields import Yields
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 if TYPE_CHECKING:
     from hex import Hex
@@ -209,7 +212,7 @@ class City(MapObjectSpawner):
 
         total_metal = self.projected_total_metal
         for unit_building in units_active:
-            # print(f"{self.name} projecting {unit_building.template} {total_metal}")
+            # logger.info(f"{self.name} projecting {unit_building.template} {total_metal}")
             unit_building.adjust_projected_unit_builds(total_metal=total_metal)
 
     @property
@@ -322,7 +325,7 @@ class City(MapObjectSpawner):
             self.metal += self.projected_income.metal
             if len(self.active_unit_buildings) > 0:
                 for b in self.active_unit_buildings:
-                    # print(f"{self.name} harvesting {b.template} {self.metal}")
+                    # logger.info(f"{self.name} harvesting {b.template} {self.metal}")
                     b.harvest_yields(self.metal)
                 self.metal = 0
         self.already_harvested_this_turn = True
@@ -565,7 +568,7 @@ class City(MapObjectSpawner):
         for i in range(max_units):
             for bldg, target_num in sorted(build_dict.items(), key=lambda x: (x[1], random.random())):  # sort just for determinism.
                 if i < target_num:
-                    print(f"{self.name}@{self.hex.coords} building {bldg.template.name} {i}/{target_num}, has {bldg.metal}")
+                    logger.info(f"{self.name}@{self.hex.coords} building {bldg.template.name} {i}/{target_num}, has {bldg.metal}")
                     unit = self.build_unit(game_state, bldg.template) 
                     if unit is not None:
                         bldg.metal -= bldg.template.metal_cost
@@ -786,7 +789,7 @@ class City(MapObjectSpawner):
         return any(b.template == template for b in self.buildings_queue)
 
     def enqueue_build(self, template: Union[BuildingTemplate, UnitTemplate, WonderTemplate]) -> None:
-        print(f"enqueuing {template}")
+        logger.info(f"enqueuing {template}")
         if STRICT_MODE:
             assert self.is_territory_capital, f"{self.name} tried to enqueue a building while a puppet"
             assert not self.has_building(template), (template, self.buildings_queue, self.building_in_queue(template))
@@ -854,7 +857,7 @@ class City(MapObjectSpawner):
 
         # If they have a great person, reset the choices to make sure they are all valid
         if old_civ._great_people_choices_city_id == self.id:
-            print(f"Resetting great people choices for {old_civ.moniker()}")
+            logger.info(f"Resetting great people choices for {old_civ.moniker()}")
             age = old_civ.great_people_choices[0].advancement_level
             old_civ.great_people_choices = []
             old_civ.get_great_person(age=age, city=self, game_state=game_state)
@@ -882,18 +885,19 @@ class City(MapObjectSpawner):
 
     def barbarian_capture(self, game_state: 'GameState') -> None:
         """Barbarians replace the city with a camp."""
-        
+
+        old_civ = self.civ
         # Call change_owner to do the cleanup on the previous civ ownership
         self.change_owner(game_state.barbarians, game_state)
 
+        logger.info(f"****Barbarians Raze {self.name}****")
         # Any great people choices in this city are now invalid
-        for level, city_id in self.civ._great_people_choices_queue.copy():
+        for level, city_id in old_civ._great_people_choices_queue.copy():
             if city_id == self.id:
-                self.civ._great_people_choices_queue.remove((level, city_id))
-        if self.civ._great_people_choices_city_id == self.id:
-            self.civ._great_people_choices_city_id = None
-            self.civ.great_people_choices = []
-
+                old_civ._great_people_choices_queue.remove((level, city_id))
+        if old_civ._great_people_choices_city_id == self.id:
+            old_civ._great_people_choices_city_id = None
+            old_civ.great_people_choices = []
         best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level(), random.random()))
 
         assert self.hex.city is not None
@@ -912,7 +916,7 @@ class City(MapObjectSpawner):
             self.barbarian_capture(game_state)
             return
 
-        print(f"****Captured {self.name}****")
+        logger.info(f"****Captured {self.name}****")
         self.capital = False
 
         if civ.id not in self.ever_controlled_by_civ_ids:
@@ -1008,7 +1012,7 @@ class City(MapObjectSpawner):
                 return 0.5
             return unit.advancement_level()
 
-        print(f"{self.name} -- City planning AI move.")
+        logger.info(f"{self.name} -- City planning AI move.")
 
         if self.civ.has_ability('OnDevelop'):
             favorite_development = self.civ.numbers_of_ability('OnDevelop')[0]
@@ -1035,10 +1039,10 @@ class City(MapObjectSpawner):
         if len(available_units) > 0:
             highest_level = max([effective_advancement_level(unit, slingers_better_than_warriors=True) for unit in available_units])
             if highest_level < self.civ.get_advancement_level() - 2 and not self.is_threatened_city(game_state):
-                print(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
+                logger.info(f"  not building units because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
                 build_units = []
             elif highest_level < self.civ.get_advancement_level() - 4:
-                print(f"  not building units even though threatened, because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
+                logger.info(f"  not building units even though threatened, because the best I can built is level {highest_level} units and I'm at tech level {self.civ.get_advancement_level()}")
                 build_units = []
             else:
                 build_units = [unit for unit in available_units if effective_advancement_level(unit, slingers_better_than_warriors=True) >= highest_level - 1]
@@ -1074,20 +1078,20 @@ class City(MapObjectSpawner):
                 and remaining_wood_budget > best_military_building.wood_cost:
             self.buildings_queue = []
             self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': best_military_building.name})
-            print(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)}): {self.buildings_queue}")
+            logger.info(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)}): {self.buildings_queue}")
             if not self.is_threatened_city(game_state):
-                print(f"  not building units to wait for new military building.")
+                logger.info(f"  not building units to wait for new military building.")
                 self.clear_unit_builds()
         while len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None and remaining_wood_budget > (cost := game_state.wonder_cost_by_age[wonder_choice.age]):
             self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': wonder_choice.name})
             wonders.remove(wonder_choice)
             remaining_wood_budget -= cost
-            print(f"  adding wonder to buildings queue: {self.buildings_queue}")
+            logger.info(f"  adding wonder to buildings queue: {self.buildings_queue}")
         while len(economic_buildings) > 0 and (choice := self.bot_pick_economic_building(economic_buildings, remaining_wood_budget)) is not None and remaining_wood_budget > choice.cost:
             self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': choice.name})
             economic_buildings.remove(choice)
             remaining_wood_budget -= choice.cost
-            print(f"  adding economic building to buildings queue: {self.buildings_queue}")
+            logger.info(f"  adding economic building to buildings queue: {self.buildings_queue}")
         
         i_want_wood = len([b for b in economic_buildings if b.type == BuildingType.URBAN and b.cost > remaining_wood_budget]) > 0
         self.bot_choose_focus(game_state, parent_wants_wood=i_want_wood)
@@ -1097,7 +1101,7 @@ class City(MapObjectSpawner):
     def bot_choose_focus(self, game_state, parent_wants_wood: bool):
         if self.civ_to_revolt_into is not None or self.unhappiness + self.projected_income['unhappiness'] > game_state.unhappiness_threshold:
             choice = 'food'
-            print(f"  chose focus: {self.focus} to prevent revolt")
+            logger.info(f"  chose focus: {self.focus} to prevent revolt")
         
         else:
             parent = self.get_territory_parent(game_state)
@@ -1120,7 +1124,7 @@ class City(MapObjectSpawner):
                 choice = 'wood'
             else:
                 choice = random.choice(focuses_with_best_yields)
-            print(f"  chose focus: {choice} (max yield choices were {focuses_with_best_yields})")
+            logger.info(f"  chose focus: {choice} (max yield choices were {focuses_with_best_yields})")
 
         self.bot_single_move(game_state, MoveType.CHOOSE_FOCUS, {'focus': choice})
 

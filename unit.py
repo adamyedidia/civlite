@@ -7,6 +7,9 @@ from settings import UNIT_KILL_REWARD, DAMAGE_DOUBLE_EXPONENT, DAMAGE_EQUAL_STR
 from unit_template import UnitTemplate, UnitTag
 from unit_templates_list import UNITS
 from utils import generate_unique_id
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 if TYPE_CHECKING:
     from game_state import GameState
@@ -136,7 +139,7 @@ class Unit(MapObject):
             if self.template.range <= 3:
                 hexes_to_check = self.hex.get_hexes_within_range(game_state.hexes, self.template.range)
             else:
-                print(f"Unit {self} has long range ({self.template.range}), this is computationally expensive!")
+                logger.info(f"Unit {self} has long range ({self.template.range}), this is computationally expensive!")
                 hexes_to_check = self.hex.get_hexes_within_range_expensive(game_state.hexes, self.template.range)
 
             best_target = self.get_best_target(hexes_to_check)
@@ -283,13 +286,9 @@ class Unit(MapObject):
         }, hexes_must_be_visible=[self_hex, target_hex], no_commit=True)
 
         if self.has_ability('Missile'):
-            print(f"Missile depleting")
-            print(self.health)
             self.take_damage(100, game_state, from_civ=None)
-            print(self.health)
             # Only one attack from a stack of missiles per turn
             self.attacks_used += 1000
-            print(self.health, self.attacks_used)
 
     def remove_from_game(self, game_state: 'GameState') -> None:       
         self.hex.units = [unit for unit in self.hex.units if unit.id != self.id]

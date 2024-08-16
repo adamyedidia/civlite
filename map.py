@@ -5,6 +5,9 @@ from terrain_templates_list import TERRAINS
 from hex import Hex
 from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA_MIN, PER_PLAYER_AREA_MAX, GOOD_HEX_PROBABILITY
 from utils import coords_str, get_all_coords_up_to_n
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 def infer_map_size_from_num_players(num_players: int) -> int:
     for map_size in range(100):
@@ -33,7 +36,7 @@ def create_hex_map(num_players: int) -> dict[str, Hex]:
     total_hexes = map_size * (map_size - 1) * 3 + 1
     target_hexes = random.randint(num_players * PER_PLAYER_AREA_MIN, num_players * PER_PLAYER_AREA_MAX)
     excess_hexes = total_hexes - target_hexes
-    print(f"Creating map with {target_hexes} land hexes by making a map of size {map_size} ({total_hexes} hexes) and removing {excess_hexes} excess hexes")
+    logger.info(f"Creating map with {target_hexes} land hexes by making a map of size {map_size} ({total_hexes} hexes) and removing {excess_hexes} excess hexes")
     return _create_hex_map(map_size, num_ocean_bites=excess_hexes)
 
 def _create_hex_map(map_size: int, num_ocean_bites: int) -> dict[str, Hex]:

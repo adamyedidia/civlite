@@ -8,6 +8,9 @@ from terrain_templates_list import TERRAINS
 from unit_templates_list import UNITS
 from effect import CityTargetEffect
 from unit_template import UnitTemplate
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 import inflect
 p = inflect.engine()
@@ -318,7 +321,7 @@ class GreatWallEffect(CityTargetEffect):
                     if STRICT_MODE:
                         raise ValueError(f"Failed to build garrison on {hex.q}, {hex.r}, {hex.s}")
                     else: 
-                        print(f"Failed to build garrison on {hex.q}, {hex.r}, {hex.s}")
+                        logger.warning(f"Failed to build garrison on {hex.q}, {hex.r}, {hex.s}")
             elif len(built_hexes) > 0:
                 hex = min(built_hexes, key=lambda h: (h.units[0].get_stack_size(), random.random()))
                 unit = hex.units[0]
