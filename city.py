@@ -882,6 +882,14 @@ class City(MapObjectSpawner):
         # Call change_owner to do the cleanup on the previous civ ownership
         self.change_owner(game_state.barbarians, game_state)
 
+        # Any great people choices in this city are now invalid
+        for level, city_id in self.civ._great_people_choices_queue.copy():
+            if city_id == self.id:
+                self.civ._great_people_choices_queue.remove((level, city_id))
+        if self.civ._great_people_choices_city_id == self.id:
+            self.civ._great_people_choices_city_id = None
+            self.civ.great_people_choices = []
+
         best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level(), random.random()))
 
         assert self.hex.city is not None

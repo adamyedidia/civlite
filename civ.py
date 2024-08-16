@@ -530,6 +530,7 @@ class Civ:
         if STRICT_MODE:
             assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
         assert self._great_people_choices_city_id is not None
+        assert self._great_people_choices_city_id in game_state.cities_by_id, f"Chose a great person in a nonexistent city id: {self._great_people_choices_city_id}"
         city = game_state.cities_by_id[self._great_people_choices_city_id]
         great_person: GreatPerson = great_people_by_name[great_person_name]
         great_person.apply(city=city, civ=self, game_state=game_state)
