@@ -368,8 +368,14 @@ class Civ:
             un_owner_civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in un_owner_ids]
             target1_coords = un_owner_civs[0].target1_coords
             target2_coords = un_owner_civs[1].target2_coords
-            game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': target1_coords}, civ=self)
-            game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': target2_coords}, civ=self)
+            if target1_coords is not None:
+                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': target1_coords}, civ=self)
+            else:
+                game_state.resolve_move(MoveType.REMOVE_CIV_PRIMARY_TARGET, {}, civ=self)
+            if target2_coords is not None:
+                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': target2_coords}, civ=self)
+            else:
+                game_state.resolve_move(MoveType.REMOVE_CIV_SECONDARY_TARGET, {}, civ=self)
         elif random.random() < AI.CHANCE_MOVE_FLAG or self.target1 is None or self.target2 is None or \
             (self.target1.city is not None and self.target1.city.civ == self) or (self.target2.city is not None and self.target2.city.civ == self):
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
