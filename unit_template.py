@@ -6,6 +6,8 @@ from tech_templates_list import TECHS
 from tech_template import TechTemplate
 from enum import Enum
 
+from utils import deterministic_hash
+
 class UnitTag(Enum):
     INFANTRY = "infantry"
     RANGED = "ranged"  # target doesn't punch back
@@ -42,7 +44,7 @@ class UnitTemplate:
         return self.name == other.name
 
     def __hash__(self) -> int:
-        return hash(self.name)
+        return deterministic_hash(self.name)
 
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"

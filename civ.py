@@ -260,11 +260,11 @@ class Civ:
 
     def bot_predecline_moves(self, game_state: 'GameState') -> None:
         all_cities = self.get_my_cities(game_state)
-        all_develops: set[tuple[BuildingType, City]] = {(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)}
+        all_develops: list[tuple[BuildingType, City]] = [(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)]
         while all_develops:
-            type, city = min(all_develops, key=lambda x: x[1].develop_cost(x[0]))
+            type, city = min(all_develops, key=lambda x: (x[1].develop_cost(x[0]), random.random()))
             city.bot_single_move(game_state, MoveType.DEVELOP, {'type': type.value})
-            all_develops = {(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)}
+            all_develops = [(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)]
         self.bot_found_cities(game_state)
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:

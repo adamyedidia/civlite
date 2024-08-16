@@ -2,6 +2,7 @@
 from ability import Ability
 from effects_list import BuildUnitsEffect
 from effect import CityTargetEffect
+from utils import deterministic_hash
 from yields import YieldsCalculation
 
 class WonderTemplate:
@@ -28,7 +29,7 @@ class WonderTemplate:
         return (-self.age, self.name) < (-other.age, other.name)
     
     def __hash__(self) -> int:
-        return hash(self.name)
+        return deterministic_hash(self.name)
     
     def description(self) -> list[str]:
         if self._override_description is not None:

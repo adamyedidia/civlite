@@ -19,7 +19,7 @@ from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from wonder_template import WonderTemplate
 from civ_templates_list import CIVS
-from utils import generate_unique_id
+from utils import deterministic_hash, generate_unique_id
 import random
 from city_names import CITY_NAMES_BY_CIV
 from yields import Yields
@@ -86,7 +86,7 @@ class City(MapObjectSpawner):
         return f"<City {self.name} @ {self.hex.coords if self._hex else None}>"
     
     def __hash__(self):
-        return hash(self.id)
+        return deterministic_hash(self.id)
 
     def has_building(self, template: BuildingTemplate | UnitTemplate | WonderTemplate) -> bool:
         if isinstance(template, UnitTemplate):
@@ -563,10 +563,11 @@ class City(MapObjectSpawner):
         max_units = max(build_dict.values()) if len(build_dict) > 0 else 0
         # Interleave them for better diversity
         for i in range(max_units):
-            for bldg, target_num in build_dict.items():
+            for bldg, target_num in sorted(build_dict.items(), key=lambda x: (x[1], random.random())):  # sort just for determinism.
                 if i < target_num:
-                    print(f"{self.name} building {bldg.template.name} {i}/{target_num}, has {bldg.metal}")
-                    if self.build_unit(game_state, bldg.template) is not None:
+                    print(f"{self.name}@{self.hex.coords} building {bldg.template.name} {i}/{target_num}, has {bldg.metal}")
+                    unit = self.build_unit(game_state, bldg.template) 
+                    if unit is not None:
                         bldg.metal -= bldg.template.metal_cost
 
     def sight_range(self, short_sighted: bool) -> int:
@@ -1102,7 +1103,7 @@ class City(MapObjectSpawner):
             parent = self.get_territory_parent(game_state)
             production_city: City = self if parent is None else parent
 
-            plausible_focuses = {"food", "wood", "metal", "science"}
+            plausible_focuses = ["food", "wood", "metal", "science"]
             if self.growth_cost() >= 30:
                 # At some point it's time to use our pop
                 plausible_focuses.remove('food')
@@ -1118,7 +1119,7 @@ class City(MapObjectSpawner):
             elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) < production_city.urban_slots and parent_wants_wood:
                 choice = 'wood'
             else:
-                choice = random.choice(list(focuses_with_best_yields))
+                choice = random.choice(focuses_with_best_yields)
             print(f"  chose focus: {choice} (max yield choices were {focuses_with_best_yields})")
 
         self.bot_single_move(game_state, MoveType.CHOOSE_FOCUS, {'focus': choice})
