@@ -5,6 +5,7 @@ from collections import defaultdict
 import inflect
 from typing import TYPE_CHECKING, Optional
 from TechStatus import TechStatus
+from building_template import BuildingType
 
 from tech_templates_list import TECHS
 from tech_template import TechTemplate
@@ -128,7 +129,14 @@ class GreatEngineer(GreatPerson):
         city.wood += self.extra_wood
 
     def valid_for_city(self, city: City, civ: Civ) -> bool:
-        return city.civ == civ and not city.has_building(self.unit_template)
+        if city.civ != civ:
+            return False
+        if city.has_building(self.unit_template):
+            return False
+        if city.military_slots <= city.num_buildings_of_type(BuildingType.UNIT):
+            if all(unit.template.advancement_level() >= self.unit_template.advancement_level() for unit in city.unit_buildings):
+                return False
+        return True
 
 _great_people_by_age: dict[int, list[GreatPerson]] = defaultdict(list)
 
