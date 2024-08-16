@@ -5,3 +5,5 @@ node_modules/
 app.log*
 */__pycache__/*
 plots/
+scripts/errors/
+scripts/output/
