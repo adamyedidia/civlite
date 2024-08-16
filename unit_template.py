@@ -38,6 +38,12 @@ class UnitTemplate:
         if self.range > 1:
             assert self.has_tag(UnitTag.RANGED), f"Ranged unit {self.name} has range {self.range} but does not have the RANGED tag."
 
+    def __eq__(self, other: "UnitTemplate") -> bool:
+        return self.name == other.name
+
+    def __hash__(self) -> int:
+        return hash(self.name)
+
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"
 

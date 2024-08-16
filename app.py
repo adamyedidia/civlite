@@ -11,13 +11,12 @@ from flask_socketio import SocketIO, join_room, leave_room
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from animation_frame import AnimationFrame
-from civ import create_starting_civ_options_for_players
 from civ_templates_list import CIVS
 from database import SessionLocal
 from game import Game, TimerStatus
 from game_player import GamePlayer
 from game_state import GameState, make_game_statistics_plots
-from map import create_hex_map, generate_starting_locations, infer_map_size_from_num_players
+from new_game_state import new_game_state
 from player import Player
 from utils import dream_key, dream_key_from_civ_perspectives, generate_unique_id, moves_processing_key
 
@@ -280,55 +279,9 @@ def _launch_game_inner(sess, game: Game) -> None:
         .all()
     )
 
-    num_players = len(players)
-
-    hexes = create_hex_map(num_players)
-
-    game_state = GameState(game_id, hexes)
-
-    assert num_players <= MAX_PLAYERS
-
-    starting_locations = generate_starting_locations(hexes, 3 * num_players)
-
     game_players = [GamePlayer(player_num=player.player_num, username=player.user.username, is_bot=player.is_bot, vitality_multiplier=player.vitality_multiplier) for player in players]
 
-    starting_civ_options_for_players = create_starting_civ_options_for_players(game_players, starting_locations)
-
-    starting_civs_for_players = {}
-
-    game_state.game_player_by_player_num = {game_player.player_num: game_player for game_player in game_players}
-
-    game_state.initialize_wonders()
-
-    for player_num, civ_options_tups in starting_civ_options_for_players.items():
-        game_player = game_state.game_player_by_player_num[player_num]
-        if game_player.is_bot:
-            civ_option_tup = civ_options_tups[0]
-            civ, starting_location = civ_option_tup
-            starting_city = game_state.new_city(civ, starting_location)
-            game_state.register_city(starting_city)
-            starting_city.capitalize(game_state)
-
-            game_state.civs_by_id[civ.id] = civ
-            civ.vitality = STARTING_CIV_VITALITY * game_player.vitality_multiplier
-            starting_civs_for_players[player_num] = [civ]
-            game_player.civ_id = civ.id
-            game_player.all_civ_ids.append(civ.id)
-
-        else:
-            starting_civs_for_players[player_num] = []
-            for civ_options_tup in civ_options_tups:
-                civ, starting_location = civ_options_tup
-                starting_civs_for_players[player_num].append(civ)
-                starting_city = game_state.new_city(civ, starting_location)
-                game_state.register_city(starting_city)
-                game_state.civs_by_id[civ.id] = civ
-                civ.vitality = STARTING_CIV_VITALITY * game_player.vitality_multiplier
-
-    game_state.special_mode_by_player_num = {game_player.player_num: 'starting_location' if not game_player.is_bot else None for game_player in game_players}
-
-    game_state.midturn_update()
-    game_state.refresh_visibility_by_civ(short_sighted=True)
+    game_state, starting_civs_for_players = new_game_state(game_id, game_players)
 
     animation_frame = AnimationFrame(
         game_id=game_id,

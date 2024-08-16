@@ -264,6 +264,7 @@ class GameState:
         self.fresh_cities_for_decline: dict[str, City] = {}
         self.unhappiness_threshold: float = 0.0
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
+        self.no_db = False  # For headless games in scripts
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -845,8 +846,6 @@ class GameState:
         sess.commit()
 
         print("GameState.end_turn(): Creating StartOfNewTurn AnimationFrame")
-        self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
-
         self.add_animation_frame(sess, {
             "type": "StartOfNewTurn",
         })
@@ -872,8 +871,9 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
-        print("precommit")
-        sess.commit()
+        if not self.no_db:
+            print("precommit")
+            sess.commit()
 
         print("moving units 1")
         units_copy = self.units[:]
@@ -883,8 +883,9 @@ class GameState:
                 unit.move(sess, self)
                 unit.attack(sess, self)
 
-        print("moving units 1: commit")
-        sess.commit()
+        if not self.no_db:
+            print("moving units 1: commit")
+            sess.commit()
 
         print("moving units 2")
         random.shuffle(units_copy)
@@ -893,8 +894,9 @@ class GameState:
                 unit.move(sess, self, sensitive=True)
                 unit.attack(sess, self)
 
-        print("moving units 2: commit")
-        sess.commit()
+        if not self.no_db:
+            print("moving units 2: commit")
+            sess.commit()
 
         print("Merging units")
         # New units could have appeared in self.units due to splits
@@ -941,6 +943,8 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
+        print("Checking for game over")
+        print([game_player.score for game_player in self.game_player_by_player_num.values()], self.game_end_score())
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= self.game_end_score():
                 self.game_over = True
@@ -949,8 +953,12 @@ class GameState:
         self.handle_decline_options()
         for city in self.fresh_cities_for_decline.values():
             city.roll_turn_post_harvest(sess, self, fake=True)
+        for city in self.cities_by_id.values():
+            city.already_harvested_this_turn = False
 
         self.midturn_update()
+        
+        self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
@@ -1110,6 +1118,7 @@ class GameState:
             self.highest_existing_frame_num_by_civ_id['none'] += 1
 
     def add_animation_frame(self, sess, data: dict[str, Any], hexes_must_be_visible: Optional[list[Hex]] = None, no_commit: bool = True) -> None:
+        if self.no_db: return
         self.add_animation_frame_for_civ(sess, data, None, no_commit=True)
 
         for civ in self.civs_by_id.values():
