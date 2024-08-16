@@ -174,9 +174,12 @@ class City(MapObjectSpawner):
     def is_fake_city(self) -> bool:
         return self.hex.city != self
 
-    def puppet_distance_penalty(self) -> float:
+    def _puppet_penalty_per_distance(self) -> float:
         bldg_factors = [ability.numbers[0] for ability, _ in self.passive_building_abilities_of_name('ReducePuppetDistancePenalty')]
         return min([.1] + bldg_factors)
+    
+    def puppet_distance_penalty(self, distance: int) -> float:
+        return max(0.1, 1 - self._puppet_penalty_per_distance() * distance)
 
     def unit_building_from_template(self, template: UnitTemplate):
         for bldg in self.unit_buildings:
@@ -274,9 +277,9 @@ class City(MapObjectSpawner):
         parent: City | None = self.get_territory_parent(game_state)
         if parent:
             distance: int = self.hex.distance_to(parent.hex)
-            distance_penalty: float = parent.puppet_distance_penalty() * distance
-            parent.projected_income_puppets['wood'][self.name] = (self.projected_income.wood * (1 - distance_penalty), distance)
-            parent.projected_income_puppets['metal'][self.name] = (self.projected_income.metal * (1 - distance_penalty), distance)
+            distance_penalty: float = parent.puppet_distance_penalty(distance)
+            parent.projected_income_puppets['wood'][self.name] = (self.projected_income.wood * distance_penalty, distance)
+            parent.projected_income_puppets['metal'][self.name] = (self.projected_income.metal * distance_penalty, distance)
             parent.adjust_projected_yields(game_state)
         else:
             self.projected_income += {key: sum(amnt for amnt, distance in puppet_vals.values()) for key, puppet_vals in self.projected_income_puppets.items()}
@@ -514,7 +517,7 @@ class City(MapObjectSpawner):
                 if ability.name == "ReducePuppetDistancePenalty":
                     building_yields += {
                         resource: sum(
-                            amount / (1 - self.puppet_distance_penalty() * distance) * (self.puppet_distance_penalty() - ability.numbers[0]) * distance
+                            amount / self.puppet_distance_penalty(distance) * (self._puppet_penalty_per_distance() - ability.numbers[0]) * distance
                             for amount, distance in puppet_infos.values()
                         )
                         for resource, puppet_infos in self.projected_income_puppets.items()}
