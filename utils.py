@@ -1,5 +1,6 @@
 import secrets
 import hashlib
+import random
 
 def coords_tuple(coords_str: str) -> tuple[int, int, int]:
     coords = coords_str.split(",")
@@ -11,7 +12,7 @@ def coords_str(coords: tuple[int, int, int]) -> str:
 
 
 def generate_unique_id() -> str:
-    return secrets.token_hex(10)
+    return ''.join(random.choices('0123456789abcdef', k=10))
 
 
 def get_all_coords_up_to_n(n) -> list[tuple[int, int, int]]:
