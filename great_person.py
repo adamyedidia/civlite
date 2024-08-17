@@ -156,7 +156,7 @@ def _target_value_by_age(age: int) -> int:
     }[age]
 
 merchant_names = {
-    "metal": ["Beowulf", "Darius I", "Colaeus", "Ned Stark", "Catherine de Medici", "Benjamin Franklin", "Otto von Bismark", "Franklin Delano Roosevelt", "Vladimir Putin", "Nick Fury"],
+    "metal": ["Beowulf", "Darius I", "Colaeus", "Ned Stark", "Catherine de Medici", "Benjamin Franklin", "Otto von Bismark", "Franklin Delano Roosevelt", "Mao Zedong", "Nick Fury"],
     "wood": ["Gilgamesh", "Nebuchadnezzar II", "Marcus Licinius Crassus", "Tyrion Lannister", "Leonardo da Vinci", "Gustave Eiffel", "Andrew Carnegie", "Robert Moses", "Steve Jobs", "Hari Seldon"],
     "food": ["Moses", "Siddhartha", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "Cyrus McCormick", "Queen Victoria", "Gandhi", "Donald Henderson", "Jean-Luc Picard"],
     "science": ["Prometheus", "Confucius", "Archimedes", "Copernicus", "Francis Bacon", "Charles Darwin", "Albert Einstein", "John von Neumann", "Ada Lovelace", "Dr Emmett Brown"],
@@ -166,6 +166,7 @@ scientist_names = {
     'Archery': 'Artemis',
     'Bronze Working': 'Hephaestus',
     'Pottery': 'The Potter of Mohenjo-Daro',
+    'Fishing': 'Maui',
     # 'Code of Laws': 'Hammurabi',
     'The Wheel': 'Daedalus',
     'Mining': 'Thoth',

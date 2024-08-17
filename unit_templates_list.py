@@ -399,6 +399,7 @@ class UNITS():
         }],
         great_people_names={
             "engineer": "Richard Gatling",
+            "general_advanced": "Suleiman I",
             "general_normal": "Ulysses S. Grant",
             "general_horde": "Theodore Roosevelt"
         },
@@ -421,6 +422,8 @@ class UNITS():
         great_people_names={
             "engineer": "Henry Shrapnel",
             "general_advanced": "Oliver Cromwell",
+            "general_normal": "Paul von Hindenburg",
+            "general_horde": "Woodrow Wilson",
         },
     )
     INFANTRY = UnitTemplate(
@@ -458,6 +461,7 @@ class UNITS():
             "engineer": "Ernest Swinton",
             "general_normal": "Erwin Rommel",
             "general_advanced": "George Patton",
+            "general_horde": "Vladimir Putin",
         },
     )
     MACHINE_GUN = UnitTemplate(
@@ -476,7 +480,7 @@ class UNITS():
             "numbers": [UnitTag.INFANTRY.value],
         }],
         great_people_names={
-            "engineer": "Woodrow Wilson",
+            "engineer": "Uzi Gal",
             "general_normal": "John J. Pershing",
             "general_advanced": "Benito Mussolini",
         }
@@ -558,6 +562,7 @@ class UNITS():
         }],
         great_people_names={
             "engineer": "Ray Kurzweil",
+            "general_advanced": "Lex Luther",
             "general_normal": "Ender Wiggin",  # Doesn't really fit but he's a good character.
         }
     )
