@@ -279,6 +279,7 @@ class UNITS():
         }],
         great_people_names={
             "engineer": "Saladin",
+            "general_normal": "El Cid",
             "general_advanced": "Richard the Lionheart",
             "general_horde": "Tokugawa Ieyasu",
         },
@@ -338,7 +339,6 @@ class UNITS():
         great_people_names={
             "general_advanced": "Odo of France",
             "general_normal": "William Wallace",
-            "general_horde": "El Cid",
         },
     )
     CAVALRY = UnitTemplate(
