@@ -6,6 +6,8 @@ from tech_templates_list import TECHS
 from tech_template import TechTemplate
 from enum import Enum
 
+from utils import deterministic_hash
+
 class UnitTag(Enum):
     INFANTRY = "infantry"
     RANGED = "ranged"  # target doesn't punch back
@@ -37,6 +39,12 @@ class UnitTemplate:
 
         if self.range > 1:
             assert self.has_tag(UnitTag.RANGED), f"Ranged unit {self.name} has range {self.range} but does not have the RANGED tag."
+
+    def __eq__(self, other: "UnitTemplate") -> bool:
+        return self.name == other.name
+
+    def __hash__(self) -> int:
+        return deterministic_hash(self.name)
 
     def __repr__(self):
         return f"<UnitTemplate {self.name}>"

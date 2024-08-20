@@ -1,4 +1,6 @@
 from typing import List, TYPE_CHECKING
+
+from utils import deterministic_hash
 if TYPE_CHECKING:
     from unit_template import UnitTemplate
     from building_template import BuildingTemplate
@@ -22,7 +24,7 @@ class TechTemplate:
         return self.name == __value.name
 
     def __hash__(self) -> int:
-        return hash(self.name)
+        return deterministic_hash(self.name)
 
     def to_json(self) -> dict:
         return {

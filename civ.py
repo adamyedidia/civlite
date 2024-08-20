@@ -20,6 +20,9 @@ from building_templates_list import BUILDINGS
 from tech_templates_list import TECHS
 
 import random
+from logging import getLogger
+
+logger = getLogger(__name__)
 
 from yields import Yields
 
@@ -144,7 +147,7 @@ class Civ:
         return None
 
     def get_new_tech_choices(self):
-        print(f"getting new techs for {self.moniker()}.")
+        logger.info(f"getting new techs for {self.moniker()}.")
         max_advancement_level = max(1, self.get_advancement_level())
 
         characteristic_tech_offered = False
@@ -260,11 +263,11 @@ class Civ:
 
     def bot_predecline_moves(self, game_state: 'GameState') -> None:
         all_cities = self.get_my_cities(game_state)
-        all_develops: set[tuple[BuildingType, City]] = {(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)}
+        all_develops: list[tuple[BuildingType, City]] = [(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)]
         while all_develops:
-            type, city = min(all_develops, key=lambda x: x[1].develop_cost(x[0]))
+            type, city = min(all_develops, key=lambda x: (x[1].develop_cost(x[0]), random.random()))
             city.bot_single_move(game_state, MoveType.DEVELOP, {'type': type.value})
-            all_develops = {(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)}
+            all_develops = [(type, city) for city in all_cities for type in BuildingType if city.can_develop(type)]
         self.bot_found_cities(game_state)
 
     def bot_decide_decline(self, game_state: 'GameState') -> str | None:
@@ -273,17 +276,17 @@ class Civ:
         """
         # Don't decline if I'm sieging a city
         if any([city.under_siege_by_civ == self for city in game_state.cities_by_id.values()]):
-            print(f"{self.moniker()} deciding not to decline because I'm seiging a city.")
+            logger.info(f"{self.moniker()} deciding not to decline because I'm seiging a city.")
             return None
 
         # Don't decline if I'm sieging a camp
         if any([camp.under_siege_by_civ == self for camp in game_state.camps]):
-            print(f"{self.moniker()} deciding not to decline because I'm seiging a camp.")
+            logger.info(f"{self.moniker()} deciding not to decline because I'm seiging a camp.")
             return None
 
         # Don't decline within 2 turns of finishing renaissance
         if self.projected_science_income > 0 and self.techs_status[TECHS.RENAISSANCE] == TechStatus.RESEARCHING and (self.renaissance_cost() - self.science) / self.projected_science_income <= 2:
-            print(f"{self.moniker()} deciding not to decline because I'm almost done with a renaissance.")
+            logger.info(f"{self.moniker()} deciding not to decline because I'm almost done with a renaissance.")
 
         # Don't decline if I have above average army size.
         all_army_sizes: dict[str, float] = defaultdict(float)
@@ -296,7 +299,7 @@ class Civ:
         my_rank: int = sum(active_army_sizes[self.id] <= other for other in active_army_sizes.values())
         total_players: int = len(game_state.game_player_by_player_num)
         if my_rank <= total_players / 2:
-            print(f"{self.moniker()} deciding not to decline because I'm rank {my_rank} of {total_players}")
+            logger.info(f"{self.moniker()} deciding not to decline because I'm rank {my_rank} of {total_players}")
             return None
         
         # Don't decline if it would let someone else win
@@ -304,7 +307,7 @@ class Civ:
         other_players = [player for player in game_state.game_player_by_player_num.values() if player.player_num != self.game_player.player_num]
         max_player_score = max(other_players, key=lambda player: player.score).score
         if game_state.game_end_score() - max_player_score < 25:
-                print(f"{self.moniker()} deciding not to decline because opponent would win.")
+                logger.info(f"{self.moniker()} deciding not to decline because opponent would win.")
                 return None
 
         my_cities: list[City] = self.get_my_cities(game_state)
@@ -330,15 +333,15 @@ class Civ:
             option_total_yields[coords] += (AI.RURAL_SLOT_VALUE * city.rural_slots + city.population * city.urban_slots) * city.revolting_starting_vitality
 
         if len(option_total_yields) == 0:
-            print(f"{self.moniker()} deciding not to decline because there are no options.")
+            logger.info(f"{self.moniker()} deciding not to decline because there are no options.")
             return None
         best_option_yields, best_option = max((yields, coords) for coords, yields in option_total_yields.items())
-        print(f"{self.moniker()} deciding whether to revolt. My yields are: {my_total_yields}; options have: {option_total_yields}")
+        logger.info(f"{self.moniker()} deciding whether to revolt. My yields are: {my_total_yields}; options have: {option_total_yields}")
         if best_option_yields <= my_total_yields * AI.DECLINE_YIELD_RATIO_THRESHOLD:
-            print(f"{self.moniker()} deciding not to decline because I have {my_total_yields} and the best option has {best_option_yields}")
+            logger.info(f"{self.moniker()} deciding not to decline because I have {my_total_yields} and the best option has {best_option_yields}")
             return None
 
-        print(f"{self.moniker()} deciding to decline at {best_option} because I have {my_total_yields} and the best option has {best_option_yields}")     
+        logger.info(f"{self.moniker()} deciding to decline at {best_option} because I have {my_total_yields} and the best option has {best_option_yields}")     
         return best_option
 
     def bot_move(self, game_state: 'GameState') -> None:
@@ -368,8 +371,14 @@ class Civ:
             un_owner_civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in un_owner_ids]
             target1_coords = un_owner_civs[0].target1_coords
             target2_coords = un_owner_civs[1].target2_coords
-            game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': target1_coords}, civ=self)
-            game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': target2_coords}, civ=self)
+            if target1_coords is not None:
+                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': target1_coords}, civ=self)
+            else:
+                game_state.resolve_move(MoveType.REMOVE_CIV_PRIMARY_TARGET, {}, civ=self)
+            if target2_coords is not None:
+                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': target2_coords}, civ=self)
+            else:
+                game_state.resolve_move(MoveType.REMOVE_CIV_SECONDARY_TARGET, {}, civ=self)
         elif random.random() < AI.CHANCE_MOVE_FLAG or self.target1 is None or self.target2 is None or \
             (self.target1.city is not None and self.target1.city.civ == self) or (self.target2.city is not None and self.target2.city.civ == self):
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
@@ -400,11 +409,11 @@ class Civ:
                     # Pick randomly, avoiding renaissance if possibhle.
                     chosen_tech = sorted(available_techs, key=lambda t: (t == TECHS.RENAISSANCE, random.random()))[0]
                 else:
-                    print(f"{self.moniker()} has no available techs")
+                    logger.info(f"{self.moniker()} has no available techs")
                     chosen_tech = None
             if chosen_tech is not None:
                 game_state.resolve_move(MoveType.CHOOSE_TECH, {'tech_name': chosen_tech.name}, civ=self)
-                print(f"  {self.moniker()} chose tech {chosen_tech} from {available_techs}")
+                logger.info(f"  {self.moniker()} chose tech {chosen_tech} from {available_techs}")
 
         self.bot_found_cities(game_state)
 
@@ -440,7 +449,7 @@ class Civ:
                 self.techs_status[other_tech] = TechStatus.DISCARDED
 
         if tech == TECHS.RENAISSANCE:
-            print(f"Renaissance for civ {self.moniker()}")
+            logger.info(f"Renaissance for civ {self.moniker()}")
             game_state.add_announcement(f"The <civ id={self.id}>{self.moniker()}</civ> have completed a Renaissance.")
             cost: float = self.renaissance_cost()
             self.science -= cost
@@ -518,12 +527,13 @@ class Civ:
             random.shuffle(valid_great_people)
             self.great_people_choices = valid_great_people[:3]
             self._great_people_choices_city_id = city_id
-            print(f"Civ {self.moniker()} earned a great person. Chose {self.great_people_choices} from valid options: {valid_great_people}")
+            logger.info(f"Civ {self.moniker()} earned a great person. Chose {self.great_people_choices} from valid options: {valid_great_people}")
 
     def select_great_person(self, game_state: 'GameState', great_person_name):
         if STRICT_MODE:
             assert great_person_name in [great_person.name for great_person in self.great_people_choices], f"{great_person_name, self.great_people_choices}"
         assert self._great_people_choices_city_id is not None
+        assert self._great_people_choices_city_id in game_state.cities_by_id, f"Chose a great person in a nonexistent city id: {self._great_people_choices_city_id}"
         city = game_state.cities_by_id[self._great_people_choices_city_id]
         great_person: GreatPerson = great_people_by_name[great_person_name]
         great_person.apply(city=city, civ=self, game_state=game_state)

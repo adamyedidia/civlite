@@ -1,3 +1,4 @@
+from utils import deterministic_hash
 from yields import Yields
 
 
@@ -9,7 +10,7 @@ class TerrainTemplate:
         self.frequency = frequency
 
     def __hash__(self):
-        return hash(self.name)
+        return deterministic_hash(self.name)
 
     def __eq__(self, other):
         return self.name == other.name

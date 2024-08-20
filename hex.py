@@ -4,7 +4,7 @@ from civ import Civ
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
 from unit import Unit
-from utils import coords_str
+from utils import coords_str, deterministic_hash
 from yields import Yields
 from city import City
 
@@ -32,6 +32,9 @@ class Hex:
 
     def __repr__(self):
         return f"<Hex {self.coords}>"
+    
+    def __hash__(self):
+        return deterministic_hash(self.coords)
 
     def distance_to(self, other: "Hex") -> int:
         return max(abs(self.q - other.q), abs(self.r - other.r), abs(self.s - other.s))

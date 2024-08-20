@@ -5,6 +5,7 @@ from collections import defaultdict
 import inflect
 from typing import TYPE_CHECKING, Optional
 from TechStatus import TechStatus
+from building_template import BuildingType
 
 from tech_templates_list import TECHS
 from tech_template import TechTemplate
@@ -128,7 +129,14 @@ class GreatEngineer(GreatPerson):
         city.wood += self.extra_wood
 
     def valid_for_city(self, city: City, civ: Civ) -> bool:
-        return city.civ == civ and not city.has_building(self.unit_template)
+        if city.civ != civ:
+            return False
+        if city.has_building(self.unit_template):
+            return False
+        if city.military_slots <= city.num_buildings_of_type(BuildingType.UNIT):
+            if all(unit.template.advancement_level() >= self.unit_template.advancement_level() for unit in city.unit_buildings):
+                return False
+        return True
 
 _great_people_by_age: dict[int, list[GreatPerson]] = defaultdict(list)
 
@@ -148,7 +156,7 @@ def _target_value_by_age(age: int) -> int:
     }[age]
 
 merchant_names = {
-    "metal": ["Beowulf", "Darius I", "Colaeus", "Ned Stark", "Catherine de Medici", "Benjamin Franklin", "Otto von Bismark", "Franklin Delano Roosevelt", "Vladimir Putin", "Nick Fury"],
+    "metal": ["Beowulf", "Darius I", "Colaeus", "Ned Stark", "Catherine de Medici", "Benjamin Franklin", "Otto von Bismark", "Franklin Delano Roosevelt", "Mao Zedong", "Nick Fury"],
     "wood": ["Gilgamesh", "Nebuchadnezzar II", "Marcus Licinius Crassus", "Tyrion Lannister", "Leonardo da Vinci", "Gustave Eiffel", "Andrew Carnegie", "Robert Moses", "Steve Jobs", "Hari Seldon"],
     "food": ["Moses", "Siddhartha", "Zhang Qian", "Harald Bluetooth", "Marco Polo", "Cyrus McCormick", "Queen Victoria", "Gandhi", "Donald Henderson", "Jean-Luc Picard"],
     "science": ["Prometheus", "Confucius", "Archimedes", "Copernicus", "Francis Bacon", "Charles Darwin", "Albert Einstein", "John von Neumann", "Ada Lovelace", "Dr Emmett Brown"],
@@ -158,6 +166,7 @@ scientist_names = {
     'Archery': 'Artemis',
     'Bronze Working': 'Hephaestus',
     'Pottery': 'The Potter of Mohenjo-Daro',
+    'Fishing': 'Maui',
     # 'Code of Laws': 'Hammurabi',
     'The Wheel': 'Daedalus',
     'Mining': 'Thoth',

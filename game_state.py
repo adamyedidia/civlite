@@ -32,6 +32,8 @@ from sqlalchemy import and_, func
 from animation_frame import AnimationFrame
 
 from collections import defaultdict
+from logging import getLogger
+logger = getLogger(__name__)
 
 
 SURVIVAL_SCORE_LABEL = f"Survival"
@@ -264,6 +266,7 @@ class GameState:
         self.fresh_cities_for_decline: dict[str, City] = {}
         self.unhappiness_threshold: float = 0.0
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
+        self.no_db = False  # For headless games in scripts
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -320,9 +323,9 @@ class GameState:
     def initialize_wonders(self):
         assert len(self.game_player_by_player_num) > 0, "Cannot initialize wonders without players"
         wonders_per_age: int = WONDER_COUNT_FOR_PLAYER_NUM[len(self.game_player_by_player_num)]
-        print(f"For {len(self.game_player_by_player_num)} players, sampling wonders to {wonders_per_age} per age.")
+        logger.info(f"For {len(self.game_player_by_player_num)} players, sampling wonders to {wonders_per_age} per age.")
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {age: self._sample_wonders_for_age(age, wonders_per_age) for age in range(0, 10)}
-        print(f"Wonders by age: {self.wonders_by_age}")
+        logger.info(f"Wonders by age: {self.wonders_by_age}")
 
     def update_wonder_cost_by_age(self) -> None:
         for age in self.wonders_by_age.keys():
@@ -358,7 +361,7 @@ class GameState:
                 other_civ.gain_vps(min(BASE_SURVIVAL_BONUS + SURVIVAL_BONUS_PER_AGE * (self.advancement_level), 24), SURVIVAL_SCORE_LABEL)
 
     def choose_techs_for_new_civ(self, city: City) -> set[TechTemplate]:
-        print("Calculating starting techs!")
+        logger.info("Calculating starting techs!")
         # Make this function deterministic across staging and rolling
         random.seed(deterministic_hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
         chosen_techs: set[TechTemplate] = set()
@@ -371,14 +374,14 @@ class GameState:
                 chosen_techs.add(prereq)
                 chosen_techs_by_advancement[prereq.advancement_level] += 1
 
-        print(f"Starting with prereqs for buildings: {chosen_techs}")
+        logger.info(f"Starting with prereqs for buildings: {chosen_techs}")
 
         # Calculate mean tech amount at each level
         civs_to_compare_to: list[Civ] = [civ for civ in self.civs_by_id.values() if civ.id in self.civ_ids_with_game_player_at_turn_start and civ != city.civ]
         if len(civs_to_compare_to) == 0:
             civs_to_compare_to = [civ for civ in self.civs_by_id.values()]
 
-        print(f"  Comparing to civs: {civs_to_compare_to}")
+        logger.info(f"  Comparing to civs: {civs_to_compare_to}")
         # Make a dict of {tech: num civs that know it} for each level
         tech_counts_by_adv_level = defaultdict(dict[TechTemplate, int])
         for tech in TECHS.all():
@@ -391,7 +394,7 @@ class GameState:
             tech_counts: dict[TechTemplate, int] = tech_counts_by_adv_level[level]
             total = sum(tech_counts.values())
             target_num = total / len(civs_to_compare_to) - excess_techs
-            print(f"Level {level}; excess {excess_techs}; target: {target_num}")
+            logger.info(f"Level {level}; excess {excess_techs}; target: {target_num}")
             if chosen_techs_by_advancement[level] > target_num:
                 excess_techs = chosen_techs_by_advancement[level] - target_num
                 continue
@@ -400,7 +403,7 @@ class GameState:
                 available = [tech for tech in tech_counts_by_adv_level[level] if tech not in chosen_techs]
                 available.sort(key=lambda tech: (tech_counts_by_adv_level[level][tech], random.random()), reverse=True)
                 choose = available[:math.floor(num_needed)]
-                print(f"  chose: {choose}")
+                logger.info(f"  chose: {choose}")
                 for tech in choose:
                     chosen_techs.add(tech)
                 excess_techs = len(choose) - num_needed
@@ -464,7 +467,7 @@ class GameState:
         civ.vitality *= game_player.vitality_multiplier
         self.make_new_civ_from_the_ashes(city)
         civ.get_great_person(self.advancement_level, city, self)
-        print(f"New civ {civ} great people choices: {civ.great_people_choices}")
+        logger.info(f"New civ {civ} great people choices: {civ.great_people_choices}")
 
         return from_civ_perspectives
 
@@ -478,14 +481,14 @@ class GameState:
         if hex.city:
             # This is not a fresh city , it's a pre-existing one.
             old_civ: Optional[Civ] = hex.city.civ
-            print(f"Declining to existing city at {coords}")
+            logger.info(f"Declining to existing city at {coords}")
             assert hex.city.civ_to_revolt_into is not None, f"Trying to revolt into a city {hex.city.name} with no city.civ_to_revolt_into"
             hex.city.change_owner(Civ(hex.city.civ_to_revolt_into, game_player=None), game_state=self)
             hex.city.civ.vandetta_civ_id = old_civ.id
         else:
             # This is a fake city, now it is becoming a real city.
             old_civ: Optional[Civ] = None
-            print(f"Declining to fresh city at {coords}")
+            logger.info(f"Declining to fresh city at {coords}")
             city = self.fresh_cities_for_decline[coords]
             self.register_city(city)
             city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
@@ -547,7 +550,7 @@ class GameState:
             return None
 
         elif move_type == MoveType.CHOOSE_DECLINE_OPTION:
-            print(f'player {game_player.player_num} is choosing a decline option')
+            logger.info(f'player {game_player.player_num} is choosing a decline option')
             if 'preempted' in move_data:
                 game_player.failed_to_decline_this_turn = True
                 return
@@ -562,7 +565,7 @@ class GameState:
             with rlock(f'decline-claimed-{self.game_id}-{self.turn_num}-lock'):
                 redis_key = f"decline-claimed-{self.game_id}-{self.turn_num}-{coords}"
                 already_claimed_by = rget(redis_key)
-                print(f"{already_claimed_by=}")
+                logger.info(f"{already_claimed_by=}")
                 proceed = False
                 if not speculative:
                     # End turn roll; there should be no collisions here.
@@ -587,7 +590,7 @@ class GameState:
 
                 else:
                     raise ValueError("There are no other logical possibilities.")
-                print(f"{proceed=}")
+                logger.info(f"{proceed=}")
                 if proceed:
                     rset(redis_key, game_player.player_num)
                     self.execute_decline(coords, game_player)
@@ -605,7 +608,7 @@ class GameState:
         Can be submitted by GamePlayer (for things like choose starting city or decline)
         or by Civ (for normal moves submitted by declined civs)
         """
-        print(f"GameState.resolve_move {self.game_id} {self.turn_num} {game_player.player_num if game_player else 'None'}: {move_type} {move_data}")
+        logger.info(f"GameState.resolve_move {self.game_id} {self.turn_num} {game_player.player_num if game_player else 'None'}: {move_type} {move_data}")
         if move_type in (MoveType.CHOOSE_STARTING_CITY, MoveType.CHOOSE_DECLINE_OPTION):
             assert game_player is not None, f"GamePlayer is required for move type {move_type}"
             return self.resolve_game_player_move(move_type, move_data, speculative, game_player)
@@ -812,7 +815,7 @@ class GameState:
                 if move['move_type'] == 'choose_decline_option' and 'preempted' not in move:
                     if (city := self.hexes[move['coords']].city):
                         city_owner_by_city_id[city.id] = player_num
-        print(f"{city_owner_by_city_id=}")
+        logger.info(f"{city_owner_by_city_id=}")
 
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = moves_by_player_num.get(player_num, [])
@@ -837,31 +840,29 @@ class GameState:
                     civ.bot_move(self)
 
     def end_turn(self, sess) -> None:
-        print(f'GameState.end_turn(): ending turn {self.turn_num}')
+        logger.info(f'GameState.end_turn(): ending turn {self.turn_num}')
 
         self.roll_turn(sess)
 
-        print("GameState.end_turn(): committing changes")
+        logger.info("GameState.end_turn(): committing changes")
         sess.commit()
 
-        print("GameState.end_turn(): Creating StartOfNewTurn AnimationFrame")
-        self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
-
+        logger.info("GameState.end_turn(): Creating StartOfNewTurn AnimationFrame")
         self.add_animation_frame(sess, {
             "type": "StartOfNewTurn",
         })
         sess.commit()
 
-        print("GameState.end_turn(): Creating decline view")
+        logger.info("GameState.end_turn(): Creating decline view")
         self.create_decline_view(sess)   
 
-        print("GameState.end_turn() complete")
+        logger.info("GameState.end_turn() complete")
 
     def game_end_score(self):
         return GAME_END_SCORE + EXTRA_GAME_END_SCORE_PER_PLAYER * len(self.game_player_by_player_num)
 
     def roll_turn(self, sess) -> None:
-        print(f"GameState incrementing turn {self.turn_num} -> {self.turn_num + 1}")
+        logger.info(f"GameState incrementing turn {self.turn_num} -> {self.turn_num + 1}")
         self.turn_num += 1
 
         self.barbarians.target1 = self.pick_random_hex()
@@ -872,10 +873,11 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
-        print("precommit")
-        sess.commit()
+        if not self.no_db:
+            logger.info("precommit")
+            sess.commit()
 
-        print("moving units 1")
+        logger.info("moving units 1")
         units_copy = self.units[:]
         random.shuffle(units_copy)
         for unit in units_copy:
@@ -883,20 +885,22 @@ class GameState:
                 unit.move(sess, self)
                 unit.attack(sess, self)
 
-        print("moving units 1: commit")
-        sess.commit()
+        if not self.no_db:
+            logger.info("moving units 1: commit")
+            sess.commit()
 
-        print("moving units 2")
+        logger.info("moving units 2")
         random.shuffle(units_copy)
         for unit in units_copy:
             if not unit.dead:
                 unit.move(sess, self, sensitive=True)
                 unit.attack(sess, self)
 
-        print("moving units 2: commit")
-        sess.commit()
+        if not self.no_db:
+            logger.info("moving units 2: commit")
+            sess.commit()
 
-        print("Merging units")
+        logger.info("Merging units")
         # New units could have appeared in self.units due to splits
         # But that's ok, they've all acted by definition, so they don't need to be in this loop
         random.shuffle(units_copy)
@@ -904,7 +908,7 @@ class GameState:
             if not unit.has_moved and unit.attacks_used == 0 and unit.friendly_neighboring_unit_count(self) >= 4 and not unit.currently_sieging():
                 unit.merge_into_neighboring_unit(sess, self)
 
-        print("Acting cities & civs")
+        logger.info("Acting cities & civs")
         cities_copy = list(self.cities_by_id.values())
         random.shuffle(cities_copy)
 
@@ -924,7 +928,7 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.roll_turn_post_harvest(sess, self)
 
-        print("Final refresh")
+        logger.info("Final refresh")
         for unit in units_copy:
             unit.turn_end(self)
 
@@ -941,6 +945,8 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
+        logger.info("Checking for game over")
+        logger.info([game_player.score for game_player in self.game_player_by_player_num.values()], self.game_end_score())
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= self.game_end_score():
                 self.game_over = True
@@ -949,8 +955,12 @@ class GameState:
         self.handle_decline_options()
         for city in self.fresh_cities_for_decline.values():
             city.roll_turn_post_harvest(sess, self, fake=True)
+        for city in self.cities_by_id.values():
+            city.already_harvested_this_turn = False
 
         self.midturn_update()
+        
+        self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
@@ -961,7 +971,7 @@ class GameState:
             self.unhappiness_threshold = revolt_choices[-1][0]
         else:
             self.unhappiness_threshold = 0
-        print(f"revolt choices: {[city.name for _, _, city in revolt_choices]}; threshold: {self.unhappiness_threshold}")
+        logger.info(f"revolt choices: {[city.name for _, _, city in revolt_choices]}; threshold: {self.unhappiness_threshold}")
         revolt_ids = set(id for _, id, _ in revolt_choices)
         for _, _, city in revolt_choices:
             if city.civ_to_revolt_into is None:
@@ -991,14 +1001,14 @@ class GameState:
             if len(decline_choice_big_civ_pool) >= n:
                 break
         result = random.sample(decline_choice_big_civ_pool, n)       
-        print(f"Sampling new civs ({n}). {advancement_level_to_use=}; \n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
+        logger.info(f"Sampling new civs ({n}). {advancement_level_to_use=}; \n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
         return result
     
     def retire_fresh_city_option(self, coords):
-        print(f"retiring option at {coords}")
+        logger.info(f"retiring option at {coords}")
         self.fresh_cities_for_decline.pop(coords)
         camp_level: int = max(0, self.advancement_level - 2)
-        print(f"Making camp at {coords} at level {camp_level}")
+        logger.info(f"Making camp at {coords} at level {camp_level}")
         self.register_camp(Camp(self.barbarians, advancement_level=camp_level, hex=self.hexes[coords]))
 
     def populate_fresh_cities_for_decline(self) -> None:
@@ -1010,7 +1020,7 @@ class GameState:
             coords: str = random.choice(list(self.fresh_cities_for_decline.keys()))
             self.retire_fresh_city_option(coords)
             new_locations_needed += 1
-        print(f"Generating {new_locations_needed} fresh cities for decline.")
+        logger.info(f"Generating {new_locations_needed} fresh cities for decline.")
         new_hexes = generate_decline_locations(self.hexes, new_locations_needed, [self.hexes[coord] for coord in self.fresh_cities_for_decline])
 
         decline_choice_civ_pool = self.sample_new_civs(new_locations_needed)
@@ -1037,7 +1047,7 @@ class GameState:
         
         for city in self.cities_by_id.values():
             if city.civ_to_revolt_into is not None:
-                print(f"decline view for city {city.name}")
+                logger.info(f"decline view for city {city.name}")
                 self.process_decline_option(city.hex.coords, from_civ_perspectives)
                 city.is_decline_view_option = True
         
@@ -1110,6 +1120,7 @@ class GameState:
             self.highest_existing_frame_num_by_civ_id['none'] += 1
 
     def add_animation_frame(self, sess, data: dict[str, Any], hexes_must_be_visible: Optional[list[Hex]] = None, no_commit: bool = True) -> None:
+        if self.no_db: return
         self.add_animation_frame_for_civ(sess, data, None, no_commit=True)
 
         for civ in self.civs_by_id.values():
