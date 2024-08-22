@@ -39,12 +39,12 @@ def create_hex_map(num_players: int) -> dict[str, Hex]:
     return _create_hex_map(map_size, num_ocean_bites=excess_hexes)
 
 def _create_hex_map(map_size: int, num_ocean_bites: int) -> dict[str, Hex]:
-    coords = get_all_coords_up_to_n(map_size + 1)
+    coords = get_all_coords_up_to_n(map_size)
 
     hexes: dict[str, Hex] = {}
 
     for q, r, s in coords:
-        if max(abs(q), abs(r), abs(s)) > map_size:
+        if max(abs(q), abs(r), abs(s)) > map_size - 1:
             terrain = TERRAINS.OCEAN
         else:
             terrain = _pick_random_terrain()
