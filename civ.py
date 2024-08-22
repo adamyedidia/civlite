@@ -190,6 +190,7 @@ class Civ:
             age = 1 + num_techs // 3
             techs_progress_towards_next_age = num_techs % 3
             needed_for_next_age = 3
+        age = min(age, 10)
         
         if not fractional:
             return age
@@ -442,6 +443,13 @@ class Civ:
         self.techs_status[tech] = TechStatus.RESEARCHED
         self.fill_out_available_buildings(game_state)
 
+        if tech != TECHS.RENAISSANCE:
+            self.gain_vps(TECH_VP_REWARD, f"Research ({TECH_VP_REWARD}/tech)")
+
+            for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
+                amount = ability.numbers[0] * tech.advancement_level
+                self.gain_vps(amount, building.building_name)
+
     def complete_research(self, tech: TechTemplate, game_state: 'GameState'):
 
         for other_tech, status in self.techs_status.items():
@@ -467,13 +475,6 @@ class Civ:
         self.techs_status[TECHS.RENAISSANCE] = TechStatus.UNAVAILABLE
 
         self.get_new_tech_choices()
-
-        if tech != TECHS.RENAISSANCE:
-            self.gain_vps(TECH_VP_REWARD, f"Research ({TECH_VP_REWARD}/tech)")
-
-            for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
-                amount = ability.numbers[0] * tech.advancement_level
-                self.gain_vps(amount, building.building_name)
 
     def roll_turn_pre_harvest(self) -> None:
         self.city_power += self.projected_city_power_income
