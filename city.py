@@ -244,7 +244,6 @@ class City(MapObjectSpawner):
             # Find the first place it's too much
             cumsum_excess = [wood_available - c for c in cumsum_cost]
             first_neg_idx = next((i for i, c in enumerate(cumsum_excess) if c < 0), len(cumsum_excess))
-            print(f"{cumsum_excess=} {first_neg_idx=}")
             self.projected_build_queue_depth = first_neg_idx
 
         unit_buildings_to_bulldoze = max(0, self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) - self.military_slots)
