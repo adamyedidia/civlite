@@ -32,8 +32,8 @@ from sqlalchemy import and_, func
 from animation_frame import AnimationFrame
 
 from collections import defaultdict
-from logging import getLogger
-logger = getLogger(__name__)
+from logging_setup import logger
+
 
 
 SURVIVAL_SCORE_LABEL = f"Survival"

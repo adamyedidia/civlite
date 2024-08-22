@@ -8,9 +8,8 @@ from terrain_templates_list import TERRAINS
 from unit_templates_list import UNITS
 from effect import CityTargetEffect
 from unit_template import UnitTemplate
-from logging import getLogger
+from logging_setup import logger
 
-logger = getLogger(__name__)
 
 import inflect
 p = inflect.engine()

@@ -20,9 +20,7 @@ from building_templates_list import BUILDINGS
 from tech_templates_list import TECHS
 
 import random
-from logging import getLogger
-
-logger = getLogger(__name__)
+from logging_setup import logger
 
 from yields import Yields
 

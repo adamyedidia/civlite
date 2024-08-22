@@ -7,9 +7,8 @@ from settings import UNIT_KILL_REWARD, DAMAGE_DOUBLE_EXPONENT, DAMAGE_EQUAL_STR
 from unit_template import UnitTemplate, UnitTag
 from unit_templates_list import UNITS
 from utils import generate_unique_id
-from logging import getLogger
+from logging_setup import logger
 
-logger = getLogger(__name__)
 
 if TYPE_CHECKING:
     from game_state import GameState

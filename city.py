@@ -23,9 +23,7 @@ from utils import deterministic_hash, generate_unique_id
 import random
 from city_names import CITY_NAMES_BY_CIV
 from yields import Yields
-from logging import getLogger
-
-logger = getLogger(__name__)
+from logging_setup import logger
 
 if TYPE_CHECKING:
     from hex import Hex

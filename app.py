@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from functools import wraps
-import logging
-from logging.handlers import RotatingFileHandler
+from logging_setup import logger
 import traceback
 from typing import Optional
 
@@ -37,14 +36,6 @@ from wonder_templates_list import WONDERS
 from user import User, add_or_get_user, add_bot_users, BOT_USERNAMES
 from redis_utils import rget_json, rset_json, rset, rget, CodeBlockCounter, await_empty_counter
 
-# Create a logger
-logger = logging.getLogger('__name__')
-logger.setLevel(logging.DEBUG if LOCAL else logging.INFO)
-
-# Create a handler that writes log messages to a file, with a max size of 1MB, and keep 3 backup logs
-handler = RotatingFileHandler('app.log', maxBytes=1_000_000, backupCount=10)
-handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
-logger.addHandler(handler)
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
