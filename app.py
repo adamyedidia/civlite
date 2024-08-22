@@ -139,22 +139,29 @@ def join_game(sess, game_id: str):
     if not game:
         return jsonify({"error": "Game not found"}), 404
     
-    num_players_in_game = (
-        sess.query(func.count(Player.id))
+    players_in_game = (
+        sess.query(Player)
         .filter(Player.game_id == game_id)
-        .scalar()
-    ) or 0
-
-    player = Player(
-        user=user,
-        game=game,
-        player_num=num_players_in_game,
+        .all()
     )
 
-    sess.add(player)
-    sess.commit()
+    # If the player is already in the game, direct them to the lobby.
+    matching_player = next((player for player in players_in_game if player.user.username == username), None)
+    if matching_player is not None:
+        player = matching_player
+    else:
+        num_players_in_game = len(players_in_game)
 
-    socketio.emit('update', room=game.id)  # type: ignore
+        player = Player(
+            user=user,
+            game=game,
+            player_num=num_players_in_game,
+        )
+
+        sess.add(player)
+        sess.commit()
+
+        socketio.emit('update', room=game.id)  # type: ignore
 
     return jsonify({'game': game.to_json(), 'player_num': player.player_num})
 
