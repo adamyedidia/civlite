@@ -179,17 +179,17 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
 
 
     const bldgQueueMaxIndexFinishing = selectedCity.projected_build_queue_depth - 1;
-    const availableBuildingEntry = (buildingName, index) => {
+    const availableBuildingEntry = (buildingName, index, clickable) => {
         const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
         return <div key={index} className='building-choices-row'>
             <BriefBuildingDisplay 
                 buildingName={buildingName}
                 faded={inOtherQueue}
                 wonderCostsByAge={gameState.wonder_cost_by_age}
-                clickable={true}
+                clickable={clickable}
                 unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates}
                 setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} setHoveredUnit={setHoveredUnit}
-                onClick={() => handleClickBuildingChoice(buildingName)}
+                onClick={clickable ? () => handleClickBuildingChoice(buildingName) : null}
                 descriptions={descriptions}
                 yields = {selectedCity.building_yields?.[buildingName]} 
                 payoffTime = {selectedCity.available_buildings_payoff_times?.[buildingName]}
@@ -395,22 +395,22 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             <div className="building-choices-area" style={{borderColor: myCivTemplate?.secondary_color}}>
                 <div className="building-choices-area-inner" style={!showBuildingChoices ? {maxWidth: "30px", overflow: "hidden"} : {}}>
                 {selectedCity.available_unit_building_names.length > 0 && <div className="building-choices-container">
-                        {selectedCity.available_unit_building_names.map(availableBuildingEntry)}
+                        {selectedCity.available_unit_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.max_units_in_build_queue))}
                         {selectedCity.max_units_in_build_queue && <div className="building-slots-full-banner">
                             <span>Queued Max Units</span>
                         </div>}
                 </div>}
                 {selectedCity.available_wonders.length > 0 && <div className="building-choices-container">
-                        {selectedCity.available_wonders.map(availableBuildingEntry)}
+                        {selectedCity.available_wonders.map((buildingName, index) => availableBuildingEntry(buildingName, index, true))}
                 </div>}
                 {selectedCity.available_urban_building_names.length > 0 && <div className="building-choices-container">
-                        {selectedCity.available_urban_building_names.map(availableBuildingEntry)}
+                        {selectedCity.available_urban_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.building_slots_full.urban))}
                         {selectedCity.building_slots_full.urban && <div className="building-slots-full-banner">
                             <span>No Urban Slots</span>
                         </div>}
                 </div>}
                 {selectedCity.available_rural_building_names.length > 0 && <div className="building-choices-container">
-                        {selectedCity.available_rural_building_names.map(availableBuildingEntry)}
+                        {selectedCity.available_rural_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.building_slots_full.rural))}
                         {selectedCity.building_slots_full.rural && <div className="building-slots-full-banner">
                             <span>No Rural Slots</span>
                         </div>}

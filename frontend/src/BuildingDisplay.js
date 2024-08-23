@@ -74,7 +74,7 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCost
     return (
         <div 
             className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''} ${faded ? 'faded' : ''}`} 
-            onClick={onClick}
+            onClick={clickable ? onClick : null}
             onMouseEnter={() => building_type === 'WONDER' ? setHoveredWonder(building) : building_type === 'UNIT' ? setHoveredUnit(building) : setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => building_type === 'WONDER' ? setHoveredWonder(null) : building_type === 'UNIT' ? setHoveredUnit(null) : setHoveredBuilding(null)} // clear on mouse leave
             style={style}

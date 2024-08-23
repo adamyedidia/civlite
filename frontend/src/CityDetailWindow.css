@@ -166,6 +166,8 @@
 .building-slots-full-banner {
   background-color: #8888;
   z-index: 200000;
+  opacity: 0.75;
+  pointer-events: none;
 
   position: absolute;
   width: 100%;
