@@ -25,11 +25,14 @@ from plotly.subplots import make_subplots
 
 from unit_templates_list import UNITS
 from concurrent.futures import ProcessPoolExecutor
+from logging_setup import logger
 import logging
 import timeit
 from wonder_template import WonderTemplate
 
 from wonder_templates_list import WONDERS
+
+logger.disabled = True
 
 logger = logging.getLogger()
 logger.setLevel(logging.WARNING)  # This will suppress INFO level logs
