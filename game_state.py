@@ -815,7 +815,6 @@ class GameState:
                 if move['move_type'] == 'choose_decline_option' and 'preempted' not in move:
                     if (city := self.hexes[move['coords']].city):
                         city_owner_by_city_id[city.id] = player_num
-        logger.info(f"{city_owner_by_city_id=}")
 
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = moves_by_player_num.get(player_num, [])
@@ -946,7 +945,6 @@ class GameState:
             civ.fill_out_available_buildings(self)
 
         logger.info("Checking for game over")
-        logger.info([game_player.score for game_player in self.game_player_by_player_num.values()], self.game_end_score())
         for game_player in self.game_player_by_player_num.values():
             if game_player.score >= self.game_end_score():
                 self.game_over = True
