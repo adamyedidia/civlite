@@ -13,7 +13,6 @@ class UnitTag(Enum):
     RANGED = "ranged"  # target doesn't punch back
     MOUNTED = "mounted"
     SIEGE = "siege"
-    ARMORED = "armored"
     GUNPOWDER = "gunpowder"
     DEFENSIVE = "defensive"
     WONDROUS = "wondrous"  # Built from a wonder; Lose 5 hp per turn
