@@ -106,20 +106,38 @@ class GreatMerchant(GreatPerson):
         return True
 
 class GreatScientist(GreatPerson):
+    DEFENSE_UNITS: dict[int, tuple[UnitTemplate | None, int]] = {
+        0: (None, 0),
+        1: (None, 0),
+        2: (UNITS.GARRISON, 1),
+        3: (UNITS.GARRISON, 2),
+        4: (UNITS.MILITIA, 1),
+        5: (UNITS.MILITIA, 2),
+        6: (UNITS.MUSKETMAN, 3),
+        7: (UNITS.RIFLEMAN, 3),
+        8: (UNITS.INFANTRY, 3),
+        9: (UNITS.BAZOOKA, 3),
+    }
+
     def __init__(self, name, advancement_level: int, tech_template: TechTemplate, extra_science: float):
         self.tech_template: TechTemplate = tech_template
         self.extra_science: float = extra_science
+        self.defense_unit, self.defense_unit_count = self.DEFENSE_UNITS[tech_template.advancement_level]
         super().__init__(name, advancement_level, hover_entity_type="tech", hover_entity_name=tech_template.name)
 
     def description(self) -> str:
         desc = f"Immediately learn {self.tech_template.name}"
         if self.extra_science > 0:
-            desc += f" and gain {int(self.extra_science)} science."
-        return desc
+            desc += f" and gain {int(self.extra_science)} science"
+        if self.defense_unit is not None:
+            desc += f" and build {self.defense_unit_count} free {p.plural(self.defense_unit.name)}"  # type: ignore
+        return desc + "."
 
     def apply(self, game_state, city: City, civ: Civ):
         civ.gain_tech(game_state, self.tech_template)
         civ.science += self.extra_science
+        if self.defense_unit is not None:
+            city.build_unit(game_state, self.defense_unit, override_civ=civ, stack_size=self.defense_unit_count)
 
     def valid_for_city(self, city: City, civ: Civ) -> bool:
         return civ.techs_status[self.tech_template] in (TechStatus.AVAILABLE, TechStatus.UNAVAILABLE)
@@ -131,13 +149,14 @@ class GreatEngineer(GreatPerson):
         super().__init__(name, advancement_level, hover_entity_type="unit", hover_entity_name=unit_template.name)
 
     def description(self) -> str:
-        desc: str = f"Immediately build a free {self.unit_template.building_name}"
+        desc: str = f"Immediately build a free {self.unit_template.building_name} and a free {self.unit_template.name}"
         if self.extra_wood > 0:
             desc += f" and gain {int(self.extra_wood)} wood."
         return desc
 
     def apply(self, game_state, city: City, civ: Civ):
         city.build_building(game_state, self.unit_template, free=True)
+        city.build_unit(game_state, self.unit_template, override_civ=civ)
         city.wood += self.extra_wood
 
     def valid_for_city(self, city: City, civ: Civ) -> bool:
@@ -239,7 +258,7 @@ for t in TECHS.all():
             _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, level + 1, u, 0.8 * _target_value_by_age(level + 1)))
 
         engineer_name = great_people_names.get("engineer", f"[A{level - 1} Engineer: {u.building_name}]")
-        _great_people_by_age[level - 1].append(GreatEngineer(engineer_name, level - 1, u, max(0, 0.5 * _target_value_by_age(level - 1) - u.wood_cost)))
+        _great_people_by_age[level - 1].append(GreatEngineer(engineer_name, level - 1, u, max(0, 0.4 * _target_value_by_age(level - 1) - u.wood_cost - u.metal_cost)))
 
 unique_names = set()
 duplicate_names = set()
