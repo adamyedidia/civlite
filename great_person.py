@@ -53,17 +53,29 @@ class GreatPerson(abc.ABC):
 
 
 class GreatGeneral(GreatPerson):
-    def __init__(self, name, advancement_level: int, unit_template: UnitTemplate, number: int):
+    def __init__(self, name, advancement_level: int, unit_template: UnitTemplate, target_metal_value: float | None = None, number: int | None = None):
         self.unit_template: UnitTemplate = unit_template
-        self.number: int = number
+        assert (target_metal_value is not None) != (number is not None), "Must specify exactly one of target_metal_value or number"
+        if number is not None:
+            self.number: int = number
+        elif target_metal_value is not None:
+            if self.unit_template.movement == 0:
+                target_metal_value *= 2
+            self.number: int = int(target_metal_value / unit_template.metal_cost)
         super().__init__(name, advancement_level, hover_entity_type="unit", hover_entity_name=unit_template.name)
 
     def description(self) -> str:
         return f"Immediately build {self.number} free {p.plural(self.unit_template.name)}"  # type: ignore
 
     def apply(self, game_state, city: City, civ: Civ):
-        for _ in range(self.number):
-            city.build_unit(game_state, self.unit_template, override_civ=civ)
+        if self.unit_template.movement == 0:
+            stack_size = self.number // 2
+            count = 2
+        else:
+            stack_size = 1
+            count = self.number
+        for _ in range(count):
+            city.build_unit(game_state, self.unit_template, override_civ=civ, stack_size=stack_size)
 
     def valid_for_city(self, city: City, civ: Civ) -> bool:
         return True
@@ -219,12 +231,12 @@ for t in TECHS.all():
     for u in t.unlocks_units:
         great_people_names: dict[str, str] = u.great_people_names
         advanced_general_name: str = great_people_names.get("general_advanced", f"[A{level - 1} General: {u.name}]")
-        _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, level - 1, u, round(0.5 * _target_value_by_age(level - 1) / u.metal_cost)))
+        _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, level - 1, u, 0.5 * _target_value_by_age(level - 1)))
         normal_general_name: str = great_people_names.get("general_normal", f"[A{level} General: {u.name}]")
-        _great_people_by_age[level].append(GreatGeneral(normal_general_name, level, u, round(0.65 * _target_value_by_age(level) / u.metal_cost)))
+        _great_people_by_age[level].append(GreatGeneral(normal_general_name, level, u, 0.65 * _target_value_by_age(level)))
         if level + 1 < 10:
             horde_general_name: str = great_people_names.get("general_horde", f"[A{level + 1} General: {u.name}]")
-            _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, level + 1, u, round(0.8 * _target_value_by_age(level + 1) / u.metal_cost)))
+            _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, level + 1, u, 0.8 * _target_value_by_age(level + 1)))
 
         engineer_name = great_people_names.get("engineer", f"[A{level - 1} Engineer: {u.building_name}]")
         _great_people_by_age[level - 1].append(GreatEngineer(engineer_name, level - 1, u, max(0, 0.5 * _target_value_by_age(level - 1) - u.wood_cost)))
@@ -241,7 +253,7 @@ for age, great_people in _great_people_by_age.items():
 if duplicate_names:
     raise ValueError(f"Duplicate great person names found: {duplicate_names}")
 
-_great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", 5, UNITS.SWORDSMAN, 47))
+_great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", 5, UNITS.SWORDSMAN, number=47))
 
 def great_people_by_age(age: int) -> list[GreatPerson]:
     return _great_people_by_age[age]
