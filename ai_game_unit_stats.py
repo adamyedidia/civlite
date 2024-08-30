@@ -1,19 +1,16 @@
 from collections import Counter, defaultdict
 from multiprocessing import freeze_support
 from typing import Any
+from ai_game import ai_game
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 
 from game_state import GameState
 from great_person import GreatEngineer, GreatGeneral, GreatMerchant, GreatScientist, great_people_by_age
-from new_game_state import new_game_state
-from game_player import GamePlayer
 
 import argparse
-import copy
 import os
 import pickle
-import random
 import re
 import time
 import numpy as np
@@ -36,21 +33,6 @@ logger.disabled = True
 
 logger = logging.getLogger()
 logger.setLevel(logging.WARNING)  # This will suppress INFO level logs
-
-def ai_game(id, num_players):
-    random.seed(id)
-    game_id = id
-    players = [GamePlayer(player_num=i, username=f"AI Player {i} in game {id}", is_bot=True, vitality_multiplier=1) for i in range(num_players)]
-    game_state, _ = new_game_state(game_id, players)
-    game_state.no_db = True
-    states = []
-    while not game_state.game_over and game_state.turn_num < 100:
-        game_state.all_bot_moves()
-        game_state.midturn_update()
-        states.append(copy.deepcopy(game_state.to_json()))
-        game_state.roll_turn(None)
-        game_state.midturn_update()
-    return states
 
 def ai_game_count_units(id, num_players) -> dict[str, list[list[dict[Any, int]]]]:
     data = ai_game(id, num_players)
@@ -119,7 +101,7 @@ def process_game(i: int) -> dict[str, list[list[dict[Any, int]]]] | None:
             traceback.print_exc(file=f)
         return None
     
-def accumulate_unit_info(num_games, cache_file, offset=0):
+def accumulate_unit_info(num_games, cache_file, offset=0, max_workers=10):
     winner_data = {
         'units': {unit.name: defaultdict(int) for unit in UNITS.all()},
         'wonders': {wonder.name: defaultdict(int) for wonder in WONDERS.all()},
@@ -133,7 +115,7 @@ def accumulate_unit_info(num_games, cache_file, offset=0):
         'great_people': {person.name: defaultdict(int) for i in range(10) for person in great_people_by_age(i)},
     }
 
-    with ProcessPoolExecutor(max_workers=10) as executor:
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
         results = list(executor.map(process_game, range(offset, offset+num_games)))
     results = [r for r in results if r is not None]
     for result in results:
@@ -276,6 +258,7 @@ if __name__ == "__main__":
     parser.add_argument('--metal_binning', action='store_true', help='Use metal binning')
     parser.add_argument('--output_dir', type=str, default="scripts/output", help='Output directory')
     parser.add_argument('--offset_chunks', type=int, default=0, help='Chunks offset')
+    parser.add_argument('--workers', type=int, default=10, help='Number of workers')
     args = parser.parse_args()
 
     if not args.generate and not args.analyze:
@@ -291,7 +274,7 @@ if __name__ == "__main__":
         for i in range(chunks):
             offset = (i + args.offset_chunks) * games_per_chunk
             elapsed_time = timeit.timeit(
-                lambda: accumulate_unit_info(games_per_chunk, f"{args.output_dir}/ai_game_cache_{offset}_{offset + games_per_chunk - 1}.pkl", offset=offset),
+                lambda: accumulate_unit_info(games_per_chunk, f"{args.output_dir}/ai_game_cache_{offset}_{offset + games_per_chunk - 1}.pkl", offset=offset, max_workers=args.workers),
                 number=1
             )
             print(f"Processing chunk {i} took {elapsed_time:.2f} seconds")

@@ -1,4 +1,5 @@
-from ai_game_unit_stats import ai_game
+from ai_game import ai_game
+import argparse
 import logging
 
 # Configure logger
@@ -17,4 +18,9 @@ console_handler.setFormatter(formatter)
 logging.getLogger('').addHandler(console_handler)
 
 
-ai_game(269, 4)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--id', type=int, required=True)
+    parser.add_argument('--num_players', type=int, default=4)
+    args = parser.parse_args()
+    ai_game(args.id, args.num_players)
