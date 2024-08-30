@@ -87,7 +87,11 @@ class GreatMerchant(GreatPerson):
         super().__init__(name, advancement_level)
 
     def description(self) -> str:
-        return f"Immediately gain {self.amount} {self.resource}"
+        desc = f"Immediately gain {self.amount} {self.resource}"
+        if self.resource == "food":
+            desc += " and city power"
+        return desc + "."
+    
 
     def apply(self, game_state, city: City, civ: Civ):
         if self.resource == "metal":
@@ -97,6 +101,7 @@ class GreatMerchant(GreatPerson):
         elif self.resource == "food":
             city.food += self.amount
             city.grow(game_state)
+            civ.city_power += self.amount
         elif self.resource == "science":
             civ.science += self.amount
 
@@ -237,9 +242,9 @@ scientist_names = {
     'Megarobotics': 'Isaac Asimov',
 }
 
-for resource in ["metal", "wood", "food", "science"]:
+for resource, multiplier in [("metal", 1.0), ("wood", 1.0), ("food", 1.25), ("science", 1.25)]:
     for age in range(10):
-        _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], age, _target_value_by_age(age), resource))
+        _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], age, _target_value_by_age(age) * multiplier, resource))
 
 for t in TECHS.all():
     if t == TECHS.RENAISSANCE:
