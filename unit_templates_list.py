@@ -337,8 +337,10 @@ class UNITS():
         prereq=TECHS.CHIVALRY,
         abilities=[],
         great_people_names={
+            "engineer": "Emperor Constantine",
             "general_advanced": "Odo of France",
             "general_normal": "William Wallace",
+            "general_horde": "Louis XIV",
         },
     )
     CAVALRY = UnitTemplate(
