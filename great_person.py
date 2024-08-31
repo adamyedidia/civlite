@@ -135,7 +135,7 @@ class GreatScientist(GreatPerson):
         if self.extra_science > 0:
             desc += f" and gain {int(self.extra_science)} science"
         if self.defense_unit is not None:
-            desc += f" and build {self.defense_unit_count} free {p.plural(self.defense_unit.name)}"  # type: ignore
+            desc += f" and build {self.defense_unit_count} free {p.plural(self.defense_unit.name, self.defense_unit_count)}"  # type: ignore
         return desc + "."
 
     def apply(self, game_state, city: City, civ: Civ):
@@ -244,7 +244,7 @@ scientist_names = {
 
 for resource, multiplier in [("metal", 1.0), ("wood", 1.0), ("food", 1.25), ("science", 1.25)]:
     for age in range(10):
-        _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], age, _target_value_by_age(age) * multiplier, resource))
+        _great_people_by_age[age].append(GreatMerchant(merchant_names[resource][age], age, int(_target_value_by_age(age) * multiplier), resource))
 
 for t in TECHS.all():
     if t == TECHS.RENAISSANCE:
