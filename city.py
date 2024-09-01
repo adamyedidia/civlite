@@ -1077,7 +1077,6 @@ class City(MapObjectSpawner):
         if best_military_building is not None \
                 and best_military_building_age > best_current_available_unit_age \
                 and remaining_wood_budget > best_military_building.wood_cost:
-            self.buildings_queue = []
             self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': best_military_building.name})
             logger.info(f"  overwrote building queue because of new military unit (lvl {effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)}): {self.buildings_queue}")
             if not self.is_threatened_city(game_state):

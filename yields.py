@@ -114,11 +114,11 @@ class YieldsPerUniqueTerrainType(YieldsCalculation):
         self.yields = yields
 
     def calculate(self, city: 'City') -> Yields:
-        return self.yields * len(city.terrains_dict)
+        return self.yields * (len(city.terrains_dict) - 1)
     
     @property
     def description(self) -> str:
-        return f"{self.yields.pretty_print()} per unique terrain type"
+        return f"{self.yields.pretty_print()} per unique terrain type differnet from the city center"
     
 class YieldsPerTerrainType(YieldsCalculation):
     def __init__(self, terrain_type: 'TerrainTemplate | set[TerrainTemplate]', yields: Yields) -> None:
