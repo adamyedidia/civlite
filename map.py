@@ -78,25 +78,48 @@ def _create_hex_map(map_size: int, num_ocean_bites: int) -> dict[str, Hex]:
     return hexes
 
 
-def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
+def _generate_starting_locations(hexes: dict[str, Hex], n: int, max_distance: int = 3, already_selected: list[Hex] | None = None) -> list[Hex]:
+    """
+    Might not generate enough, if n is larger than the map.
+    """
+    permuted_hexes = list(hexes.values())
+    random.shuffle(permuted_hexes)
 
-    starting_locations = []
+    starting_locations = already_selected if already_selected is not None else []
 
-    while len(starting_locations) < n:
-        starting_location = random.choice(list(hexes.values()))
+    while len(permuted_hexes) > 0:
+        starting_location = permuted_hexes.pop()
 
         if len(list(starting_location.get_neighbors(hexes))) >= 6 and starting_location.terrain != TERRAINS.OCEAN:
             too_close = False
 
             for other_starting_location in starting_locations:
-                if other_starting_location.distance_to(starting_location) < 3:
+                if other_starting_location.distance_to(starting_location) < max_distance:
                     too_close = True
                     break
             
             if not too_close:
                 starting_locations.append(starting_location)
-
+                if len(starting_locations) >= n:
+                    break
     return starting_locations
+
+def generate_starting_locations(hexes: dict[str, Hex], n: int) -> list[Hex]:
+    best_attempt = []
+
+    for _ in range(100):
+        attempt = _generate_starting_locations(hexes, n)
+        if len(attempt) >= n:
+            return attempt
+        if len(attempt) > len(best_attempt):
+            best_attempt = attempt
+
+    # If we get here, we failed to generate enough at distance 3.
+    # So we add more at distance 2.
+    result = _generate_starting_locations(hexes, n, max_distance=2, already_selected=best_attempt)
+    if len(result) < n:
+        raise Exception("Failed to generate enough starting locations")
+    return result
 
 
 def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], other_decline_locations: list[Hex]) -> bool:

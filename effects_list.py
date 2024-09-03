@@ -65,23 +65,24 @@ class BuildBuildingEffect(CityTargetEffect):
             city.build_building(building=self.building_template, game_state=game_state, free=True)
 
 class FreeRandomTechEffect(CityTargetEffect):
-    def __init__(self, age) -> None:
+    def __init__(self, age, number=1) -> None:
         self.age = age
+        self.number = number
 
     @property
     def description(self) -> str:
-        return f"Learn a random age {self.age} tech for free"
+        return f"Learn {self.number} random age {self.age} {p.plural('tech', self.number)} for free"  # type: ignore
     
     def apply(self, city: 'City', game_state: 'GameState'):
         civ = city.civ
-
-        # try at the right age, but if none available, go down to age below.
-        for a in range(self.age, 0, -1):
-            available_techs = [tech for tech, status in civ.techs_status.items() if status in {TechStatus.UNAVAILABLE, TechStatus.AVAILABLE} and tech.advancement_level == a]
-            if available_techs:
-                chosen = random.choice(available_techs)
-                civ.gain_tech(tech=chosen, game_state=game_state)
-                return
+        for _ in range(self.number):
+            # try at the right age, but if none available, go down to age below.
+            for a in range(self.age, 0, -1):
+                available_techs = [tech for tech, status in civ.techs_status.items() if status in {TechStatus.UNAVAILABLE, TechStatus.AVAILABLE} and tech.advancement_level == a]
+                if available_techs:
+                    chosen = random.choice(available_techs)
+                    civ.gain_tech(tech=chosen, game_state=game_state)
+                    return
 
 class GainResourceEffect(CityTargetEffect):
     def __init__(self, resource: Literal["wood", "food", "metal", "science", "city_power"], amount: int) -> None:

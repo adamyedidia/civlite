@@ -56,7 +56,7 @@ class WONDERS():
     # 6th century or earlier
     ORACLE = WonderTemplate(
         name="Oracle", age=1,
-        on_build=FreeRandomTechEffect(age=2)
+        on_build=FreeRandomTechEffect(age=2, number=2)
     )
 
     GREAT_BATH = WonderTemplate(
@@ -78,7 +78,7 @@ class WONDERS():
     # 3rd century BC
     GREAT_LIBRARY = WonderTemplate(
         name="Great Library", age=2,
-        on_build=GainResourceEffect(resource='science', amount=100)
+        on_build=GainResourceEffect(resource='science', amount=200)
     )
 
     # 3rd century BC

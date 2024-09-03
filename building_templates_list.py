@@ -62,7 +62,7 @@ class BUILDINGS():
         name="Library",
         type=BuildingType.URBAN,
         cost=5,
-        calculate_yields=YieldsPerUniqueTerrainType(Yields(science=1)),
+        calculate_yields=YieldsPerUniqueTerrainType(Yields(science=2)),
         prereq=TECHS.POTTERY,
     )
     MINE = BuildingTemplate(
@@ -76,7 +76,7 @@ class BUILDINGS():
         name="Fishery",
         type=BuildingType.RURAL,
         cost=5,
-        calculate_yields=YieldsPerTerrainType(TERRAINS.OCEAN, Yields(food=1)),
+        calculate_yields=YieldsPerTerrainType(TERRAINS.OCEAN, Yields(food=2)),
         prereq=TECHS.FISHING,
     )
     AQUEDUCT = BuildingTemplate(
@@ -134,7 +134,7 @@ class BUILDINGS():
         name="Lighthouse",
         type=BuildingType.RURAL,
         cost=10,
-        calculate_yields=YieldsPerTerrainType(TERRAINS.OCEAN, Yields(food=1, science=1)),
+        calculate_yields=YieldsPerTerrainType(TERRAINS.OCEAN, Yields(food=1, science=1, metal=1)),
         prereq=TECHS.MATHEMATICS,
     )
     UNIVERSITY = BuildingTemplate(
@@ -269,7 +269,7 @@ class BUILDINGS():
         name="Outpost",
         type=BuildingType.RURAL,
         cost=30,
-        calculate_yields=YieldsPerTerrainType({TERRAINS.MOUNTAINS, TERRAINS.DESERT, TERRAINS.TUNDRA}, Yields(science=4)),
+        calculate_yields=YieldsPerTerrainType({TERRAINS.MOUNTAINS, TERRAINS.DESERT, TERRAINS.TUNDRA}, Yields(science=6)),
         prereq=TECHS.METALLURGY,
     )
     VOLUNTEER_POST = BuildingTemplate(
