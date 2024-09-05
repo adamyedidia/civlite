@@ -414,6 +414,7 @@ class City(MapObjectSpawner):
     def revolt_to_rebels(self, game_state: 'GameState') -> None:
         if STRICT_MODE:
             assert self.revolting_to_rebels_this_turn, f"City {self.name} shouldn't be revolting to rebels this turn."
+        logger.info(f"City {self.name} revolting to rebels.")
         # Revolt to AI
         game_state.process_decline_option(self.hex.coords, [], is_game_player=False)
         game_state.make_new_civ_from_the_ashes(self)

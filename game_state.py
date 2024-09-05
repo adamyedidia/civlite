@@ -802,12 +802,6 @@ class GameState:
         # only commands from that player's player num get respected
         city_owner_by_city_id: dict[str, int] = {}
 
-        for city in self.cities_by_id.values():
-            if city.revolting_to_rebels_this_turn:
-                city.revolt_to_rebels(self)
-                self.midturn_update()
-                city_owner_by_city_id[city.id] = -1
-
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = moves_by_player_num.get(player_num, [])
 
@@ -815,6 +809,15 @@ class GameState:
                 if move['move_type'] == 'choose_decline_option' and 'preempted' not in move:
                     if (city := self.hexes[move['coords']].city):
                         city_owner_by_city_id[city.id] = player_num
+
+        for city in self.cities_by_id.values():
+            if city.id in city_owner_by_city_id:
+                # Don't revolt to rebels if we're already revolting to a player.
+                continue
+            if city.revolting_to_rebels_this_turn:
+                city.revolt_to_rebels(self)
+                self.midturn_update()
+                city_owner_by_city_id[city.id] = -1
 
         for player_num in self.game_player_by_player_num.keys():
             staged_moves = moves_by_player_num.get(player_num, [])
