@@ -255,12 +255,12 @@ for t in TECHS.all():
     for u in t.unlocks_units:
         great_people_names: dict[str, str] = u.great_people_names
         advanced_general_name: str = great_people_names.get("general_advanced", f"[A{level - 1} General: {u.name}]")
-        _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, level - 1, u, 0.4 * _target_value_by_age(level - 1)))
+        _great_people_by_age[level - 1].append(GreatGeneral(advanced_general_name, level - 1, u, 0.45 * _target_value_by_age(level - 1)))
         normal_general_name: str = great_people_names.get("general_normal", f"[A{level} General: {u.name}]")
         _great_people_by_age[level].append(GreatGeneral(normal_general_name, level, u, 0.65 * _target_value_by_age(level)))
         if level + 1 < 10:
             horde_general_name: str = great_people_names.get("general_horde", f"[A{level + 1} General: {u.name}]")
-            _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, level + 1, u, 1.0 * _target_value_by_age(level + 1)))
+            _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, level + 1, u, 0.9 * _target_value_by_age(level + 1)))
 
         engineer_name = great_people_names.get("engineer", f"[A{level - 1} Engineer: {u.building_name}]")
         _great_people_by_age[level - 1].append(GreatEngineer(engineer_name, level - 1, u, max(0, 0.4 * _target_value_by_age(level - 1) - u.wood_cost - u.metal_cost)))
