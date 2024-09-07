@@ -113,12 +113,12 @@ BUILDING_ABILITIES: dict[str, Callable] = {
     ),
     "UnitsExtraStrengthByTag": lambda x, y: Ability(
         name="UnitsExtraStrengthByTag",
-        description=f"{x.value} units built get +{y} strength",
+        description=f"New {x.value} units get +{y} strength",
         numbers=[x, y],
     ),
     "UnitsExtraStrengthByAge": lambda x, y: Ability(
         name="UnitsExtraStrengthByAge",
-        description=f"Units of age {x} or later get +{y} strength",
+        description=f"New units of age {x} or later get +{y} strength",
         numbers=[x, y],
     ),
     "Airforce": lambda x, y: Ability(
