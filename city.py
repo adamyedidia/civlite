@@ -963,11 +963,11 @@ class City(MapObjectSpawner):
 
     def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
         affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost_by_age[age] <= self.projected_total_wood}
-        affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.age in affordable_ages]
+        affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.advancement_level in affordable_ages]
         if len(affordable_choices) == 0:
             return None
         # Build the highest age one we can afford
-        return max(affordable_choices, key=lambda x: (x.age, random.random()))
+        return max(affordable_choices, key=lambda x: (x.advancement_level, random.random()))
 
     def bot_pick_economic_building(self, choices: list[BuildingTemplate], remaining_wood: float) -> Optional[BuildingTemplate]:
         if self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) >= self.rural_slots:
@@ -1086,7 +1086,7 @@ class City(MapObjectSpawner):
             if not self.is_threatened_city(game_state):
                 logger.info(f"  not building units to wait for new military building.")
                 self.clear_unit_builds()
-        while len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None and remaining_wood_budget > (cost := game_state.wonder_cost_by_age[wonder_choice.age]):
+        while len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None and remaining_wood_budget > (cost := game_state.wonder_cost_by_age[wonder_choice.advancement_level]):
             self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': wonder_choice.name})
             wonders.remove(wonder_choice)
             remaining_wood_budget -= cost

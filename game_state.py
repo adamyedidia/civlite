@@ -333,7 +333,7 @@ class GameState:
 
     def _wonder_cost(self, age: int) -> int:
         base: int = BASE_WONDER_COST[age]
-        num_built: int = len([w for w in self.built_wonders if w.age == age])
+        num_built: int = len([w for w in self.built_wonders if w.advancement_level == age])
         total_num: int = len(self.wonders_by_age[age])
         # The first one costs base, the last one 2 * base
         cost = int(base * (1 + num_built / max(total_num - 1, 1)))
@@ -1132,7 +1132,7 @@ class GameState:
             sess.commit()
 
     def wonder_buildable(self, wonder) -> bool:
-        if wonder.age > self.advancement_level:
+        if wonder.advancement_level > self.advancement_level:
             # Can't build it yet
             return False
         if wonder in self.built_wonders:

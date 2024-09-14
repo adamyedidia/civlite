@@ -8,7 +8,7 @@ from yields import YieldsCalculation
 class WonderTemplate:
     def __init__(self, name: str, age: int, on_build: CityTargetEffect | list[CityTargetEffect] = [], per_turn: CityTargetEffect | list[CityTargetEffect] = [], vp_reward: int = 5, abilities: list[Ability] = [], override_description: str | None = None, calculate_yields: YieldsCalculation | None = None):
         self.name = name
-        self.age = age
+        self.advancement_level = age
         self.on_build: list[CityTargetEffect] = on_build if isinstance(on_build, list) else [on_build]
         self.per_turn: list[CityTargetEffect] = per_turn if isinstance(per_turn, list) else [per_turn]
         self.vp_reward = vp_reward
@@ -26,7 +26,7 @@ class WonderTemplate:
     
     def __lt__(self, other: 'WonderTemplate'):
         # Sort by age, with larger ages first.
-        return (-self.age, self.name) < (-other.age, other.name)
+        return (-self.advancement_level, self.name) < (-other.advancement_level, other.name)
     
     def __hash__(self) -> int:
         return deterministic_hash(self.name)
@@ -50,7 +50,7 @@ class WonderTemplate:
         return {
             "name": self.name,
             "description": self.description(),
-            "age": self.age,
+            "advancement_level": self.advancement_level,
             "vp_reward": self.vp_reward,
             "hover_unit_name": self.hover_unit_name(),
         }

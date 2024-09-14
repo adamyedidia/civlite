@@ -78,7 +78,7 @@ class Building:
         if isinstance(self._template, BuildingTemplate):
             return self._template.advancement_level
         elif isinstance(self._template, WonderTemplate):
-            return self._template.age
+            return self._template.advancement_level
         return 0
 
     def update_ruined_status(self, city, game_state: 'GameState') -> None:
@@ -135,7 +135,7 @@ class QueueEntry:
         elif isinstance(self.template, BuildingTemplate):
             return self.template.cost
         elif isinstance(self.template, WonderTemplate):
-            return game_state.wonder_cost_by_age[self.template.age]
+            return game_state.wonder_cost_by_age[self.template.advancement_level]
         else:
             raise ValueError("wtf")
     

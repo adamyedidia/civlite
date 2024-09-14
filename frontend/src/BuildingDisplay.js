@@ -68,9 +68,9 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCost
         descriptionObj = `+${rounded_val}`;
     }
 
-    const bldg_level = building.advancement_level === undefined ? building.age : building.advancement_level;
+    const bldg_level = building.advancement_level;
     const building_class = building_type === 'WONDER' ? 'wonder' : building_type === 'UNIT' ? 'military' : building?.type === "urban" ? 'urban' : 'rural';
-    const cost = !hideCost && (building_type === 'UNIT' ? building.wood_cost : building_type === 'BUILDING' ? building.cost : building_type === 'WONDER' ? wonderCostsByAge[building.age] : null);
+    const cost = !hideCost && (building_type === 'UNIT' ? building.wood_cost : building_type === 'BUILDING' ? building.cost : building_type === 'WONDER' ? wonderCostsByAge[building.advancement_level] : null);
     return (
         <div 
             className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''} ${faded ? 'faded' : ''}`} 
