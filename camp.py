@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 UNITS_BY_AGE: dict[int, set[UnitTemplate]] = defaultdict(set)
 for unit in UNITS.all():
-    UNITS_BY_AGE[unit.advancement_level()].add(unit)
+    UNITS_BY_AGE[unit.advancement_level].add(unit)
 
 def random_unit_by_age(advancement_level) -> UnitTemplate:
     if advancement_level <= 0:

@@ -204,7 +204,7 @@ class City(MapObjectSpawner):
         units_active = [u for u in self.unit_buildings if u.active]
         if len(units_active) == 0: return
 
-        units_active.sort(key=lambda u: u.template.advancement_level())
+        units_active.sort(key=lambda u: u.template.advancement_level)
         for bldg, bonus in zip(units_active, reversed(UNIT_BUILDING_BONUSES[len(units_active)])):
             bldg.production_rate = bonus
 
@@ -450,10 +450,10 @@ class City(MapObjectSpawner):
         self.available_units = sorted([unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)])
         
         if self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False) >= self.military_slots:
-            min_level = min([u.advancement_level() for u in self.available_units])
+            min_level = min([u.advancement_level for u in self.available_units])
         else:
             min_level = 0
-        self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level() >= min_level and not self.has_building(u)], reverse=True)
+        self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level >= min_level and not self.has_building(u)], reverse=True)
         self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders())
         self.available_city_buildings = self.civ.available_city_buildings
 
@@ -670,7 +670,7 @@ class City(MapObjectSpawner):
             if unit_template.has_tag(ability.numbers[0]):
                 result += ability.numbers[1]
         for ability, _ in self.passive_building_abilities_of_name('UnitsExtraStrengthByAge'):
-            if unit_template.advancement_level() >= ability.numbers[0]:
+            if unit_template.advancement_level >= ability.numbers[0]:
                 result += ability.numbers[1]
         return result
 
@@ -787,7 +787,7 @@ class City(MapObjectSpawner):
 
     def unit_buildings_ranked_for_bulldoze(self) -> list[UnitBuilding]:
         targets = self.unit_buildings.copy()
-        targets.sort(key=lambda b: b.template.advancement_level())
+        targets.sort(key=lambda b: b.template.advancement_level)
         return targets
 
     def building_in_queue(self, template) -> bool:
@@ -903,7 +903,7 @@ class City(MapObjectSpawner):
         if old_civ._great_people_choices_city_id == self.id:
             old_civ._great_people_choices_city_id = None
             old_civ.great_people_choices = []
-        best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level(), random.random()))
+        best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level, random.random()))
 
         assert self.hex.city is not None
 
@@ -1012,10 +1012,10 @@ class City(MapObjectSpawner):
             # treat my civ's unique unit as +1 adv level.
             if self.civ.unique_unit is not None:
                 if unit.name == self.civ.unique_unit.name:
-                    return unit.advancement_level() + 1
+                    return unit.advancement_level + 1
             if unit == UNITS.SLINGER and slingers_better_than_warriors:
                 return 0.5
-            return unit.advancement_level()
+            return unit.advancement_level
 
         logger.info(f"{self.name} -- City planning AI move.")
 
@@ -1148,7 +1148,7 @@ class City(MapObjectSpawner):
             "urban_slots": self.urban_slots,
             "military_slots": self.military_slots,
             "hex": self.hex.coords,
-            "icon_unit_name": sorted(self.active_unit_buildings, key=lambda u: u.template.advancement_level(), reverse=True)[0].template.name if len(self.active_unit_buildings) > 0 else None,
+            "icon_unit_name": sorted(self.active_unit_buildings, key=lambda u: u.template.advancement_level, reverse=True)[0].template.name if len(self.active_unit_buildings) > 0 else None,
             "buildings_queue": [building.to_json() for building in self.buildings_queue],
             "buildings": [building.to_json() for building in self.buildings],
             "unit_buildings": [building.to_json() for building in self.unit_buildings],

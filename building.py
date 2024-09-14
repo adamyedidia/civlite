@@ -76,7 +76,7 @@ class Building:
     @property
     def advancement_level(self) -> int:
         if isinstance(self._template, BuildingTemplate):
-            return self._template.advancement_level()
+            return self._template.advancement_level
         elif isinstance(self._template, WonderTemplate):
             return self._template.age
         return 0

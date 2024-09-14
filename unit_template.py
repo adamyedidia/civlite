@@ -49,12 +49,13 @@ class UnitTemplate:
         return f"<UnitTemplate {self.name}>"
 
     def _priority(self) -> tuple:
-        return (self.advancement_level(), self.wood_cost, self.metal_cost, self.strength, self.range, self.movement)
+        return (self.advancement_level, self.wood_cost, self.metal_cost, self.strength, self.range, self.movement)
 
     def __lt__(self, other: "UnitTemplate") -> bool:
         return self._priority() < other._priority()
 
-    def advancement_level(self):
+    @property
+    def advancement_level(self) -> int:
         if self.prereq is None:
             return 0
         return self.prereq.advancement_level
@@ -78,7 +79,7 @@ class UnitTemplate:
             "abilities": [ability.to_json() for ability in self.abilities],
             "type": self.type,
             "prereq": self.prereq.name if self.prereq else None,
-            "advancement_level": self.advancement_level(),
+            "advancement_level": self.advancement_level,
         }
 
     

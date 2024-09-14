@@ -41,8 +41,9 @@ class BuildingTemplate:
         return f"<BuildingTemplate {self.name})>"
     
     def __lt__(self, other: 'BuildingTemplate') -> bool:
-        return (self.advancement_level(), self.cost, self.name) < (other.advancement_level(), other.cost, other.name)
+        return (self.advancement_level, self.cost, self.name) < (other.advancement_level, other.cost, other.name)
 
+    @property
     def advancement_level(self) -> int:
         return self.prereq.advancement_level if self.prereq else 0
     
@@ -61,7 +62,7 @@ class BuildingTemplate:
                 ([f"Yields: {self.calculate_yields.description}"] if self.calculate_yields else []),
             "vp_reward": self.vp_reward,
             "prereq": self.prereq.name if self.prereq else None,
-            "advancement_level": self.advancement_level(),
+            "advancement_level": self.advancement_level,
         }
 
     
