@@ -7,6 +7,9 @@ from settings import MAP_HOMOGENEITY_LEVEL, PER_PLAYER_AREA_MIN, PER_PLAYER_AREA
 from utils import coords_str, get_all_coords_up_to_n
 from logging_setup import logger
 
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from game_state import GameState
 
 def infer_map_size_from_num_players(num_players: int) -> int:
     for map_size in range(100):
@@ -148,21 +151,49 @@ def is_valid_decline_location(decline_location: Hex, hexes: dict[str, Hex], othe
 
     return True
 
+def decline_location_score(city_distance: int, active_player_city_distance: int, existing_decline_location_distance: int):
+    return (
+        existing_decline_location_distance >= 3,  # Avoid deline locs within 2 of each other.
+        active_player_city_distance >= 3, # Then stay far from active players.
+        city_distance >= 3, 
+        existing_decline_location_distance,
+        active_player_city_distance,
+        city_distance,
+        random.random(),
+    )
 
-def generate_decline_locations(hexes: dict[str, Hex], n: int, existing_decline_locations: list[Hex] = []) -> list[Hex]:
+
+def generate_decline_locations(game_state: 'GameState', n: int, existing_decline_locations: list[Hex] = []) -> list[Hex]:
     """
     Generate n new decline locations that don't collide with the existing ones.
     """
+    def update_distance_map(distance_map: dict[Hex, int], hex: Hex) -> None:
+        distance_map[hex] = 0
+        for h in hex.get_neighbors(game_state.hexes):
+            distance_map[h] = min(distance_map[h], 1)
+        for h in hex.get_distance_2_hexes(game_state.hexes):
+            distance_map[h] = min(distance_map[h], 2)
+        for h in hex.get_distance_3_hexes(game_state.hexes):
+            distance_map[h] = min(distance_map[h], 3)
+    city_distance_map: dict[Hex, int] = {hex: 99 for hex in game_state.hexes.values()}
+    active_player_city_distance_map: dict[Hex, int] = {hex: 99 for hex in game_state.hexes.values()}
+    for city in game_state.cities_by_id.values():
+        update_distance_map(city_distance_map, city.hex)
+        if city.civ.game_player is not None:
+            update_distance_map(active_player_city_distance_map, city.hex)
+
+    existing_decline_location_distance_map: dict[Hex, int] = {hex: 99 for hex in game_state.hexes.values()}
+    for hex in existing_decline_locations:
+        update_distance_map(existing_decline_location_distance_map, hex)
+
+    valid_decline_locations = [hex for hex in game_state.hexes.values() if is_valid_decline_location(hex, game_state.hexes, existing_decline_locations)]
     decline_locations = []
-
-    num_attempts = 0
-
-    while len(decline_locations) < n and num_attempts < 1000:
-        decline_location = random.choice(list(hexes.values()))
-
-        if is_valid_decline_location(decline_location, hexes, existing_decline_locations + decline_locations):
-            decline_locations.append(decline_location)
-        
-        num_attempts += 1
+    while len(valid_decline_locations) > 0 and len(decline_locations) < n:
+        decline_location = max(valid_decline_locations, key=lambda hex: decline_location_score(city_distance_map[hex], active_player_city_distance_map[hex], existing_decline_location_distance_map[hex]))
+        decline_locations.append(decline_location)
+        update_distance_map(existing_decline_location_distance_map, decline_location)
+        for loc in decline_location.get_neighbors(game_state.hexes, include_self=True):
+            if loc in valid_decline_locations:
+                valid_decline_locations.remove(loc)
 
     return decline_locations

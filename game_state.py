@@ -1022,7 +1022,7 @@ class GameState:
             self.retire_fresh_city_option(coords)
             new_locations_needed += 1
         logger.info(f"Generating {new_locations_needed} fresh cities for decline.")
-        new_hexes = generate_decline_locations(self.hexes, new_locations_needed, [self.hexes[coord] for coord in self.fresh_cities_for_decline])
+        new_hexes = generate_decline_locations(self, new_locations_needed, [self.hexes[coord] for coord in self.fresh_cities_for_decline])
 
         decline_choice_civ_pool = self.sample_new_civs(new_locations_needed)
         for hex, civ_template in zip(new_hexes, decline_choice_civ_pool):
