@@ -14,6 +14,15 @@ class CivTemplate:
 
     def __repr__(self) -> str:
         return f"<CivTemplate {self.name}>"
+    
+    @property
+    def unique_unit(self) -> str | None:
+        for ability in self.abilities:
+            if ability.name == "IncreasedStrengthForUnit":
+                return ability.numbers[0]
+            if ability.name == "IncreasedStrengthForNthUnit":
+                return ability.numbers[1]
+        return None
 
     def to_json(self) -> dict:
         return {
