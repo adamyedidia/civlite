@@ -449,7 +449,10 @@ class City(MapObjectSpawner):
             return
         self.available_units = sorted([unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)])
         
-        min_level = min([u.advancement_level() for u in self.available_units])
+        if self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False) >= self.military_slots:
+            min_level = min([u.advancement_level() for u in self.available_units])
+        else:
+            min_level = 0
         self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level() >= min_level and not self.has_building(u)], reverse=True)
         self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders())
         self.available_city_buildings = self.civ.available_city_buildings
