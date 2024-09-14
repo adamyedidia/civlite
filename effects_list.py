@@ -176,7 +176,7 @@ class RecruitBarbariansEffect(CityTargetEffect):
 
     @property
     def description(self) -> str:
-        return f"Recruit all barbarians within {self.range} tiles (including camps)"
+        return f"Recruit all barbarians within {self.range} tiles (including camps). Your camps produce double units."
     
     def apply(self, city: 'City', game_state: 'GameState'):
         for hex in city.hex.get_hexes_within_range_expensive(game_state.hexes, self.range):

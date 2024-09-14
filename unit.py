@@ -243,7 +243,7 @@ class Unit(MapObject):
                 if from_civ.has_ability('ExtraVpsPerUnitKilled'):
                     from_civ.gain_vps(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0], from_civ.template.name)
 
-                if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders and random.random() < 0.20:
+                if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders and random.random() < 0.50:
                     for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos:
                         game_state.civs_by_id[civ_id].gain_vps(UNIT_KILL_REWARD, f"United Nations")
 

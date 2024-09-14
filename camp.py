@@ -5,6 +5,7 @@ import random
 from civ import Civ
 
 from typing import TYPE_CHECKING
+from civ_templates_list import CIVS
 from map_object_spawner import MapObjectSpawner
 from settings import CAMP_CLEAR_CITY_POWER_REWARD, CAMP_CLEAR_VP_REWARD, STRICT_MODE
 
@@ -89,7 +90,9 @@ class Camp(MapObjectSpawner):
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.handle_siege(sess, game_state)
-        if game_state.turn_num % 2 == 0:
+        # Game plays that own camps through great bath get double production.
+        produce_unit = (game_state.turn_num % 2 == 0) or (not self.civ == CIVS.BARBARIAN)
+        if produce_unit:
             self.build_unit(game_state, self.unit)
 
     def to_json(self):
