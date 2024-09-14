@@ -16,6 +16,7 @@ p = inflect.engine()
 
 if TYPE_CHECKING:
     from city import City
+    from civ import Civ
     from game_state import GameState
     from hex import Hex
 
@@ -73,16 +74,19 @@ class FreeRandomTechEffect(CityTargetEffect):
     def description(self) -> str:
         return f"Learn {self.number} random age {self.age} {p.plural('tech', self.number)} for free"  # type: ignore
     
+    def learn_one_tech(self, civ: 'Civ', game_state: 'GameState'):
+        # try at the right age, but if none available, go down to age below.
+        for a in range(self.age, 0, -1):
+            available_techs = [tech for tech, status in civ.techs_status.items() if status in {TechStatus.UNAVAILABLE, TechStatus.AVAILABLE} and tech.advancement_level == a]
+            if available_techs:
+                chosen = random.choice(available_techs)
+                civ.gain_tech(tech=chosen, game_state=game_state)
+                return
+
     def apply(self, city: 'City', game_state: 'GameState'):
         civ = city.civ
         for _ in range(self.number):
-            # try at the right age, but if none available, go down to age below.
-            for a in range(self.age, 0, -1):
-                available_techs = [tech for tech, status in civ.techs_status.items() if status in {TechStatus.UNAVAILABLE, TechStatus.AVAILABLE} and tech.advancement_level == a]
-                if available_techs:
-                    chosen = random.choice(available_techs)
-                    civ.gain_tech(tech=chosen, game_state=game_state)
-                    return
+            self.learn_one_tech(civ, game_state)
 
 class GainResourceEffect(CityTargetEffect):
     def __init__(self, resource: Literal["wood", "food", "metal", "science", "city_power"], amount: int) -> None:
