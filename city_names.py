@@ -594,4 +594,11 @@ CITY_NAMES_BY_CIV = {
     "Greater EuroZone": greater_euro_zone_cities,
     "Celestial Empire": celestial_empire_cities,
     "The Machine Intelligence": the_machine_intelligence_cities,
+    # Blank civs for debugging
+    "A0 Blank": [f"A0 Blank {i}" for i in range(1, 19)],
+    "A1 Blank": [f"A1 Blank {i}" for i in range(1, 19)],
+    "A2 Blank": [f"A2 Blank {i}" for i in range(1, 19)],
+    "A4 Blank": [f"A4 Blank {i}" for i in range(1, 19)],
+    "A5 Blank": [f"A5 Blank {i}" for i in range(1, 19)],
+    "A7 Blank": [f"A7 Blank {i}" for i in range(1, 19)],
 }
