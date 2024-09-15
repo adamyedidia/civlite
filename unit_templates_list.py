@@ -162,7 +162,7 @@ class UNITS():
         name="Horse Archer",
         building_name="Ranged Stable",
         type="military",
-        metal_cost=12,
+        metal_cost=15,
         wood_cost=25,
         strength=3,
         movement=2,
@@ -297,6 +297,7 @@ class UNITS():
         prereq=TECHS.GUNPOWDER,
         abilities=[],
         great_people_names={
+            "engineer": "D'Artagnan",
             "general_advanced": "Jan Zizka",
             "general_normal": "Hernan Cortes",
             "general_horde": "George Washington",
@@ -349,7 +350,7 @@ class UNITS():
         type="military",
         metal_cost=40,
         wood_cost=20,
-        strength=12,
+        strength=15,
         movement=2,
         range=1,
         tags=[UnitTag.MOUNTED],
@@ -369,7 +370,7 @@ class UNITS():
         name="Rifleman",
         building_name="Rifle Range",
         type="military",
-        metal_cost=20,
+        metal_cost=15,
         wood_cost=40,
         strength=10,
         movement=1,
@@ -390,7 +391,7 @@ class UNITS():
         type="military",
         metal_cost=50,
         wood_cost=30,
-        strength=12,
+        strength=15,
         movement=1,
         range=1,
         tags=[UnitTag.RANGED, UnitTag.GUNPOWDER],
@@ -410,7 +411,7 @@ class UNITS():
         name="Artillery",
         building_name="Adv. Foundry",
         type="military",
-        metal_cost=70,
+        metal_cost=60,
         wood_cost=30,
         strength=20,
         movement=1,
@@ -506,6 +507,7 @@ class UNITS():
             "engineer": "Robert Oppenheimer",  # Issue: Rocket Launcher isn't really the same as Atomic Bomb
             "general_advanced": "Douglas MacArthur",  # Issue: Rocket Launcher isn't really the same as Atomic Bomb
             "general_normal": "Kim Il Sung",
+            "general_horde": "General Zod",
         },
     )
     BAZOOKA = UnitTemplate(
