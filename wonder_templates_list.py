@@ -145,11 +145,12 @@ class WONDERS():
     NOTRE_DAME = WonderTemplate(name="Notre Dame", age=4,
                                 on_build=PointsEffect(calculate_points=lambda city, _: 10, description="+10 vp (on top of the normal 5vp)", label="Notre Dame"))
     # 15th century
-    FORBIDDEN_PALACE = WonderTemplate(name="Forbidden Palace", age=4, on_build=GainResourceEffect(resource='city_power', amount=200),
+    FORBIDDEN_PALACE = WonderTemplate(name="Forbidden Palace", age=4, 
+        on_build=GainResourceEffect(resource='city_power', amount=300),
         abilities=[BUILDING_ABILITIES["ExtraTerritory"]()]
     )
     # 16th-17th century
-    HIMEJI_CASTLE = WonderTemplate(name="Himeji Castle", age=4, on_build=StrengthAllUnitsEffect(amount=1))
+    HIMEJI_CASTLE = WonderTemplate(name="Himeji Castle", age=4, on_build=StrengthAllUnitsEffect(amount=2))
     # 15th century
     SISTENE_CHAPEL = WonderTemplate(
         name="Sistene Chapel", age=4,
