@@ -91,7 +91,7 @@ class Camp(MapObjectSpawner):
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.handle_siege(sess, game_state)
         # Game plays that own camps through great bath get double production.
-        produce_unit = (game_state.turn_num % 2 == 0) or (not self.civ == CIVS.BARBARIAN)
+        produce_unit = (game_state.turn_num % 2 == 0) or (not self.civ.template == CIVS.BARBARIAN)
         if produce_unit:
             self.build_unit(game_state, self.unit)
 
