@@ -4,9 +4,10 @@ from typing import Any
 from ai_game import ai_game
 from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
+from civ_templates_list import CIVS
 
 from game_state import GameState
-from great_person import GreatEngineer, GreatGeneral, GreatMerchant, GreatScientist, great_people_by_age
+from great_person import GreatEngineer, GreatGeneral, GreatMerchant, GreatScientist, _target_value_by_age, great_people_by_age
 
 import argparse
 import os
@@ -40,6 +41,7 @@ def ai_game_count_units(id, num_players) -> dict[str, list[list[dict[Any, int]]]
     great_person_counts = [{person.name: 0 for i in range(10) for person in great_people_by_age(i)} for _ in range(num_players)]
     wonders = [{wonder.name: 0 for wonder in WONDERS.all()} for _ in range(num_players)]
     buildings = [{building.name: 0 for building in BUILDINGS.all()} for _ in range(num_players)]
+    civ_turn_counts = [{civ.name: 0 for civ in CIVS.all()} for _ in range(num_players)]
     for json_state in data:
         state = GameState.from_json(json_state)
         for city in state.cities_by_id.values():
@@ -51,12 +53,16 @@ def ai_game_count_units(id, num_players) -> dict[str, list[list[dict[Any, int]]]
                         wonders[city.civ.game_player.player_num][item.template.name] += 1
                     elif isinstance(item.template, BuildingTemplate):
                         buildings[city.civ.game_player.player_num][item.template.name] += 1
+        for civ in state.civs_by_id.values():
+            if civ.game_player is not None:
+                civ_turn_counts[civ.game_player.player_num][civ.template.name] += 1
     final_state: GameState = GameState.from_json(data[-1])
     final_scores: dict[int, int] = {i: player.score for i, player in final_state.game_player_by_player_num.items()}
     winner = max(range(num_players), key=lambda i: final_scores[i])
     winner_units = unit_counts.pop(winner)
     winner_wonders = wonders.pop(winner)
     winner_buildings = buildings.pop(winner)
+    winner_civ_turn_counts = civ_turn_counts.pop(winner)
 
     # get great people from announcements
     # Announcements look like: f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory."
@@ -74,6 +80,7 @@ def ai_game_count_units(id, num_players) -> dict[str, list[list[dict[Any, int]]]
         'wonders': [[winner_wonders], wonders],
         'buildings': [[winner_buildings], buildings],
         'great_people': [[winner_great_people], great_person_counts],
+        'civs': [[winner_civ_turn_counts], civ_turn_counts]
     }
 
 def accumulate_list(data):
@@ -107,12 +114,14 @@ def accumulate_unit_info(num_games, cache_file, offset=0, max_workers=10):
         'wonders': {wonder.name: defaultdict(int) for wonder in WONDERS.all()},
         'buildings': {building.name: defaultdict(int) for building in BUILDINGS.all()},
         'great_people': {person.name: defaultdict(int) for i in range(10) for person in great_people_by_age(i)},
+        'civs': {civ.name: defaultdict(int) for civ in CIVS.all()}
     }
     loser_data = {
         'units': {unit.name: defaultdict(int) for unit in UNITS.all()},
         'wonders': {wonder.name: defaultdict(int) for wonder in WONDERS.all()},
         'buildings': {building.name: defaultdict(int) for building in BUILDINGS.all()},
         'great_people': {person.name: defaultdict(int) for i in range(10) for person in great_people_by_age(i)},
+        'civs': {civ.name: defaultdict(int) for civ in CIVS.all()}
     }
 
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
@@ -212,12 +221,30 @@ def plot_rates(winner_data, loser_data, items, title, cond_prob_range, name_fn=l
         yref=f"y{2+2*fig_offset}"
     )
 
+    if hasattr(items[0], "advancement_level"):
+        for age in range(10):
+            probs = [p for item, p in zip(items, cond_win_prob) if item.advancement_level == age]
+            if len(probs) > 0:
+                average_this_age = np.mean(probs)
+                fig.add_shape(
+                    type="line",
+                    x0=x[next(i for i, item in enumerate(items) if item.advancement_level == age)],
+                    y0=average_this_age,
+                    x1=x[len(x) - 1 - next(i for i, item in enumerate(reversed(items)) if item.advancement_level == age)],
+                    y1=average_this_age,
+                    line=dict(color="black", width=1, dash="dot"),
+                    xref="x",
+                    yref=f"y{2+2*fig_offset}"
+                )
+
     fig.update_xaxes(tickangle=45, categoryorder='array', categoryarray=x, row=1 + 2 * fig_offset, col=1)
     fig.update_xaxes(tickangle=45, categoryorder='array', categoryarray=x, row=2 + 2 * fig_offset, col=1)
     fig.update_yaxes(title_text="Completion Rate", row=1 + 2 * fig_offset, col=1)
     fig.update_yaxes(title_text="Conditional Win Prob", range=cond_prob_range, row=2 + 2 * fig_offset, col=1)
     if show_fig:
         fig.show()
+
+    return items, x, y_winner, y_loser, cond_win_prob, cond_win_prob_errors
 
 def conditional_win_prob(winner_data: NDArray[np.int_], loser_data: NDArray[np.int_]) -> tuple[float, float]:
     total_players = sum(winner_data) + sum(loser_data)
@@ -248,6 +275,12 @@ def gp_name(great_person) -> str:
         return f"{great_person.name} ({great_person.tech_template.name})"
     else:
         return great_person.name + " (????)"
+
+def gives_science(civ) -> bool:
+    return any('science' in ability.numbers for ability in civ.abilities)
+
+assert gives_science(CIVS.QIN)
+assert not gives_science(CIVS.AZTECS)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='AI Game Unit Stats')
@@ -286,12 +319,14 @@ if __name__ == "__main__":
             'wonders': {wonder.name: defaultdict(int) for wonder in WONDERS.all()},
             'buildings': {building.name: defaultdict(int) for building in BUILDINGS.all()},
             'great_people': {person.name: defaultdict(int) for i in range(10) for person in great_people_by_age(i)},
+            'civs': {civ.name: defaultdict(int) for civ in CIVS.all()}
         }
         loser_data_raw = {
             'units': {unit.name: defaultdict(int) for unit in UNITS.all()},
             'wonders': {wonder.name: defaultdict(int) for wonder in WONDERS.all()},
             'buildings': {building.name: defaultdict(int) for building in BUILDINGS.all()},
             'great_people': {person.name: defaultdict(int) for i in range(10) for person in great_people_by_age(i)},
+            'civs': {civ.name: defaultdict(int) for civ in CIVS.all()}
         }
         for i in range(chunks):
             offset = i*games_per_chunk
@@ -312,7 +347,7 @@ if __name__ == "__main__":
 
         # Create a figure with subplots for each unit
         units = [u for u in UNITS.all() if not u.has_tag(UnitTag.WONDROUS) and u.movement > 0]
-        units.sort(key=lambda u: (u.advancement_level(), u.name))
+        units.sort(key=lambda u: (u.advancement_level, u.name))
         num_units = len(units)
         fig = make_subplots(
             rows=max(1, num_units//2), cols=2,
@@ -350,7 +385,7 @@ if __name__ == "__main__":
                     7: 800,
                     8: 800,
                     9: 1000,
-                }[unit.advancement_level()]
+                }[unit.advancement_level]
             metal_bins = 10
             metal_bin_size = max_metal//metal_bins
 
@@ -394,21 +429,119 @@ if __name__ == "__main__":
             assert len(winner_data['wonders'][wonder.name]) <= 2
             assert len(loser_data['wonders'][wonder.name]) <= 2
 
-        sorted_units = sorted(UNITS.all(), key=lambda u: (u.advancement_level(), u.name))
-        plot_rates(winner_data['units'], loser_data['units'], sorted_units, "Unit Completion Rates", cond_prob_range=[0.23, 0.3])
-        sorted_wonders = sorted(WONDERS.all(), key=lambda w: (w.age, w.name))
-        plot_rates(winner_data['wonders'], loser_data['wonders'], sorted_wonders, "Wonder Completion Rates", cond_prob_range=[0.2, 0.4])
-        sorted_buildings = sorted(BUILDINGS.all(), key=lambda b: (b.advancement_level(), b.name))
-        plot_rates(winner_data['buildings'], loser_data['buildings'], sorted_buildings, "Building Completion Rates", cond_prob_range=[0.23, 0.3])
+        sorted_units = sorted([u for u in UNITS.all() if u.movement > 0], key=lambda u: (u.advancement_level, u.name))
+        units, x, y_winner, y_loser, units_cond_win_prob, units_cond_win_prob_errors = plot_rates(winner_data['units'], loser_data['units'], sorted_units, "Unit Completion Rates", cond_prob_range=[0.23, 0.3])
 
-        fig = make_subplots(rows=20, cols=1)
+        sorted_wonders = sorted(WONDERS.all(), key=lambda w: (w.advancement_level, w.name))
+        plot_rates(winner_data['wonders'], loser_data['wonders'], sorted_wonders, "Wonder Completion Rates", cond_prob_range=[0.2, 0.4])
+        sorted_buildings = sorted(BUILDINGS.all(), key=lambda b: (b.advancement_level, b.name))
+        plot_rates(winner_data['buildings'], loser_data['buildings'], sorted_buildings, "Building Completion Rates", cond_prob_range=[0.23, 0.3])
+        sorted_civs = sorted(CIVS.all(), key=lambda c: (c.advancement_level, gives_science(c), c.name))
+        plot_rates(winner_data['civs'], loser_data['civs'], sorted_civs, "Civ Turn Counts", cond_prob_range=[0.1, 0.35])
+        sorted_people = sorted([p for i in range(10) for p in great_people_by_age(i)], key=lambda p: (p.advancement_level, p.__class__.__name__, p.name))
+        plot_rates(winner_data['great_people'], loser_data['great_people'], sorted_people, f"Great People All", cond_prob_range=[0.1, 0.3], name_fn=gp_name)
+
+        fig = make_subplots(rows=22, cols=1)
         fig.update_layout(
             title="Great People",
             barmode='overlay',
             height=12000,
             width=1200,
         )
+        great_general_unit_condp = []
+        great_general_unit_condp_errors = []
+        great_general_condp = []
+        great_general_condp_errors = []
+        great_generals: list[GreatGeneral] = []
         for i in range(10):
             sorted_people = sorted(great_people_by_age(i), key=lambda p: (p.__class__.__name__, p.name))
-            plot_rates(winner_data['great_people'], loser_data['great_people'], sorted_people, f"Great Person Age {i}", cond_prob_range=[0.1, 0.3], name_fn=gp_name, fig=fig, fig_offset=i)
+            items, x, y_winner, y_loser, cond_win_prob, cond_win_prob_errors = plot_rates(winner_data['great_people'], loser_data['great_people'], sorted_people, f"Great Person Age {i}", cond_prob_range=[0.1, 0.3], name_fn=gp_name, fig=fig, fig_offset=i)
+            for p, condp, dcondp in zip(items, cond_win_prob, cond_win_prob_errors):
+                if isinstance(p, GreatGeneral) and p.unit_template in units:
+                    index = units.index(p.unit_template)
+                    unit_dcondp = units_cond_win_prob_errors[index]
+                    if unit_dcondp < 0.01:
+                        great_general_unit_condp.append(units_cond_win_prob[index])
+                        great_general_unit_condp_errors.append(unit_dcondp)
+                        great_general_condp.append(condp)
+                        great_general_condp_errors.append(dcondp)
+                        great_generals.append(p)
+
+        # Add scatter plot for Great Generals
+        def get_advancedness(gg: GreatGeneral) -> int:
+            return gg.advancement_level - gg.unit_template.advancement_level
+        
+        def get_target_metal(gg: GreatGeneral) -> float:
+            return {-1: 0.4, 0: 0.65, 1: 1.0}.get(get_advancedness(gg), 1e-4) * _target_value_by_age(gg.advancement_level)
+
+        advancednesses = [gg.advancement_level - gg.unit_template.advancement_level for gg in great_generals]
+
+        fig.add_trace(
+            go.Scatter(
+                x=great_general_unit_condp,
+                y=great_general_condp,
+                mode='markers',
+                name='Great Generals',
+                marker=dict(
+                    size=20,
+                    color=[units.index(gg.unit_template) for gg in great_generals],
+                    symbol=[
+                        'circle' if adv == 0 else
+                        'triangle-up' if adv == 1 else
+                        'triangle-down' if adv == -1 else
+                        'square' for adv in advancednesses
+                    ],                    colorscale='Viridis',
+                    showscale=False,
+                ),
+                error_y=dict(
+                    type='data',
+                    array=great_general_condp_errors,
+                    visible=True
+                ),
+                error_x=dict(
+                    type='data',
+                    array=great_general_unit_condp_errors,
+                    visible=True
+                ),
+                hovertext=[f"{gg.name} ({gg.unit_template.name} a{gg.advancement_level}): ({gen_condp:.2f}, {unit_condp:.2f})" 
+                           for gg, gen_condp, unit_condp in zip(great_generals, great_general_condp, great_general_unit_condp)]
+            ),
+            row=21, col=1
+        )
+        fig.update_xaxes(title_text="Unit Conditional Win Probability", row=21, col=1, range=(0.25, 0.27))
+        fig.update_yaxes(title_text="Great Person Conditional Win Probability", row=21, col=1)
+
+        fig.add_trace(
+            go.Scatter(
+                x=[1 - gg.unit_template.metal_cost * gg.number / get_target_metal(gg) for gg in great_generals],
+                y=great_general_condp,
+                mode='markers',
+                name='Great Generals',
+                marker=dict(
+                    size=10,
+                    color=[gg.unit_template.advancement_level for gg in great_generals],
+                    symbol=[
+                        'circle' if adv == 0 else
+                        'triangle-up' if adv == 1 else
+                        'triangle-down' if adv == -1 else
+                        'square' for adv in advancednesses
+                    ],
+                    colorscale='Viridis',
+                    showscale=False,
+                ),
+                error_y=dict(
+                    type='data',
+                    array=great_general_condp_errors,
+                    visible=True
+                ),
+                hovertext=[f"{gg.name} ({gg.unit_template.name} a{gg.advancement_level}): ({gen_condp:.2f})" 
+                           for gg, gen_condp in zip(great_generals, great_general_condp)]
+            ),
+            row=22, col=1
+        )
+
+        fig.update_xaxes(title_text="Metal Fraction Lost To Rounding", row=22, col=1, range=(-0.02, 0.33))
+        fig.update_yaxes(title_text="Great Person Conditional Win Probability", row=22, col=1)
+        fig.update_layout(height=13000)  # Increase height to accommodate new plot
+
         fig.show()
