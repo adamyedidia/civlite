@@ -8,16 +8,6 @@ logging.basicConfig(level=logging.DEBUG,
                     filename='scripts/output/ai_game_debug.log',
                     filemode='w')
 
-# Create a console handler
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-formatter = logging.Formatter('%(name)s - %(message)s')
-console_handler.setFormatter(formatter)
-
-# Add console handler to the root logger
-logging.getLogger('').addHandler(console_handler)
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--id', type=int, required=True)
