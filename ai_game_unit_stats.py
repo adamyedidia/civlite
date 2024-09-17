@@ -345,85 +345,85 @@ if __name__ == "__main__":
                 winner_data[key][item] = np.array([winner_data_raw[key][item][i] for i in range(max(winner_data_raw[key][item].keys())+1)])
                 loser_data[key][item] = np.array([loser_data_raw[key][item][i] for i in range(max(loser_data_raw[key][item].keys())+1)])
 
-        # Create a figure with subplots for each unit
-        units = [u for u in UNITS.all() if not u.has_tag(UnitTag.WONDROUS) and u.movement > 0]
-        units.sort(key=lambda u: (u.advancement_level, u.name))
-        num_units = len(units)
-        fig = make_subplots(
-            rows=max(1, num_units//2), cols=2,
-            subplot_titles=[f"{unit.name} [{conditional_win_prob_str(winner_data['units'][unit.name], loser_data['units'][unit.name])}]" for unit in units]  # Optional: adds titles to each subplot
-        )
+        # # Create a figure with subplots for each unit
+        # units = [u for u in UNITS.all() if not u.has_tag(UnitTag.WONDROUS) and u.movement > 0]
+        # units.sort(key=lambda u: (u.advancement_level, u.name))
+        # num_units = len(units)
+        # fig = make_subplots(
+        #     rows=max(1, num_units//2), cols=2,
+        #     subplot_titles=[f"{unit.name} [{conditional_win_prob_str(winner_data['units'][unit.name], loser_data['units'][unit.name])}]" for unit in units]  # Optional: adds titles to each subplot
+        # )
 
-        # Set the bar mode to overlay for histograms
-        fig.update_layout(
-            height=150*num_units, width=1200, title_text="Unit Histograms",
-            barmode='overlay',
-            bargap=0,
-        )
+        # # Set the bar mode to overlay for histograms
+        # fig.update_layout(
+        #     height=150*num_units, width=1200, title_text="Unit Histograms",
+        #     barmode='overlay',
+        #     bargap=0,
+        # )
 
-        x_max = 20
-        for i, unit in enumerate(units, start=0):
-            winner_unit_data = winner_data['units'][unit.name]
-            winner_sum = sum(winner_unit_data)
-            loser_unit_data = loser_data['units'][unit.name]
-            loser_sum = sum(loser_unit_data)
-            winner_unit_data = winner_unit_data/winner_sum
-            loser_unit_data = loser_unit_data/loser_sum
+        # x_max = 20
+        # for i, unit in enumerate(units, start=0):
+        #     winner_unit_data = winner_data['units'][unit.name]
+        #     winner_sum = sum(winner_unit_data)
+        #     loser_unit_data = loser_data['units'][unit.name]
+        #     loser_sum = sum(loser_unit_data)
+        #     winner_unit_data = winner_unit_data/winner_sum
+        #     loser_unit_data = loser_unit_data/loser_sum
 
-            if unit == UNITS.WARRIOR:
-                max_metal = 300
-            elif unit == UNITS.SLINGER:
-                max_metal = 100
-            else:
-                max_metal = {
-                    1: 200,
-                    2: 250,
-                    3: 400,
-                    4: 500,
-                    5: 700,
-                    6: 800,
-                    7: 800,
-                    8: 800,
-                    9: 1000,
-                }[unit.advancement_level]
-            metal_bins = 10
-            metal_bin_size = max_metal//metal_bins
+        #     if unit == UNITS.WARRIOR:
+        #         max_metal = 300
+        #     elif unit == UNITS.SLINGER:
+        #         max_metal = 100
+        #     else:
+        #         max_metal = {
+        #             1: 200,
+        #             2: 250,
+        #             3: 400,
+        #             4: 500,
+        #             5: 700,
+        #             6: 800,
+        #             7: 800,
+        #             8: 800,
+        #             9: 1000,
+        #         }[unit.advancement_level]
+        #     metal_bins = 10
+        #     metal_bin_size = max_metal//metal_bins
 
-            binned_winner_data = [0]*metal_bins
-            for num_built, hist_val in enumerate(winner_unit_data[1:]):
-                bin_idx = num_built * unit.metal_cost//metal_bin_size
-                if bin_idx < metal_bins:
-                    binned_winner_data[bin_idx] += hist_val
-            binned_loser_data = [0]*metal_bins
-            for num_built, hist_val in enumerate(loser_unit_data[1:]):
-                bin_idx = num_built * unit.metal_cost//metal_bin_size
-                if bin_idx < metal_bins:
-                    binned_loser_data[bin_idx] += hist_val
+        #     binned_winner_data = [0]*metal_bins
+        #     for num_built, hist_val in enumerate(winner_unit_data[1:]):
+        #         bin_idx = num_built * unit.metal_cost//metal_bin_size
+        #         if bin_idx < metal_bins:
+        #             binned_winner_data[bin_idx] += hist_val
+        #     binned_loser_data = [0]*metal_bins
+        #     for num_built, hist_val in enumerate(loser_unit_data[1:]):
+        #         bin_idx = num_built * unit.metal_cost//metal_bin_size
+        #         if bin_idx < metal_bins:
+        #             binned_loser_data[bin_idx] += hist_val
 
-            row = i//2 + 1
-            col = i%2 + 1
-            if args.metal_binning:
-                x = np.array(range(1, metal_bins + 1)) * metal_bin_size
-                y = binned_winner_data, binned_loser_data
-            else:
-                x_max = max_metal//unit.metal_cost
-                x = np.array(range(1, x_max))
-                y = winner_unit_data[1:], loser_unit_data[1:]
+        #     row = i//2 + 1
+        #     col = i%2 + 1
+        #     if args.metal_binning:
+        #         x = np.array(range(1, metal_bins + 1)) * metal_bin_size
+        #         y = binned_winner_data, binned_loser_data
+        #     else:
+        #         x_max = max_metal//unit.metal_cost
+        #         x = np.array(range(1, x_max))
+        #         y = winner_unit_data[1:], loser_unit_data[1:]
 
-            fig.add_trace(
-                go.Bar(x=x, y=y[0], marker_color='green', opacity=0.5, name="Winner", legendgroup="winner", showlegend=(i == 1)), 
-                row=row, col=col
-            )
-            fig.add_trace(
-                go.Bar(x=x, y=y[1], marker_color='red', opacity=0.5, name="Loser", legendgroup="loser", showlegend=(i == 1)),
-                row=row, col=col
-            )
+        #     fig.add_trace(
+        #         go.Bar(x=x, y=y[0], marker_color='green', opacity=0.5, name="Winner", legendgroup="winner", showlegend=(i == 1)), 
+        #         row=row, col=col
+        #     )
+        #     fig.add_trace(
+        #         go.Bar(x=x, y=y[1], marker_color='red', opacity=0.5, name="Loser", legendgroup="loser", showlegend=(i == 1)),
+        #         row=row, col=col
+        #     )
 
-            max_winner = max(y[0]) if len(y[0]) > 0 else 1
-            max_loser = max(y[1]) if len(y[1]) > 0 else 1
-            max_ymax = max(max_winner, max_loser) * 1.1  # 10% more than the maximum value
-            fig.update_yaxes(range=[0, max_ymax], row=row, col=col)
-        fig.show()
+        #     max_winner = max(y[0]) if len(y[0]) > 0 else 1
+        #     max_loser = max(y[1]) if len(y[1]) > 0 else 1
+        #     max_ymax = max(max_winner, max_loser) * 1.1  # 10% more than the maximum value
+        #     fig.update_yaxes(range=[0, max_ymax], row=row, col=col)
+        # fig.show()
 
         for wonder in WONDERS.all():
             assert len(winner_data['wonders'][wonder.name]) <= 2
@@ -436,7 +436,7 @@ if __name__ == "__main__":
         plot_rates(winner_data['wonders'], loser_data['wonders'], sorted_wonders, "Wonder Completion Rates", cond_prob_range=[0.2, 0.4])
         sorted_buildings = sorted(BUILDINGS.all(), key=lambda b: (b.advancement_level, b.name))
         plot_rates(winner_data['buildings'], loser_data['buildings'], sorted_buildings, "Building Completion Rates", cond_prob_range=[0.23, 0.3])
-        sorted_civs = sorted(CIVS.all(), key=lambda c: (c.advancement_level, gives_science(c), c.name))
+        sorted_civs = sorted(CIVS.all(), key=lambda c: (c.advancement_level, c.name))
         plot_rates(winner_data['civs'], loser_data['civs'], sorted_civs, "Civ Turn Counts", cond_prob_range=[0.1, 0.35])
         sorted_people = sorted([p for i in range(10) for p in great_people_by_age(i)], key=lambda p: (p.advancement_level, p.__class__.__name__, p.name))
         plot_rates(winner_data['great_people'], loser_data['great_people'], sorted_people, f"Great People All", cond_prob_range=[0.1, 0.3], name_fn=gp_name)
@@ -454,7 +454,7 @@ if __name__ == "__main__":
         great_general_condp_errors = []
         great_generals: list[GreatGeneral] = []
         for i in range(10):
-            sorted_people = sorted(great_people_by_age(i), key=lambda p: (p.__class__.__name__, p.name))
+            sorted_people = sorted(great_people_by_age(i), key=lambda p: (p.__class__.__name__, ((p.unit_template.advancement_level, p.unit_template.wood_cost) if isinstance(p, GreatGeneral) else 0), p.name))
             items, x, y_winner, y_loser, cond_win_prob, cond_win_prob_errors = plot_rates(winner_data['great_people'], loser_data['great_people'], sorted_people, f"Great Person Age {i}", cond_prob_range=[0.1, 0.3], name_fn=gp_name, fig=fig, fig_offset=i)
             for p, condp, dcondp in zip(items, cond_win_prob, cond_win_prob_errors):
                 if isinstance(p, GreatGeneral) and p.unit_template in units:

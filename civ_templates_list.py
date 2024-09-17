@@ -166,7 +166,7 @@ class CIVS():
         name="Yangshao",
         abilities=[{
             "name": "ExtraVpsPerUnitKilled",
-            "numbers": [1]
+            "numbers": ["ranged", 1]
         }],
         advancement_level=0,
     )
@@ -442,14 +442,14 @@ class CIVS():
         }],
         advancement_level=1,
     )
-    XIONGNU = CivTemplate(
-        name="Xiongnu",
-        abilities=[{
-            "name": "ExtraVpsPerUnitKilled",
-            "numbers": [1],
-        }],
-        advancement_level=1,
-    )
+    # XIONGNU = CivTemplate(
+    #     name="Xiongnu",
+    #     abilities=[{
+    #         "name": "ExtraVpsPerUnitKilled",
+    #         "numbers": [1],
+    #     }],
+    #     advancement_level=1,
+    # )
     AKSUM = CivTemplate(
         name="Aksum",
         abilities=[{
@@ -547,7 +547,7 @@ class CIVS():
         name="Aztecs",
         abilities=[{
             "name": "ExtraVpsPerUnitKilled",
-            "numbers": [1],
+            "numbers": ["infantry", 1],
         }],
         advancement_level=2,
     )
@@ -1039,7 +1039,7 @@ class CIVS():
         name="Comanches",
         abilities=[{
             "name": "ExtraVpsPerUnitKilled",
-            "numbers": [1],
+            "numbers": ["mounted", 1],
         }],
         advancement_level=5,
     )
@@ -1158,6 +1158,43 @@ class CIVS():
         advancement_level=9,
     )
 
+    # For debugging / sciencing
+    # A0_BLANK = CivTemplate(
+    #     name="A0 Blank",
+    #     abilities=[],
+    #     colors=("#000000", "#000000",),
+    #     advancement_level=0,
+    # )
+    # A1_BLANK = CivTemplate(
+    #     name="A1 Blank",
+    #     abilities=[],
+    #     colors=("#000000", "#000000",),
+    #     advancement_level=1,
+    # )
+    # A2_BLANK = CivTemplate(
+    #     name="A2 Blank",
+    #     abilities=[],
+    #     colors=("#000000", "#000000",),
+    #     advancement_level=2,
+    # )
+    # A4_BLANK = CivTemplate(
+    #     name="A4 Blank",
+    #     abilities=[],
+    #     colors=("#000000", "#000000",),
+    #     advancement_level=4,
+    # )
+    # A5_BLANK = CivTemplate(
+    #     name="A5 Blank",
+    #     abilities=[],
+    #     colors=("#000000", "#000000",),
+    #     advancement_level=5,
+    # )
+    # A7_BLANK = CivTemplate(
+    #     name="A7 Blank",
+    #     abilities=[],
+    #     colors=("#000000", "#000000",),
+    #     advancement_level=7,
+    # )
 
 _num_a0_civs = len([civ for civ in CIVS.all() if civ.advancement_level ==0])
 assert _num_a0_civs >= settings.MAX_PLAYERS * settings.NUM_STARTING_LOCATION_OPTIONS, f"There are only {_num_a0_civs} age 0 civs, but we need {settings.MAX_PLAYERS * settings.NUM_STARTING_LOCATION_OPTIONS} for a maximum size game to fit."

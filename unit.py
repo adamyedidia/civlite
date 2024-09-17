@@ -226,7 +226,7 @@ class Unit(MapObject):
     def punch(self, game_state: 'GameState', target: 'Unit', battle_location: 'Hex', damage_reduction_factor: float = 1.0, support_hexes: set[tuple['Hex', 'Hex']] = set()) -> None:
         self.effective_strength = (self.strength + self._compute_bonus_strength(game_state, target, battle_location, support_hexes)) * damage_reduction_factor * (0.5 + 0.5 * (min(self.health, 100) / 100))
         target.effective_strength = target.strength + target._compute_bonus_strength(game_state, self, battle_location, support_hexes)
-        target.take_damage(self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength), from_civ=self.civ, game_state=game_state)
+        target.take_damage(self.get_damage_to_deal_from_effective_strengths(self.effective_strength, target.effective_strength), from_civ=self.civ, from_unit=self, game_state=game_state)
 
     def take_damage(self, amount: float, game_state: 'GameState', from_civ: 'Civ | None', from_unit: 'Unit | None' = None):
         original_stack_size = self.get_stack_size()
@@ -240,8 +240,8 @@ class Unit(MapObject):
             for _ in range(original_stack_size - final_stack_size):
                 from_civ.gain_vps(UNIT_KILL_REWARD, f"Unit Kill ({UNIT_KILL_REWARD}/unit)")
 
-                if from_civ.has_ability('ExtraVpsPerUnitKilled'):
-                    from_civ.gain_vps(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0], from_civ.template.name)
+                if from_civ.has_ability('ExtraVpsPerUnitKilled') and from_unit is not None and from_unit.template.has_tag_by_name(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]):
+                    from_civ.gain_vps(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[1], from_civ.template.name)
 
                 if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders and random.random() < 0.50:
                     for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos:
