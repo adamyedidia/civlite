@@ -277,8 +277,6 @@ for age, great_people in _great_people_by_age.items():
 if duplicate_names:
     raise ValueError(f"Duplicate great person names found: {duplicate_names}")
 
-_great_people_by_age[5].append(GreatGeneral("Ōishi Yoshio", 5, UNITS.SWORDSMAN, number=47))
-
 def great_people_by_age(age: int) -> list[GreatPerson]:
     return _great_people_by_age[age]
 

@@ -218,6 +218,71 @@ class CIVS():
         }],
         advancement_level=0,
     )
+    POLYNESIA = CivTemplate(
+        name="Polynesia",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, GrowEffect(1)],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Slinger", 1],
+        }],
+        advancement_level=1,
+    )
+    # XHOSA = CivTemplate(
+    #     name="Xhosa",
+    #     abilities=[{
+    #         "name": "IncreasedStrengthForUnit",
+    #         "numbers": ["Archer", 1],
+    #     }],
+    #     advancement_level=1,
+    # )
+    # AKSUM = CivTemplate(
+    #     name="Aksum",
+    #     abilities=[{
+    #         "name": "IncreasedStrengthForUnit",
+    #         "numbers": ["Archer", 1],
+    #     }],
+    #     advancement_level=1,
+    # )
+    GREECE = CivTemplate(
+        name="Greece",
+        abilities=[{
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Spearman", 1],
+        }],
+        advancement_level=1,
+    )
+    PERSIA = CivTemplate(
+        name="Persia",
+        abilities=[{
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Archer", 1],
+        }],
+        advancement_level=1,
+    )
+    JOSEON = CivTemplate(
+        name="Joseon",
+        abilities=[{
+            "name": "DevelopCheap",
+            "numbers": ["rural"],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Chariot", 1],
+        }],
+        advancement_level=1,
+    )
+    SRIVIJAYA = CivTemplate(
+        name="Srivijaya",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, GainResourceEffect("wood", 20)],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Garrison", 1],
+        }],
+        advancement_level=1,
+    )
     ROMANS = CivTemplate(
         name="Romans",
         abilities=[{
@@ -229,46 +294,25 @@ class CIVS():
         }],
         advancement_level=1,
     )
-    GREECE = CivTemplate(
-        name="Greece",
+    # GOTHS = CivTemplate(
+    #     name="Goths",
+    #     abilities=[{
+    #         "name": "ExtraVpsPerCityCaptured",
+    #         "numbers": [5],
+    #     }, {
+    #         "name": "IncreasedStrengthForUnit",
+    #         "numbers": ["Swordsman", 1],
+    #     }],
+    #     advancement_level=1,
+    # )
+    VIKINGS = CivTemplate(
+        name="Vikings",
         abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Spearman", 1],
-        }],
-        advancement_level=1,
-    )
-    GOKTURKS = CivTemplate(
-        name="Gokturks",
-        abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horse Archer", 1],
-        }],
-        advancement_level=1,
-    )
-    PERSIA = CivTemplate(
-        name="Persia",
-        abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Spearman", 1],
-        }],
-        advancement_level=1,
-    )
-    HAN = CivTemplate(
-        name="Han",
-        abilities=[{
-            "name": "ExtraCityPower",
-            "numbers": [100],
+            "name": "IncreaseFocusYields",
+            "numbers": ["metal", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 1],
-        }],
-        advancement_level=1,
-    )
-    HUNS = CivTemplate(
-        name="Huns",
-        abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horse Archer", 1],
+            "numbers": ["Swordsman", 1],
         }],
         advancement_level=1,
     )
@@ -283,14 +327,71 @@ class CIVS():
         }],
         advancement_level=1,
     )
-    GOTHS = CivTemplate(
-        name="Goths",
+    # SASSANIDS = CivTemplate(
+    #     name="Sassanids",
+    #     abilities=[{
+    #         "name": "DevelopCheap",
+    #         "numbers": ["rural"],
+    #     }, {
+    #         "name": "IncreasedStrengthForUnit",
+    #         "numbers": ["Horseman", 1],
+    #     }],
+    #     advancement_level=1,
+    # )
+    # GOKTURKS = CivTemplate(
+    #     name="Gokturks",
+    #     abilities=[{
+    #         "name": "IncreasedStrengthForUnit",
+    #         "numbers": ["Horse Archer", 1],
+    #     }],
+    #     advancement_level=1,
+    # )
+    HUNS = CivTemplate(
+        name="Huns",
         abilities=[{
-            "name": "ExtraVpsPerCityCaptured",
-            "numbers": [5],
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horse Archer", 1],
+        }],
+        advancement_level=1,
+    )
+    # CUMANS = CivTemplate(
+    #     name="Cumans",
+    #     abilities=[{
+    #         "name": "IncreasedStrengthForUnit",
+    #         "numbers": ["Horse Archer", 1],
+    #     }],
+    #     advancement_level=1,
+    # )
+    GUPTA = CivTemplate(
+        name="Gupta",
+        abilities=[{
+            "name": "DevelopCheap",
+            "numbers": ["urban"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Swordsman", 1],
+            "numbers": ["Catapult", 1],
+        }],
+        advancement_level=1,
+    )
+    HAN = CivTemplate(
+        name="Han",
+        abilities=[{
+            "name": "ExtraCityPower",
+            "numbers": [100],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Crossbowman", 1],
+        }],
+        advancement_level=1,
+    )
+    JIN = CivTemplate(
+        name="Jin",
+        abilities=[{
+            "name": "IncreaseFocusYields",
+            "numbers": ["food", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Crossbowman", 1],
         }],
         advancement_level=1,
     )
@@ -316,69 +417,6 @@ class CIVS():
         }],
         advancement_level=1,
     )
-    JOSEON = CivTemplate(
-        name="Joseon",
-        abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Chariot", 1],
-        }],
-        advancement_level=1,
-    )
-    JIN = CivTemplate(
-        name="Jin",
-        abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["food", 2],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 1],
-        }],
-        advancement_level=1,
-    )
-    VIKINGS = CivTemplate(
-        name="Vikings",
-        abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["metal", 2],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Swordsman", 1],
-        }],
-        advancement_level=1,
-    )
-    BYZANTINES = CivTemplate(
-        name="Byzantines",
-        abilities=[{
-            "name": "ExtraVpsPerWonder",
-            "numbers": [5],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Trebuchet", 1],
-        }],
-        advancement_level=1,
-    )
-    GUPTA = CivTemplate(
-        name="Gupta",
-        abilities=[{
-            "name": "DevelopCheap",
-            "numbers": ["urban"],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Catapult", 1],
-        }],
-        advancement_level=1,
-    )
-    POLYNESIA = CivTemplate(
-        name="Polynesia",
-        abilities=[{
-            "name": "OnDevelop",
-            "numbers": [BuildingType.RURAL, GrowEffect(1)],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Slinger", 2],
-        }],
-        advancement_level=1,
-    )
     SUKHOTHAI = CivTemplate(
         name="Sukhothai",
         abilities=[{
@@ -390,25 +428,14 @@ class CIVS():
         }],
         advancement_level=1,
     )
-    SRIVIJAYA = CivTemplate(
-        name="Srivijaya",
+    BYZANTINES = CivTemplate(
+        name="Byzantines",
         abilities=[{
-            "name": "OnDevelop",
-            "numbers": [BuildingType.RURAL, GainResourceEffect("wood", 20)],
+            "name": "ExtraVpsPerWonder",
+            "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Garrison", 1],
-        }],
-        advancement_level=1,
-    )
-    SASSANIDS = CivTemplate(
-        name="Sassanids",
-        abilities=[{
-            "name": "DevelopCheap",
-            "numbers": ["rural"],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horseman", 1],
+            "numbers": ["Trebuchet", 1],
         }],
         advancement_level=1,
     )
@@ -434,14 +461,6 @@ class CIVS():
         }],
         advancement_level=1,
     )
-    XHOSA = CivTemplate(
-        name="Xhosa",
-        abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Archer", 1],
-        }],
-        advancement_level=1,
-    )
     # XIONGNU = CivTemplate(
     #     name="Xiongnu",
     #     abilities=[{
@@ -450,22 +469,6 @@ class CIVS():
     #     }],
     #     advancement_level=1,
     # )
-    AKSUM = CivTemplate(
-        name="Aksum",
-        abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Archer", 1],
-        }],
-        advancement_level=1,
-    )
-    CUMANS = CivTemplate(
-        name="Cumans",
-        abilities=[{
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horse Archer", 1],
-        }],
-        advancement_level=1,
-    )
     MAJAPAHIT = CivTemplate(
         name="Majapahit",
         abilities=[{
@@ -694,17 +697,17 @@ class CIVS():
         }],
         advancement_level=2,
     )
-    VENICE = CivTemplate(
-        name="Venice",
-        abilities=[{
-            "name": "OnDevelop",
-            "numbers": [BuildingType.URBAN, BuildBuildingEffect(BUILDINGS.HARBOR)],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 2],
-        }],
-        advancement_level=2,
-    )
+    # VENICE = CivTemplate(
+    #     name="Venice",
+    #     abilities=[{
+    #         "name": "OnDevelop",
+    #         "numbers": [BuildingType.URBAN, BuildBuildingEffect(BUILDINGS.HARBOR)],
+    #     }, {
+    #         "name": "IncreasedStrengthForUnit",
+    #         "numbers": ["Musketman", 2],
+    #     }],
+    #     advancement_level=2,
+    # )
     ARAGON = CivTemplate(
         name="Aragon",
         abilities=[{

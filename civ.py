@@ -442,7 +442,7 @@ class Civ:
         self.fill_out_available_buildings(game_state)
 
         if tech != TECHS.RENAISSANCE:
-            self.gain_vps(TECH_VP_REWARD, f"Research ({TECH_VP_REWARD}/tech)")
+            self.gain_vps(TECH_VP_REWARD * tech.advancement_level, f"Research ({TECH_VP_REWARD}/tech level)")
 
             for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
                 amount = ability.numbers[0] * tech.advancement_level
