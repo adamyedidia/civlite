@@ -6,16 +6,15 @@ if TYPE_CHECKING:
     from building_template import BuildingTemplate
 
 class TechTemplate:
-    def __init__(self, name: str, cost: int, advancement_level: int):
+    def __init__(self, name: str, cost: int, advancement_level: int, text: str = ""):
         self.name = name
         self.cost = cost
         self.advancement_level = advancement_level
         self.unlocks_units: list['UnitTemplate'] = []
         self.unlocks_buildings: list['BuildingTemplate'] = []
+        self.text = text
         
     def __repr__(self):
-
-
         return f"<TechTemplate {self.name}>"
 
     def __eq__(self, __value: object) -> bool:
@@ -33,6 +32,7 @@ class TechTemplate:
             "advancement_level": self.advancement_level,
             "unlocks_units": [u.name for u in self.unlocks_units],
             "unlocks_buildings": [b.name for b in self.unlocks_buildings],
+            "text": self.text,
         }
     
     @staticmethod

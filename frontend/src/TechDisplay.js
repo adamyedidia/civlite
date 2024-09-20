@@ -3,6 +3,7 @@ import UnitDisplay from './UnitDisplay'; // Adjust the path as needed
 import './TechDisplay.css'; // Assuming you have a separate CSS file for styling
 import BuildingDisplay from './BuildingDisplay';
 import { romanNumeral } from './TechListDialog';
+import scienceImg from './images/science.png';
 
 const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameState, onClick }) => {
     if (tech.name == "Renaissance") {
@@ -15,7 +16,7 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
             onClick={onClick}
         >
             <h2>{romanNumeral(tech.advancement_level)}. {tech.name}</h2>
-            <p>Cost: {tech.cost} science</p>
+            <p>Cost: {tech.cost} <img src={scienceImg} alt="" height="14" /></p>
             <div className="unlocked-units">
                 {tech.unlocks_units && tech.unlocks_units.map((unitName, index) => (
                     <UnitDisplay key={index} template={templates.UNITS[unitName]} />
@@ -32,11 +33,7 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
                     />
                 ))}
             </div>
-            {tech.name == "Renaissance" && <>
-                <p>Re-enable all discarded technologies</p>
-                <p>Gain 25 VPs</p>
-            </>
-            }
+            {tech.text && <p>{tech.text}</p>}
         </div>
     );
 };

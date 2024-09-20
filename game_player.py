@@ -5,7 +5,6 @@ class GamePlayer:
         self.player_num = player_num
         self.username = username
         self.score_dict = {}  # TODO(dfarhi) it would be nice to not store this duplicative with civ's score_dicts.
-        self.renaissances = 0
         self.decline_this_turn = False
         self.failed_to_decline_this_turn = False
         self.all_civ_ids: list[str] = []
@@ -27,7 +26,6 @@ class GamePlayer:
             "score_dict": self.score_dict,
             "civ_id": self.civ_id,
             "is_bot": self.is_bot,
-            "renaissances": self.renaissances,
             "decline_this_turn": self.decline_this_turn,
             "failed_to_decline_this_turn": self.failed_to_decline_this_turn,
             "all_civ_ids": self.all_civ_ids,
@@ -44,7 +42,6 @@ class GamePlayer:
         )
         game_player.civ_id = json["civ_id"]
         game_player.score_dict = json["score_dict"]
-        game_player.renaissances = json["renaissances"]
         game_player.decline_this_turn = json["decline_this_turn"]
         game_player.failed_to_decline_this_turn = json["failed_to_decline_this_turn"]
         game_player.all_civ_ids = json["all_civ_ids"]

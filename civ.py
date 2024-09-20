@@ -10,7 +10,7 @@ from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_p
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
 from game_player import GamePlayer
-from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VP_REWARD, MAX_PLAYERS
+from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VITALITY_BOOST, MAX_PLAYERS
 from tech_template import TechTemplate
 from building_template import BuildingTemplate, BuildingType
 from unit_template import UnitTemplate
@@ -61,6 +61,7 @@ class Civ:
         self.max_territories: int = 3
         self.vandetta_civ_id: Optional[str] = None
         self.unique_units_built: int = 0
+        self.renaissances: int = 0
 
         self.score_dict: dict[str, float] = {}
 
@@ -243,6 +244,7 @@ class Civ:
             "vandetta_civ_id": self.vandetta_civ_id,
             "score_dict": self.score_dict,
             "unique_units_built": self.unique_units_built,
+            "renaissances": self.renaissances,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -430,12 +432,7 @@ class Civ:
             game_state.resolve_move(MoveType.FOUND_CITY, {'coords': hex.coords, 'city_id': generate_unique_id()}, civ=self)
 
     def renaissance_cost(self) -> float:
-        base_cost = 100 * self.get_advancement_level()
-        if self.game_player is None:
-            # Something very odd has happened, because renaiissance isn't offered to declined civs.
-            # But I guess this could happen if you decline while it's queued.
-            return base_cost
-        return base_cost * (1 + self.game_player.renaissances)
+        return 50 * self.get_advancement_level() * (1 + self.renaissances)
 
     def gain_tech(self, game_state: 'GameState', tech: TechTemplate) -> None:
         self.techs_status[tech] = TechStatus.RESEARCHED
@@ -462,9 +459,8 @@ class Civ:
             for other_tech, status in self.techs_status.items():
                 if status == TechStatus.DISCARDED:
                     self.techs_status[other_tech] = TechStatus.UNAVAILABLE
-            self.gain_vps(RENAISSANCE_VP_REWARD, f"Renaissance ({RENAISSANCE_VP_REWARD}/research)")
-            if self.game_player is not None:
-                self.game_player.renaissances += 1
+            self.vitality *= RENAISSANCE_VITALITY_BOOST
+            self.renaissances += 1
         else:
             self.science -= tech.cost
             self.gain_tech(game_state, tech)
@@ -577,6 +573,7 @@ class Civ:
         civ.vandetta_civ_id = json.get("vandetta_civ_id")
         civ.score_dict = json["score_dict"]
         civ.unique_units_built = json["unique_units_built"]
+        civ.renaissances = json["renaissances"]
 
         return civ
 
