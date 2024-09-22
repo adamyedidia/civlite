@@ -588,7 +588,6 @@ class City(MapObjectSpawner):
                 # This needs to count as a yes-vitality-adjusted yield since the yields will drop with future vitality.
                 # But it's a final income (it's not supposed to be multiplied by vitality directly to ge the income).
                 # So we divide it by vitality to get the correct value.
-                print(self.name, post_vitality_yields.to_json())
                 desc.building_yields += post_vitality_yields * (1 / self.civ.vitality)
 
             if ability.name == "UnitsExtraStrengthByAge":
