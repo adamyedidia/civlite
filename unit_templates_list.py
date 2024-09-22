@@ -246,7 +246,7 @@ class UNITS():
         type="military",
         metal_cost=30,
         wood_cost=10,
-        strength=10,
+        strength=12,
         movement=2,
         range=1,
         tags=[UnitTag.MOUNTED],

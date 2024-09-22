@@ -275,7 +275,7 @@ class BUILDINGS():
     VOLUNTEER_POST = BuildingTemplate(
         name="Volunteer Post",
         type=BuildingType.RURAL,
-        cost=50,
+        cost=75,
         per_turn=BuildEeachUnitEffect(),
         prereq=TECHS.PRINTING_PRESS,
     )
@@ -333,7 +333,7 @@ class BUILDINGS():
         name="Grand Palace",
         type=BuildingType.RURAL,
         cost=100,
-        on_build=ResetHappinessThisCityEffect(),
+        on_build=[ResetHappinessThisCityEffect(), GainResourceEffect("city_power", 100)],
         prereq=TECHS.INDUSTRIALIZATION,
     )
     INDUSTRIAL_FARM = BuildingTemplate(

@@ -598,7 +598,7 @@ class City(MapObjectSpawner):
                     if unit_building.template.advancement_level >= age:
                         desc.buffed_units.append(unit_building.template)
                         buff_ratio = Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength + buff, unit_building.template.strength) / Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength, unit_building.template.strength + buff)
-                        approximate_metal_value = buff_ratio * unit_building.projected_metal_income
+                        approximate_metal_value = buff_ratio * self.projected_income.metal
                         approximate_metal_value_yesvitality = approximate_metal_value * (1 / self.civ.vitality)
                         desc.pseudoyields_for_ai_yesvitality += Yields(metal=approximate_metal_value_yesvitality)
 
@@ -608,7 +608,7 @@ class City(MapObjectSpawner):
                     if unit_building.template.has_tag(tag):
                        desc.buffed_units.append(unit_building.template)
                        buff_ratio = Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength + buff, unit_building.template.strength) / Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength, unit_building.template.strength + buff)
-                       approximate_metal_value = buff_ratio * unit_building.projected_metal_income
+                       approximate_metal_value = buff_ratio * self.projected_income.metal
                        approximate_metal_value_yesvitality = approximate_metal_value * (1 / self.civ.vitality)
                        desc.pseudoyields_for_ai_yesvitality += Yields(metal=approximate_metal_value_yesvitality)
 
@@ -1153,7 +1153,7 @@ class City(MapObjectSpawner):
 
         if self.can_develop(BuildingType.URBAN) \
             and (random.random() < AI.CHANCE_URBANIZE or favorite_development == "urban") \
-            and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots:
+            and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots - 1:
             self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'urban'})
         if self.can_develop(BuildingType.UNIT) \
             and (random.random() < AI.CHANCE_MILITARIZE or favorite_development == "unit") \
@@ -1161,7 +1161,7 @@ class City(MapObjectSpawner):
             self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'unit'})
         if self.can_develop(BuildingType.RURAL) \
             and self.rural_slots == self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) \
-            and (random.random() < AI.CHANCE_EXPAND or favorite_development == "rural"):
+            and (random.random() < AI.CHANCE_EXPAND or favorite_development == "rural") - 1:
             self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'rural'})
 
         self.clear_unit_builds()
@@ -1182,7 +1182,9 @@ class City(MapObjectSpawner):
             if (u.template in build_units) != u.active:
                 self.bot_single_move(game_state, MoveType.SELECT_INFINITE_QUEUE, {'unit_name': u.template.name})
         
-        self.buildings_queue = []
+        # Clear the queue
+        for entry in self.buildings_queue:
+            self.bot_single_move(game_state, MoveType.CANCEL_BUILDING, {'building_name': entry.template.name})
         buildings, i_want_wood = self.bot_choose_building_queue(game_state)
         for b in buildings:
             self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': b.name})
@@ -1267,6 +1269,8 @@ class City(MapObjectSpawner):
                 
             max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
             focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
+            if "food" in focuses_with_best_yields and len(focuses_with_best_yields) > 1:
+                focuses_with_best_yields.remove("food")
             if len(production_city.active_unit_buildings) > 0 and 'metal' in focuses_with_best_yields and production_city.is_threatened_city(game_state):
                 choice = 'metal'
             elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) < production_city.urban_slots and parent_wants_wood:
