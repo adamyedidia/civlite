@@ -210,7 +210,7 @@ class City(MapObjectSpawner):
         self.adjust_projected_builds(game_state)
         self.adjust_projected_unit_builds()
         self._refresh_available_buildings_and_units(game_state)
-        if self.is_territory_capital:
+        if self.is_territory_capital and self.civ.game_player and not self.civ.game_player.is_bot:
             self.bot_favorite_builds, _ = self.bot_choose_building_queue(game_state)
 
 
@@ -1113,9 +1113,11 @@ class City(MapObjectSpawner):
                 total_nonvitality_value = self.bot_evaluate_yields(total_nonvitality_yields, game_state)
                 if total_yesvitality_value + total_nonvitality_value > 0:
                     payoff_turns[building] = self.calculate_payoff_time(yields=total_yesvitality_value, vitality_exempt_yields=total_nonvitality_value, cost=building.cost)
+                    turns_to_build = min(0, (building.cost - remaining_wood) / max(self.projected_income.wood, 0.01))
+                    payoff_turns[building] += turns_to_build * 1.5  # Count extra to discount future yields compared to present.
             if len(payoff_turns) > 0:
                 # calulcate the argmin of the payoff turns
-                best_building = min(payoff_turns, key=lambda x: (x.cost > remaining_wood, payoff_turns.get(x, 99), -x.cost, x.name))
+                best_building = min(payoff_turns, key=lambda x: (payoff_turns.get(x, 99), -x.cost, x.name))
                 if payoff_turns[best_building] < ACCEPTABLE_PAYOFF_TURNS:
                     return best_building
 
@@ -1227,7 +1229,7 @@ class City(MapObjectSpawner):
             remaining_wood_budget -= cost
             q.append(wonder_choice)
             logger.info(f"  adding wonder to buildings queue: {q}")
-        while len(economic_buildings) > 0 and (econ_bldg_choice := self.bot_pick_economic_building(economic_buildings, remaining_wood_budget, game_state)) is not None and remaining_wood_budget > econ_bldg_choice.cost:
+        while len(economic_buildings) > 0 and (econ_bldg_choice := self.bot_pick_economic_building(economic_buildings, remaining_wood_budget, game_state)) is not None and remaining_wood_budget > 0:
             q.append(econ_bldg_choice)
             economic_buildings.remove(econ_bldg_choice)
             remaining_wood_budget -= econ_bldg_choice.cost
