@@ -518,7 +518,7 @@ class City(MapObjectSpawner):
         self.buildings_queue = [entry for entry in self.buildings_queue if 
                                 entry.template in self.available_city_buildings + self.available_unit_buildings + self.available_wonders]
 
-    def calculate_payoff_time(self, yields: float, cost: float, vitality_exempt_yields: float = 0) -> int:
+    def calculate_payoff_time(self, yields: float, cost: float, vitality_exempt_yields: float = 0) -> float:
         # How much will it produce next turn?
         actual_yields = yields * (self.civ.vitality * VITALITY_DECAY_RATE)
         # Need to find a time t such that sum(actual_yields * VITALITY_DECAY_RATE^k + vitality_exempt_yields) = cost
@@ -527,9 +527,9 @@ class City(MapObjectSpawner):
             return actual_yields * (1 - VITALITY_DECAY_RATE**t) / (1 - VITALITY_DECAY_RATE) + vitality_exempt_yields * t - cost
 
         # Use binary search to find the payoff time
-        left, right = 0, 99
-        while right - left > 1:
-            mid = (left + right) // 2
+        left, right = 0, 10
+        while right - left > 0.5:
+            mid = (left + right) / 2
             if solve_payoff_time(mid) < 0:
                 left = mid
             else:
@@ -654,7 +654,7 @@ class City(MapObjectSpawner):
             combined_yesvitality_yields = desc.building_yields.total()
             combined_vitality_exempt_yields = desc.non_vitality_yields.total()
             if combined_yesvitality_yields + combined_vitality_exempt_yields > 0:
-                self.available_buildings_payoff_times[building_template.name] = self.calculate_payoff_time(combined_yesvitality_yields, vitality_exempt_yields=combined_vitality_exempt_yields, cost=building_template.cost)
+                self.available_buildings_payoff_times[building_template.name] = math.ceil(self.calculate_payoff_time(combined_yesvitality_yields, vitality_exempt_yields=combined_vitality_exempt_yields, cost=building_template.cost))
 
     def has_production_building_for_unit(self, unit: UnitTemplate) -> bool:
         return self.has_building(unit)
@@ -1160,8 +1160,8 @@ class City(MapObjectSpawner):
             and self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) >= self.military_slots:
             self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'unit'})
         if self.can_develop(BuildingType.RURAL) \
-            and self.rural_slots == self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) \
-            and (random.random() < AI.CHANCE_EXPAND or favorite_development == "rural") - 1:
+            and self.rural_slots - 1 <= self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) \
+            and (random.random() < AI.CHANCE_EXPAND or favorite_development == "rural"):
             self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'rural'})
 
         self.clear_unit_builds()
@@ -1250,6 +1250,7 @@ class City(MapObjectSpawner):
         return q, i_want_wood
 
     def bot_choose_focus(self, game_state, parent_wants_wood: bool):
+        self.bot_single_move(game_state, MoveType.CHOOSE_FOCUS, {'focus': 'wood'})
         if self.civ_to_revolt_into is not None or self.unhappiness + self.projected_income.unhappiness > game_state.unhappiness_threshold:
             choice = 'food'
             logger.info(f"  chose focus: {self.focus} to prevent revolt")
