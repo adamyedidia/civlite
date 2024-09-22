@@ -163,7 +163,7 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
 }) => {
     const building = templates.BUILDINGS?.[buildingName];
     const developButtons = militarizeBtn || urbanizeBtn;
-    const yields = description?.building_yields;  // TODO could display pre- and post-vitality yields differently.
+    const yields = description?.yields;  // TODO could display pre- and post-vitality yields differently.
     const buffed_units = description?.buffed_units;
     const other_effects = description?.other_strings;
     // TODO display other things from description.
