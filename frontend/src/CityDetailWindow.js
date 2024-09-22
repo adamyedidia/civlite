@@ -50,7 +50,7 @@ const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) =
 
 const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
     selectedCity,
-    unitTemplatesByBuildingName, templates, descriptions,
+    unitTemplatesByBuildingName, templates,
     setHoveredUnit, setHoveredBuilding, setHoveredWonder, setSelectedCity, centerMap
      }) => {
     const [showBuildingChoices, setShowBuildingChoices] = useState(true);
@@ -152,6 +152,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     if (!selectedCity || !projectedIncome) {
         return null;
     }
+    const descriptions = selectedCity?.building_descriptions;
 
     const roomForNewTerritory = myCiv && (myCiv.id === selectedCity.civ_id) && myTerritoryCapitals.length < myCiv.max_territories;
     const territoryReplacementCity = !roomForNewTerritory ? 
@@ -179,9 +180,10 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
 
 
     const bldgQueueMaxIndexFinishing = selectedCity.projected_build_queue_depth - 1;
-    const availableBuildingEntry = (buildingName, index, clickable) => {
+    const availableBuildingEntry = (buildingName, index, clickable, botHighlight) => {
         const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
         return <div key={index} className='building-choices-row'>
+            {botHighlight && <span className="bot-highlight">🤖</span>}
             <BriefBuildingDisplay 
                 buildingName={buildingName}
                 faded={inOtherQueue}
@@ -190,8 +192,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates}
                 setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} setHoveredUnit={setHoveredUnit}
                 onClick={clickable ? () => handleClickBuildingChoice(buildingName) : null}
-                descriptions={descriptions}
-                yields = {selectedCity.building_yields?.[buildingName]} 
+                description={descriptions?.[buildingName]}
                 payoffTime = {selectedCity.available_buildings_payoff_times?.[buildingName]}
                 />
         </div>
@@ -251,7 +252,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     building.type === "rural" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
                     templates={templates} setHoveredBuilding={setHoveredBuilding} 
-                    yields={selectedCity.building_yields} 
+                    description={descriptions?.[building.building_name]}
                     slotsFull={selectedCity.building_slots_full.rural}/>
                 ))}
                 {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type === "rural").length }).map((_, index) => (
@@ -272,7 +273,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                     building.type === "urban" &&
                     <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
                     templates={templates} setHoveredBuilding={setHoveredBuilding} 
-                    yields={selectedCity.building_yields} 
+                    description={descriptions?.[building.building_name]}
                     slotsFull={selectedCity.building_slots_full.urban}/>
                 ))}
                 {Array.from({ length: selectedCity?.urban_slots - selectedCity?.buildings.filter(building => building.type === "urban").length }).map((_, index) => (
@@ -304,7 +305,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                         wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} 
                                         setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} setHoveredUnit={setHoveredUnit}
                                         onClick={() => handleCancelBuilding(entry.template_name)} 
-                                        descriptions={descriptions} yields={selectedCity.building_yields?.[entry.template_name]} payoffTime = {selectedCity.available_buildings_payoff_times?.[entry.template_name]}/>
+                                        description={descriptions?.[entry.template_name]} payoffTime = {selectedCity.available_buildings_payoff_times?.[entry.template_name]}/>
                                 </div>
                             })}
                         </div>
@@ -395,22 +396,22 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             <div className="building-choices-area" style={{borderColor: myCivTemplate?.secondary_color}}>
                 <div className="building-choices-area-inner" style={!showBuildingChoices ? {maxWidth: "30px", overflow: "hidden"} : {}}>
                 {selectedCity.available_unit_building_names.length > 0 && <div className="building-choices-container">
-                        {selectedCity.available_unit_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.max_units_in_build_queue))}
+                        {selectedCity.available_unit_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.max_units_in_build_queue, selectedCity.bot_favorite_builds.includes(buildingName)))}
                         {selectedCity.max_units_in_build_queue && <div className="building-slots-full-banner">
                             <span>Queued Max Units</span>
                         </div>}
                 </div>}
                 {selectedCity.available_wonders.length > 0 && <div className="building-choices-container">
-                        {selectedCity.available_wonders.map((buildingName, index) => availableBuildingEntry(buildingName, index, true))}
+                        {selectedCity.available_wonders.map((buildingName, index) => availableBuildingEntry(buildingName, index, true, selectedCity.bot_favorite_builds.includes(buildingName)))}
                 </div>}
                 {selectedCity.available_urban_building_names.length > 0 && <div className="building-choices-container">
-                        {selectedCity.available_urban_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.building_slots_full.urban))}
+                        {selectedCity.available_urban_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.building_slots_full.urban, selectedCity.bot_favorite_builds.includes(buildingName)))}
                         {selectedCity.building_slots_full.urban && <div className="building-slots-full-banner">
                             <span>No Urban Slots</span>
                         </div>}
                 </div>}
                 {selectedCity.available_rural_building_names.length > 0 && <div className="building-choices-container">
-                        {selectedCity.available_rural_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.building_slots_full.rural))}
+                        {selectedCity.available_rural_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.building_slots_full.rural, selectedCity.bot_favorite_builds.includes(buildingName)))}
                         {selectedCity.building_slots_full.rural && <div className="building-slots-full-banner">
                             <span>No Rural Slots</span>
                         </div>}

@@ -2195,8 +2195,6 @@ export default function GamePage() {
         '20,0,-20': React.createRef(),
     });
 
-    const descriptions = selectedCity?.available_buildings_to_descriptions;
-
     const refreshSelectedCity = (newGameState) => {
         if (selectedCity?.id) {
             setSelectedCity(newGameState.hexes[selectedCity.hex].city);
@@ -3188,7 +3186,6 @@ export default function GamePage() {
                         selectedCity={selectedCity} 
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName}
                         templates={templates}
-                        descriptions={descriptions}
                         setHoveredUnit={setHoveredUnit}
                         setHoveredBuilding={setHoveredBuilding}
                         setHoveredWonder={setHoveredWonder}

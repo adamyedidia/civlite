@@ -497,3 +497,9 @@
   transform: scale(1.2);
   color: #666;
 }
+
+.bot-highlight {
+  position: absolute;
+  left: -2px;
+  z-index: 2;
+}

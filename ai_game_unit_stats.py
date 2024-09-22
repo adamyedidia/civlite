@@ -35,6 +35,10 @@ logger.disabled = True
 logger = logging.getLogger()
 logger.setLevel(logging.WARNING)  # This will suppress INFO level logs
 
+import settings
+
+assert not settings.GOD_MODE
+
 def ai_game_count_units(id, num_players) -> dict[str, list[list[dict[Any, int]]]]:
     data = ai_game(id, num_players)
     unit_counts = [{unit.name: 0 for unit in UNITS.all()} for _ in range(num_players)]

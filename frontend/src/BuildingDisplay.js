@@ -41,7 +41,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, setHoveredUnit, descriptions, yields, payoffTime }) => {
+export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, setHoveredUnit, description, payoffTime }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -57,15 +57,11 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCost
         building_type = 'UNIT';
         building = unitTemplatesByBuildingName[buildingName];
     }
-    const description = descriptions?.[buildingName];
     let descriptionObj = "";
+    const yields = description?.combined_display_yields;
     const displayYields = yields && (yields?.food || yields?.science || yields?.wood || yields?.metal);
     if (displayYields) {
         descriptionObj = <div style={{display: 'inline-block'}}><YieldsDisplay yields={yields} /></div>
-    }
-    else if (description?.type === 'yield' && !(description.value_for_ai > description.value)) {
-        const rounded_val = Number.isInteger(description.value) ? description.value : description.value.toFixed(1);
-        descriptionObj = `+${rounded_val}`;
     }
 
     const bldg_level = building.advancement_level;
@@ -161,12 +157,16 @@ const DevelopButton = ({ cantDevelopReason, handleClickDevelop, developCost, hid
     </div>
 }
 
-export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, yields, handleClickDevelop,
+export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, setHoveredBuilding, description, handleClickDevelop,
     militarizeBtn, urbanizeBtn, queuedBldg, urbanizeCost, militarizeCost, cityPower,
     cantMilitarizeReason, cantUrbanizeReason
 }) => {
     const building = templates.BUILDINGS?.[buildingName];
     const developButtons = militarizeBtn || urbanizeBtn;
+    const yields = description?.building_yields;  // TODO could display pre- and post-vitality yields differently.
+    const buffed_units = description?.buffed_units;
+    const other_effects = description?.other_strings;
+    // TODO display other things from description.
 
     return (
         <div className={`existing-building-card ${emptyType || building?.type}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
@@ -174,9 +174,19 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
             {queuedBldg && <div className="queued-bldg-name">
                 {queuedBldg.template_name}
             </div>}
-            {yields?.[buildingName] && 
-                <YieldsDisplay yields={yields[buildingName]} />
+            {yields && 
+                <YieldsDisplay yields={yields} />
             }
+            {buffed_units && <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+                {buffed_units.map((unit, index) => (
+                    <IconUnitDisplay key={index} unitName={unit} templates={templates} size={30} />
+                ))}
+            </div>}
+            {other_effects && <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
+                {other_effects.map((effect, index) => (
+                    <div key={index}>{effect}</div>
+                ))}
+            </div>}
             {developButtons && <>
                 <div className="develop-btns">
                 <DevelopButton 

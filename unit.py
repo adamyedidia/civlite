@@ -174,7 +174,8 @@ class Unit(MapObject):
         else:
             return None
 
-    def get_damage_to_deal_from_effective_strengths(self, effective_strength: float, target_effective_strength: float) -> int:
+    @staticmethod
+    def get_damage_to_deal_from_effective_strengths(effective_strength: float, target_effective_strength: float) -> int:
         ratio_of_strengths = effective_strength / target_effective_strength
 
         # This is a very scientific formula
