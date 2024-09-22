@@ -439,7 +439,7 @@ if __name__ == "__main__":
         sorted_wonders = sorted(WONDERS.all(), key=lambda w: (w.advancement_level, w.name))
         plot_rates(winner_data['wonders'], loser_data['wonders'], sorted_wonders, "Wonder Completion Rates", cond_prob_range=[0.2, 0.4])
         sorted_buildings = sorted(BUILDINGS.all(), key=lambda b: (b.advancement_level, b.name))
-        plot_rates(winner_data['buildings'], loser_data['buildings'], sorted_buildings, "Building Completion Rates", cond_prob_range=[0.23, 0.3])
+        plot_rates(winner_data['buildings'], loser_data['buildings'], sorted_buildings, "Building Completion Rates", cond_prob_range=[0.23, 0.4])
         sorted_civs = sorted(CIVS.all(), key=lambda c: (c.advancement_level, c.unique_unit or "", c.name))
         plot_rates(winner_data['civs'], loser_data['civs'], sorted_civs, "Civ Turn Counts", cond_prob_range=[0.1, 0.35])
         sorted_people = sorted([p for i in range(10) for p in great_people_by_age(i)], key=lambda p: (p.advancement_level, p.__class__.__name__, p.name))

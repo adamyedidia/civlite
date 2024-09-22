@@ -567,7 +567,9 @@ class City(MapObjectSpawner):
                 desc.non_vitality_yields.unhappiness += -unhappiness_saved
                 desc.non_vitality_yields.city_power += city_power_gained
                 # Note: ignores trade hub, that could be improved.
-                # This ignores ability.numbers[1], which also matters a lot.
+
+                # For the part that affects all other cities, let's just pessimistically assume that it's all city power.
+                desc.non_vitality_yields.city_power += ability.numbers[1] * (len(self.civ.get_my_cities(game_state)) - 1)
 
             if ability.name == "DecreaseFoodDemandPuppets":
                 for puppet in self.get_puppets(game_state):
@@ -1113,7 +1115,7 @@ class City(MapObjectSpawner):
                 total_nonvitality_value = self.bot_evaluate_yields(total_nonvitality_yields, game_state)
                 if total_yesvitality_value + total_nonvitality_value > 0:
                     payoff_turns[building] = self.calculate_payoff_time(yields=total_yesvitality_value, vitality_exempt_yields=total_nonvitality_value, cost=building.cost)
-                    turns_to_build = min(0, (building.cost - remaining_wood) / max(self.projected_income.wood, 0.01))
+                    turns_to_build = max(0, (building.cost - remaining_wood) / max(self.projected_income.wood, 0.01))
                     payoff_turns[building] += turns_to_build * 1.5  # Count extra to discount future yields compared to present.
             if len(payoff_turns) > 0:
                 # calulcate the argmin of the payoff turns
