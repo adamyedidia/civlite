@@ -286,38 +286,40 @@ for age, people in _great_people_by_age.items():
 
 ###### unnamed great people #####
 num_placeholder = len([name for name in unique_names if name.startswith("[")])
-print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} great people")
-unnamed_list = []
-
-for age, people in _great_people_by_age.items():
-    if 0 <= age <= 9:
-        if __name__ == "__main__":
-            print(f"\n======= Age {age} =======")
-        for person in people.copy():
-            if __name__ == "__main__":
-                print(f"{person.name}: {person.description()}")
-            if person.name.startswith("["):
-                people.remove(person)
-                unnamed_list.append(person)
-    else:
-        print(f"======= INVALID AGE {age}")
-        for person in people:
-            print(person.name)
-
 great_people_by_name: dict[str, GreatPerson] = {great_person.name: great_person for great_person_list in _great_people_by_age.values() for great_person in great_person_list}
 
-print(f"****************** Unnamed great people ({len(unnamed_list)}) ******************")
-for person in unnamed_list:
-    if isinstance(person, GreatGeneral):
-        print(person.advancement_level, person.number, person.unit_template.name)
-    elif isinstance(person, GreatMerchant):
-        print(person.advancement_level, person.amount, person.resource)
-    elif isinstance(person, GreatScientist):
-        print(person.advancement_level, person.tech_template.name)
-    elif isinstance(person, GreatEngineer):
-        print(f"{person.advancement_level} {person.unit_template.building_name} ({person.unit_template.name})")
-    else:
-        print(person.advancement_level, person.name)
+if num_placeholder > 0:
+    print(f"Named {len(unique_names) - num_placeholder} out of {len(unique_names)} great people")
+    unnamed_list = []
+
+    for age, people in _great_people_by_age.items():
+        if 0 <= age <= 9:
+            if __name__ == "__main__":
+                print(f"\n======= Age {age} =======")
+            for person in people.copy():
+                if __name__ == "__main__":
+                    print(f"{person.name}: {person.description()}")
+                if person.name.startswith("["):
+                    people.remove(person)
+                    unnamed_list.append(person)
+        else:
+            print(f"======= INVALID AGE {age}")
+            for person in people:
+                print(person.name)
+
+
+    print(f"****************** Unnamed great people ({len(unnamed_list)}) ******************")
+    for person in unnamed_list:
+        if isinstance(person, GreatGeneral):
+            print(person.advancement_level, person.number, person.unit_template.name)
+        elif isinstance(person, GreatMerchant):
+            print(person.advancement_level, person.amount, person.resource)
+        elif isinstance(person, GreatScientist):
+            print(person.advancement_level, person.tech_template.name)
+        elif isinstance(person, GreatEngineer):
+            print(f"{person.advancement_level} {person.unit_template.building_name} ({person.unit_template.name})")
+        else:
+            print(person.advancement_level, person.name)
 
 # Set some numbers to their correct values, even if it's not balanced.
 for name, number in [("Roland and Oliver", 2), ("The Horatii", 3)]:
