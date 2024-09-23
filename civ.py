@@ -517,10 +517,17 @@ class Civ:
         if len(self.great_people_choices) == 0 and len(self._great_people_choices_queue) > 0:
             age, city_id = self._great_people_choices_queue.pop(0)
             city = game_state.cities_by_id[city_id]
+            age = min(age, 9)  # There aren't any great people for age 10.
             all_great_people = great_people_by_age(age)
             valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_city(city, civ=self)]
             random.shuffle(valid_great_people)
             self.great_people_choices = valid_great_people[:3]
+            if len(self.great_people_choices) == 0:
+                str = f"Civ {self.moniker()} earned a great person, but no valid options. Age: {age}, city: {city.name}"
+                if STRICT_MODE:
+                    raise ValueError(str)
+                else:
+                    logger.warning(str)
             self._great_people_choices_city_id = city_id
             logger.info(f"Civ {self.moniker()} earned a great person. Chose {self.great_people_choices} from valid options: {valid_great_people}")
 
