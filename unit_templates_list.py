@@ -486,6 +486,7 @@ class UNITS():
             "engineer": "Uzi Gal",
             "general_normal": "John J. Pershing",
             "general_advanced": "Benito Mussolini",
+            "general_horde": "Arcturus Mengsk",
         }
     )
     ROCKET_LAUNCHER = UnitTemplate(
@@ -529,6 +530,7 @@ class UNITS():
             "engineer": "Che Guevara",
             "general_normal": "Jayne Cobb",
             "general_advanced": "Rocket Raccoon",
+            "general_horde": "The Terminator",
         }
     )
     GIANT_DEATH_ROBOT = UnitTemplate(

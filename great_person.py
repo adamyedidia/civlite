@@ -234,7 +234,7 @@ scientist_names = {
     'Radio': 'Nikola Tesla',
     'Mass Markets': 'Henry Ford',
     'Combined Arms': 'Vladimir Lenin',
-    # 'Ballistics': 'TODO',
+    'Ballistics': 'Edward Uhl',
     'Mechanized Agriculture': 'Norman Borlaug',
     'Rocketry': 'Marie Curie',
     'Computers': 'Alan Turing',
