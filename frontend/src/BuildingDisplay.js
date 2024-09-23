@@ -167,6 +167,19 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
     const buffed_units = description?.buffed_units;
     const other_effects = description?.other_strings;
     // TODO display other things from description.
+    let emptyYields = {};
+    switch (emptyType) {
+        // TODO probably better for this to share a source fo truth with the python.
+        case 'rural':
+            emptyYields = {food: 1}
+            break;
+        case 'urban':
+            emptyYields = {science: 2}
+            break;
+        case 'military':
+            emptyYields = {metal: 2}
+            break;
+    }
 
     return (
         <div className={`existing-building-card ${emptyType || building?.type}`} onMouseEnter={() => setHoveredBuilding(buildingName)} onMouseLeave={() => setHoveredBuilding(null)}>
@@ -187,6 +200,7 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
                     <div key={index}>{effect}</div>
                 ))}
             </div>}
+            {emptyYields && <div className="empty-yields"><YieldsDisplay yields={emptyYields} /></div>}
             {developButtons && <>
                 <div className="develop-btns">
                 <DevelopButton 

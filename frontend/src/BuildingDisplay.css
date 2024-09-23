@@ -139,6 +139,12 @@
     align-items: flex-end;
 }
 
+.empty-yields {
+    position: absolute;
+    top: 5px;
+    right: 10px;
+}
+
 .brief-building-card.faded {
     opacity: 0.5;
 }

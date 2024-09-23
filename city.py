@@ -341,6 +341,10 @@ class City(MapObjectSpawner):
 
         for bldg in self.buildings:
             yields += bldg.calculate_yields(self, game_state)
+        
+        yields.food += self.rural_slots - self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=False)
+        yields.metal += (self.military_slots - self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False)) * 2
+        yields.science += (self.urban_slots - self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=False)) * 2
 
         if self.civ.has_ability("IncreaseCapitalYields") and self.capital:
             resource, amount = self.civ.numbers_of_ability("IncreaseCapitalYields")
@@ -654,7 +658,8 @@ class City(MapObjectSpawner):
             combined_yesvitality_yields = desc.building_yields.total()
             combined_vitality_exempt_yields = desc.non_vitality_yields.total()
             if combined_yesvitality_yields + combined_vitality_exempt_yields > 0:
-                self.available_buildings_payoff_times[building_template.name] = math.ceil(self.calculate_payoff_time(combined_yesvitality_yields, vitality_exempt_yields=combined_vitality_exempt_yields, cost=building_template.cost))
+                slot_yields = 2 if building_template.type == BuildingType.URBAN else 1
+                self.available_buildings_payoff_times[building_template.name] = math.ceil(self.calculate_payoff_time(combined_yesvitality_yields - slot_yields, vitality_exempt_yields=combined_vitality_exempt_yields, cost=building_template.cost))
 
     def has_production_building_for_unit(self, unit: UnitTemplate) -> bool:
         return self.has_building(unit)
@@ -1070,7 +1075,7 @@ class City(MapObjectSpawner):
 
     def bot_evaluate_yields(self, yields: Yields, game_state: 'GameState') -> float:
         if self.projected_income.unhappiness + self.unhappiness < game_state.unhappiness_threshold - 25:
-            unhappiness_value = -0.5
+            unhappiness_value = -0.7
         else:
             unhappiness_value = -2.0
 
@@ -1079,7 +1084,7 @@ class City(MapObjectSpawner):
             "science": 1,
             "wood": 1.25,
             "metal": 1,
-            "city_power": 0.3,
+            "city_power": 0.4,
             "unhappiness": unhappiness_value,
         }
         y = yields.to_json()
@@ -1111,6 +1116,10 @@ class City(MapObjectSpawner):
                 desc = self.building_descriptions[building.name]
                 total_yesvitality_yields = desc.building_yields + desc.pseudoyields_for_ai_yesvitality
                 total_nonvitality_yields = desc.non_vitality_yields + desc.pseudoyields_for_ai_nonvitality + desc.instant_yields * 0.25
+                if building.type == BuildingType.URBAN:
+                    total_yesvitality_yields.science -= 2
+                if building.type == BuildingType.RURAL:
+                    total_yesvitality_yields.food -= 1
                 total_yesvitality_value = self.bot_evaluate_yields(total_yesvitality_yields, game_state)
                 total_nonvitality_value = self.bot_evaluate_yields(total_nonvitality_yields, game_state)
                 if total_yesvitality_value + total_nonvitality_value > 0:
