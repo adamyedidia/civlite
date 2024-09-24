@@ -494,17 +494,17 @@ class City(MapObjectSpawner):
             else:
                 self.terrains_dict[hex.terrain] += 1
 
-    def _refresh_available_buildings_and_units(self, game_state):
+    def _refresh_available_buildings_and_units(self, game_state: 'GameState'):
         if self.civ is None:
             return
-        self.available_units = sorted([unit for unit in UNITS.all() if unit.building_name is None or self.has_production_building_for_unit(unit)])
+        self.available_units = sorted([b.template for b in self.unit_buildings])
         
         if self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False) >= self.military_slots:
             min_level = min([u.advancement_level for u in self.available_units])
         else:
             min_level = 0
         self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level >= min_level and not self.has_building(u)], reverse=True)
-        self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders())
+        self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders)
         self.available_city_buildings = self.civ.available_city_buildings
 
         self._update_city_building_descriptions(game_state)
@@ -1137,9 +1137,16 @@ class City(MapObjectSpawner):
     def is_threatened_city(self, game_state: 'GameState') -> bool:
         return self.hex.is_threatened_city(game_state)
 
-    def bot_single_move(self, game_state: 'GameState', move_type: MoveType, move_data: dict) -> None:
+    def bot_single_move(self, game_state: 'GameState', move_type: MoveType, move_data: dict, abbreviated_midturn_update: bool = False) -> None:
+        """
+        abbreviated_midturn_update: if True, the midturn update will be abbreviated to only update this city. Use for speeding up AI moves.
+        """
         move_data['city_id'] = self.id
-        game_state.resolve_move(move_type, move_data, civ=self.civ)
+        game_state.resolve_move(move_type, move_data, civ=self.civ, do_midturn_update=not abbreviated_midturn_update)
+        if abbreviated_midturn_update:
+            parent = self.get_territory_parent(game_state) or self
+            parent.midturn_update(game_state)
+        
 
     def _bot_effective_advancement_level(self, unit: UnitTemplate, slingers_better_than_warriors=False) -> float:
         # treat my civ's unique unit as +1 adv level.
@@ -1163,15 +1170,15 @@ class City(MapObjectSpawner):
         if self.can_develop(BuildingType.URBAN) \
             and (random.random() < AI.CHANCE_URBANIZE or favorite_development == "urban") \
             and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots - 1:
-            self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'urban'})
+            self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'urban'}, abbreviated_midturn_update=True)
         if self.can_develop(BuildingType.UNIT) \
             and (random.random() < AI.CHANCE_MILITARIZE or favorite_development == "unit") \
             and self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) >= self.military_slots:
-            self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'unit'})
+            self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'unit'}, abbreviated_midturn_update=True)
         if self.can_develop(BuildingType.RURAL) \
             and self.rural_slots - 1 <= self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) \
             and (random.random() < AI.CHANCE_EXPAND or favorite_development == "rural"):
-            self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'rural'})
+            self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'rural'}, abbreviated_midturn_update=True)
 
         self.clear_unit_builds()
         available_units = [unit for unit in self.available_units if unit.movement > 0 or self.is_threatened_city(game_state)]
@@ -1189,11 +1196,11 @@ class City(MapObjectSpawner):
             build_units = []
         for u in self.unit_buildings:
             if (u.template in build_units) != u.active:
-                self.bot_single_move(game_state, MoveType.SELECT_INFINITE_QUEUE, {'unit_name': u.template.name})
+                self.bot_single_move(game_state, MoveType.SELECT_INFINITE_QUEUE, {'unit_name': u.template.name}, abbreviated_midturn_update=True)
         
         # Clear the queue
         for entry in self.buildings_queue:
-            self.bot_single_move(game_state, MoveType.CANCEL_BUILDING, {'building_name': entry.template.name})
+            self.bot_single_move(game_state, MoveType.CANCEL_BUILDING, {'building_name': entry.template.name}, abbreviated_midturn_update=False)  # Need full midturn_update to tell other cities they can build it.
         buildings, i_want_wood = self.bot_choose_building_queue(game_state)
         for b in buildings:
             self.bot_single_move(game_state, MoveType.CHOOSE_BUILDING, {'building_name': b.name})
@@ -1259,7 +1266,7 @@ class City(MapObjectSpawner):
         return q, i_want_wood
 
     def bot_choose_focus(self, game_state, parent_wants_wood: bool):
-        self.bot_single_move(game_state, MoveType.CHOOSE_FOCUS, {'focus': 'wood'})
+        self.bot_single_move(game_state, MoveType.CHOOSE_FOCUS, {'focus': 'wood'}, abbreviated_midturn_update=True)
         if self.civ_to_revolt_into is not None or self.unhappiness + self.projected_income.unhappiness > game_state.unhappiness_threshold:
             choice = 'food'
             logger.info(f"  chose focus: {self.focus} to prevent revolt")
@@ -1289,7 +1296,7 @@ class City(MapObjectSpawner):
                 choice = random.choice(focuses_with_best_yields)
             logger.info(f"  chose focus: {choice} (max yield choices were {focuses_with_best_yields})")
 
-        self.bot_single_move(game_state, MoveType.CHOOSE_FOCUS, {'focus': choice})
+        self.bot_single_move(game_state, MoveType.CHOOSE_FOCUS, {'focus': choice}, abbreviated_midturn_update=True)
 
     def to_json(self, include_civ_details: bool = False) -> dict:
         return {

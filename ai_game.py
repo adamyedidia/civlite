@@ -18,3 +18,24 @@ def ai_game(id, num_players):
         game_state.roll_turn(None)
         game_state.midturn_update()
     return states
+
+
+import cProfile
+
+def profile_ai_game(id, num_players):
+    pr = cProfile.Profile()
+    pr.enable()
+    
+    states = ai_game(id, num_players)
+    
+    pr.disable()
+    # Save profiling data to a file
+    profile_filename = 'profile_data.prof'
+    pr.dump_stats(profile_filename)
+    
+    # Use snakeviz to visualize the profiling data
+    import subprocess
+    subprocess.run(['snakeviz', profile_filename])
+
+# Example usage:
+profile_ai_game(1, 4)
