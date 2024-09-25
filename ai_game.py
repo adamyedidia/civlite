@@ -37,5 +37,6 @@ def profile_ai_game(id, num_players):
     import subprocess
     subprocess.run(['snakeviz', profile_filename])
 
-# Example usage:
-profile_ai_game(1, 4)
+if __name__ == "__main__":
+    # Example usage:
+    profile_ai_game(1, 4)
