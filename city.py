@@ -206,10 +206,10 @@ class City(MapObjectSpawner):
         if self.is_territory_capital:
             for puppet in self.get_puppets(game_state):
                 puppet.midturn_update(game_state)
+            self._refresh_available_buildings_and_units(game_state)
         self.adjust_projected_yields(game_state)
         self.adjust_projected_builds(game_state)
         self.adjust_projected_unit_builds()
-        self._refresh_available_buildings_and_units(game_state)
         if self.is_territory_capital and self.civ.game_player and not self.civ.game_player.is_bot:
             self.bot_favorite_builds, _ = self.bot_choose_building_queue(game_state)
 

@@ -50,7 +50,7 @@ class Yields:
         return getattr(self, item)
 
     def total(self) -> int | float:
-        return sum(self.to_json().values())
+        return self.food + self.metal + self.wood + self.science + self.unhappiness + self.city_power
 
     def copy(self) -> "Yields":
         return Yields(

@@ -373,13 +373,13 @@ class Civ:
             target1_coords = un_owner_civs[0].target1_coords
             target2_coords = un_owner_civs[1].target2_coords
             if target1_coords is not None:
-                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': target1_coords}, civ=self)
+                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': target1_coords}, civ=self, do_midturn_update=False)
             else:
-                game_state.resolve_move(MoveType.REMOVE_CIV_PRIMARY_TARGET, {}, civ=self)
+                game_state.resolve_move(MoveType.REMOVE_CIV_PRIMARY_TARGET, {}, civ=self, do_midturn_update=False)
             if target2_coords is not None:
-                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': target2_coords}, civ=self)
+                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': target2_coords}, civ=self, do_midturn_update=False)
             else:
-                game_state.resolve_move(MoveType.REMOVE_CIV_SECONDARY_TARGET, {}, civ=self)
+                game_state.resolve_move(MoveType.REMOVE_CIV_SECONDARY_TARGET, {}, civ=self, do_midturn_update=False)
         elif random.random() < AI.CHANCE_MOVE_FLAG or self.target1 is None or self.target2 is None or \
             (self.target1.city is not None and self.target1.city.civ == self) or (self.target2.city is not None and self.target2.city.civ == self):
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
@@ -392,9 +392,9 @@ class Civ:
             random.shuffle(possible_target_hexes)
 
             if len(possible_target_hexes) > 0:
-                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': possible_target_hexes[0].coords}, civ=self)
+                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': possible_target_hexes[0].coords}, civ=self, do_midturn_update=False)
             if len(possible_target_hexes) > 1:
-                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': possible_target_hexes[1].coords}, civ=self)
+                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': possible_target_hexes[1].coords}, civ=self, do_midturn_update=False)
 
         if self.researching_tech is None:
             special_tech = None
@@ -413,7 +413,7 @@ class Civ:
                     logger.info(f"{self.moniker()} has no available techs")
                     chosen_tech = None
             if chosen_tech is not None:
-                game_state.resolve_move(MoveType.CHOOSE_TECH, {'tech_name': chosen_tech.name}, civ=self)
+                game_state.resolve_move(MoveType.CHOOSE_TECH, {'tech_name': chosen_tech.name}, civ=self, do_midturn_update=False)
                 logger.info(f"  {self.moniker()} chose tech {chosen_tech} from {available_techs}")
 
         self.bot_found_cities(game_state)
