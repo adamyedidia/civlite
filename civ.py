@@ -349,6 +349,17 @@ class Civ:
         if  len(self.great_people_choices) > 0:
             choice: GreatPerson = max(self.great_people_choices, key=lambda g: (isinstance(g, GreatGeneral), random.random()))
             game_state.resolve_move(MoveType.SELECT_GREAT_PERSON, {'great_person_name': choice.name}, civ=self)
+
+        my_cities = self.get_my_cities(game_state)
+        my_territory_capitals = [city for city in my_cities if city.is_territory_capital]
+        my_puppets = [city for city in my_cities if not city.is_territory_capital]
+        if len(my_puppets) > 0:
+            largest_puppet = max(my_puppets, key=lambda c: c.population)
+            smallest_territory_capital = min(my_territory_capitals, key=lambda c: c.population)
+            if len(my_territory_capitals) < self.max_territories:
+                game_state.resolve_move(MoveType.MAKE_TERRITORY, {'city_id': largest_puppet.id, 'other_city_id': None}, civ=self)
+            elif largest_puppet.population > smallest_territory_capital.population:
+                game_state.resolve_move(MoveType.MAKE_TERRITORY, {'city_id': largest_puppet.id, 'other_city_id': smallest_territory_capital.id}, civ=self)
         # Choose trade hub:
         unhappy_cities = [city for city in self.get_my_cities(game_state) if city.unhappiness + city.projected_income["unhappiness"] > 0]
         def trade_hub_priority(city: 'City'):
