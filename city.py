@@ -206,9 +206,11 @@ class City(MapObjectSpawner):
         if self.is_territory_capital:
             for puppet in self.get_puppets(game_state):
                 puppet.midturn_update(game_state)
-            self._refresh_available_buildings_and_units(game_state)
         self.adjust_projected_yields(game_state)
         self.adjust_projected_builds(game_state)
+        if self.is_territory_capital:
+            # Important to do this after adjusting yields because some payoff calculations depend on the current yields.
+            self._refresh_available_buildings_and_units(game_state)
         self.adjust_projected_unit_builds()
         if self.is_territory_capital and self.civ.game_player and not self.civ.game_player.is_bot:
             self.bot_favorite_builds, _ = self.bot_choose_building_queue(game_state)
@@ -604,7 +606,8 @@ class City(MapObjectSpawner):
                         buff_ratio = Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength + buff, unit_building.template.strength) / Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength, unit_building.template.strength + buff)
                         approximate_metal_value = buff_ratio * self.projected_income.metal
                         approximate_metal_value_yesvitality = approximate_metal_value * (1 / self.civ.vitality)
-                        desc.pseudoyields_for_ai_yesvitality += Yields(metal=approximate_metal_value_yesvitality)
+                        desc.building_yields += Yields(metal=approximate_metal_value_yesvitality)
+                        logger.info(f"{self.name}: {unit_building.template.strength=} + {buff} -> {buff_ratio=} {approximate_metal_value=} {approximate_metal_value_yesvitality=}")
 
             if ability.name == "UnitsExtraStrengthByTag":
                 tag, buff = ability.numbers
@@ -614,7 +617,7 @@ class City(MapObjectSpawner):
                        buff_ratio = Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength + buff, unit_building.template.strength) / Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength, unit_building.template.strength + buff)
                        approximate_metal_value = buff_ratio * self.projected_income.metal
                        approximate_metal_value_yesvitality = approximate_metal_value * (1 / self.civ.vitality)
-                       desc.pseudoyields_for_ai_yesvitality += Yields(metal=approximate_metal_value_yesvitality)
+                       desc.building_yields += Yields(metal=approximate_metal_value_yesvitality)
 
             if ability.name == "Airforce":
                 desc.other_strings.append(f"+{ability.numbers[0]}")
