@@ -706,7 +706,9 @@ class GameState:
             instead_of_city_id: str = move_data['other_city_id']
             if instead_of_city_id is not None:
                 instead_of_city: City = self.cities_by_id[instead_of_city_id]
-                instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False)
+                instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False, force=True)
+                # I think this force=True can conceivably crash if I somehow control no other territory capitals,
+                # Which in theory can happen if people declined into all of my territory capitals on the same turn.
                 instead_of_city.orphan_territory_children(self, make_new_territory=False)
                 # Transfer the expansion costs.
                 city.develops_this_civ = instead_of_city.develops_this_civ

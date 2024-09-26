@@ -165,10 +165,10 @@ class City(MapObjectSpawner):
         self._territory_parent_id = None
         self._territory_parent_coords = None
 
-    def set_territory_parent_if_needed(self, game_state: 'GameState', adopt_focus: bool) -> None:
+    def set_territory_parent_if_needed(self, game_state: 'GameState', adopt_focus: bool, force=False) -> None:
         my_territories: list[City] = [city for city in game_state.cities_by_id.values() if city.civ == self.civ and city.is_territory_capital and city != self]
         choices: list[City] = [city for city in my_territories]
-        if len(my_territories) < self.civ.max_territories:
+        if len(my_territories) < self.civ.max_territories and not force:
             # Room for another territory capital.
             self.make_territory_capital(game_state)
         else:
