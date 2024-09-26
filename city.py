@@ -604,10 +604,10 @@ class City(MapObjectSpawner):
                     if unit_building.template.advancement_level >= age:
                         desc.buffed_units.append(unit_building.template)
                         buff_ratio = Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength + buff, unit_building.template.strength) / Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength, unit_building.template.strength + buff)
+                        buff_ratio = buff_ratio ** 0.5  # Hack to make the AI not obsessed with these buildings. 
                         approximate_metal_value = buff_ratio * self.projected_income.metal
                         approximate_metal_value_yesvitality = approximate_metal_value * (1 / self.civ.vitality)
-                        desc.building_yields += Yields(metal=approximate_metal_value_yesvitality)
-                        logger.info(f"{self.name}: {unit_building.template.strength=} + {buff} -> {buff_ratio=} {approximate_metal_value=} {approximate_metal_value_yesvitality=}")
+                        desc.pseudoyields_for_ai_yesvitality += Yields(metal=approximate_metal_value_yesvitality)
 
             if ability.name == "UnitsExtraStrengthByTag":
                 tag, buff = ability.numbers
@@ -615,9 +615,10 @@ class City(MapObjectSpawner):
                     if unit_building.template.has_tag(tag):
                        desc.buffed_units.append(unit_building.template)
                        buff_ratio = Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength + buff, unit_building.template.strength) / Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength, unit_building.template.strength + buff)
+                       buff_ratio = buff_ratio ** 0.5  # Hack to make the AI not obsessed with these buildings. 
                        approximate_metal_value = buff_ratio * self.projected_income.metal
                        approximate_metal_value_yesvitality = approximate_metal_value * (1 / self.civ.vitality)
-                       desc.building_yields += Yields(metal=approximate_metal_value_yesvitality)
+                       desc.pseudoyields_for_ai_yesvitality += Yields(metal=approximate_metal_value_yesvitality)
 
             if ability.name == "Airforce":
                 desc.other_strings.append(f"+{ability.numbers[0]}")
