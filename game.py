@@ -248,9 +248,12 @@ class Game(Base):
             decline_claimed_keys_pattern = f"decline-claimed-{self.id}-{turn}-*"
             for key in rkeys(decline_claimed_keys_pattern):
                 rdel(key)
-
+        for player in self.players:
+            if not player.is_bot:
+                self.set_turn_ended_by_player_num(player.player_num, False, broadcast=False)
         self.turn_num = turn_num
         self.next_forced_roll_at = None
+        self.timer_status = TimerStatus.PAUSED
 
 
         # Now we need to remove all later animation frames from the database
