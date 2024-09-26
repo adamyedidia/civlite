@@ -78,7 +78,7 @@ class WONDERS():
     # 3rd century BC
     GREAT_LIBRARY = WonderTemplate(
         name="Great Library", age=2,
-        on_build=GainResourceEffect(resource='science', amount=200)
+        on_build=GainResourceEffect(resource='science', amount=100)
     )
 
     # 3rd century BC

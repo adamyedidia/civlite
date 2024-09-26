@@ -102,8 +102,8 @@ class BUILDINGS():
     WORKSHOP = BuildingTemplate(
         name="Workshop",
         type=BuildingType.RURAL,
-        cost=15,
-        calculate_yields=ConstantYields(Yields(metal=4)),
+        cost=10,
+        calculate_yields=ConstantYields(Yields(metal=6)),
         prereq=TECHS.CONSTRUCTION,
     )
     MANORS = BuildingTemplate(
@@ -126,8 +126,8 @@ class BUILDINGS():
     QUARRY = BuildingTemplate(
         name="Quarry",
         type=BuildingType.RURAL,
-        cost=15,
-        calculate_yields=ConstantYields(Yields(wood=4)),
+        cost=10,
+        calculate_yields=ConstantYields(Yields(wood=5)),
         prereq=TECHS.ENGINEERING,
     )
     LIGHTHOUSE = BuildingTemplate(
@@ -254,14 +254,14 @@ class BUILDINGS():
     FORGE = BuildingTemplate(
         name="Forge",
         type=BuildingType.RURAL,
-        cost=30,
+        cost=20,
         calculate_yields=YieldsPerTerrainType(TERRAINS.HILLS, Yields(metal=2)),
         prereq=TECHS.ARCHITECTURE,
     )
     LUMBER_FARM = BuildingTemplate(
         name="Lumber Farm",
         type=BuildingType.RURAL,
-        cost=30,
+        cost=20,
         calculate_yields=YieldsPerTerrainType(TERRAINS.FOREST, Yields(wood=2)),
         prereq=TECHS.ARCHITECTURE,
     )
@@ -355,7 +355,7 @@ class BUILDINGS():
         type=BuildingType.RURAL,
         cost=50,
         prereq=TECHS.MECHANIZED_AGRICULTURE,
-        on_build=GrowEffect(5),
+        on_build=GrowEffect(10),
     )
     LAND_REFORM = BuildingTemplate(
         name="Land Reform",
