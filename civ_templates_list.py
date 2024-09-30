@@ -206,7 +206,7 @@ class CIVS():
         name="Lydia",
         abilities=[{
             "name": "OnDevelop",
-            "numbers": [BuildingType.RURAL, PointsEffect(lambda city, game_state: 3, "Gain 3 points", "Lydia")]
+            "numbers": [BuildingType.RURAL, PointsEffect(lambda city, game_state: 2, "Gain 2 points", "Lydia")]
         }],
         advancement_level=0,
     )
