@@ -7,3 +7,4 @@ app.log*
 plots/
 scripts/errors/
 scripts/output/
+*profile_data.prof
