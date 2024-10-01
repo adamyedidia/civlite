@@ -172,8 +172,8 @@ class BUILDINGS():
         calculate_yields=YieldsPerPopulation(Yields(food=1)),
         prereq=TECHS.CIVIL_SERVICE,
     )
-    CONSCRIPTION_POST = BuildingTemplate(
-        name="Conscription Post",
+    FORGE = BuildingTemplate(
+        name="Forge",
         type=BuildingType.URBAN,
         cost=20,
         calculate_yields=YieldsPerPopulation(Yields(metal=1)),
@@ -251,8 +251,8 @@ class BUILDINGS():
         calculate_yields=YieldsPerTerrainType(TERRAINS.PLAINS, Yields(food=2)),
         prereq=TECHS.PHYSICS,
     )
-    FORGE = BuildingTemplate(
-        name="Forge",
+    SMELTER = BuildingTemplate(
+        name="Smelter",
         type=BuildingType.RURAL,
         cost=20,
         calculate_yields=YieldsPerTerrainType(TERRAINS.HILLS, Yields(metal=2)),
@@ -272,11 +272,12 @@ class BUILDINGS():
         calculate_yields=YieldsPerTerrainType({TERRAINS.MOUNTAINS, TERRAINS.DESERT, TERRAINS.TUNDRA}, Yields(science=6)),
         prereq=TECHS.METALLURGY,
     )
-    VOLUNTEER_POST = BuildingTemplate(
-        name="Volunteer Post",
+    CONSCRIPTION_POST = BuildingTemplate(
+        name="Conscription Post",
         type=BuildingType.RURAL,
         cost=75,
         per_turn=BuildEeachUnitEffect(),
+        calculate_yields=YieldsPerPopulation(Yields(unhappiness=4)),
         prereq=TECHS.PRINTING_PRESS,
     )
     CARAVANSERY = BuildingTemplate(
