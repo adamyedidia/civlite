@@ -9,6 +9,7 @@ from camp import Camp
 from effects_list import BuildEeachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, ResetHappinessThisCityEffect
 from map_object_spawner import MapObjectSpawner
 from move_type import MoveType
+from region import Region
 from settings import GOD_MODE
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
@@ -77,7 +78,7 @@ class BuildingDescription:
         return b
 
 class City(MapObjectSpawner):
-    def __init__(self, name: str, civ: Civ | None = None, id: Optional[str] = None, hex: 'Hex | None' = None):
+    def __init__(self, name: str, region: Region, civ: Civ | None = None, id: Optional[str] = None, hex: 'Hex | None' = None):
         super().__init__(civ, hex)
         self.id = id or generate_unique_id()
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True} if civ else {}
@@ -124,6 +125,7 @@ class City(MapObjectSpawner):
         self.unhappiness: float = 0.0
         self.is_decline_view_option: bool = False
         self.revolt_unit_count: int = 0
+        self.region = region
 
     def __repr__(self):
         return f"<City {self.name} @ {self.hex.coords if self._hex else None}>"
@@ -1364,6 +1366,7 @@ class City(MapObjectSpawner):
 
             "is_trade_hub": self.is_trade_hub(),
             "bot_favorite_builds": [b.name for b in self.bot_favorite_builds],
+            "region": self.region.value,
         }
 
     @staticmethod
@@ -1371,6 +1374,7 @@ class City(MapObjectSpawner):
         city = City(
             civ=Civ.from_json(json['civ']) if 'civ' in json else None,
             name=json["name"],
+            region=Region(json["region"]),
         )
         super(City, city).from_json(json)
         city.id = json["id"]

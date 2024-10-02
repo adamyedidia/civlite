@@ -2,15 +2,17 @@ from typing import Union
 from abilities_list import CIV_ABILITIES
 from ability import Ability
 from civ_color_pairs import color_pairs
+from region import Region
 
 class CivTemplate:
-    def __init__(self, name: str, abilities: list[dict[str, Union[str, list]]], advancement_level: int, colors: tuple[str, str] | None = None):
+    def __init__(self, name: str, abilities: list[dict[str, Union[str, list]]], advancement_level: int, region: Region, colors: tuple[str, str] | None = None):
         self.name = name
         if colors is None:
             colors = color_pairs.pop(0)
         self.primary_color, self.secondary_color = colors
         self.abilities: list[Ability] = [CIV_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
         self.advancement_level: int = advancement_level
+        self.region: Region = region
 
     def __repr__(self) -> str:
         return f"<CivTemplate {self.name}>"

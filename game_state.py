@@ -7,9 +7,10 @@ from collections import defaultdict
 from city import City, get_city_name_for_civ
 from civ import Civ
 from civ_template import CivTemplate
-from civ_templates_list import CIVS, player_civs
+from civ_templates_list import CIVS, find_civ_pool
 from map_object import MapObject
 from move_type import MoveType
+from region import Region
 from settings import GOD_MODE
 from terrain_templates_list import TERRAINS
 from wonder_templates_list import WONDERS
@@ -298,7 +299,7 @@ class GameState:
 
     def new_city(self, civ: Civ, hex: Hex, city_id: Optional[str] = None) -> City:
         city_name = get_city_name_for_civ(civ=civ, game_state=self)
-        city = City(civ=civ, hex=hex, name=city_name, id=city_id)
+        city = City(civ=civ, hex=hex, name=city_name, id=city_id, region=civ.template.region)
         assert hex.city is None, f"Creting city at {hex.coords} but it already has a city {hex.city.name}!"
         for h in hex.get_neighbors(self.hexes):
             assert h.city is None, f"Creating city at {hex.coords} but its neighbor already has a city {h.city.name} at {h.coords}!"
@@ -983,7 +984,7 @@ class GameState:
         revolt_ids = set(id for _, id, _ in revolt_choices)
         for _, _, city in revolt_choices:
             if city.civ_to_revolt_into is None:
-                civ_template = self.sample_new_civs(1).pop(0)
+                civ_template = self.sample_new_civs(1, city.region).pop(0)
                 city.civ_to_revolt_into = civ_template
         for id, city in self.cities_by_id.items():
             if id not in revolt_ids:
@@ -995,19 +996,17 @@ class GameState:
                 if neighbor.city is not None:
                     neighbor.city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
 
-    def sample_new_civs(self, n) -> list[CivTemplate]:
-        decline_choice_big_civ_pool = []
-
+    def sample_new_civs(self, n, region: Region | None = None) -> list[CivTemplate]:
         advancement_level_to_use = max(self.advancement_level, 1)
         civs_already_in_game: list[CivTemplate] = [civ.template for civ in self.civs_by_id.values()] + \
             [city.civ.template for city in self.fresh_cities_for_decline.values()] + \
             [city.civ_to_revolt_into for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]
-        for min_advancement_level in range(advancement_level_to_use, -1, -1):
-            decline_choice_big_civ_pool: list[CivTemplate] = [civ for civ in player_civs(min_advancement_level=min_advancement_level, max_advancement_level=advancement_level_to_use) 
-                                           if civ not in civs_already_in_game]
+        if region is not None:
+            target_regions: set[Region] = {region}
+        else:
+            target_regions = set(Region) - set(civ.region for civ in civs_already_in_game)
 
-            if len(decline_choice_big_civ_pool) >= n:
-                break
+        decline_choice_big_civ_pool = find_civ_pool(n, advancement_level_to_use, target_regions, civs_already_in_game)
         result = random.sample(decline_choice_big_civ_pool, n)       
         logger.info(f"Sampling new civs ({n}). {advancement_level_to_use=}; \n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
         return result
