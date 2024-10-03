@@ -212,7 +212,8 @@ class Civ:
         self.max_territories = base + bonuses
 
     def _available_techs(self) -> list[TechTemplate]:
-        return [tech for tech, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)]
+        return sorted([tech for tech, status in self.techs_status.items() if status in (TechStatus.AVAILABLE, TechStatus.RESEARCHING)], 
+                      key=lambda t:(t.advancement_level, t.cost, t.name))
 
     def to_json(self) -> dict:
         return {
