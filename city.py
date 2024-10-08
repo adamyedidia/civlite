@@ -16,7 +16,7 @@ from terrain_template import TerrainTemplate
 from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY, FRESH_CITY_VITALITY_PER_TURN, REVOLT_VITALITY_PER_TURN, REVOLT_VITALITY_PER_UNHAPPINESS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
 from unit import Unit
 from unit_building import UnitBuilding
-from unit_template import UnitTemplate
+from unit_template import UnitTag, UnitTemplate
 from unit_templates_list import UNITS
 from wonder_template import WonderTemplate
 from civ_templates_list import CIVS
@@ -704,19 +704,23 @@ class City(MapObjectSpawner):
 
         if not spawn_hex.is_occupied(unit.type, civ, allow_enemy_city=False):
             return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
+        if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ and spawn_hex.units[0].template == unit and spawn_hex.units[0].strength == unit.strength + bonus_strength:
+            # Defensive units build in city center no matter what.
+            self.reinforce_unit(spawn_hex.units[0], stack_size=stack_size)
+            return spawn_hex.units[0]
 
-        best_hex = None
-        best_hex_distance_from_target = 10000
-
-        for hex in spawn_hex.get_neighbors(game_state.hexes, exclude_ocean=True):
-            if not hex.is_occupied(unit.type, civ, allow_enemy_city=False):    
-                distance_from_target = hex.distance_to(self.get_closest_target() or spawn_hex)
-                if distance_from_target < best_hex_distance_from_target:
-                    best_hex = hex
-                    best_hex_distance_from_target = distance_from_target
-
-        if best_hex is not None:
-            return civ.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
+        free_neighbors = [h for h in spawn_hex.get_neighbors(game_state.hexes, exclude_ocean=True) if not h.is_occupied(unit.type, civ, allow_enemy_city=False)]
+        if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ != civ:
+            # Never build two stacks of immobile units next to each other.
+            free_neighbors = [h for h in free_neighbors if not any(u.template.has_tag(UnitTag.DEFENSIVE) for n in h.get_neighbors(game_state.hexes, include_self=False) for u in n.units)]
+        if len(free_neighbors) > 0:
+            best_hex = min(free_neighbors, key=lambda h: (h.distance_to(self.get_closest_target() or spawn_hex), random.random()))
+            if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ:
+                # Kick out the unit that's there to build defensive units.
+                spawn_hex.units[0].take_one_step_to_hex(best_hex)
+                return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
+            else:
+                return civ.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
 
         potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == civ and u.template == unit and u.strength == unit.strength + bonus_strength]  
 
@@ -763,8 +767,9 @@ class City(MapObjectSpawner):
     def _spawn_strength(self, unit_template: UnitTemplate, game_state: 'GameState') -> int:
         result = 0
         if self.civ.has_ability('IncreasedStrengthForUnit'):
-            if self.civ.numbers_of_ability('IncreasedStrengthForUnit')[0] == unit_template.name:
-                result += self.civ.numbers_of_ability('IncreasedStrengthForUnit')[1]
+            unit_name, strength_increase = self.civ.numbers_of_ability('IncreasedStrengthForUnit')
+            if unit_name == unit_template.name:
+                result += strength_increase
 
         if self.civ.has_ability('IncreasedStrengthForNthUnit'):
             n, unit_type, bonus = self.civ.numbers_of_ability('IncreasedStrengthForNthUnit')
@@ -964,6 +969,7 @@ class City(MapObjectSpawner):
             if building.one_per_civ_key and game_state.one_per_civs_built_by_civ_id.get(old_civ.id, {}).get(building.building_name) == self.id:
                 del game_state.one_per_civs_built_by_civ_id[old_civ.id][building.building_name]
         self.buildings = [b for b in self.buildings if not b.destroy_on_owner_change]
+        self.unit_buildings = []
 
         # Change the civ
         self.update_civ(civ)
@@ -1013,7 +1019,10 @@ class City(MapObjectSpawner):
         if old_civ._great_people_choices_city_id == self.id:
             old_civ._great_people_choices_city_id = None
             old_civ.great_people_choices = []
-        best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level, random.random()))
+        if len(self.available_units) > 0:
+            best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level, random.random()))
+        else:
+            best_unit = random.choice([u for u in UNITS.all() if u.advancement_level == max(0, game_state.advancement_level - 1)])
 
         assert self.hex.city is not None
 

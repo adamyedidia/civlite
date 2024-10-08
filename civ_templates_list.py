@@ -13,7 +13,8 @@ def player_civs(min_advancement_level=0, max_advancement_level=9, regions: set[R
 
 def find_civ_pool(n, advancement_level_target, target_regions: set[Region], civs_already_in_game: list[CivTemplate]) -> list[CivTemplate]:
     decline_choice_big_civ_pool = []
-    for max_advancement_level in range(advancement_level_target, 10):
+    amounts_found = {}
+    for max_advancement_level in range(advancement_level_target, 11):
         for min_advancement_level in range(advancement_level_target, -1, -1):
             for search_regions in [target_regions, set(Region)]:
                 # Try in order of (correct age correct region, correct age any region, age -1 correct region, age -1 any region, age -2 correct region, age -2 any region, ...)
@@ -23,8 +24,9 @@ def find_civ_pool(n, advancement_level_target, target_regions: set[Region], civs
 
                 if len(decline_choice_big_civ_pool) >= n:
                     return decline_choice_big_civ_pool
+                amounts_found[(max_advancement_level, min_advancement_level, len(search_regions))] = len(decline_choice_big_civ_pool)
     else:
-        raise ValueError(f"Couldn't find enough civs to decline in {target_regions}")
+        raise ValueError(f"Couldn't find enough civs to decline ({n}) in {target_regions}.\n\nargs were {advancement_level_target=}, {target_regions=}, {civs_already_in_game=}.\n\nFinal amounts found was {amounts_found}")
 
 class CIVS():
     # all & by_name are copy-pasted methods to all template lists.
@@ -265,7 +267,7 @@ class CIVS():
             "numbers": [BuildingType.RURAL, GrowEffect(1)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Slinger", 1],
+            "numbers": ["Slinger"],
         }],
         advancement_level=1,
         region=Region.EAST_ASIA,
@@ -274,7 +276,7 @@ class CIVS():
     #     name="Xhosa",
     #     abilities=[{
     #         "name": "IncreasedStrengthForUnit",
-    #         "numbers": ["Archer", 1],
+    #         "numbers": ["Archer"],
     #     }],
     #     advancement_level=1,
     # )
@@ -282,7 +284,7 @@ class CIVS():
     #     name="Aksum",
     #     abilities=[{
     #         "name": "IncreasedStrengthForUnit",
-    #         "numbers": ["Archer", 1],
+    #         "numbers": ["Archer"],
     #     }],
     #     advancement_level=1,
     # )
@@ -290,7 +292,7 @@ class CIVS():
         name="Greece",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Spearman", 1],
+            "numbers": ["Spearman"],
         }],
         advancement_level=1,
         region=Region.MEDITERRANEAN,
@@ -299,7 +301,7 @@ class CIVS():
         name="Persia",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Archer", 1],
+            "numbers": ["Archer"],
         }],
         advancement_level=1,
         region=Region.MIDDLE_EAST,
@@ -311,7 +313,7 @@ class CIVS():
             "numbers": ["rural"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Chariot", 1],
+            "numbers": ["Chariot"],
         }],
         advancement_level=1,
         region=Region.EAST_ASIA,
@@ -323,7 +325,7 @@ class CIVS():
             "numbers": [BuildingType.RURAL, GainResourceEffect("wood", 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Garrison", 1],
+            "numbers": ["Garrison"],
         }],
         advancement_level=1,
         region=Region.SOUTH_ASIA,
@@ -335,7 +337,7 @@ class CIVS():
             "numbers": ["wood", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Swordsman", 1],
+            "numbers": ["Swordsman"],
         }],
         advancement_level=1,
         region=Region.MEDITERRANEAN,
@@ -347,7 +349,7 @@ class CIVS():
     #         "numbers": [5],
     #     }, {
     #         "name": "IncreasedStrengthForUnit",
-    #         "numbers": ["Swordsman", 1],
+    #         "numbers": ["Swordsman"],
     #     }],
     #     advancement_level=1,
     # )
@@ -358,7 +360,7 @@ class CIVS():
             "numbers": ["metal", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Swordsman", 1],
+            "numbers": ["Swordsman"],
         }],
         advancement_level=1,
         region=Region.EUROPE,
@@ -370,7 +372,7 @@ class CIVS():
             "numbers": [BuildingType.RURAL, BuildUnitsEffect(UNITS.HORSEMAN, 1)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horseman", 1],
+            "numbers": ["Horseman"],
         }],
         advancement_level=1,
         region=Region.MEDITERRANEAN,
@@ -382,7 +384,7 @@ class CIVS():
     #         "numbers": ["rural"],
     #     }, {
     #         "name": "IncreasedStrengthForUnit",
-    #         "numbers": ["Horseman", 1],
+    #         "numbers": ["Horseman"],
     #     }],
     #     advancement_level=1,
     # )
@@ -390,7 +392,7 @@ class CIVS():
     #     name="Gokturks",
     #     abilities=[{
     #         "name": "IncreasedStrengthForUnit",
-    #         "numbers": ["Horse Archer", 1],
+    #         "numbers": ["Horse Archer"],
     #     }],
     #     advancement_level=1,
     # )
@@ -398,7 +400,7 @@ class CIVS():
         name="Huns",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horse Archer", 1],
+            "numbers": ["Horse Archer"],
         }],
         advancement_level=1,
         region=Region.EUROPE,
@@ -407,7 +409,7 @@ class CIVS():
     #     name="Cumans",
     #     abilities=[{
     #         "name": "IncreasedStrengthForUnit",
-    #         "numbers": ["Horse Archer", 1],
+    #         "numbers": ["Horse Archer"],
     #     }],
     #     advancement_level=1,
     # )
@@ -418,7 +420,7 @@ class CIVS():
             "numbers": ["urban"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Catapult", 1],
+            "numbers": ["Catapult"],
         }],
         advancement_level=1,
         region=Region.SOUTH_ASIA,
@@ -430,7 +432,7 @@ class CIVS():
             "numbers": [100],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 1],
+            "numbers": ["Crossbowman"],
         }],
         advancement_level=1,
         region=Region.EAST_ASIA,
@@ -442,7 +444,7 @@ class CIVS():
             "numbers": ["food", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 1],
+            "numbers": ["Crossbowman"],
         }],
         advancement_level=1,
         region=Region.EAST_ASIA,
@@ -454,7 +456,7 @@ class CIVS():
             "numbers": ["wood", 20],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 1],
+            "numbers": ["Knight"],
         }],
         advancement_level=1,
         region=Region.EUROPE,
@@ -466,7 +468,7 @@ class CIVS():
             "numbers": ["wood", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 1],
+            "numbers": ["Pikeman"],
         }],
         advancement_level=1,
         region=Region.EUROPE,
@@ -478,7 +480,7 @@ class CIVS():
             "numbers": ["unit"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 1],
+            "numbers": ["Pikeman"],
         }],
         advancement_level=1,
         region=Region.AFRICA,
@@ -490,7 +492,7 @@ class CIVS():
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Trebuchet", 1],
+            "numbers": ["Trebuchet"],
         }],
         advancement_level=1,
         region=Region.MEDITERRANEAN,
@@ -502,7 +504,7 @@ class CIVS():
             "numbers": [BuildingType.RURAL, GainResourceEffect("science", 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 1],
+            "numbers": ["Knight"],
         }],
         advancement_level=1,
         region=Region.MIDDLE_EAST,
@@ -514,7 +516,7 @@ class CIVS():
             "numbers": [BuildingType.URBAN, BuildUnitsEffect(UNITS.KNIGHT, 1)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 1],
+            "numbers": ["Knight"],
         }],
         advancement_level=1,
         region=Region.MEDITERRANEAN,
@@ -534,7 +536,7 @@ class CIVS():
             "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 2],
+            "numbers": ["Pikeman"],
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
@@ -546,7 +548,7 @@ class CIVS():
             "numbers": ["wood", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 2],
+            "numbers": ["Cannon"],
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
@@ -558,7 +560,7 @@ class CIVS():
             "numbers": ["metal", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 2],
+            "numbers": ["Cannon"],
         }],
         advancement_level=2,
         region=Region.MIDDLE_EAST,
@@ -570,7 +572,7 @@ class CIVS():
             "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 2],
+            "numbers": ["Knight"],
         }],
         advancement_level=2,
         region=Region.MIDDLE_EAST,
@@ -582,7 +584,7 @@ class CIVS():
             "numbers": ["science", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 2],
+            "numbers": ["Pikeman"],
         }],
         advancement_level=2,
         region=Region.AFRICA,
@@ -594,7 +596,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 2],
+            "numbers": ["Knight"],
         }],
         advancement_level=2,
         region=Region.AFRICA,
@@ -606,7 +608,7 @@ class CIVS():
             "numbers": ["metal", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horse Archer", 1],
+            "numbers": ["Horse Archer"],
         }],
         advancement_level=2,
         region=Region.EAST_ASIA,
@@ -627,7 +629,7 @@ class CIVS():
             "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 2],
+            "numbers": ["Pikeman"],
         }],
         advancement_level=2,
         region=Region.AMERICAS,
@@ -639,7 +641,7 @@ class CIVS():
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 2],
+            "numbers": ["Musketman"],
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
@@ -651,7 +653,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 2],
+            "numbers": ["Cannon"],
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
@@ -663,7 +665,7 @@ class CIVS():
             "numbers": [150],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 2],
+            "numbers": ["Pikeman"],
         }],
         advancement_level=2,
         region=Region.AFRICA,
@@ -675,7 +677,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 2],
+            "numbers": ["Musketman"],
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
@@ -687,7 +689,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 2],
+            "numbers": ["Knight"],
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
@@ -699,7 +701,7 @@ class CIVS():
             "numbers": ["science", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 2],
+            "numbers": ["Crossbowman"],
         }],
         advancement_level=2,
         region=Region.EAST_ASIA,
@@ -711,7 +713,7 @@ class CIVS():
             "numbers": ["science", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 2],
+            "numbers": ["Crossbowman"],
         }],
         advancement_level=2,
         region=Region.EAST_ASIA,
@@ -723,7 +725,7 @@ class CIVS():
             "numbers": [BuildingType.RURAL, GainResourceEffect('metal', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 2],
+            "numbers": ["Musketman"],
         }],
         advancement_level=2,
         region=Region.EUROPE,
@@ -735,7 +737,7 @@ class CIVS():
             "numbers": [BuildingType.RURAL, GainResourceEffect('wood', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Militia", 2],
+            "numbers": ["Militia"],
         }],
         advancement_level=2,
         region=Region.EUROPE,
@@ -747,7 +749,7 @@ class CIVS():
             "numbers": ["urban"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman", 2],
+            "numbers": ["Crossbowman"],
         }],
         advancement_level=2,
         region=Region.EUROPE,
@@ -759,7 +761,7 @@ class CIVS():
             "numbers": ["rural"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 2],
+            "numbers": ["Musketman"],
         }],
         advancement_level=2,
         region=Region.EUROPE,
@@ -771,7 +773,7 @@ class CIVS():
             "numbers": ["unit"],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 2],
+            "numbers": ["Cavalry"],
         }],
         advancement_level=2,
         region=Region.MEDITERRANEAN,
@@ -783,7 +785,7 @@ class CIVS():
     #         "numbers": [BuildingType.URBAN, BuildBuildingEffect(BUILDINGS.HARBOR)],
     #     }, {
     #         "name": "IncreasedStrengthForUnit",
-    #         "numbers": ["Musketman", 2],
+    #         "numbers": ["Musketman"],
     #     }],
     #     advancement_level=2,
     # )
@@ -794,7 +796,7 @@ class CIVS():
             "numbers": ["food", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 2],
+            "numbers": ["Pikeman"],
         }],
         advancement_level=2,
         region=Region.MEDITERRANEAN,
@@ -806,7 +808,7 @@ class CIVS():
             "numbers": [BuildingType.RURAL, GainResourceEffect('science', 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 2],
+            "numbers": ["Knight"],
         }],
         advancement_level=2,
         region=Region.MEDITERRANEAN,
@@ -818,7 +820,7 @@ class CIVS():
             "numbers": ["food", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 2],
+            "numbers": ["Musketman"],
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
@@ -830,7 +832,7 @@ class CIVS():
             "numbers": [BuildingType.URBAN, ResetHappinessThisCityEffect()],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman", 2],
+            "numbers": ["Pikeman"],
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
@@ -842,7 +844,7 @@ class CIVS():
             "numbers": ["science", 30],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 2],
+            "numbers": ["Knight"],
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
@@ -854,7 +856,7 @@ class CIVS():
             "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 4],
+            "numbers": ["Cavalry"],
         }],
         advancement_level=4,
         region=Region.AMERICAS,
@@ -866,7 +868,7 @@ class CIVS():
             "numbers": ["food", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 4],
+            "numbers": ["Rifleman"],
         }],
         advancement_level=4,
         region=Region.MEDITERRANEAN,
@@ -878,7 +880,7 @@ class CIVS():
             "numbers": ["science", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Gatling Gun", 4],
+            "numbers": ["Gatling Gun"],
         }],
         advancement_level=4,
         region=Region.EUROPE,
@@ -890,7 +892,7 @@ class CIVS():
             "numbers": ["science", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 4],
+            "numbers": ["Rifleman"],
         }],
         advancement_level=4,
         region=Region.EUROPE,
@@ -902,7 +904,7 @@ class CIVS():
             "numbers": [250],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 4],
+            "numbers": ["Cavalry"],
         }],
         advancement_level=4,
         region=Region.EUROPE,
@@ -914,7 +916,7 @@ class CIVS():
             "numbers": ["food", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight", 4],
+            "numbers": ["Knight"],
         }],
         advancement_level=4,
         region=Region.MEDITERRANEAN,
@@ -926,7 +928,7 @@ class CIVS():
             "numbers": ["science", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman", 4],
+            "numbers": ["Musketman"],
         }],
         advancement_level=4,
         region=Region.MEDITERRANEAN,
@@ -938,7 +940,7 @@ class CIVS():
             "numbers": ["metal", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 4],
+            "numbers": ["Cavalry"],
         }],
         advancement_level=4,
         region=Region.MEDITERRANEAN,
@@ -950,7 +952,7 @@ class CIVS():
             "numbers": ["wood", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 4],
+            "numbers": ["Rifleman"],
         }],
         advancement_level=4,
         region=Region.EUROPE,
@@ -962,7 +964,7 @@ class CIVS():
             "numbers": ["metal", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Artillery", 4],
+            "numbers": ["Artillery"],
         }],
         advancement_level=4,
         region=Region.EUROPE,
@@ -974,7 +976,7 @@ class CIVS():
             "numbers": ["science", 4],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 4],
+            "numbers": ["Cannon"],
         }],
         advancement_level=4,
         region=Region.EAST_ASIA
@@ -986,7 +988,7 @@ class CIVS():
             "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 4],
+            "numbers": ["Cavalry"],
         }],
         advancement_level=4,
         region=Region.EUROPE,
@@ -998,7 +1000,7 @@ class CIVS():
             "numbers": ["wood", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry", 4],
+            "numbers": ["Cavalry"],
         }],
         advancement_level=4,
         region=Region.EUROPE,
@@ -1010,7 +1012,7 @@ class CIVS():
             "numbers": ["science", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Gatling Gun", 4],
+            "numbers": ["Gatling Gun"],
         }],
         advancement_level=4,
         region=Region.EUROPE,
@@ -1022,7 +1024,7 @@ class CIVS():
             "numbers": ["metal", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Gatling Gun", 4],
+            "numbers": ["Gatling Gun"],
         }],
         advancement_level=4,
         region=Region.EUROPE,
@@ -1034,7 +1036,7 @@ class CIVS():
             "numbers": ["metal", 50],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 6],
+            "numbers": ["Rifleman"],
         }],
         advancement_level=5,
         region=Region.AMERICAS,
@@ -1046,7 +1048,7 @@ class CIVS():
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Infantry", 6],
+            "numbers": ["Infantry"],
         }],
         advancement_level=5,
         region=Region.AMERICAS,
@@ -1058,7 +1060,7 @@ class CIVS():
             "numbers": ["food", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Artillery", 6],
+            "numbers": ["Artillery"],
         }],
         advancement_level=5,
         region=Region.AMERICAS,
@@ -1070,7 +1072,7 @@ class CIVS():
             "numbers": ["wood", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 6],
+            "numbers": ["Rifleman"],
         }],
         advancement_level=5,
         region=Region.EUROPE,
@@ -1082,7 +1084,7 @@ class CIVS():
             "numbers": ["food", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 6],
+            "numbers": ["Cannon"],
         }],
         advancement_level=5,
         region=Region.SOUTH_ASIA,
@@ -1106,7 +1108,7 @@ class CIVS():
             "numbers": ["science", 6],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon", 6],
+            "numbers": ["Cannon"],
         }],
         advancement_level=5,
         region=Region.EAST_ASIA,
@@ -1118,7 +1120,7 @@ class CIVS():
             "numbers": ["science", 60],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman", 6],
+            "numbers": ["Rifleman"],
         }],
         advancement_level=5,
         region=Region.AFRICA,
@@ -1130,7 +1132,7 @@ class CIVS():
             "numbers": ["metal", 40],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Artillery", 6],
+            "numbers": ["Artillery"],
         }],
         advancement_level=5,
         region=Region.MEDITERRANEAN,
@@ -1142,7 +1144,7 @@ class CIVS():
             "numbers": ["metal", 6],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Tank", 6],
+            "numbers": ["Tank"],
         }],
         advancement_level=5,
         region=Region.EUROPE,
@@ -1163,7 +1165,7 @@ class CIVS():
             "numbers": ["science", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Infantry", 8],
+            "numbers": ["Infantry"],
         }],
         advancement_level=7,
         region=Region.AMERICAS,
@@ -1175,7 +1177,7 @@ class CIVS():
             "numbers": ["food", 75],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Bazooka", 8],
+            "numbers": ["Bazooka"],
         }],
         advancement_level=7,
         region=Region.SOUTH_ASIA,
@@ -1187,7 +1189,7 @@ class CIVS():
     #         "numbers": ["wood", 75],
     #     }, {
     #         "name": "IncreasedStrengthForUnit",
-    #         "numbers": ["Bazooka", 8],
+    #         "numbers": ["Bazooka"],
     #     }],
     #     advancement_level=7,
     ##     region=Region.SOUTH_ASIA,
@@ -1208,7 +1210,7 @@ class CIVS():
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rocket Launcher", 8],
+            "numbers": ["Rocket Launcher"],
         }],
         advancement_level=7,
         region=Region.EUROPE,
@@ -1220,7 +1222,7 @@ class CIVS():
             "numbers": ["metal", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rocket Launcher", 8],
+            "numbers": ["Rocket Launcher"],
         }],
         advancement_level=7,
         region=Region.EAST_ASIA,
@@ -1232,7 +1234,7 @@ class CIVS():
             "numbers": ["wood", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Infantry", 8],
+            "numbers": ["Infantry"],
         }],
         advancement_level=7,
         region=Region.MEDITERRANEAN,
@@ -1277,7 +1279,7 @@ class CIVS():
         name="The Machine Intelligence",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Giant Death Robot", 100],
+            "numbers": ["Giant Death Robot"],
         }],
         advancement_level=9,
         region=Region.GLOBAL,

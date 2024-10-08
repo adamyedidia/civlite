@@ -2,10 +2,21 @@ from typing import Callable
 
 from ability import Ability
 import inflect
+import math
 p = inflect.engine()
 
 
 ABILITIES: dict[str, Callable] = {}
+
+def make_increase_strength_for_unit_ability(unit_name, strength_increase: int | None = None) -> Ability:
+    from unit_templates_list import UNITS  # hackity hack hack
+    if strength_increase is None:
+        strength_increase = math.ceil(UNITS.by_name(unit_name).strength * 0.25)
+    return Ability(
+        name="IncreasedStrengthForUnit",
+        description=f"{p.plural(unit_name)} you build have +{strength_increase} strength.",
+        numbers=[unit_name, strength_increase],
+    )
 
 CIV_ABILITIES: dict[str, Callable] = {
     "IncreaseCapitalYields": lambda x, y: Ability(
@@ -28,11 +39,7 @@ CIV_ABILITIES: dict[str, Callable] = {
         description=f"Each city with a {x} focus makes +{y} {x}.",
         numbers=[x, y],
     ),
-    "IncreasedStrengthForUnit": lambda x, y: Ability(
-        name="IncreasedStrengthForUnit",
-        description=f"{p.plural(x)} you build have +{y} strength.",
-        numbers=[x, y],
-    ),
+    "IncreasedStrengthForUnit": make_increase_strength_for_unit_ability,
     "IncreasedStrengthForNthUnit": lambda x, y, z: Ability(
         name="IncreasedStrengthForNthUnit",
         description=f"The {p.ordinal(x)} {y} you build has +{z} strength.",

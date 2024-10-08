@@ -118,10 +118,10 @@ class GreatScientist(GreatPerson):
         3: (UNITS.GARRISON, 2),
         4: (UNITS.MILITIA, 1),
         5: (UNITS.MILITIA, 2),
-        6: (UNITS.MUSKETMAN, 3),
-        7: (UNITS.RIFLEMAN, 3),
-        8: (UNITS.INFANTRY, 3),
-        9: (UNITS.BAZOOKA, 3),
+        6: (UNITS.MILITIA, 4),
+        7: (UNITS.RAMPARTS, 1),
+        8: (UNITS.RAMPARTS, 2),
+        9: (UNITS.RAMPARTS, 4),
     }
 
     def __init__(self, name, advancement_level: int, tech_template: TechTemplate, extra_science: float):

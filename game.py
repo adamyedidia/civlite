@@ -107,9 +107,12 @@ class Game(Base):
             self.broadcast('turn_end_change', {'player_num': player_num, 'turn_ended': ended})
 
     def roll_turn_if_needed(self, sess):
+        print(f"roll_turn_if_needed {self.id}")
         for player in self.players:
             if not self.turn_ended_by_player(player.player_num):
+                print(f"roll_turn_if_needed {self.id}: player {player.player_num} has not ended turn")
                 return
+        print(f"roll_turn_if_needed {self.id}: all players have ended turn")
         self.roll_turn(sess)
 
     @property
@@ -254,6 +257,7 @@ class Game(Base):
         self.turn_num = turn_num
         self.next_forced_roll_at = None
         self.timer_status = TimerStatus.PAUSED
+        self.game_over = False
 
 
         # Now we need to remove all later animation frames from the database

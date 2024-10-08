@@ -331,7 +331,7 @@ class UNITS():
         type="military",
         metal_cost=15,
         wood_cost=6,
-        strength=8,
+        strength=10,
         movement=0,
         range=1,
         tags=[UnitTag.DEFENSIVE],
@@ -405,6 +405,21 @@ class UNITS():
             "general_advanced": "Suleiman I",
             "general_normal": "Ulysses S. Grant",
             "general_horde": "Theodore Roosevelt"
+        },
+    )
+    RAMPARTS = UnitTemplate(
+        name="Ramparts",
+        building_name="Bastion",
+        type="military",
+        metal_cost=30,
+        wood_cost=10,
+        strength=30,
+        movement=0,
+        range=1,
+        tags=[UnitTag.DEFENSIVE],
+        prereq=TECHS.MASS_MARKETS,
+        abilities=[],
+        great_people_names={
         },
     )
     ARTILLERY = UnitTemplate(

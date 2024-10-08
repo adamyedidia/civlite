@@ -13,6 +13,7 @@ from move_type import MoveType
 from region import Region
 from settings import GOD_MODE
 from terrain_templates_list import TERRAINS
+from unit_building import UnitBuilding
 from wonder_templates_list import WONDERS
 from wonder_built_info import WonderBuiltInfo
 from wonder_template import WonderTemplate
@@ -499,6 +500,20 @@ class GameState:
         hex.city.capitalize(self)
         hex.city.civ_to_revolt_into = None
         hex.city.buildings = [b for b in hex.city.buildings if not b.destroy_on_owner_change]
+        bldg_to_start_with = {
+            0: UNITS.WARRIOR,
+            1: UNITS.WARRIOR,
+            2: UNITS.GARRISON,
+            3: UNITS.GARRISON,
+            4: UNITS.MILITIA,
+            5: UNITS.MILITIA,
+            6: UNITS.MILITIA,
+            7: UNITS.RAMPARTS,
+            8: UNITS.RAMPARTS,
+            9: UNITS.RAMPARTS,
+            10: UNITS.RAMPARTS,
+        }[self.advancement_level]
+        hex.city.unit_buildings = [UnitBuilding(bldg_to_start_with)]
 
         new_civ: Civ = hex.city.civ
         new_civ.vitality = hex.city.revolting_starting_vitality

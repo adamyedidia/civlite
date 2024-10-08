@@ -2826,7 +2826,7 @@ export default function GamePage() {
                             </text>    
                         </>
                     }
-                    {!everControlled && 
+                    {myCiv && !everControlled && 
                         <image href={vpImage} x={5.75} y={1.1} height="1" />
                     }
                     
