@@ -1022,7 +1022,7 @@ class City(MapObjectSpawner):
         if len(self.available_units) > 0:
             best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level, random.random()))
         else:
-            best_unit = random.choice([u for u in UNITS.all() if u.advancement_level == max(0, game_state.advancement_level - 1)])
+            best_unit = random.choice([u for u in UNITS.all() if not u.has_tag(UnitTag.WONDROUS) and u.advancement_level == max(0, game_state.advancement_level - 1)])
 
         assert self.hex.city is not None
 
