@@ -396,7 +396,7 @@ class BUILDINGS():
         name="Internet",
         type=BuildingType.RURAL,
         cost=100,
-        calculate_yields=YieldsPerPopulation(Yields(food=2, wood=2, metal=2, science=2)),      
+        calculate_yields=YieldsPerPopulation(Yields(food=1, wood=1, metal=1, science=1)),      
         prereq=TECHS.COMPUTERS,
     )
 

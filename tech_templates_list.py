@@ -26,7 +26,7 @@ class TECHS():
     )
     MINING = TechTemplate(
         name='Mining',
-        cost=25,
+        cost=15,
         advancement_level=1,
     )
     FORESTRY = TechTemplate(
@@ -51,22 +51,22 @@ class TECHS():
     )
     HORSEBACK_RIDING = TechTemplate(
         name='Horseback Riding',
-        cost=45,
+        cost=40,
         advancement_level=2,
     )
     IRON_WORKING = TechTemplate(
         name='Iron Working',
-        cost=45,
+        cost=40,
         advancement_level=2,
     )
     CURRENCY = TechTemplate(
         name='Currency',
-        cost=40,
+        cost=45,
         advancement_level=2,
     )
     ENGINEERING = TechTemplate(
         name='Engineering',
-        cost=40,
+        cost=45,
         advancement_level=2,
     )
     CONSTRUCTION = TechTemplate(
@@ -76,7 +76,7 @@ class TECHS():
     )
     EDUCATION = TechTemplate(
         name='Education',
-        cost=55,
+        cost=65,
         advancement_level=3,
     )
     MACHINERY = TechTemplate(
@@ -86,12 +86,12 @@ class TECHS():
     )
     CIVIL_SERVICE = TechTemplate(
         name='Civil Service',
-        cost=60,
+        cost=55,
         advancement_level=3,
     )
     CHIVALRY = TechTemplate(
         name='Chivalry',
-        cost=65,
+        cost=60,
         advancement_level=3,
     )
     COMPASS = TechTemplate(
@@ -106,12 +106,12 @@ class TECHS():
     )
     PRINTING_PRESS = TechTemplate(
         name='Printing Press',
-        cost=75,
+        cost=100,
         advancement_level=4,
     )
     GUNPOWDER = TechTemplate(
         name='Gunpowder',
-        cost=90,
+        cost=75,
         advancement_level=4,
     )
     RENAISSANCE = TechTemplate(
@@ -122,7 +122,7 @@ class TECHS():
     )
     METALLURGY = TechTemplate(
         name='Metallurgy',
-        cost=95,
+        cost=80,
         advancement_level=4,
     )
     ARCHITECTURE = TechTemplate(
@@ -152,12 +152,12 @@ class TECHS():
     )
     MASS_MARKETS = TechTemplate(
         name='Mass Markets',
-        cost=200,
+        cost=250,
         advancement_level=6,
     )
     RADIO = TechTemplate(
         name='Radio',
-        cost=250,
+        cost=200,
         advancement_level=6,
     )
     COMBINED_ARMS = TechTemplate(
@@ -167,7 +167,7 @@ class TECHS():
     )
     BALLISTICS = TechTemplate(
         name='Ballistics',
-        cost=400,
+        cost=350,
         advancement_level=7,
     )
     MECHANIZED_AGRICULTURE = TechTemplate(
