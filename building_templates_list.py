@@ -277,7 +277,7 @@ class BUILDINGS():
         type=BuildingType.RURAL,
         cost=75,
         per_turn=BuildEeachUnitEffect(),
-        calculate_yields=YieldsPerPopulation(Yields(unhappiness=4)),
+        calculate_yields=ConstantYields(Yields(unhappiness=4)),
         prereq=TECHS.PRINTING_PRESS,
     )
     CARAVANSERY = BuildingTemplate(
