@@ -371,15 +371,6 @@ class GameState:
         chosen_techs: set[TechTemplate] = set()
         chosen_techs_by_advancement = defaultdict(int)
 
-        # Start with prereqs for the buildings we have
-        for building in city.buildings + city.unit_buildings:
-            prereq = building.prereq
-            if prereq is not None:
-                chosen_techs.add(prereq)
-                chosen_techs_by_advancement[prereq.advancement_level] += 1
-
-        logger.info(f"Starting with prereqs for buildings: {chosen_techs}")
-
         # Calculate mean tech amount at each level
         civs_to_compare_to: list[Civ] = [civ for civ in self.civs_by_id.values() if civ.id in self.civ_ids_with_game_player_at_turn_start and civ != city.civ]
         if len(civs_to_compare_to) == 0:

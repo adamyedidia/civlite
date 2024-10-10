@@ -420,13 +420,15 @@ class Civ:
             else:
                 if len(available_techs) > 0:
                     # Pick randomly, avoiding renaissance if possibhle.
-                    chosen_tech = sorted(available_techs, key=lambda t: (t == TECHS.RENAISSANCE, random.random()))[0]
+                    chosen_tech = min(available_techs, key=lambda t: (t == TECHS.RENAISSANCE, random.random()))
                 else:
                     logger.info(f"{self.moniker()} has no available techs")
                     chosen_tech = None
             if chosen_tech is not None:
                 game_state.resolve_move(MoveType.CHOOSE_TECH, {'tech_name': chosen_tech.name}, civ=self, do_midturn_update=False)
                 logger.info(f"  {self.moniker()} chose tech {chosen_tech} from {available_techs}")
+                if STRICT_MODE:
+                    assert self.techs_status[chosen_tech] == TechStatus.RESEARCHING and self.researching_tech == chosen_tech
 
         self.bot_found_cities(game_state)
 
