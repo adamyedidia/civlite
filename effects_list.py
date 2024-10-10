@@ -227,7 +227,10 @@ class StealPopEffect(CityTargetEffect):
         all_cities.sort(key=lambda c: c.unhappiness, reverse=True)
         for c in all_cities[:self.cities]:
             city.grow_inner(game_state=game_state)
-            c.population -= 1
+            if c.population > 1:
+                c.population -= 1
+            else:
+                c.barbarian_capture(game_state=game_state)
         
 
 class ResetHappinessThisCityEffect(CityTargetEffect):
