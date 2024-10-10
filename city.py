@@ -623,8 +623,18 @@ class City(MapObjectSpawner):
                        desc.pseudoyields_for_ai_yesvitality += Yields(metal=approximate_metal_value_yesvitality)
 
             if ability.name == "Airforce":
-                desc.other_strings.append(f"+{ability.numbers[0]}")
-                # TODO: add to pseudoyields_for_ai
+                strength, af_range = ability.numbers
+                desc.other_strings.append(f"+{strength}")
+                hexes_in_range = list(self.hex.get_hexes_within_range_expensive(game_state.hexes, range=af_range))
+                num_enemy_cities = sum(1 for h in hexes_in_range if h.city is not None and h.city.civ != self.civ)
+                num_enemy_units = sum(u.get_stack_size() for h in hexes_in_range for u in h.units if u.civ != self.civ)
+                area_combatiness = max(num_enemy_cities / 3, num_enemy_units / 10)
+
+                my_cities_total_metal_income_buff = sum(u.projected_metal_income * strength / u.template.strength for h in hexes_in_range if h.city is not None and h.city.civ == self.civ for u in h.city.unit_buildings)
+                my_units_approx_metal_buff = sum(u.template.metal_cost * strength / u.template.strength * u.get_stack_size() for h in hexes_in_range for u in h.units if u.civ == self.civ)
+
+                effective_metal_income = (my_cities_total_metal_income_buff + 0.3 * my_units_approx_metal_buff) * area_combatiness
+                desc.pseudoyields_for_ai_yesvitality += Yields(metal=effective_metal_income)
 
             if ability.name == "Deployment Center":
                 metal_value = 0.1 * self.projected_income["metal"]
@@ -633,7 +643,9 @@ class City(MapObjectSpawner):
 
             if ability.name == "ExtraTerritory":
                 desc.other_strings.append(f"+1")
-                # TODO: add to pseudoyields_for_ai
+                if self.civ.max_territories >= len(self.civ.get_my_cities(game_state)):
+                    desc.pseudoyields_for_ai_yesvitality += Yields(food=2, science=2, wood=2, metal=2)  # Pretty made-up numbers.
+
         for effect in building_template.on_build:
             if isinstance(effect, ResetHappinessThisCityEffect):
                 desc.instant_yields += Yields(unhappiness=-self.unhappiness)

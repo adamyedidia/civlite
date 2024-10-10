@@ -483,7 +483,7 @@ class CIVS():
             "numbers": ["Pikeman"],
         }],
         advancement_level=1,
-        region=Region.AFRICA,
+        region=Region.SOUTH_ASIA,
     )
     BYZANTINES = CivTemplate(
         name="Byzantines",
@@ -589,7 +589,7 @@ class CIVS():
         advancement_level=2,
         region=Region.AFRICA,
     )
-    SONGHAI = CivTemplate(
+    SONGHAI = CivTemplate(  # TODO: These should be age 3 -- they should be after Mali since Mali declined and Songhai replaced them.
         name="Songhai",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -601,7 +601,7 @@ class CIVS():
         advancement_level=2,
         region=Region.AFRICA,
     )
-    MONGOLS = CivTemplate(
+    MONGOLS = CivTemplate(  # TODO: These should be age 3 surely.
         name="Mongols",
         abilities=[{
             "name": "IncreaseCapitalYields",
