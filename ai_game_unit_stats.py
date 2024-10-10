@@ -395,9 +395,13 @@ if __name__ == "__main__":
         loser_data: dict[str, dict[str, NDArray[np.int_]]] = {}
         game_data: dict[str, NDArray[np.int_]] = {}
         for key in winner_data_raw:
+            print(f"Processing {key}")
             winner_data[key] = {}
             loser_data[key] = {}
             for item in winner_data_raw[key]:
+                if item not in loser_data_raw[key]:
+                    continue
+                print(f"   => {item}")
                 winner_data[key][item] = np.array([winner_data_raw[key][item][i] for i in range(max(winner_data_raw[key][item].keys())+1)])
                 loser_data[key][item] = np.array([loser_data_raw[key][item][i] for i in range(max(loser_data_raw[key][item].keys())+1)])
         for key in game_data_raw:
