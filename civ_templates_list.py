@@ -53,6 +53,7 @@ class CIVS():
     )
 
     PUEBLO = CivTemplate(
+        # About 1000 AD -- move later?
         name="Pueblo",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -161,6 +162,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     TEOTIHUACAN = CivTemplate(
+        # late 1st millenim BC -- could go to a1?
         name="Teotihuacan",
         abilities=[{
             "name": "IncreasedStrengthForNthUnit",
@@ -281,6 +283,7 @@ class CIVS():
     #     advancement_level=1,
     # )
     # AKSUM = CivTemplate(
+    #     # 1st century AD
     #     name="Aksum",
     #     abilities=[{
     #         "name": "IncreasedStrengthForUnit",
@@ -289,6 +292,7 @@ class CIVS():
     #     advancement_level=1,
     # )
     GREECE = CivTemplate(
+        # 7th century BC ish
         name="Greece",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
@@ -298,6 +302,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     PERSIA = CivTemplate(
+        # 550 BC
         name="Persia",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
@@ -307,6 +312,7 @@ class CIVS():
         region=Region.MIDDLE_EAST,
     )
     JOSEON = CivTemplate(
+        # 1392 AD
         name="Joseon",
         abilities=[{
             "name": "DevelopCheap",
@@ -319,6 +325,7 @@ class CIVS():
         region=Region.EAST_ASIA,
     )
     SRIVIJAYA = CivTemplate(
+        # 7th century AD
         name="Srivijaya",
         abilities=[{
             "name": "OnDevelop",
@@ -331,6 +338,7 @@ class CIVS():
         region=Region.SOUTH_ASIA,
     )
     ROMANS = CivTemplate(
+        # 509 BC (Republic began)
         name="Romans",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -343,6 +351,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     # GOTHS = CivTemplate(
+    #     # 3rd century AD ish
     #     name="Goths",
     #     abilities=[{
     #         "name": "ExtraVpsPerCityCaptured",
@@ -354,6 +363,7 @@ class CIVS():
     #     advancement_level=1,
     # )
     VIKINGS = CivTemplate(
+        # 8th century AD
         name="Vikings",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -366,6 +376,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     CARTHAGE = CivTemplate(
+        # 2nd century BC ish
         name="Carthage",
         abilities=[{
             "name": "OnDevelop",
@@ -397,8 +408,12 @@ class CIVS():
     #     advancement_level=1,
     # )
     HUNS = CivTemplate(
+        # 4th century AD
         name="Huns",
         abilities=[{
+            "name": "IncreaseFocusYields", 
+            "numbers": ["food", 2]
+        }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer"],
         }],
@@ -414,6 +429,7 @@ class CIVS():
     #     advancement_level=1,
     # )
     GUPTA = CivTemplate(
+        # 3rd century AD
         name="Gupta",
         abilities=[{
             "name": "DevelopCheap",
@@ -426,6 +442,7 @@ class CIVS():
         region=Region.SOUTH_ASIA,
     )
     HAN = CivTemplate(
+        # 2nd century BC
         name="Han",
         abilities=[{
             "name": "ExtraCityPower",
@@ -434,7 +451,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.EAST_ASIA,
     )
     JIN = CivTemplate(
@@ -446,10 +463,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.EAST_ASIA,
     )
     FRANKS = CivTemplate(
+        # 5th century AD very loosely
         name="Franks",
         abilities=[{
             "name": "StartWithResources",
@@ -458,10 +476,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.EUROPE,
     )
     CELTS = CivTemplate(
+        # ????
         name="Celts",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -470,10 +489,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.EUROPE,
     )
     SUKHOTHAI = CivTemplate(
+        # 1238 AD
         name="Sukhothai",
         abilities=[{
             "name": "DevelopCheap",
@@ -482,10 +502,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.SOUTH_ASIA,
     )
     BYZANTINES = CivTemplate(
+        # 324 AD
         name="Byzantines",
         abilities=[{
             "name": "ExtraVpsPerWonder",
@@ -494,10 +515,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Trebuchet"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.MEDITERRANEAN,
     )
     ABBASIDS = CivTemplate(
+        # 750 AD
         name="Abbasids",
         abilities=[{
             "name": "OnDevelop",
@@ -506,10 +528,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.MIDDLE_EAST,
     )
     UMAYYADS = CivTemplate(
+        # 661 AD
         name="Umayyads",
         abilities=[{
             "name": "OnDevelop",
@@ -518,7 +541,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.MEDITERRANEAN,
     )
     # XIONGNU = CivTemplate(
@@ -530,6 +553,7 @@ class CIVS():
     #     advancement_level=1,
     # )
     MAJAPAHIT = CivTemplate(
+        # 1292
         name="Majapahit",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -538,10 +562,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.SOUTH_ASIA,
     )
     KHMER = CivTemplate(
+        # 802
         name="Khmer",
         abilities=[{
             "name": "StartWithResources",
@@ -550,10 +575,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.SOUTH_ASIA,
     )
     SELJUKS = CivTemplate(
+        # 1037
         name="Seljuks",
         abilities=[{
             "name": "StartWithResources",
@@ -562,10 +588,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.MIDDLE_EAST,
     )
     TIMURIDS = CivTemplate(
+        # 1370
         name="Timurids",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -578,6 +605,7 @@ class CIVS():
         region=Region.MIDDLE_EAST,
     )
     MALI = CivTemplate(
+        # 1226
         name="Mali",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -590,6 +618,7 @@ class CIVS():
         region=Region.AFRICA,
     )
     SONGHAI = CivTemplate(  # TODO: These should be age 3 -- they should be after Mali since Mali declined and Songhai replaced them.
+        # 1464
         name="Songhai",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -598,10 +627,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.AFRICA,
     )
     MONGOLS = CivTemplate(  # TODO: These should be age 3 surely.
+        # 1206
         name="Mongols",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -610,10 +640,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.EAST_ASIA,
     )
     AZTECS = CivTemplate(
+        # 1428
         name="Aztecs",
         abilities=[{
             "name": "ExtraVpsPerUnitKilled",
@@ -623,6 +654,7 @@ class CIVS():
         region=Region.AMERICAS,
     )
     INCA = CivTemplate(
+        # 13th century
         name="Inca",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -635,6 +667,7 @@ class CIVS():
         region=Region.AMERICAS,
     )
     MUGHALS = CivTemplate(
+        # 1526
         name="Mughals",
         abilities=[{
             "name": "ExtraVpsPerWonder",
@@ -643,10 +676,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.SOUTH_ASIA,
     )
     MARATHAS = CivTemplate(
+        # 1674
         name="Marathas",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -655,10 +689,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.SOUTH_ASIA,
     )
     ZULU = CivTemplate(
+        # 1816
         name="Zulu",
         abilities=[{
             "name": "ExtraCityPower",
@@ -671,6 +706,7 @@ class CIVS():
         region=Region.AFRICA,
     )
     MAURYA = CivTemplate(
+        # 322 BC
         name="Maurya",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -679,10 +715,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.SOUTH_ASIA,
     )
     CHOLA = CivTemplate(
+        # 3rd century BC
         name="Chola",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -695,6 +732,7 @@ class CIVS():
         region=Region.SOUTH_ASIA,
     )
     MING = CivTemplate(
+        # 1368
         name="Ming",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -707,6 +745,7 @@ class CIVS():
         region=Region.EAST_ASIA,
     )
     QIN = CivTemplate(
+        # 221 BC
         name="Qin",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -715,10 +754,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.EAST_ASIA,
     )
     BURGUNDY = CivTemplate(
+        # Ambiguous; maybe 855?
         name="Burgundy",
         abilities=[{
             "name": "OnDevelop",
@@ -727,10 +767,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.EUROPE,
     )
     BOHEMIA = CivTemplate(
+        # 12th century AD, loosely
         name="Bohemia",
         abilities=[{
             "name": "OnDevelop",
@@ -743,6 +784,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     ENGLAND = CivTemplate(
+        # 1066
         name="England",
         abilities=[{
             "name": "DevelopCheap",
@@ -755,6 +797,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     NOVGOROD = CivTemplate(
+        # 1136
         name="Novgorod",
         abilities=[{
             "name": "DevelopCheap",
@@ -763,10 +806,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.EUROPE,
     )
     CASTILE = CivTemplate(
+        # 1065
         name="Castile",
         abilities=[{
             "name": "DevelopCheap",
@@ -775,7 +819,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry"],
         }],
-        advancement_level=2,
+        advancement_level=4,
         region=Region.MEDITERRANEAN,
     )
     # VENICE = CivTemplate(
@@ -790,6 +834,7 @@ class CIVS():
     #     advancement_level=2,
     # )
     ARAGON = CivTemplate(
+        # 1164
         name="Aragon",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -802,6 +847,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     MAMLUKS = CivTemplate(
+        # 1261
         name="Mamluks",
         abilities=[{
             "name": "OnDevelop",
@@ -814,6 +860,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     DELHI = CivTemplate(
+        # 1206
         name="Delhi",
         abilities=[{
             "name": "StartWithResources",
@@ -822,10 +869,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.SOUTH_ASIA,
     )
     BAHMANI = CivTemplate(
+        # 1347
         name="Bahmani",
         abilities=[{
             "name": "OnDevelop",
@@ -838,6 +886,7 @@ class CIVS():
         region=Region.SOUTH_ASIA,
     )
     VIJAYANAGARA = CivTemplate(
+        # 1336
         name="Vijayanagara",
         abilities=[{
             "name": "StartWithResources",
@@ -850,6 +899,7 @@ class CIVS():
         region=Region.SOUTH_ASIA,
     )
     IROQUOIS = CivTemplate(
+        # 16th century
         name="Iroquois",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -862,6 +912,7 @@ class CIVS():
         region=Region.AMERICAS,
     )
     OTTOMANS = CivTemplate(
+        # 1299
         name="Ottomans",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -874,6 +925,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     AUSTRIA_HUNGARY = CivTemplate(
+        # 1281 (Hapsburg Empire)
         name="Austria-Hungary",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -886,6 +938,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     SWEDEN = CivTemplate(
+        # 1611
         name="Sweden",
         abilities=[{
             "name": "StartWithResources",
@@ -898,6 +951,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     RUSSIA = CivTemplate(
+        # 1721
         name="Russia",
         abilities=[{
             "name": "ExtraCityPower",
@@ -910,6 +964,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     ARABIA = CivTemplate(
+        # ????
         name="Arabia",
         abilities=[{
             "name": "StartWithResources",
@@ -922,6 +977,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     PORTUGAL = CivTemplate(
+        # 1139
         name="Portugal",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -934,6 +990,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     SPAIN = CivTemplate(
+        # 1492
         name="Spain",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -946,6 +1003,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     FRANCE = CivTemplate(
+        # Depends what you mean
         name="France",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -958,6 +1016,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     PRUSSIA = CivTemplate(
+        # 1701
         name="Prussia",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -966,10 +1025,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery"],
         }],
-        advancement_level=4,
+        advancement_level=5,
         region=Region.EUROPE,
     )
     MANCHU = CivTemplate(
+        # To the extent this is a polity, it's the same as the Qing dynasty
         name="Manchu",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -982,6 +1042,7 @@ class CIVS():
         region=Region.EAST_ASIA
     )
     POLAND = CivTemplate(
+        # 1569
         name="Poland",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -994,6 +1055,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     LITHUANIA = CivTemplate(
+        # Basically part of poland for most of history
         name="Lithuania",
         abilities=[{
             "name": "StartWithResources",
@@ -1006,6 +1068,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     NETHERLANDS = CivTemplate(
+        # 1581
         name="Netherlands",
         abilities=[{
             "name": "StartWithResources",
@@ -1018,6 +1081,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     DENMARK = CivTemplate(
+        # 10th century
         name="Denmark",
         abilities=[{
             "name": "StartWithResources",
@@ -1030,6 +1094,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     BRAZIL = CivTemplate(
+        # 1822
         name="Brazil",
         abilities=[{
             "name": "StartWithResources",
@@ -1042,6 +1107,7 @@ class CIVS():
         region=Region.AMERICAS,
     )
     UNITED_STATES = CivTemplate(
+        # 1776
         name="United States",
         abilities=[{
             "name": "ExtraVpsPerCityCaptured",
@@ -1054,6 +1120,7 @@ class CIVS():
         region=Region.AMERICAS,
     )
     MEXICO = CivTemplate(
+        # 1810
         name="Mexico",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -1066,6 +1133,7 @@ class CIVS():
         region=Region.AMERICAS,
     )
     UNITED_KINGDOM = CivTemplate(
+        # 1603
         name="United Kingdom",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -1078,6 +1146,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     INDONESIA = CivTemplate(
+        # 1945?
         name="Indonesia",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -1090,6 +1159,7 @@ class CIVS():
         region=Region.SOUTH_ASIA,
     )
     JAPAN = CivTemplate(
+        # Depends what you mean
         name="Japan",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -1102,6 +1172,7 @@ class CIVS():
         region=Region.EAST_ASIA,
     )
     KOREA = CivTemplate(
+        # 1897
         name="Korea",
         abilities=[{
             "name": "IncreaseCapitalYields",
@@ -1114,6 +1185,7 @@ class CIVS():
         region=Region.EAST_ASIA,
     )
     ETHIOPIA = CivTemplate(
+        # 1270
         name="Ethiopia",
         abilities=[{
             "name": "StartWithResources",
@@ -1126,6 +1198,7 @@ class CIVS():
         region=Region.AFRICA,
     )    
     ITALY = CivTemplate(
+        # 1861
         name="Italy",
         abilities=[{
             "name": "StartWithResources",
@@ -1138,6 +1211,7 @@ class CIVS():
         region=Region.MEDITERRANEAN,
     )
     GERMANY = CivTemplate(
+        # 1871
         name="Germany",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -1146,10 +1220,11 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Tank"],
         }],
-        advancement_level=5,
+        advancement_level=6,
         region=Region.EUROPE,
     )
     COMANCHES = CivTemplate(
+        # 18th century
         name="Comanches",
         abilities=[{
             "name": "ExtraVpsPerUnitKilled",
@@ -1159,6 +1234,7 @@ class CIVS():
         region=Region.AMERICAS,
     )
     CANADA = CivTemplate(
+        # 1867
         name="Canada",
         abilities=[{
             "name": "StartWithResources",
@@ -1171,6 +1247,7 @@ class CIVS():
         region=Region.AMERICAS,
     )
     AUSTRALIA = CivTemplate(
+        # 1901
         name="Australia",
         abilities=[{
             "name": "StartWithResources",
@@ -1195,6 +1272,7 @@ class CIVS():
     ##     region=Region.SOUTH_ASIA,
     # )
     INDIA = CivTemplate(
+        # 1947
         name="India",
         abilities=[{
             "name": "StartWithResources",
@@ -1204,6 +1282,7 @@ class CIVS():
         region=Region.SOUTH_ASIA,
     )
     SOVIET_UNION = CivTemplate(
+        # 1922
         name="Soviet Union",
         abilities=[{
             "name": "ExtraVpsPerCityCaptured",
@@ -1216,6 +1295,7 @@ class CIVS():
         region=Region.EUROPE,
     )
     COMMUNIST_CHINA = CivTemplate(
+        # 1949
         name="Communist China",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -1228,6 +1308,7 @@ class CIVS():
         region=Region.EAST_ASIA,
     )
     TURKEY = CivTemplate(
+        # 1923
         name="Turkey",
         abilities=[{
             "name": "IncreaseFocusYields",
@@ -1366,3 +1447,8 @@ if __name__ == "__main__":
 
     # Print the table
     print(tabulate(table_data, headers=headers, tablefmt="grid"))
+
+    # for age in range(11):
+    #     print(f"====== {age} ======")
+    #     for civ in [civ for civ in CIVS.all() if civ.advancement_level == age]:
+    #         print(civ.name)

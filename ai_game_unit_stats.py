@@ -565,7 +565,7 @@ if __name__ == "__main__":
         sorted_people = sorted([p for i in range(10) for p in great_people_by_age(i)], key=lambda p: (p.advancement_level, p.__class__.__name__, p.name))
         plot_rates(winner_data['great_people'], loser_data['great_people'], sorted_people, f"Great People", cond_prob_range=[0.1, 0.3], name_fn=gp_name, color_fn=gp_color_fn, fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         offset += 1
-        sorted_techs = sorted(TECHS.all(), key=lambda t: (t.advancement_level, t.name))
+        sorted_techs = sorted(TECHS.all(), key=lambda t: (t.advancement_level, t.cost, t.name))
         plot_rates(winner_data['techs'], loser_data['techs'], sorted_techs, "Tech", cond_prob_range=[0.23, 0.3], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         fig.show()
 
