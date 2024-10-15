@@ -297,19 +297,6 @@ class CIVS():
         advancement_level=1,
         region=Region.MIDDLE_EAST,
     )
-    ROMANS = CivTemplate(
-        # 509 BC (Republic began)
-        name="Romans",
-        abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["wood", 2],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Swordsman"],
-        }],
-        advancement_level=1,
-        region=Region.MEDITERRANEAN,
-    )
     MAURYA = CivTemplate(
         # 322 BC
         name="Maurya",
@@ -320,7 +307,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman"],
         }],
-        advancement_level=3,
+        advancement_level=1,
         region=Region.SOUTH_ASIA,
     )
     CHOLA = CivTemplate(
@@ -333,7 +320,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=2,
+        advancement_level=1,
         region=Region.SOUTH_ASIA,
     )
     QIN = CivTemplate(
@@ -346,8 +333,21 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman"],
         }],
-        advancement_level=3,
+        advancement_level=1,
         region=Region.EAST_ASIA,
+    )
+    ROMANS = CivTemplate(
+        # 509 BC (Republic began); 27 BC (Empire began)
+        name="Romans",
+        abilities=[{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["wood", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Swordsman"],
+        }],
+        advancement_level=2,
+        region=Region.MEDITERRANEAN,
     )
     CARTHAGE = CivTemplate(
         # 2nd century BC ish
@@ -359,7 +359,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horseman"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.MEDITERRANEAN,
     )
     HAN = CivTemplate(
@@ -385,7 +385,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Catapult"],
         }],
-        advancement_level=1,
+        advancement_level=2,
         region=Region.SOUTH_ASIA,
     )
     JIN = CivTemplate(
@@ -398,7 +398,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.EAST_ASIA,
     )
     BYZANTINES = CivTemplate(
@@ -411,7 +411,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Trebuchet"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.MEDITERRANEAN,
     )
     HUNS = CivTemplate(
@@ -424,7 +424,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horse Archer"],
         }],
-        advancement_level=1,
+        advancement_level=3,
         region=Region.EUROPE,
     )
     FRANKS = CivTemplate(
@@ -437,7 +437,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.EUROPE,
     )
     SRIVIJAYA = CivTemplate(
@@ -450,7 +450,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Garrison"],
         }],
-        advancement_level=1,
+        advancement_level=3,
         region=Region.SOUTH_ASIA,
     )
     UMAYYADS = CivTemplate(
@@ -463,7 +463,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.MEDITERRANEAN,
     )
     ABBASIDS = CivTemplate(
@@ -476,7 +476,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.MIDDLE_EAST,
     )
     VIKINGS = CivTemplate(
@@ -489,7 +489,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Swordsman"],
         }],
-        advancement_level=1,
+        advancement_level=3,
         region=Region.EUROPE,
     )
     KHMER = CivTemplate(
@@ -541,7 +541,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry"],
         }],
-        advancement_level=4,
+        advancement_level=3,
         region=Region.MEDITERRANEAN,
     )
     ENGLAND = CivTemplate(
@@ -554,7 +554,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.EUROPE,
     )
     NOVGOROD = CivTemplate(
@@ -580,7 +580,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman"],
         }],
-        advancement_level=4,
+        advancement_level=3,
         region=Region.MEDITERRANEAN,
     )
     ARAGON = CivTemplate(
@@ -593,7 +593,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.MEDITERRANEAN,
     )
     BOHEMIA = CivTemplate(
@@ -606,7 +606,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Militia"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.EUROPE,
     )
     MONGOLS = CivTemplate(  # TODO: These should be age 3 surely.
@@ -645,7 +645,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman"],
         }],
-        advancement_level=5,
+        advancement_level=3,
         region=Region.AFRICA,
     )
     MALI = CivTemplate(
@@ -658,7 +658,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.AFRICA,
     )
     SUKHOTHAI = CivTemplate(
@@ -671,7 +671,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=2,
+        advancement_level=4,
         region=Region.SOUTH_ASIA,
     )
     MAMLUKS = CivTemplate(
@@ -684,7 +684,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=2,
+        advancement_level=4,
         region=Region.MEDITERRANEAN,
     )
     INCA = CivTemplate(
@@ -697,7 +697,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.AMERICAS,
     )
     AUSTRIA_HUNGARY = CivTemplate(
@@ -723,7 +723,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=3,
+        advancement_level=4,
         region=Region.SOUTH_ASIA,
     )
     OTTOMANS = CivTemplate(
@@ -749,7 +749,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=2,
+        advancement_level=4,
         region=Region.SOUTH_ASIA,
     )
     BAHMANI = CivTemplate(
@@ -762,7 +762,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=2,
+        advancement_level=4,
         region=Region.SOUTH_ASIA,
     )
     MING = CivTemplate(
@@ -775,7 +775,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Crossbowman"],
         }],
-        advancement_level=2,
+        advancement_level=4,
         region=Region.EAST_ASIA,
     )
     TIMURIDS = CivTemplate(
@@ -788,7 +788,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=2,
+        advancement_level=4,
         region=Region.MIDDLE_EAST,
     )
     JOSEON = CivTemplate(
@@ -801,7 +801,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Chariot"],
         }],
-        advancement_level=1,
+        advancement_level=4,
         region=Region.EAST_ASIA,
     )
     AZTECS = CivTemplate(
@@ -811,7 +811,7 @@ class CIVS():
             "name": "ExtraVpsPerUnitKilled",
             "numbers": ["infantry", 1],
         }],
-        advancement_level=2,
+        advancement_level=3,
         region=Region.AMERICAS,
     )
     SONGHAI = CivTemplate(  # TODO: These should be age 3 -- they should be after Mali since Mali declined and Songhai replaced them.
@@ -824,7 +824,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Knight"],
         }],
-        advancement_level=3,
+        advancement_level=4,
         region=Region.AFRICA,
     )
     SPAIN = CivTemplate(
@@ -850,7 +850,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Musketman"],
         }],
-        advancement_level=3,
+        advancement_level=4,
         region=Region.SOUTH_ASIA,
     )
     IROQUOIS = CivTemplate(
@@ -876,7 +876,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry"],
         }],
-        advancement_level=4,
+        advancement_level=5,
         region=Region.EUROPE,
     )
     NETHERLANDS = CivTemplate(
@@ -889,7 +889,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Gatling Gun"],
         }],
-        advancement_level=4,
+        advancement_level=5,
         region=Region.EUROPE,
     )
     UNITED_KINGDOM = CivTemplate(
@@ -915,7 +915,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman"],
         }],
-        advancement_level=4,
+        advancement_level=5,
         region=Region.EUROPE,
     )
     MARATHAS = CivTemplate(
@@ -928,7 +928,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon"],
         }],
-        advancement_level=3,
+        advancement_level=5,
         region=Region.SOUTH_ASIA,
     )
     PRUSSIA = CivTemplate(
@@ -964,7 +964,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry"],
         }],
-        advancement_level=4,
+        advancement_level=5,
         region=Region.EUROPE,
     )
     UNITED_STATES = CivTemplate(
@@ -990,7 +990,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery"],
         }],
-        advancement_level=5,
+        advancement_level=6,
         region=Region.AMERICAS,
     )
     ZULU = CivTemplate(
@@ -1003,7 +1003,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Pikeman"],
         }],
-        advancement_level=2,
+        advancement_level=5,
         region=Region.AFRICA,
     )
     BRAZIL = CivTemplate(
@@ -1016,7 +1016,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rifleman"],
         }],
-        advancement_level=5,
+        advancement_level=6,
         region=Region.AMERICAS,
     )
     ITALY = CivTemplate(
@@ -1029,7 +1029,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery"],
         }],
-        advancement_level=5,
+        advancement_level=6,
         region=Region.MEDITERRANEAN,
     )
     CANADA = CivTemplate(
@@ -1042,7 +1042,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Infantry"],
         }],
-        advancement_level=7,
+        advancement_level=6,
         region=Region.AMERICAS,
     )
     GERMANY = CivTemplate(
@@ -1068,7 +1068,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon"],
         }],
-        advancement_level=5,
+        advancement_level=6,
         region=Region.EAST_ASIA,
     )
     AUSTRALIA = CivTemplate(
@@ -1081,7 +1081,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Bazooka"],
         }],
-        advancement_level=7,
+        advancement_level=6,
         region=Region.SOUTH_ASIA,
     )
     SOVIET_UNION = CivTemplate(
@@ -1094,7 +1094,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Rocket Launcher"],
         }],
-        advancement_level=7,
+        advancement_level=6,
         region=Region.EUROPE,
     )
     TURKEY = CivTemplate(
@@ -1120,7 +1120,7 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cannon"],
         }],
-        advancement_level=5,
+        advancement_level=7,
         region=Region.SOUTH_ASIA,
     )
     INDIA = CivTemplate(
@@ -1418,6 +1418,41 @@ import city_names
 for civ in CIVS.all():
     assert civ.name in city_names.CITY_NAMES_BY_CIV, f"Civ {civ.name} does not have a corresponding city list in city_names.py"
 
+CHECK_ORDERS = [
+    [{CIVS.MYCENAEANS, CIVS.MINOANS}, CIVS.GREECE, CIVS.ROMANS, CIVS.BYZANTINES, CIVS.OTTOMANS, CIVS.TURKEY],
+    [CIVS.ROMANS, CIVS.ITALY],
+    [{CIVS.CASTILE, CIVS.ARAGON}, CIVS.SPAIN],
+    [CIVS.MALI, CIVS.SONGHAI],
+    [CIVS.VIKINGS, CIVS.DENMARK, CIVS.SWEDEN],
+    [CIVS.EGPYT, CIVS.MAMLUKS],
+    [CIVS.ENGLAND, CIVS.UNITED_KINGDOM],
+    [CIVS.SRIVIJAYA, CIVS.MAJAPAHIT, CIVS.INDONESIA],
+    [CIVS.NOVGOROD, CIVS.RUSSIA, CIVS.SOVIET_UNION],
+    [CIVS.SHANG, CIVS.QIN, CIVS.HAN, CIVS.JIN, CIVS.MING, CIVS.COMMUNIST_CHINA],
+    [CIVS.PHOENICIA, CIVS.CARTHAGE],
+    [CIVS.PRUSSIA, CIVS.GERMANY],
+    [CIVS.MAYA, CIVS.AZTECS, CIVS.MEXICO],
+    [CIVS.JOMON, CIVS.JAPAN],
+    [CIVS.JOSEON, CIVS.KOREA],
+    [CIVS.IROQUOIS, CIVS.UNITED_STATES],
+    [CIVS.INDUS, CIVS.MAURYA, CIVS.GUPTA, CIVS.DELHI, CIVS.MUGHALS, CIVS.INDIA],
+    [CIVS.BABYLON, CIVS.PERSIA, CIVS.SELJUKS, CIVS.TIMURIDS],
+]
+
+for check_order in CHECK_ORDERS:
+    previous_age = -999
+    for i in range(len(check_order)):
+        if isinstance(check_order[i], set):
+            ages = [civ.advancement_level for civ in check_order[i]]
+            assert all(age == ages[0] for age in ages), f"Civs in set {[civ.name for civ in check_order[i]]} do not have the same advancement level"
+            current_age = ages[0]
+        else:
+            current_age = check_order[i].advancement_level
+        print(f"Checking {check_order[i - 1]} and {check_order[i]}; current age is {current_age}, previous age is {previous_age}")
+        assert current_age > previous_age, f"Civs {check_order[i - 1]} and {check_order[i]} are not in strictly increasing order of advancement levels"
+        previous_age = current_age
+
+
 
 if __name__ == "__main__":
     from collections import defaultdict
@@ -1459,3 +1494,22 @@ if __name__ == "__main__":
     #     print(f"====== {age} ======")
     #     for civ in [civ for civ in CIVS.all() if civ.advancement_level == age]:
     #         print(civ.name)
+
+    # # Print civs that aren't in any CHECK_ORDERS
+    # all_civs = set(CIVS.all())
+    # civs_in_check_orders = set()
+    # for check_order in CHECK_ORDERS:
+    #     for item in check_order:
+    #         if isinstance(item, set):
+    #             civs_in_check_orders.update(item)
+    #         else:
+    #             civs_in_check_orders.add(item)
+    
+    # civs_not_in_check_orders = all_civs - civs_in_check_orders
+    
+    # if civs_not_in_check_orders:
+    #     print("\nCivs not in any CHECK_ORDERS:")
+    #     for civ in sorted(civs_not_in_check_orders, key=lambda c: (c.advancement_level, c.name)):
+    #         print(f"- {civ.name} (Age: {civ.advancement_level})")
+    # else:
+    #     print("\nAll civs are included in CHECK_ORDERS.")
