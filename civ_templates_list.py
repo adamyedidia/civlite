@@ -798,15 +798,15 @@ class CIVS():
         advancement_level=4,
         region=Region.EUROPE,
     )
-    MAJAPAHIT = CivTemplate(
+    MAJAPAHIT = CivTemplate(  # TODO
         # 1292
         name="Majapahit",
         abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["wood", 3],
+            "name": "IncreaseCapitalYields",
+            "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman"],
+            "numbers": ["Musketman"],
         }],
         advancement_level=4,
         region=Region.SOUTH_ASIA,
@@ -828,11 +828,11 @@ class CIVS():
         # 1336
         name="Vijayanagara",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["science", 30],
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, GainResourceEffect('wood', 60)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight"],
+            "numbers": ["Cannon"],
         }],
         advancement_level=4,
         region=Region.SOUTH_ASIA,
@@ -845,7 +845,7 @@ class CIVS():
             "numbers": [BuildingType.URBAN, ResetHappinessThisCityEffect()],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman"],
+            "numbers": ["Cavalry"],
         }],
         advancement_level=4,
         region=Region.SOUTH_ASIA,
@@ -854,11 +854,11 @@ class CIVS():
         # 1368
         name="Ming",
         abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["science", 3],
+            "name": "IncreaseFocusYields",
+            "numbers": ["science", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman"],
+            "numbers": ["Rifleman"],
         }],
         advancement_level=4,
         region=Region.EAST_ASIA,
@@ -868,10 +868,10 @@ class CIVS():
         name="Timurids",
         abilities=[{
             "name": "IncreaseFocusYields",
-            "numbers": ["wood", 3],
+            "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight"],
+            "numbers": ["Musketman"],
         }],
         advancement_level=4,
         region=Region.MIDDLE_EAST,
@@ -880,11 +880,11 @@ class CIVS():
         # 1392 AD
         name="Joseon",
         abilities=[{
-            "name": "DevelopCheap",
-            "numbers": ["rural"],
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, GainResourceEffect('science', 60)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Chariot"],
+            "numbers": ["Cavalry"],
         }],
         advancement_level=4,
         region=Region.EAST_ASIA,
@@ -896,18 +896,18 @@ class CIVS():
             "name": "ExtraVpsPerUnitKilled",
             "numbers": ["infantry", 1],
         }],
-        advancement_level=3,
+        advancement_level=4,
         region=Region.AMERICAS,
     )
-    SONGHAI = CivTemplate(  # TODO: These should be age 3 -- they should be after Mali since Mali declined and Songhai replaced them.
+    SONGHAI = CivTemplate(
         # 1464
         name="Songhai",
         abilities=[{
             "name": "IncreaseFocusYields",
-            "numbers": ["food", 3],
+            "numbers": ["food", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight"],
+            "numbers": ["Gatling Gun"],  # TODO -- This doesn't make sense, they didn't have gunpowder.
         }],
         advancement_level=4,
         region=Region.AFRICA,
@@ -917,10 +917,10 @@ class CIVS():
         name="Spain",
         abilities=[{
             "name": "IncreaseFocusYields",
-            "numbers": ["metal", 4],
+            "numbers": ["metal", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry"],
+            "numbers": ["Cannon"],
         }],
         advancement_level=4,
         region=Region.MEDITERRANEAN,
@@ -942,7 +942,7 @@ class CIVS():
         # 16th century
         name="Iroquois",
         abilities=[{
-            "name": "IncreaseCapitalYields",
+            "name": "IncreaseMetalYields",
             "numbers": ["wood", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
@@ -951,6 +951,8 @@ class CIVS():
         advancement_level=4,
         region=Region.AMERICAS,
     )
+
+
     POLAND = CivTemplate(
         # 1569
         name="Poland",
