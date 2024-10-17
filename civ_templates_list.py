@@ -1,5 +1,6 @@
 from typing import Generator
 from building_template import BuildingType
+from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from effects_list import BuildBuildingEffect, BuildUnitsEffect, GainResourceEffect, GrowEffect, PointsEffect, ResetHappinessThisCityEffect
 from region import Region
@@ -925,19 +926,6 @@ class CIVS():
         advancement_level=4,
         region=Region.MEDITERRANEAN,
     )
-    MUGHALS = CivTemplate(
-        # 1526
-        name="Mughals",
-        abilities=[{
-            "name": "ExtraVpsPerWonder",
-            "numbers": [5],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman"],
-        }],
-        advancement_level=4,
-        region=Region.SOUTH_ASIA,
-    )
     IROQUOIS = CivTemplate(
         # 16th century
         name="Iroquois",
@@ -951,34 +939,47 @@ class CIVS():
         advancement_level=4,
         region=Region.AMERICAS,
     )
-
-
     POLAND = CivTemplate(
         # 1569
         name="Poland",
         abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["wood", 5],
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, PointsEffect(lambda city, gs: city.population // 5, "Gain 1 VP per 5 population", "Poland")],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cavalry"],
+            "numbers": ["Musketman"],
         }],
-        advancement_level=5,
+        advancement_level=4,
         region=Region.EUROPE,
     )
-    NETHERLANDS = CivTemplate(
-        # 1581
-        name="Netherlands",
+
+
+    MUGHALS = CivTemplate(
+        # 1526
+        name="Mughals",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["science", 40],
+            "name": "ExtraVpsPerWonder",
+            "numbers": [8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Gatling Gun"],
         }],
         advancement_level=5,
-        region=Region.EUROPE,
+        region=Region.SOUTH_ASIA,
     )
+    # NETHERLANDS = CivTemplate(
+    #     # 1581
+    #     name="Netherlands",
+    #     abilities=[{
+    #         "name": "StartWithResources",
+    #         "numbers": ["science", 40],
+    #     }, {
+    #         "name": "IncreasedStrengthForUnit",
+    #         "numbers": ["Gatling Gun"],
+    #     }],
+    #     advancement_level=5,
+    ##     region=Region.EUROPE,
+    # )
     UNITED_KINGDOM = CivTemplate(
         # 1603
         name="United Kingdom",
@@ -992,28 +993,15 @@ class CIVS():
         advancement_level=5,
         region=Region.EUROPE,
     )
-    SWEDEN = CivTemplate(
-        # 1611
-        name="Sweden",
-        abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["science", 40],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman"],
-        }],
-        advancement_level=5,
-        region=Region.EUROPE,
-    )
     MARATHAS = CivTemplate(
         # 1674
         name="Marathas",
         abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["food", 3],
+            "name": "IncreaseCapitalYields",
+            "numbers": ["science", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon"],
+            "numbers": ["Infantry"],
         }],
         advancement_level=5,
         region=Region.SOUTH_ASIA,
@@ -1022,8 +1010,8 @@ class CIVS():
         # 1701
         name="Prussia",
         abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["metal", 4],
+            "name": "IncreaseCapitalYields",
+            "numbers": ["metal", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery"],
@@ -1036,7 +1024,7 @@ class CIVS():
         name="Comanches",
         abilities=[{
             "name": "ExtraVpsPerUnitKilled",
-            "numbers": ["mounted", 1],
+            "numbers": ["mounted", 2],
         }],
         advancement_level=5,
         region=Region.AMERICAS,
@@ -1046,7 +1034,7 @@ class CIVS():
         name="Russia",
         abilities=[{
             "name": "ExtraCityPower",
-            "numbers": [250],
+            "numbers": [300],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry"],
@@ -1077,31 +1065,46 @@ class CIVS():
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery"],
         }],
-        advancement_level=6,
+        advancement_level=5,
         region=Region.AMERICAS,
     )
     ZULU = CivTemplate(
         # 1816
         name="Zulu",
         abilities=[{
-            "name": "ExtraCityPower",
-            "numbers": [150],
+            "name": "ExtraVpsPerUnitKilled",
+            "numbers": ["infantry", 1],
         }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman"],
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, BuildBuildingEffect(BUILDINGS.ARMY_BASE)],
         }],
         advancement_level=5,
         region=Region.AFRICA,
+    )
+
+
+    SWEDEN = CivTemplate(
+        # 1611
+        name="Sweden",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, GainResourceEffect('science', 100)],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Machine Gun"],
+        }],
+        advancement_level=6,
+        region=Region.EUROPE,
     )
     BRAZIL = CivTemplate(
         # 1822
         name="Brazil",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["metal", 50],
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, GrowEffect(5)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman"],
+            "numbers": ["Bazooka"],
         }],
         advancement_level=6,
         region=Region.AMERICAS,
@@ -1111,7 +1114,7 @@ class CIVS():
         name="Italy",
         abilities=[{
             "name": "StartWithResources",
-            "numbers": ["metal", 40],
+            "numbers": ["metal", 200],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Artillery"],
@@ -1123,11 +1126,11 @@ class CIVS():
         # 1867
         name="Canada",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["science", 75],
+            "name": "IncreaseFocusYields",
+            "numbers": ["science", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Infantry"],
+            "numbers": ["Machine Gun"],
         }],
         advancement_level=6,
         region=Region.AMERICAS,
@@ -1137,7 +1140,7 @@ class CIVS():
         name="Germany",
         abilities=[{
             "name": "IncreaseFocusYields",
-            "numbers": ["metal", 6],
+            "numbers": ["metal", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Tank"],
@@ -1149,11 +1152,11 @@ class CIVS():
         # 1897
         name="Korea",
         abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["science", 6],
+            "name": "IncreaseFocusYields",
+            "numbers": ["wood", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon"],
+            "numbers": ["Tank"],
         }],
         advancement_level=6,
         region=Region.EAST_ASIA,
@@ -1162,8 +1165,8 @@ class CIVS():
         # 1901
         name="Australia",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["food", 75],
+            "name": "IncreaseFocusYields",
+            "numbers": ["food", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Bazooka"],
@@ -1179,11 +1182,13 @@ class CIVS():
             "numbers": [5],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rocket Launcher"],
+            "numbers": ["Infantry"],
         }],
         advancement_level=6,
         region=Region.EUROPE,
     )
+
+
     TURKEY = CivTemplate(
         # 1923
         name="Turkey",
