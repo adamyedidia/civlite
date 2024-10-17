@@ -180,14 +180,14 @@ class CIVS():
         advancement_level=0,
         region=Region.MIDDLE_EAST,
     )
-    MAYA = CivTemplate(
-        name="Maya",
+    ASSYRIA = CivTemplate(
+        name="Assyria",
         abilities=[{
             "name": "ExtraVpsPerCityCaptured",
             "numbers": [5]
         }],
         advancement_level=0,
-        region=Region.AMERICAS,
+        region=Region.MIDDLE_EAST,
     )
     JOMON = CivTemplate(
         name="Jomon",
@@ -340,8 +340,8 @@ class CIVS():
         # 322 BC
         name="Maurya",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["city_power", 50],
+            "name": "ExtraCityPower",
+            "numbers": [50],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Horseman"],
@@ -381,14 +381,27 @@ class CIVS():
         # 509 BC (Republic began); 27 BC (Empire began)
         name="Romans",
         abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["wood", 2],
+            "name": "IncreaseFocusYields",
+            "numbers": ["wood", 3],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Swordsman"],
         }],
         advancement_level=2,
         region=Region.MEDITERRANEAN,
+    )
+    PARTHIA = CivTemplate(
+        # 3rd century BC
+        name="Parthia",
+        abilities=[{
+            "name": "IncreaseFocusYields",
+            "numbers": ["food", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Trebuchet"],
+        }, ],
+        advancement_level=2,
+        region=Region.MIDDLE_EAST,
     )
     CARTHAGE = CivTemplate(
         # 2nd century BC ish
@@ -420,8 +433,8 @@ class CIVS():
         # 3rd century AD
         name="Gupta",
         abilities=[{
-            "name": "DevelopCheap",
-            "numbers": ["urban"],
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, PointsEffect(lambda city, game_state: 4, "Gain 4 points", "Gupta")],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Catapult"],
@@ -429,6 +442,59 @@ class CIVS():
         advancement_level=2,
         region=Region.SOUTH_ASIA,
     )
+    HUNS = CivTemplate(
+        # 4th century AD
+        name="Huns",
+        abilities=[{
+            "name": "IncreaseFocusYields", 
+            "numbers": ["metal", 3]
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horse Archer"],
+        }],
+        advancement_level=2,
+        region=Region.EUROPE,
+    )
+    FRANKS = CivTemplate(
+        # 5th century AD very loosely
+        name="Franks",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, GainResourceEffect("metal", 20)],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Knight"],
+        }],
+        advancement_level=2,
+        region=Region.EUROPE,
+    )
+    MAYA = CivTemplate(
+        # 1st century AD
+        name="Maya",
+        abilities=[{
+            "name": "IncreaseFocusYields",
+            "numbers": ["science", 3],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Spearman"],
+        }],
+        advancement_level=2,
+        region=Region.AMERICAS,
+    )
+    CELTS = CivTemplate(
+        # ????
+        name="Celts",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.UNIT, BuildUnitsEffect(UNITS.PIKEMAN, 2)],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Pikeman"],
+        }],
+        advancement_level=2,
+        region=Region.EUROPE,
+    )
+
     JIN = CivTemplate(
         # 266 AD
         name="Jin",
@@ -454,32 +520,6 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.MEDITERRANEAN,
-    )
-    HUNS = CivTemplate(
-        # 4th century AD
-        name="Huns",
-        abilities=[{
-            "name": "IncreaseFocusYields", 
-            "numbers": ["food", 2]
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Horse Archer"],
-        }],
-        advancement_level=3,
-        region=Region.EUROPE,
-    )
-    FRANKS = CivTemplate(
-        # 5th century AD very loosely
-        name="Franks",
-        abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["wood", 20],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight"],
-        }],
-        advancement_level=3,
-        region=Region.EUROPE,
     )
     SRIVIJAYA = CivTemplate(
         # 7th century AD
@@ -1233,19 +1273,6 @@ class CIVS():
         region=Region.GLOBAL,
     )
 
-    CELTS = CivTemplate(
-        # ????
-        name="Celts",
-        abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["wood", 2],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Pikeman"],
-        }],
-        advancement_level=2,
-        region=Region.EUROPE,
-    )
     FRANCE = CivTemplate(
         # Depends what you mean
         name="France",

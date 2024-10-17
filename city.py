@@ -1083,14 +1083,17 @@ class City(MapObjectSpawner):
                 self.food += civ.numbers_of_ability('StartWithResources')[1]
                 self.civ.city_power += civ.numbers_of_ability('StartWithResources')[1]
 
-            if civ.numbers_of_ability('StartWithResources')[0] == 'metal':
+            elif civ.numbers_of_ability('StartWithResources')[0] == 'metal':
                 self.metal += civ.numbers_of_ability('StartWithResources')[1]
 
-            if civ.numbers_of_ability('StartWithResources')[0] == 'wood':
+            elif civ.numbers_of_ability('StartWithResources')[0] == 'wood':
                 self.wood += civ.numbers_of_ability('StartWithResources')[1]
             
-            if civ.numbers_of_ability('StartWithResources')[0] == 'science':
+            elif civ.numbers_of_ability('StartWithResources')[0] == 'science':
                 self.civ.science += civ.numbers_of_ability('StartWithResources')[1]
+            
+            else:
+                raise ValueError(f"Invalid resource type for StartWithResources: {civ.numbers_of_ability('StartWithResources')[0]}")
 
     def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
         affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost_by_age[age] <= self.projected_total_wood}

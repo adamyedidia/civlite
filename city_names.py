@@ -107,6 +107,10 @@ maya_cities = [
     "Tikal", "Palenque", "Copan", "Chichen Itza", "Calakmul",
     "Caracol", "Uxmal", "Quirigua", "Coba", "Yaxchilan"
 ]
+assyria_cities = [
+    "Nineveh", "Assur", "Nimrud", "Khorsabad", "Arbela",
+    "Dur-Sharrukin", "Kar-Tukulti-Ninurta", "Tarbisu", "Nisibis", "Harran"
+]
 jomon_cities = [
     "Sannai Maruyama", "Fukui Cave", "Torihama", "Minami-Kayabe", "Shakado",
     "Tagoyano", "Omori Katsuyama", "Yoshigo", "Uenohara", "Kamikuroiwa"
@@ -146,6 +150,10 @@ han_cities = [
 hun_cities = [
     "Attila's Court", "Karakorum", "Pliska", "Sarkel",
     "Balanjar", "Atil", "Zarubintsy", "Torgas", "Kubrat", "Budapest",
+]
+parthian_cities = [
+    "Ctesiphon", "Gundeshapur", "Nishapur", "Susa", "Ray",
+    "Merv", "Kerman", "Istakhr", "Amol", "Dura-Europos"
 ]
 carthaginian_cities = [
     "Carthage", "Utica", "Hippo Regius", "Hadrumetum", "Thapsus",
@@ -513,6 +521,8 @@ CITY_NAMES_BY_CIV = {
     "Teotihuacan": teotihuacan_cities,
     "Scythians": scythian_cities,
     "Maya": maya_cities,
+    "Parthia": parthian_cities,
+    "Assyria": assyrian_cities,
     "Jomon": jomon_cities,
     "Yangshao": yangshao_cities,
     "Romans": roman_cities,
