@@ -798,7 +798,7 @@ class CIVS():
         advancement_level=4,
         region=Region.EUROPE,
     )
-    MAJAPAHIT = CivTemplate(  # TODO
+    MAJAPAHIT = CivTemplate(
         # 1292
         name="Majapahit",
         abilities=[{
@@ -942,8 +942,8 @@ class CIVS():
         # 16th century
         name="Iroquois",
         abilities=[{
-            "name": "IncreaseMetalYields",
-            "numbers": ["wood", 5],
+            "name": "IncreaseCapitalYields",
+            "numbers": ["metal", 5],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Cavalry"],
