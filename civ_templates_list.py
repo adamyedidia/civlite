@@ -171,11 +171,11 @@ class CIVS():
         advancement_level=0,
         region=Region.AMERICAS,
     )
-    SCYTHIANS = CivTemplate(
-        name="Scythians",
+    AKKAD = CivTemplate(
+        name="Akkad",
         abilities=[{
-            "name": "IncreasedStrengthForNthUnit",
-            "numbers": [2, "Chariot", 3]
+            "name": "IncreaseCapitalYields",
+            "numbers": ["science", 2]
         }],
         advancement_level=0,
         region=Region.MIDDLE_EAST,
@@ -277,12 +277,38 @@ class CIVS():
         advancement_level=1,
         region=Region.EAST_ASIA,
     )
-    GREECE = CivTemplate(
+    SCYTHIANS = CivTemplate(
+        # 9th century BC
+        name="Scythians",
+        abilities=[{
+            "name": "ExtraVpsPerUnitKilled",
+            "numbers": ["mounted", 1]
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Horse Archer"]
+        }],
+        advancement_level=1,
+        region=Region.MIDDLE_EAST,
+    )
+    SPARTA = CivTemplate(
         # 7th century BC ish
-        name="Greece",
+        name="Sparta",
         abilities=[{
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Spearman"],
+        }],
+        advancement_level=1,
+        region=Region.MEDITERRANEAN,
+    )
+    ATHENS = CivTemplate(
+        # 5th century BC
+        name="Athens",
+        abilities=[{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["science", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Swordsman"],
         }],
         advancement_level=1,
         region=Region.MEDITERRANEAN,
@@ -297,15 +323,28 @@ class CIVS():
         advancement_level=1,
         region=Region.MIDDLE_EAST,
     )
+    MACEDONIA = CivTemplate(
+        # 4th century BC
+        name="Macedonia",
+        abilities=[{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["metal", 2],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Chariot"],
+        }],
+        advancement_level=1,
+        region=Region.MEDITERRANEAN,
+    )
     MAURYA = CivTemplate(
         # 322 BC
         name="Maurya",
         abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["food", 3],
+            "name": "StartWithResources",
+            "numbers": ["city_power", 50],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Musketman"],
+            "numbers": ["Horseman"],
         }],
         advancement_level=1,
         region=Region.SOUTH_ASIA,
@@ -315,10 +354,10 @@ class CIVS():
         name="Chola",
         abilities=[{
             "name": "IncreaseCapitalYields",
-            "numbers": ["food", 3],
+            "numbers": ["food", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Knight"],
+            "numbers": ["Catapult"],
         }],
         advancement_level=1,
         region=Region.SOUTH_ASIA,
@@ -327,15 +366,17 @@ class CIVS():
         # 221 BC
         name="Qin",
         abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["science", 3],
+            "name": "IncreaseCapitalYields",
+            "numbers": ["wood", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Crossbowman"],
+            "numbers": ["Garrison", 3],
         }],
         advancement_level=1,
         region=Region.EAST_ASIA,
     )
+
+
     ROMANS = CivTemplate(
         # 509 BC (Republic began); 27 BC (Empire began)
         name="Romans",
@@ -1419,7 +1460,7 @@ for civ in CIVS.all():
     assert civ.name in city_names.CITY_NAMES_BY_CIV, f"Civ {civ.name} does not have a corresponding city list in city_names.py"
 
 CHECK_ORDERS = [
-    [{CIVS.MYCENAEANS, CIVS.MINOANS}, CIVS.GREECE, CIVS.ROMANS, CIVS.BYZANTINES, CIVS.OTTOMANS, CIVS.TURKEY],
+    [{CIVS.MYCENAEANS, CIVS.MINOANS}, {CIVS.ATHENS, CIVS.SPARTA, CIVS.MACEDONIA}, CIVS.ROMANS, CIVS.BYZANTINES, CIVS.OTTOMANS, CIVS.TURKEY],
     [CIVS.ROMANS, CIVS.ITALY],
     [{CIVS.CASTILE, CIVS.ARAGON}, CIVS.SPAIN],
     [CIVS.MALI, CIVS.SONGHAI],

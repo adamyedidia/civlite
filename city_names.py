@@ -35,7 +35,10 @@ babylon_cities = [
     "Babylon", "Borsippa", "Kish", "Sippar", "Nippur",
     "Uruk", "Lagash", "Ur", "Isin", "Eridu"
 ]
-
+akkad_cities = [
+    "Akkad", "Sippar", "Kish", "Nippur", "Eshnunna",
+    "Lagash", "Uruk", "Ur", "Isin", "Eridu"
+]
 hittite_cities = [
     "Hattusa", "Sapinuwa", "Alaca Hyk", "Yazilikaya", "Kussara",
     "Nerik", "Zalpa", "Samuha", "Lawazantiya", "Tawiniya"
@@ -116,9 +119,17 @@ roman_cities = [
     "Rome", "Syracuse", "Londinium", "Massilia", 
     "Ephesus", "Lugdunum", "Pompeii", "Aquileia", "Thessalonica", "Capua"
 ]
-greek_cities = [
-    "Athens", "Sparta", "Corinth", "Thebes", "Macedonia",
-    "Delphi", "Ephesus", "Rhodes", "Argos", "Olympia"
+sparta_cities = [
+    "Sparta", "Pylos", "Sicyon", "Corinth", "Argos",
+    "Mycenae", "Tegea", "Sparta", "Pylos", "Sicyon"
+]
+athens_cities = [
+    "Athens", "Sparta", "Pylos", "Sicyon", "Corinth", "Argos",
+    "Mycenae", "Tegea", "Sparta", "Pylos", "Sicyon"
+]
+macedonian_cities = [
+    "Macedon", "Pella", "Pydna", "Ptolemais", "Kassandreia",
+    "Pydna", "Ptolemais", "Kassandreia", "Pydna", "Ptolemais"
 ]
 gokturk_cities = [
     "Ötüken", "Beshbalik", "Suyab", "Turfan", "Chiguchuk",
@@ -483,6 +494,7 @@ CITY_NAMES_BY_CIV = {
     "Sumer": sumer_cities,
     "Indus": indus_cities,
     "Minoans": minoan_cities,
+    "Akkad": akkad_cities,
     "Babylon": babylon_cities,
     "Hittites": hittite_cities,
     "Lydia": lydia_cities,
@@ -504,7 +516,9 @@ CITY_NAMES_BY_CIV = {
     "Jomon": jomon_cities,
     "Yangshao": yangshao_cities,
     "Romans": roman_cities,
-    "Greece": greek_cities,
+    "Sparta": sparta_cities,
+    "Athens": athens_cities,
+    "Macedonia": macedonian_cities,
     "Gokturks": gokturk_cities,
     "Persia": persian_cities,
     "Han": han_cities,
