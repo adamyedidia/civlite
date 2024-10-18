@@ -1,7 +1,10 @@
+import itertools
+import numpy as np
 import random
 from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
+from assign_starting_locations import assign_starting_locations
 from move_type import MoveType
 from unit import Unit
 from settings import GOD_MODE
@@ -605,20 +608,17 @@ def create_starting_civ_options_for_players(game_players: list[GamePlayer], star
     assert len(game_players) <= MAX_PLAYERS
 
     starting_civ_template_options = random.sample(list(player_civs(max_advancement_level=0)), NUM_STARTING_LOCATION_OPTIONS * len(game_players))
+    location_map = assign_starting_locations(starting_civ_template_options, starting_locations)
 
-    starting_civ_options = {}
+    civs = []
+    for civ_template, game_player in zip(starting_civ_template_options, itertools.cycle(game_players)):
+        civ = Civ(civ_template, game_player)
+        civ.get_new_tech_choices()
+        if civ.has_ability('ExtraCityPower'):
+            civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
+        civs.append(civ)
 
-    counter = 0
-
-    for game_player in game_players:
-        starting_civ_options[game_player.player_num] = []
-        for _ in range(NUM_STARTING_LOCATION_OPTIONS):
-            civ = Civ(starting_civ_template_options[counter], game_player)
-            civ.get_new_tech_choices()
-            if civ.has_ability('ExtraCityPower'):
-                civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
-
-            starting_civ_options[game_player.player_num].append((civ, starting_locations[counter]))
-            counter += 1
-
-    return starting_civ_options
+    game_players_to_civs = {game_player.player_num: [] for game_player in game_players}
+    for civ in civs:
+        game_players_to_civs[civ.game_player.player_num].append((civ, location_map[civ.template]))
+    return game_players_to_civs
