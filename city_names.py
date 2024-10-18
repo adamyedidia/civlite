@@ -19,6 +19,9 @@ shang_cities = [
     "Anyang", "Zhengzhou", "Yin", "Shangqiu", "Yanshi",
     "Aodu", "Xiaotun", "Erlitou", "Gaocheng", "Beimadu"
 ]
+longshan_cities = [
+    "Longshan", "Yanshi", "Xiaotun", "Erlitou", "Gaocheng", "Beimadu"
+]
 sumer_cities = [
     "Ur", "Uruk", "Lagash", "Nippur", "Kish",
     "Eridu", "Sippar", "Babylon", "Akshak", "Adab"
@@ -507,6 +510,7 @@ CITY_NAMES_BY_CIV = {
     "Mycenaeans": mycenaean_cities,
     "Harrapans": harrapan_cities,
     "Shang": shang_cities,
+    "Longshan": longshan_cities,
     "Sumer": sumer_cities,
     "Indus": indus_cities,
     "Minoans": minoan_cities,

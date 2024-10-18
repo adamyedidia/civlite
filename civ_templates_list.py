@@ -56,7 +56,7 @@ class CIVS():
         name="Barbarians",
         abilities=[],
         colors=("#FF0000", "#666666",),
-        advancement_level=0,
+        advancement_level=-1,
         region=Region.BARBARIAN,
     )
 
@@ -211,6 +211,15 @@ class CIVS():
         abilities=[{
             "name": "ExtraVpsPerUnitKilled",
             "numbers": ["ranged", 1]
+        }],
+        advancement_level=0,
+        region=Region.EAST_ASIA,
+    )
+    LONGSHAN = CivTemplate(
+        name="Longshan",
+        abilities=[{
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, PointsEffect(lambda city, game_state: 6, "Gain 6 points", "Longshan")]
         }],
         advancement_level=0,
         region=Region.EAST_ASIA,
@@ -1568,7 +1577,7 @@ for check_order in CHECK_ORDERS:
             current_age = ages[0]
         else:
             current_age = check_order[i].advancement_level
-        print(f"Checking {check_order[i - 1]} and {check_order[i]}; current age is {current_age}, previous age is {previous_age}")
+        # print(f"Checking {check_order[i - 1]} and {check_order[i]}; current age is {current_age}, previous age is {previous_age}")
         assert current_age > previous_age, f"Civs {check_order[i - 1]} and {check_order[i]} are not in strictly increasing order of advancement levels"
         previous_age = current_age
 
