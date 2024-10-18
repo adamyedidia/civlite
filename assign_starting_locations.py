@@ -71,7 +71,8 @@ def assign_starting_locations(starting_civ_template_options: 'list[CivTemplate]'
         masked_distances = distances.copy()
         masked_distances[np.arange(len(zone_assignments)), zone_assignments] = np.inf
         print(f"{masked_distances=}")
-        second_best_zones = np.argmin(masked_distances, axis=1)
+
+        second_best_zones = np.argmin(masked_distances + np.random.rand(*masked_distances.shape) * 1e-6, axis=1)  # Add random noise to break ties randomly.
         print(f"{second_best_zones=}")
         switching_costs = distances[np.arange(len(zone_assignments)), second_best_zones] - distances[np.arange(len(zone_assignments)), zone_assignments]
         print(f"{switching_costs=}")
