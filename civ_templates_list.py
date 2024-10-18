@@ -2,7 +2,7 @@ from typing import Generator
 from building_template import BuildingType
 from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
-from effects_list import BuildBuildingEffect, BuildUnitsEffect, GainResourceEffect, GrowEffect, PointsEffect, ResetHappinessThisCityEffect
+from effects_list import BuildBuildingEffect, BuildUnitsEffect, FreeRandomTechEffect, GainResourceEffect, GrowEffect, PointsEffect, ResetHappinessThisCityEffect, StealPopEffect
 from region import Region
 from unit_templates_list import UNITS
 import settings
@@ -16,11 +16,18 @@ def find_civ_pool(n, advancement_level_target, target_regions: set[Region], civs
     decline_choice_big_civ_pool = []
     amounts_found = {}
     for max_advancement_level in range(advancement_level_target, 11):
+        # Try in order of (correct age correct region, age -1 correct region, correct age any region, age -2 correct region, age -1 any region, age -3 correct region, ...)
         for min_advancement_level in range(advancement_level_target, -1, -1):
-            for search_regions in [target_regions, set(Region)]:
-                # Try in order of (correct age correct region, correct age any region, age -1 correct region, age -1 any region, age -2 correct region, age -2 any region, ...)
+            for search_correct_regions in [True, False]:
+                if search_correct_regions:
+                    search_regions = target_regions
+                    min_search_age = min_advancement_level
+                else:
+                    search_regions = set(Region)
+                    min_search_age = min_advancement_level + 1
+                print(f"Searching for {n} civs at {min_search_age=}, {max_advancement_level=}, {search_regions=}")
                 decline_choice_big_civ_pool: list[CivTemplate] = [
-                    civ for civ in player_civs(min_advancement_level=min_advancement_level, max_advancement_level=max_advancement_level, regions=search_regions) 
+                    civ for civ in player_civs(min_advancement_level=min_search_age, max_advancement_level=max_advancement_level, regions=search_regions) 
                     if civ not in civs_already_in_game]
 
                 if len(decline_choice_big_civ_pool) >= n:
@@ -1046,8 +1053,8 @@ class CIVS():
         # 1776
         name="United States",
         abilities=[{
-            "name": "ExtraVpsPerCityCaptured",
-            "numbers": [5],
+            "name": "OnDevelop",
+            "numbers": [BuildingType.RURAL, StealPopEffect(1, 4)],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Infantry"],
@@ -1080,6 +1087,19 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.AFRICA,
+    )
+    JAPAN = CivTemplate(
+        # Depends what you mean
+        name="Japan",
+        abilities=[{
+            "name": "IncreaseCapitalYields",
+            "numbers": ["metal", 8],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Swordsman", 10],
+        }],
+        advancement_level=5,
+        region=Region.EAST_ASIA,
     )
 
 
@@ -1127,7 +1147,7 @@ class CIVS():
         name="Canada",
         abilities=[{
             "name": "IncreaseFocusYields",
-            "numbers": ["science", 10],
+            "numbers": ["science", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Machine Gun"],
@@ -1140,7 +1160,7 @@ class CIVS():
         name="Germany",
         abilities=[{
             "name": "IncreaseFocusYields",
-            "numbers": ["metal", 10],
+            "numbers": ["metal", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Tank"],
@@ -1153,7 +1173,7 @@ class CIVS():
         name="Korea",
         abilities=[{
             "name": "IncreaseFocusYields",
-            "numbers": ["wood", 10],
+            "numbers": ["wood", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Tank"],
@@ -1166,7 +1186,7 @@ class CIVS():
         name="Australia",
         abilities=[{
             "name": "IncreaseFocusYields",
-            "numbers": ["food", 10],
+            "numbers": ["food", 8],
         }, {
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Bazooka"],
@@ -1197,7 +1217,7 @@ class CIVS():
             "numbers": ["wood", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Infantry"],
+            "numbers": ["Machine Gun"],
         }],
         advancement_level=7,
         region=Region.MEDITERRANEAN,
@@ -1206,11 +1226,11 @@ class CIVS():
         # 1945?
         name="Indonesia",
         abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["food", 8],
+            "name": "IncreaseFocusYields",
+            "numbers": ["food", 10],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Cannon"],
+            "numbers": ["Bazooka"],
         }],
         advancement_level=7,
         region=Region.SOUTH_ASIA,
@@ -1219,8 +1239,11 @@ class CIVS():
         # 1947
         name="India",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["food", 150],
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, GrowEffect(10)],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Tank"],
         }],
         advancement_level=7,
         region=Region.SOUTH_ASIA,
@@ -1238,20 +1261,36 @@ class CIVS():
         advancement_level=7,
         region=Region.EAST_ASIA,
     )
-    SOLARIA = CivTemplate(
-        name="Solaria",
+    UNIFIED_LATIN_AMERICA = CivTemplate(
+        name="Unified Latin America",
         abilities=[{
-            "name": "StartWithResources",
-            "numbers": ["science", 200],
+            "name": "ExtraVpsPerUnitKilled",
+            "numbers": [None, 1],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rocket Launcher"],
         }],
-        advancement_level=10,
-        region=Region.GLOBAL,
+        advancement_level=7,
+        region=Region.AMERICAS,
     )
+    NATO = CivTemplate(
+        name="NATO",
+        abilities=[{ 
+            "name": "OnDevelop",
+            "numbers": [BuildingType.URBAN, FreeRandomTechEffect(6)],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Rocket Launcher"],
+        }],
+        advancement_level=7,
+        region=Region.EUROPE,
+    )
+
     ARCTIC_ALLIANCE = CivTemplate(
         name="Arctic Alliance",
         abilities=[{
             "name": "StartWithResources",
-            "numbers": ["food", 400],
+            "numbers": ["science", 500],
         }],
         advancement_level=9,
         region=Region.GLOBAL,
@@ -1259,8 +1298,8 @@ class CIVS():
     GREATER_EURO_ZONE = CivTemplate(
         name="Greater EuroZone",
         abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["wood", 30],
+            "name": "StartWithResources",
+            "numbers": ["wood", 500],
         }],
         advancement_level=9,
         region=Region.EUROPE,
@@ -1269,7 +1308,7 @@ class CIVS():
         name="Celestial Empire",
         abilities=[{
             "name": "StartWithResources",
-            "numbers": ["metal", 150],
+            "numbers": ["metal", 500],
         }],
         advancement_level=9,
         region=Region.GLOBAL,
@@ -1279,37 +1318,39 @@ class CIVS():
         abilities=[{
             "name": "IncreasedStrengthForUnit",
             "numbers": ["Giant Death Robot"],
+        }, {
+            "name": "IncreasedStrengthForUnit",
+            "numbers": ["Nanoswarm"],
+        }, {
+            "name": "ExtraVpsPerUnitKilled",
+            "numbers": [None, 2],
+        }],
+        advancement_level=9,
+        region=Region.GLOBAL,
+    )
+    SOLARIA = CivTemplate(
+        name="Solaria",
+        abilities=[{
+            "name": "ExtraVpsPerWonder",
+            "numbers": [20],
         }],
         advancement_level=9,
         region=Region.GLOBAL,
     )
 
-    FRANCE = CivTemplate(
-        # Depends what you mean
-        name="France",
-        abilities=[{
-            "name": "IncreaseFocusYields",
-            "numbers": ["wood", 4],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Rifleman"],
-        }],
-        advancement_level=4,
-        region=Region.EUROPE,
-    )
-    JAPAN = CivTemplate(
-        # Depends what you mean
-        name="Japan",
-        abilities=[{
-            "name": "IncreaseCapitalYields",
-            "numbers": ["metal", 8],
-        }, {
-            "name": "IncreasedStrengthForUnit",
-            "numbers": ["Swordsman", 10],
-        }],
-        advancement_level=5,
-        region=Region.EAST_ASIA,
-    )
+    # FRANCE = CivTemplate(
+    #     # Depends what you mean
+    #     name="France",
+    #     abilities=[{
+    #         "name": "IncreaseFocusYields",
+    #         "numbers": ["wood", 4],
+    #     }, {
+    #         "name": "IncreasedStrengthForUnit",
+    #         "numbers": ["Rifleman"],
+    #     }],
+    #     advancement_level=5,
+    ##     region=Region.EUROPE,
+    # )
 
     # For debugging / sciencing
     # A0_BLANK = CivTemplate(

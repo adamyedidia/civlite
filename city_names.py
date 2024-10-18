@@ -470,6 +470,14 @@ turkish_cities = [
     "Ankara", "Istanbul", "Izmir", "Bursa", "Antalya",
     "Adana", "Konya", "Gaziantep", "Mersin", "Kayseri"
 ]
+nato_cities = [
+    "Brussels", "Paris", "London", "Madrid", "Rome",
+    "Bucharest", "Budapest", "Vienna", "Prague", "Amsterdam"
+]
+unified_latin_america_cities = [
+    "Mexico City", "Guadalajara", "Monterrey", "Puebla", "Tijuana",
+    "Ciudad Juárez", "León", "Cancún", "Querétaro", "Merida"
+]
 solaria_cities = [
     "Solaria Prime", "Lumina", "Raylight", "Gleamhold", "Sparkstone",
     "Illumina", "Radiant City", "Photonis", "Mirrortown", "Glowhaven"
@@ -613,6 +621,8 @@ CITY_NAMES_BY_CIV = {
     "Soviet Union": soviet_cities,
     "Communist China": communist_china_cities,
     "Turkey": turkish_cities,
+    "NATO": nato_cities,
+    "Unified Latin America": unified_latin_america_cities,
     "Solaria": solaria_cities,
     "Arctic Alliance": arctic_cities,
     "Greater EuroZone": greater_euro_zone_cities,

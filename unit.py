@@ -241,8 +241,10 @@ class Unit(MapObject):
             for _ in range(original_stack_size - final_stack_size):
                 from_civ.gain_vps(UNIT_KILL_REWARD, f"Unit Kill ({UNIT_KILL_REWARD}/unit)")
 
-                if from_civ.has_ability('ExtraVpsPerUnitKilled') and from_unit is not None and from_unit.template.has_tag_by_name(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[0]):
-                    from_civ.gain_vps(from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')[1], from_civ.template.name)
+                if from_civ.has_ability('ExtraVpsPerUnitKilled') and from_unit is not None:
+                    tag, amount = from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')
+                    if tag is None or from_unit.template.has_tag_by_name(tag):
+                        from_civ.gain_vps(amount, from_civ.template.name)
 
                 if from_civ.game_player is None and WONDERS.UNITED_NATIONS in game_state.built_wonders and random.random() < 0.50:
                     for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos:
