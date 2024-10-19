@@ -25,7 +25,7 @@ def find_civ_pool(n, advancement_level_target, target_regions: set[Region], civs
                 else:
                     search_regions = set(Region)
                     min_search_age = min_advancement_level + 1
-                print(f"Searching for {n} civs at {min_search_age=}, {max_advancement_level=}, {search_regions=}")
+                # print(f"Searching for {n} civs at {min_search_age=}, {max_advancement_level=}, {search_regions=}")
                 decline_choice_big_civ_pool: list[CivTemplate] = [
                     civ for civ in player_civs(min_advancement_level=min_search_age, max_advancement_level=max_advancement_level, regions=search_regions) 
                     if civ not in civs_already_in_game]
@@ -536,7 +536,7 @@ class CIVS():
             "numbers": ["Trebuchet"],
         }],
         advancement_level=3,
-        region=Region.MEDITERRANEAN,
+        region=Region.MIDDLE_EAST,
     )
     SRIVIJAYA = CivTemplate(
         # 7th century AD
@@ -839,7 +839,7 @@ class CIVS():
             "numbers": ["Rifleman"],
         }],
         advancement_level=4,
-        region=Region.MEDITERRANEAN,
+        region=Region.MIDDLE_EAST,
     )
     VIJAYANAGARA = CivTemplate(
         # 1336
@@ -1229,7 +1229,7 @@ class CIVS():
             "numbers": ["Machine Gun"],
         }],
         advancement_level=7,
-        region=Region.MEDITERRANEAN,
+        region=Region.MIDDLE_EAST,
     )
     INDONESIA = CivTemplate(
         # 1945?

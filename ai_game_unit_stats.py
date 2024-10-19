@@ -323,7 +323,7 @@ def gp_name(great_person) -> str:
 def gives_science(civ) -> bool:
     return any('science' in ability.numbers for ability in civ.abilities)
 
-assert gives_science(CIVS.QIN)
+assert gives_science(CIVS.ATHENS)
 assert not gives_science(CIVS.AZTECS)
 
 if __name__ == "__main__":
@@ -559,7 +559,7 @@ if __name__ == "__main__":
         sorted_buildings = sorted(BUILDINGS.all(), key=lambda b: (b.advancement_level, b.type.name, b.name))
         plot_rates(winner_data['buildings'], loser_data['buildings'], sorted_buildings, "Building", cond_prob_range=[0.23, 0.4], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         offset += 1
-        sorted_civs = sorted(CIVS.all(), key=lambda c: (c.advancement_level, UNITS.by_name(c.unique_unit).advancement_level if c.unique_unit is not None else -1, c.unique_unit or "", c.name))
+        sorted_civs = sorted(CIVS.all(), key=lambda c: (c.advancement_level, c.region.value, c.name))
         plot_rates(winner_data['civs'], loser_data['civs'], sorted_civs, "Civ", cond_prob_range=[0.1, 0.35], color_fn=civs_color_fn, fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         offset += 1
         sorted_people = sorted([p for i in range(10) for p in great_people_by_age(i)], key=lambda p: (p.advancement_level, p.__class__.__name__, p.name))

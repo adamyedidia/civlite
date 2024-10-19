@@ -1,5 +1,6 @@
 from game_player import GamePlayer
 from new_game_state import new_game_state
+import argparse
 
 import copy
 import random
@@ -38,5 +39,14 @@ def profile_ai_game(id, num_players):
     subprocess.run(['snakeviz', profile_filename])
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--id", type=int, default=0)
+    parser.add_argument("--num_players", type=int, default=4)
+    parser.add_argument("--profile", action="store_true")
+    args = parser.parse_args()
+
     # Example usage:
-    profile_ai_game(1, 4)
+    if args.profile:
+        profile_ai_game(args.id, args.num_players)
+    else:
+        ai_game(args.id, args.num_players)

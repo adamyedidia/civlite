@@ -438,7 +438,10 @@ class Civ:
         my_production_cities = [city for city in self.get_my_cities(game_state) if city.is_territory_capital]
 
         for city in sorted(my_production_cities, key=lambda c: c.population, reverse=True):
-            city.bot_move(game_state)
+            if city.hex.city is not None:
+                # Conceivably the city can have been destroyed by our own moves by previous cities.
+                # As of this writing this can happen with the United States unique ability.
+                city.bot_move(game_state)
 
     def bot_found_cities(self, game_state: 'GameState') -> None:
         while not self.in_decline and self.city_power >= 100 and not self.template.name == 'Barbarians':

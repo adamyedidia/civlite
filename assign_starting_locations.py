@@ -17,13 +17,15 @@ def _calc_distances(arr1, arr2) -> np.ndarray:
 
     return np.max(np.abs(arr1[:, np.newaxis] - arr2), axis=2)
 
-def assign_starting_locations(starting_civ_template_options: 'list[CivTemplate]', starting_locations: 'list[Hex]') -> 'dict[CivTemplate, Hex]':
+def assign_starting_locations(starting_civ_template_options: 'list[CivTemplate]', starting_locations: 'list[Hex]', retries: int = 100) -> 'dict[CivTemplate, Hex]':
     """
     A waaaay too complicated function to assign starting locations to civs
     in a way that keeps civs of the same region close to each other.
     """
     assert len(starting_civ_template_options) == len(starting_locations)
-    np.random.seed(0)
+    if retries == 0:
+        raise ValueError("Failed to assign starting locations")
+    np.random.seed(retries)
     by_region: 'dict[Region, list[CivTemplate]]' = defaultdict(list)
     for civ in starting_civ_template_options:
         by_region[civ.region].append(civ)
@@ -43,7 +45,7 @@ def assign_starting_locations(starting_civ_template_options: 'list[CivTemplate]'
     zones_by_size = np.argsort(zone_sizes)
     regions_by_zone_dic = {zones_by_size[z]: regions_by_size[z] for z in range(num_regions)}
     regions_by_zone = [regions_by_zone_dic[z] for z in range(num_regions)]
-    print(f"{by_region=}\n{zone_centers=}\n{distances=}\n{zone_assignments=}\n{zone_sizes=}\n{zones_by_size=}\n{regions_by_zone=}")
+    # print(f"{by_region=}\n{zone_centers=}\n{distances=}\n{zone_assignments=}\n{zone_sizes=}\n{zones_by_size=}\n{regions_by_zone=}")
     # Now we have a first approximate assignment of regions to zones
     # But the sizes aren't quite right, need to move some around.
 
@@ -53,49 +55,57 @@ def assign_starting_locations(starting_civ_template_options: 'list[CivTemplate]'
         for z in range(num_regions)
     ])
     distances = _calc_distances(starting_locations_array, zone_centers)
-    print(f"{distances=}")
+    # print(f"{distances=}")
 
     zone_zone_distance = _calc_distances(zone_centers, zone_centers)
+    # print(f"{zone_zone_distance=}")
 
+    success = False
     for iter in range(100):
-        print(f"====== Iteration {iter} ======")
+        # print(f"====== Iteration {iter} ======")
         zone_sizes = np.bincount(zone_assignments)
         zone_excesses = np.array([zone_size - len(by_region[regions_by_zone[z]]) for z, zone_size in enumerate(zone_sizes)])
-        print(f"{zone_excesses=}")
+        # print(f"{zone_excesses=}")
         if all(zone_excesses == 0):
+            success = True
             break
         zone_zone_distance[:, zone_excesses >= 0] = np.inf
         distance_to_lacking_zone = np.min(zone_zone_distance, axis=1)
-        print(f"{distance_to_lacking_zone=}")
+        # print(f"{distance_to_lacking_zone=}")
 
         masked_distances = distances.copy()
         masked_distances[np.arange(len(zone_assignments)), zone_assignments] = np.inf
-        print(f"{masked_distances=}")
-
-        second_best_zones = np.argmin(masked_distances + np.random.rand(*masked_distances.shape) * 1e-6, axis=1)  # Add random noise to break ties randomly.
-        print(f"{second_best_zones=}")
+        # print(f"{masked_distances=}")
+        # break ties with distance_to_lacking_zone
+        second_best_zones = np.argmin(masked_distances + 1e-6 * distance_to_lacking_zone, axis=1)
+        # print(f"{second_best_zones=}")
         switching_costs = distances[np.arange(len(zone_assignments)), second_best_zones] - distances[np.arange(len(zone_assignments)), zone_assignments]
-        print(f"{switching_costs=}")
+        # print(f"{switching_costs=}")
 
         # Only move if closer to a lacking zone.
         movable_mask = distance_to_lacking_zone[zone_assignments] > distance_to_lacking_zone[second_best_zones]
-        print(f"{movable_mask=}")
+        # print(f"{movable_mask=}")
 
         # Finally, don't move more than excesses out of any one region
         for z in range(num_regions):
             movable_location_indices_in_zone = np.where(np.logical_and(zone_assignments == z, movable_mask))[0]
             movable_location_indices_in_zone = sorted(movable_location_indices_in_zone, key=lambda i: float(switching_costs[i]), reverse=True)
-            print(f"z{z}:{movable_location_indices_in_zone=}")
+            # print(f"z{z}:{movable_location_indices_in_zone=}")
             if len(movable_location_indices_in_zone) > zone_excesses[z]:
                 moving_too_many = movable_location_indices_in_zone[zone_excesses[z]:]
-                print(f"moving_too_many: {moving_too_many=}")
+                # print(f"moving_too_many: {moving_too_many=}")
                 movable_mask[moving_too_many] = False
-        print(f"{movable_mask=}")
+        # print(f"{movable_mask=}")
         if not np.any(movable_mask):
-            raise ValueError("No movable locations")
+            # print("=!=!=!=!=!=!= No movable locations =!=!=!=!=!=!= ")
+            return assign_starting_locations(starting_civ_template_options, starting_locations, retries=retries-1)
+        # print(f"{movable_mask=}")
 
         zone_assignments[movable_mask] = second_best_zones[movable_mask]
     
+    if not success:
+        # print("=!=!=!=!=!=!= ASSIGNMENT FAILED; RETRYING =!=!=!=!=!=!= ")
+        return assign_starting_locations(starting_civ_template_options, starting_locations, retries=retries-1)
     # Now we have a good assignment with no excesses.
     # Just need to massage the data type from zone_assignments to the dict we need to return.
     assignment = {}
@@ -105,5 +115,5 @@ def assign_starting_locations(starting_civ_template_options: 'list[CivTemplate]'
         civ = by_region[region][region_counters[region]]
         region_counters[region] += 1
         assignment[civ] = starting_locations[location_idx]
-    print(f"{assignment=}")
+    # print(f"{assignment=}")
     return assignment
