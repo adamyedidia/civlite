@@ -250,6 +250,7 @@ export const ExistingMilitaryBuildingDisplay = ({ unitBuilding, queuedBldg, temp
                 {unitBuilding.projected_unit_count > 3 ? `x${unitBuilding.projected_unit_count}` : ''}
                 </div>
             }
+            {!unitName && <div className="empty-yields"><YieldsDisplay yields={{metal: 2}} /></div>}
             {unitName && <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px", "position": "absolute", "bottom": "2px", "left": "4px"}}>
                     {Math.floor(unitBuilding.metal)} / {templates.UNITS[unitName].metal_cost}
                     <img src={metalImg} alt="" height="10px"/>
