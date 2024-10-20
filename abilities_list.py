@@ -62,7 +62,7 @@ CIV_ABILITIES: dict[str, Callable] = {
     ),
     "ExtraVpsPerUnitKilled": lambda x, y: Ability(
         name="ExtraVpsPerUnitKilled",
-        description=f"Receive {y} extra VP for each unit you kill with a {x} unit.",
+        description=f"Receive {y} extra VP for each unit you kill with a {x} unit." if x is not None else f"Receive {y} extra VP for each unit you kill.",
         numbers=[x, y],
     ),
     "StartWithResources": lambda x, y: Ability(

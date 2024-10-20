@@ -1,7 +1,10 @@
+import itertools
+import numpy as np
 import random
 from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
+from assign_starting_locations import assign_starting_locations
 from move_type import MoveType
 from unit import Unit
 from settings import GOD_MODE
@@ -346,6 +349,24 @@ class Civ:
         logger.info(f"{self.moniker()} deciding to decline at {best_option} because I have {my_total_yields} and the best option has {best_option_yields}")     
         return best_option
 
+    def bot_score_tech(self, game_state: 'GameState', tech: TechTemplate) -> list[float]:
+        score = []
+        # Avoid renaissance if possible
+        score.append(tech != TECHS.RENAISSANCE)
+        # Prefer unique tech
+        score.append(self.unique_unit is not None and tech == self.unique_unit.prereq)
+        # Ignore techs that unlock units that are obsolete.
+        obsolete = len(tech.unlocks_buildings) == 0 and tech.advancement_level < self.get_advancement_level() - 1
+        score.append(not obsolete)
+        # If we're stuck with an obsolete tech, prefer the cheapest to move on quickly
+        if obsolete:
+            score.append(-tech.cost)
+        else:
+            score.append(0)
+        # break ties
+        score.append(random.random())
+        return score
+
     def bot_move(self, game_state: 'GameState') -> None:
         if  len(self.great_people_choices) > 0:
             choice: GreatPerson = max(self.great_people_choices, key=lambda g: (isinstance(g, GreatGeneral), random.random()))
@@ -409,33 +430,26 @@ class Civ:
                 game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': possible_target_hexes[1].coords}, civ=self, do_midturn_update=False)
 
         if self.researching_tech is None:
-            special_tech = None
-            if self.unique_unit is not None:
-                special_tech = self.unique_unit.prereq
+            available_techs = self._available_techs()
 
-            available_techs: list[TechTemplate] = [tech for tech, status in self.techs_status.items() if status == TechStatus.AVAILABLE]
-
-            if special_tech and self.techs_status[special_tech] == TechStatus.AVAILABLE:
-                chosen_tech = special_tech
-            else:
-                if len(available_techs) > 0:
-                    # Pick randomly, avoiding renaissance if possibhle.
-                    chosen_tech = min(available_techs, key=lambda t: (t == TECHS.RENAISSANCE, random.random()))
-                else:
-                    logger.info(f"{self.moniker()} has no available techs")
-                    chosen_tech = None
-            if chosen_tech is not None:
+            if len(available_techs) > 0:
+                chosen_tech = max(available_techs, key=lambda t: self.bot_score_tech(game_state, t))
                 game_state.resolve_move(MoveType.CHOOSE_TECH, {'tech_name': chosen_tech.name}, civ=self, do_midturn_update=False)
                 logger.info(f"  {self.moniker()} chose tech {chosen_tech} from {available_techs}")
                 if STRICT_MODE:
                     assert self.techs_status[chosen_tech] == TechStatus.RESEARCHING and self.researching_tech == chosen_tech
+            else:
+                logger.info(f"{self.moniker()} has no available techs")
 
         self.bot_found_cities(game_state)
 
         my_production_cities = [city for city in self.get_my_cities(game_state) if city.is_territory_capital]
 
         for city in sorted(my_production_cities, key=lambda c: c.population, reverse=True):
-            city.bot_move(game_state)
+            if city.hex.city is not None:
+                # Conceivably the city can have been destroyed by our own moves by previous cities.
+                # As of this writing this can happen with the United States unique ability.
+                city.bot_move(game_state)
 
     def bot_found_cities(self, game_state: 'GameState') -> None:
         while not self.in_decline and self.city_power >= 100 and not self.template.name == 'Barbarians':
@@ -605,20 +619,17 @@ def create_starting_civ_options_for_players(game_players: list[GamePlayer], star
     assert len(game_players) <= MAX_PLAYERS
 
     starting_civ_template_options = random.sample(list(player_civs(max_advancement_level=0)), NUM_STARTING_LOCATION_OPTIONS * len(game_players))
+    location_map = assign_starting_locations(starting_civ_template_options, starting_locations)
 
-    starting_civ_options = {}
+    civs = []
+    for civ_template, game_player in zip(starting_civ_template_options, itertools.cycle(game_players)):
+        civ = Civ(civ_template, game_player)
+        civ.get_new_tech_choices()
+        if civ.has_ability('ExtraCityPower'):
+            civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
+        civs.append(civ)
 
-    counter = 0
-
-    for game_player in game_players:
-        starting_civ_options[game_player.player_num] = []
-        for _ in range(NUM_STARTING_LOCATION_OPTIONS):
-            civ = Civ(starting_civ_template_options[counter], game_player)
-            civ.get_new_tech_choices()
-            if civ.has_ability('ExtraCityPower'):
-                civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
-
-            starting_civ_options[game_player.player_num].append((civ, starting_locations[counter]))
-            counter += 1
-
-    return starting_civ_options
+    game_players_to_civs = {game_player.player_num: [] for game_player in game_players}
+    for civ in civs:
+        game_players_to_civs[civ.game_player.player_num].append((civ, location_map[civ.template]))
+    return game_players_to_civs

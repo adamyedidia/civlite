@@ -19,6 +19,9 @@ shang_cities = [
     "Anyang", "Zhengzhou", "Yin", "Shangqiu", "Yanshi",
     "Aodu", "Xiaotun", "Erlitou", "Gaocheng", "Beimadu"
 ]
+longshan_cities = [
+    "Longshan", "Yanshi", "Xiaotun", "Erlitou", "Gaocheng", "Beimadu"
+]
 sumer_cities = [
     "Ur", "Uruk", "Lagash", "Nippur", "Kish",
     "Eridu", "Sippar", "Babylon", "Akshak", "Adab"
@@ -35,7 +38,10 @@ babylon_cities = [
     "Babylon", "Borsippa", "Kish", "Sippar", "Nippur",
     "Uruk", "Lagash", "Ur", "Isin", "Eridu"
 ]
-
+akkad_cities = [
+    "Akkad", "Sippar", "Kish", "Nippur", "Eshnunna",
+    "Lagash", "Uruk", "Ur", "Isin", "Eridu"
+]
 hittite_cities = [
     "Hattusa", "Sapinuwa", "Alaca Hyk", "Yazilikaya", "Kussara",
     "Nerik", "Zalpa", "Samuha", "Lawazantiya", "Tawiniya"
@@ -104,6 +110,10 @@ maya_cities = [
     "Tikal", "Palenque", "Copan", "Chichen Itza", "Calakmul",
     "Caracol", "Uxmal", "Quirigua", "Coba", "Yaxchilan"
 ]
+assyria_cities = [
+    "Nineveh", "Assur", "Nimrud", "Khorsabad", "Arbela",
+    "Dur-Sharrukin", "Kar-Tukulti-Ninurta", "Tarbisu", "Nisibis", "Harran"
+]
 jomon_cities = [
     "Sannai Maruyama", "Fukui Cave", "Torihama", "Minami-Kayabe", "Shakado",
     "Tagoyano", "Omori Katsuyama", "Yoshigo", "Uenohara", "Kamikuroiwa"
@@ -116,9 +126,17 @@ roman_cities = [
     "Rome", "Syracuse", "Londinium", "Massilia", 
     "Ephesus", "Lugdunum", "Pompeii", "Aquileia", "Thessalonica", "Capua"
 ]
-greek_cities = [
-    "Athens", "Sparta", "Corinth", "Thebes", "Macedonia",
-    "Delphi", "Ephesus", "Rhodes", "Argos", "Olympia"
+sparta_cities = [
+    "Sparta", "Pylos", "Sicyon", "Corinth", "Argos",
+    "Mycenae", "Tegea", "Sparta", "Pylos", "Sicyon"
+]
+athens_cities = [
+    "Athens", "Sparta", "Pylos", "Sicyon", "Corinth", "Argos",
+    "Mycenae", "Tegea", "Sparta", "Pylos", "Sicyon"
+]
+macedonian_cities = [
+    "Macedon", "Pella", "Pydna", "Ptolemais", "Kassandreia",
+    "Pydna", "Ptolemais", "Kassandreia", "Pydna", "Ptolemais"
 ]
 gokturk_cities = [
     "Ötüken", "Beshbalik", "Suyab", "Turfan", "Chiguchuk",
@@ -135,6 +153,10 @@ han_cities = [
 hun_cities = [
     "Attila's Court", "Karakorum", "Pliska", "Sarkel",
     "Balanjar", "Atil", "Zarubintsy", "Torgas", "Kubrat", "Budapest",
+]
+parthian_cities = [
+    "Ctesiphon", "Gundeshapur", "Nishapur", "Susa", "Ray",
+    "Merv", "Kerman", "Istakhr", "Amol", "Dura-Europos"
 ]
 carthaginian_cities = [
     "Carthage", "Utica", "Hippo Regius", "Hadrumetum", "Thapsus",
@@ -451,6 +473,14 @@ turkish_cities = [
     "Ankara", "Istanbul", "Izmir", "Bursa", "Antalya",
     "Adana", "Konya", "Gaziantep", "Mersin", "Kayseri"
 ]
+nato_cities = [
+    "Brussels", "Paris", "London", "Madrid", "Rome",
+    "Bucharest", "Budapest", "Vienna", "Prague", "Amsterdam"
+]
+unified_latin_america_cities = [
+    "Mexico City", "Guadalajara", "Monterrey", "Puebla", "Tijuana",
+    "Ciudad Juárez", "León", "Cancún", "Querétaro", "Merida"
+]
 solaria_cities = [
     "Solaria Prime", "Lumina", "Raylight", "Gleamhold", "Sparkstone",
     "Illumina", "Radiant City", "Photonis", "Mirrortown", "Glowhaven"
@@ -480,9 +510,11 @@ CITY_NAMES_BY_CIV = {
     "Mycenaeans": mycenaean_cities,
     "Harrapans": harrapan_cities,
     "Shang": shang_cities,
+    "Longshan": longshan_cities,
     "Sumer": sumer_cities,
     "Indus": indus_cities,
     "Minoans": minoan_cities,
+    "Akkad": akkad_cities,
     "Babylon": babylon_cities,
     "Hittites": hittite_cities,
     "Lydia": lydia_cities,
@@ -501,10 +533,14 @@ CITY_NAMES_BY_CIV = {
     "Teotihuacan": teotihuacan_cities,
     "Scythians": scythian_cities,
     "Maya": maya_cities,
+    "Parthia": parthian_cities,
+    "Assyria": assyrian_cities,
     "Jomon": jomon_cities,
     "Yangshao": yangshao_cities,
     "Romans": roman_cities,
-    "Greece": greek_cities,
+    "Sparta": sparta_cities,
+    "Athens": athens_cities,
+    "Macedonia": macedonian_cities,
     "Gokturks": gokturk_cities,
     "Persia": persian_cities,
     "Han": han_cities,
@@ -589,6 +625,8 @@ CITY_NAMES_BY_CIV = {
     "Soviet Union": soviet_cities,
     "Communist China": communist_china_cities,
     "Turkey": turkish_cities,
+    "NATO": nato_cities,
+    "Unified Latin America": unified_latin_america_cities,
     "Solaria": solaria_cities,
     "Arctic Alliance": arctic_cities,
     "Greater EuroZone": greater_euro_zone_cities,

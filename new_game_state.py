@@ -2,7 +2,7 @@ from civ import create_starting_civ_options_for_players
 from game_player import GamePlayer
 from game_state import GameState
 from map import create_hex_map, generate_starting_locations
-from settings import MAX_PLAYERS, STARTING_CIV_VITALITY
+from settings import MAX_PLAYERS, NUM_STARTING_LOCATION_OPTIONS, STARTING_CIV_VITALITY
 from logging_setup import logger
 
 
@@ -20,7 +20,7 @@ def new_game_state(game_id: str, game_players: list[GamePlayer]):
     assert num_players <= MAX_PLAYERS
 
     logger.info(f"Generating starting locations for {num_players} players")
-    starting_locations = generate_starting_locations(hexes, 3 * num_players)
+    starting_locations = generate_starting_locations(hexes, NUM_STARTING_LOCATION_OPTIONS * num_players)
     logger.info(f"Generating starting civs for {num_players} players")
     starting_civ_options_for_players = create_starting_civ_options_for_players(game_players, starting_locations)
 
