@@ -349,6 +349,24 @@ class Civ:
         logger.info(f"{self.moniker()} deciding to decline at {best_option} because I have {my_total_yields} and the best option has {best_option_yields}")     
         return best_option
 
+    def bot_score_tech(self, game_state: 'GameState', tech: TechTemplate) -> list[float]:
+        score = []
+        # Avoid renaissance if possible
+        score.append(tech != TECHS.RENAISSANCE)
+        # Prefer unique tech
+        score.append(self.unique_unit is not None and tech == self.unique_unit.prereq)
+        # Ignore techs that unlock units that are obsolete.
+        obsolete = len(tech.unlocks_buildings) == 0 and tech.advancement_level < self.get_advancement_level() - 1
+        score.append(not obsolete)
+        # If we're stuck with an obsolete tech, prefer the cheapest to move on quickly
+        if obsolete:
+            score.append(-tech.cost)
+        else:
+            score.append(0)
+        # break ties
+        score.append(random.random())
+        return score
+
     def bot_move(self, game_state: 'GameState') -> None:
         if  len(self.great_people_choices) > 0:
             choice: GreatPerson = max(self.great_people_choices, key=lambda g: (isinstance(g, GreatGeneral), random.random()))
@@ -412,26 +430,16 @@ class Civ:
                 game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': possible_target_hexes[1].coords}, civ=self, do_midturn_update=False)
 
         if self.researching_tech is None:
-            special_tech = None
-            if self.unique_unit is not None:
-                special_tech = self.unique_unit.prereq
+            available_techs = self._available_techs()
 
-            available_techs: list[TechTemplate] = [tech for tech, status in self.techs_status.items() if status == TechStatus.AVAILABLE]
-
-            if special_tech and self.techs_status[special_tech] == TechStatus.AVAILABLE:
-                chosen_tech = special_tech
-            else:
-                if len(available_techs) > 0:
-                    # Pick randomly, avoiding renaissance if possibhle.
-                    chosen_tech = min(available_techs, key=lambda t: (t == TECHS.RENAISSANCE, random.random()))
-                else:
-                    logger.info(f"{self.moniker()} has no available techs")
-                    chosen_tech = None
-            if chosen_tech is not None:
+            if len(available_techs) > 0:
+                chosen_tech = max(available_techs, key=lambda t: self.bot_score_tech(game_state, t))
                 game_state.resolve_move(MoveType.CHOOSE_TECH, {'tech_name': chosen_tech.name}, civ=self, do_midturn_update=False)
                 logger.info(f"  {self.moniker()} chose tech {chosen_tech} from {available_techs}")
                 if STRICT_MODE:
                     assert self.techs_status[chosen_tech] == TechStatus.RESEARCHING and self.researching_tech == chosen_tech
+            else:
+                logger.info(f"{self.moniker()} has no available techs")
 
         self.bot_found_cities(game_state)
 
