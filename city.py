@@ -643,7 +643,7 @@ class City(MapObjectSpawner):
 
             if ability.name == "ExtraTerritory":
                 desc.other_strings.append(f"+1")
-                if self.civ.max_territories >= len(self.civ.get_my_cities(game_state)):
+                if self.civ.max_territories <= len(self.civ.get_my_cities(game_state)):
                     desc.pseudoyields_for_ai_yesvitality += Yields(food=2, science=2, wood=2, metal=2)  # Pretty made-up numbers.
 
         for effect in building_template.on_build:
