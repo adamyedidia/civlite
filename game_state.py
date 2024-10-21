@@ -11,7 +11,7 @@ from civ_templates_list import CIVS, find_civ_pool
 from map_object import MapObject
 from move_type import MoveType
 from region import Region
-from settings import GOD_MODE
+from settings import GOD_MODE, WONDER_VPS
 from terrain_templates_list import TERRAINS
 from unit_building import UnitBuilding
 from wonder_templates_list import WONDERS
@@ -258,7 +258,8 @@ class GameState:
         self.game_player_by_player_num: dict[int, GamePlayer] = {}
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {}
         self.built_wonders: dict[WonderTemplate, WonderBuiltInfo] = {}
-        self.wonder_cost_by_age: dict[int, int] = BASE_WONDER_COST.copy()
+        self.num_wonders_built_by_age: dict[int, int] = {age: 0 for age in range(0, 10)}
+        self.wonder_vp_chunks_left_by_age: dict[int, int] = {}
         self.available_wonders: list[WonderTemplate] = []
         self.one_per_civs_built_by_civ_id: dict[str, dict[str, str]] = {}  # civ_id: {building_name: city_id}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
@@ -328,20 +329,23 @@ class GameState:
         wonders_per_age: int = WONDER_COUNT_FOR_PLAYER_NUM[len(self.game_player_by_player_num)]
         logger.info(f"For {len(self.game_player_by_player_num)} players, sampling wonders to {wonders_per_age} per age.")
         self.wonders_by_age: dict[int, list[WonderTemplate]] = {age: self._sample_wonders_for_age(age, wonders_per_age) for age in range(0, 10)}
+        self.num_wonders_built_by_age = {age: 0 for age in self.wonders_by_age.keys()}
+        self.wonder_vp_chunks_left_by_age = {age: len(self.game_player_by_player_num) for age in self.wonders_by_age.keys()}
         self._refresh_available_wonders()
         logger.info(f"Wonders by age: {self.wonders_by_age}")
 
-    def update_wonder_cost_by_age(self) -> None:
+    def update_num_wonders_built_by_age(self) -> None:
         for age in self.wonders_by_age.keys():
-            self.wonder_cost_by_age[age] = self._wonder_cost(age)
+            self.num_wonders_built_by_age[age] = len([w for w in self.built_wonders if w.advancement_level == age])
 
-    def _wonder_cost(self, age: int) -> int:
-        base: int = BASE_WONDER_COST[age]
-        num_built: int = len([w for w in self.built_wonders if w.advancement_level == age])
-        total_num: int = len(self.wonders_by_age[age])
-        # The first one costs base, the last one 2 * base
-        cost = int(base * (1 + num_built / max(total_num - 1, 1)))
-        return cost
+    def wonder_vp_chunks(self, age: int) -> int:
+        """ Chunks of VP earned by building a wonder of this age."""
+        if self.num_wonders_built_by_age[age] == 0:
+            return 2
+        if self.wonder_vp_chunks_left_by_age[age] > 0:
+            return 1
+        else:
+            return 0
 
     def found_city_for_civ(self, civ: Civ, hex: Hex, city_id: str | None) -> City:
         civ.city_power -= 100
@@ -956,7 +960,7 @@ class GameState:
         self.refresh_visibility_by_civ()
         self.refresh_foundability_by_civ()
         self._refresh_available_wonders()
-        self.update_wonder_cost_by_age()
+        self.update_num_wonders_built_by_age()
 
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
@@ -1084,7 +1088,9 @@ class GameState:
         if wonder not in self.built_wonders:
             self.built_wonders[wonder] = WonderBuiltInfo(self.turn_num)
         self.built_wonders[wonder].infos.append((city.id, civ.id))
-            
+        vp_chunks = self.wonder_vp_chunks(wonder.advancement_level)
+        civ.gain_vps(vp_chunks * WONDER_VPS, "Wonders")
+        self.wonder_vp_chunks_left_by_age[wonder.advancement_level] -= vp_chunks
         
         if civ.has_ability('ExtraVpsPerWonder'):
             civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerWonder')[0], civ.template.name)
@@ -1187,7 +1193,9 @@ class GameState:
             "fresh_cities_for_decline": {coords: city.to_json(include_civ_details=True) for coords, city in self.fresh_cities_for_decline.items()},
             "unhappiness_threshold": self.unhappiness_threshold,
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
-            "wonder_cost_by_age": self.wonder_cost_by_age,
+            "num_wonders_built_by_age": self.num_wonders_built_by_age,
+            "wonder_vp_chunks_left_by_age": self.wonder_vp_chunks_left_by_age,
+            "vp_chunks_total_per_age": len(self.game_player_by_player_num)
         }
 
     @staticmethod
@@ -1205,7 +1213,8 @@ class GameState:
         game_state.turn_num = json["turn_num"]
         game_state.wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["wonders_by_age"].items()}
         game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json) for wonder_name, wonder_json in json["built_wonders"].items()}
-        game_state.wonder_cost_by_age = {int(age): cost for age, cost in json["wonder_cost_by_age"].items()}
+        game_state.num_wonders_built_by_age = {int(age): cost for age, cost in json["num_wonders_built_by_age"].items()}
+        game_state.wonder_vp_chunks_left_by_age = {int(age): chunks for age, chunks in json["wonder_vp_chunks_left_by_age"].items()}
         game_state.available_wonders = [WONDERS.by_name(wonder_name) for wonder_name in json["available_wonders"]]
         game_state.one_per_civs_built_by_civ_id = {civ_id: {building_name: city_id for building_name, city_id in v.items()} for civ_id, v in json["one_per_civs_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}

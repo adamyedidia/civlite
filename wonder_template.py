@@ -2,16 +2,16 @@
 from ability import Ability
 from effects_list import BuildUnitsEffect
 from effect import CityTargetEffect
+from settings import BASE_WONDER_COST
 from utils import deterministic_hash
 from yields import YieldsCalculation
 
 class WonderTemplate:
-    def __init__(self, name: str, age: int, on_build: CityTargetEffect | list[CityTargetEffect] = [], per_turn: CityTargetEffect | list[CityTargetEffect] = [], vp_reward: int = 5, abilities: list[Ability] = [], override_description: str | None = None, calculate_yields: YieldsCalculation | None = None):
+    def __init__(self, name: str, age: int, on_build: CityTargetEffect | list[CityTargetEffect] = [], per_turn: CityTargetEffect | list[CityTargetEffect] = [], abilities: list[Ability] = [], override_description: str | None = None, calculate_yields: YieldsCalculation | None = None):
         self.name = name
         self.advancement_level = age
         self.on_build: list[CityTargetEffect] = on_build if isinstance(on_build, list) else [on_build]
         self.per_turn: list[CityTargetEffect] = per_turn if isinstance(per_turn, list) else [per_turn]
-        self.vp_reward = vp_reward
         self.abilities = abilities
         self._override_description = override_description
         self.calculate_yields = calculate_yields
@@ -51,7 +51,7 @@ class WonderTemplate:
             "name": self.name,
             "description": self.description(),
             "advancement_level": self.advancement_level,
-            "vp_reward": self.vp_reward,
             "hover_unit_name": self.hover_unit_name(),
+            "cost": BASE_WONDER_COST[self.advancement_level]
         }
 

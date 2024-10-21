@@ -51,16 +51,17 @@ BASE_CITY_POWER_INCOME = 10.0
 BASE_SURVIVAL_BONUS = 8
 SURVIVAL_BONUS_PER_AGE = 4
 
+WONDER_VPS = 5
 BASE_WONDER_COST = {
-    0: 20,
-    1: 40,
-    2: 60,
-    3: 90,
-    4: 120,
-    5: 160,
-    6: 200,
-    7: 250,
-    8: 400,
+    0: 30,
+    1: 60,
+    2: 90,
+    3: 140,
+    4: 200,
+    5: 250,
+    6: 300,
+    7: 400,
+    8: 600,
     9: 1000,
 }
 

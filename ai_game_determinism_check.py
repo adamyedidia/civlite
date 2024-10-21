@@ -106,7 +106,6 @@ if TYPE_CHECKING:
 
 #         game_state.refresh_visibility_by_civ()
 #         game_state.refresh_foundability_by_civ()
-#         game_state.update_wonder_cost_by_age()
 
 #         for civ in game_state.civs_by_id.values():
 #             civ.fill_out_available_buildings(game_state)

@@ -4,6 +4,7 @@ from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
 from ability import Ability
 from effect import CityTargetEffect
+from settings import BASE_WONDER_COST
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
 from wonder_template import WonderTemplate
@@ -48,14 +49,6 @@ class Building:
         if isinstance(self._template, BuildingTemplate):
             return self._template.prereq
         return None
-    
-    @property
-    def vp_reward(self) -> int:
-        if isinstance(self._template, BuildingTemplate):
-            return self._template.vp_reward or 0
-        if isinstance(self._template, WonderTemplate):
-            return self._template.vp_reward
-        return 0
     
     @property
     def on_build(self) -> list[CityTargetEffect]:
@@ -129,13 +122,13 @@ class QueueEntry:
     def __repr__(self):
         return self.template.name
     
-    def get_cost(self, game_state) -> int:
+    def get_cost(self, game_state: 'GameState') -> int:
         if isinstance(self.template, UnitTemplate):
             return self.template.wood_cost
         elif isinstance(self.template, BuildingTemplate):
             return self.template.cost
         elif isinstance(self.template, WonderTemplate):
-            return game_state.wonder_cost_by_age[self.template.advancement_level]
+            return BASE_WONDER_COST[self.template.advancement_level]
         else:
             raise ValueError("wtf")
     

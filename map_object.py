@@ -36,6 +36,7 @@ class MapObject(abc.ABC):
     
     def _finish_loading_civ(self, civs_by_id: dict[str, 'Civ']) -> None:
         assert self._partially_loaded_civ_id is not None and self._civ is None
+        assert self._partially_loaded_civ_id in civs_by_id, f"civ id {self._partially_loaded_civ_id} not in civs_by_id.\n{self}\n{civs_by_id}"
         self._civ = civs_by_id[self._partially_loaded_civ_id]
         self._partially_loaded_civ_id = None
 

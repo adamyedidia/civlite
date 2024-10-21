@@ -406,11 +406,15 @@ h2.tech-name {
     font-weight: bold;
 }
 
-.wonder-age-display .wonder-cost {
+.wonder-age-display .wonder-vp {
     display: flex;
     align-items: center;
     gap: 5px;
     justify-content: center;
+}
+
+.wonder-age-display .wonder-vp-unavailable {
+    opacity: 0.3;
 }
 
 .wonder-display {

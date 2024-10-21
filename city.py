@@ -10,7 +10,7 @@ from effects_list import BuildEeachUnitEffect, GainResourceEffect, GainUnhappine
 from map_object_spawner import MapObjectSpawner
 from move_type import MoveType
 from region import Region
-from settings import GOD_MODE
+from settings import BASE_WONDER_COST, GOD_MODE
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
 from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY, FRESH_CITY_VITALITY_PER_TURN, REVOLT_VITALITY_PER_TURN, REVOLT_VITALITY_PER_UNHAPPINESS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
@@ -45,7 +45,6 @@ class BuildingDescription:
         self.instant_yields: Yields = Yields()
         self.buffed_units: list[UnitTemplate] = []
         self.other_strings: list[str] = []
-        self.vp_reward: int = 0
 
     @property
     def combined_display_yields(self) -> Yields:
@@ -60,7 +59,6 @@ class BuildingDescription:
             "instant_yields": self.instant_yields.to_json(),
             "buffed_units": [u.name for u in self.buffed_units],
             "other_strings": self.other_strings,
-            "vp_reward": self.vp_reward,
             "combined_display_yields": self.combined_display_yields.to_json(),
         }
     
@@ -74,7 +72,6 @@ class BuildingDescription:
         b.instant_yields = Yields.from_json(json_data["instant_yields"])
         b.buffed_units = [UNITS.by_name(u) for u in json_data["buffed_units"]]
         b.other_strings = json_data["other_strings"]
-        b.vp_reward = json_data["vp_reward"]
         return b
 
 class City(MapObjectSpawner):
@@ -943,8 +940,6 @@ class City(MapObjectSpawner):
         else:
             new_building = Building(building)
             self.buildings.append(new_building)
-            if new_building.vp_reward > 0:
-                self.civ.gain_vps(new_building.vp_reward, "Buildings and Wonders")
 
             for effect in new_building.on_build:
                 effect.apply(self, game_state)
@@ -1096,8 +1091,15 @@ class City(MapObjectSpawner):
                 raise ValueError(f"Invalid resource type for StartWithResources: {civ.numbers_of_ability('StartWithResources')[0]}")
 
     def bot_pick_wonder(self, choices: list[WonderTemplate], game_state: 'GameState') -> Optional[WonderTemplate]:
-        affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if game_state.wonder_cost_by_age[age] <= self.projected_total_wood}
-        affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.advancement_level in affordable_ages]
+        affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if BASE_WONDER_COST[age] <= self.projected_total_wood}
+        if affordable_ages == set():
+            return None
+        most_points = max(affordable_ages, key=lambda age: game_state.wonder_vp_chunks(age))
+        if self.civ.game_player is not None:
+            # Live players don't build wonders worth no points.
+            most_points = max(most_points, 1)
+        best_ages = [age for age in affordable_ages if game_state.wonder_vp_chunks(age) == most_points]
+        affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.advancement_level in best_ages]
         if len(affordable_choices) == 0:
             return None
         # Build the highest age one we can afford
@@ -1274,7 +1276,7 @@ class City(MapObjectSpawner):
             q.append(best_military_building)
             remaining_wood_budget -= best_military_building.wood_cost
             logger.info(f"  overwrote building queue because of new military unit (lvl {self._bot_effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)}): {q}")
-        while len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None and remaining_wood_budget > (cost := game_state.wonder_cost_by_age[wonder_choice.advancement_level]):
+        while len(wonders) > 0 and (wonder_choice := self.bot_pick_wonder(wonders, game_state)) is not None and remaining_wood_budget > (cost := BASE_WONDER_COST[wonder_choice.advancement_level]):
             wonders.remove(wonder_choice)
             remaining_wood_budget -= cost
             q.append(wonder_choice)

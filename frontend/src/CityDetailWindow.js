@@ -187,7 +187,6 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
             <BriefBuildingDisplay 
                 buildingName={buildingName}
                 faded={inOtherQueue}
-                wonderCostsByAge={gameState.wonder_cost_by_age}
                 clickable={clickable}
                 unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates}
                 setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} setHoveredUnit={setHoveredUnit}
@@ -302,7 +301,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                     <BriefBuildingDisplay 
                                         buildingName={entry.template_name} 
                                         clickable={true} 
-                                        wonderCostsByAge={gameState.wonder_cost_by_age} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} 
+                                        unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} 
                                         setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} setHoveredUnit={setHoveredUnit}
                                         onClick={() => handleCancelBuilding(entry.template_name)} 
                                         description={descriptions?.[entry.template_name]} payoffTime = {selectedCity.available_buildings_payoff_times?.[entry.template_name]}/>

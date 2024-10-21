@@ -41,7 +41,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCostsByAge, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, setHoveredUnit, description, payoffTime }) => {
+export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, setHoveredUnit, description, payoffTime }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -66,7 +66,7 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, wonderCost
 
     const bldg_level = building.advancement_level;
     const building_class = building_type === 'WONDER' ? 'wonder' : building_type === 'UNIT' ? 'military' : building?.type === "urban" ? 'urban' : 'rural';
-    const cost = !hideCost && (building_type === 'UNIT' ? building.wood_cost : building_type === 'BUILDING' ? building.cost : building_type === 'WONDER' ? wonderCostsByAge[building.advancement_level] : null);
+    const cost = !hideCost && (building_type === 'UNIT' ? building.wood_cost : building_type === 'BUILDING' ? building.cost : building_type === 'WONDER' ? building.cost : null);
     return (
         <div 
             className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''} ${faded ? 'faded' : ''}`} 
@@ -118,7 +118,6 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
             <div className={`building-card ${building_class}`} onClick={onClick}>
                 <h2>{romanNumeral(building.advancement_level)}. {building.name}</h2>
                 <p>Cost: {building.cost} wood</p>
-                {building.vp_reward && <p>VP reward: {building.vp_reward}</p>}
                 <ul>
                     {building.description.map((description, index) => (
                         <li key={index}>{description}</li>
