@@ -263,7 +263,10 @@ for t in TECHS.all():
             _great_people_by_age[level + 1].append(GreatGeneral(horde_general_name, level + 1, u, 0.9 * _target_value_by_age(level + 1)))
 
         engineer_name = great_people_names.get("engineer", f"[A{level - 1} Engineer: {u.building_name}]")
-        _great_people_by_age[level - 1].append(GreatEngineer(engineer_name, level - 1, u, max(0, 0.4 * _target_value_by_age(level - 1) - u.wood_cost - u.metal_cost)))
+        extra_wood = max(0, 0.4 * _target_value_by_age(level - 1) - u.wood_cost - u.metal_cost)
+        if extra_wood < 10:
+            extra_wood = 0  # Not worth bothering with
+        _great_people_by_age[level - 1].append(GreatEngineer(engineer_name, level - 1, u, extra_wood))
 
 unique_names = set()
 duplicate_names = set()
