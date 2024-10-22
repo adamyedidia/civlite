@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 class Civ:
     def __init__(self, civ_template: CivTemplate, game_player: Optional[GamePlayer]):
-        self.id = generate_unique_id()
+        self.id = generate_unique_id("CIV")
         self.game_player = game_player
         self.template = civ_template
         self.science = 0.0
@@ -457,7 +457,7 @@ class Civ:
             if len(choices) == 0:
                 break
             hex = max(choices, key=lambda h: (sum([n.yields for n in h.get_neighbors(game_state.hexes, include_self=True)], start=Yields()).total(), random.random()))
-            game_state.resolve_move(MoveType.FOUND_CITY, {'coords': hex.coords, 'city_id': generate_unique_id()}, civ=self)
+            game_state.resolve_move(MoveType.FOUND_CITY, {'coords': hex.coords, 'city_id': generate_unique_id("CITY")}, civ=self)
 
     def renaissance_cost(self) -> float:
         return 50 * self.get_advancement_level() * (1 + self.renaissances)

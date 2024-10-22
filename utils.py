@@ -11,8 +11,8 @@ def coords_str(coords: tuple[int, int, int]) -> str:
     return f"{coords[0]},{coords[1]},{coords[2]}"
 
 
-def generate_unique_id() -> str:
-    return ''.join(random.choices('0123456789abcdef', k=10))
+def generate_unique_id(prefix='') -> str:
+    return prefix + ''.join(random.choices('0123456789abcdef', k=10))
 
 
 def get_all_coords_up_to_n(n) -> list[tuple[int, int, int]]:

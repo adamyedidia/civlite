@@ -32,7 +32,7 @@ def random_unit_by_age(advancement_level) -> UnitTemplate:
 class Camp(MapObjectSpawner):
     def __init__(self, civ: Civ | None = None, advancement_level=0, unit: UnitTemplate | None = None, hex: 'Hex | None' = None):
         super().__init__(civ, hex)
-        self.id = generate_unique_id()
+        self.id = generate_unique_id("CAMP")
         self.target: Optional['Hex'] = None
         if STRICT_MODE:
             assert unit is None or advancement_level == 0, f"Only set one of unit and advancement_level"

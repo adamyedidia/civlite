@@ -77,7 +77,7 @@ class BuildingDescription:
 class City(MapObjectSpawner):
     def __init__(self, name: str, region: Region, civ: Civ | None = None, id: Optional[str] = None, hex: 'Hex | None' = None):
         super().__init__(civ, hex)
-        self.id = id or generate_unique_id()
+        self.id = id or generate_unique_id("CITY")
         self.ever_controlled_by_civ_ids: dict[str, bool] = {civ.id: True} if civ else {}
         self.name = name
         self.population = 1

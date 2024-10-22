@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 class Unit(MapObject):
     def __init__(self, template: UnitTemplate, civ: 'Civ | None' = None, hex: 'Hex | None' = None) -> None:
         super().__init__(civ, hex)
-        self.id = generate_unique_id()
+        self.id = generate_unique_id("UNIT")
         self.template = template
         self.health = 100
         self.has_moved = False
