@@ -66,6 +66,18 @@ class UnitTemplate:
     def has_tag_by_name(self, tag_name: str) -> bool:
         return any(t.value == tag_name for t in self.tags)
 
+    def attack_type(self):
+        if self.name == ['Infantry', 'Ramparts']:
+            return "infantry"
+        elif self.name in ['Gatling Gun', 'Machine Gun']:
+            return "machine_gun"
+        elif self.name in ["Nanoswarm", "Giant Death Robot", "Ironman"]:
+            return "laser"
+        else:
+            return  (("melee" if not self.has_tag(UnitTag.RANGED) else "ranged") 
+                            if not self.has_tag(UnitTag.GUNPOWDER) and not self.has_tag(UnitTag.ARMORED) and not self.name == "Nanoswarm"
+                            else ("gunpowder_melee" if not self.has_tag(UnitTag.RANGED) else "gunpowder_ranged"))
+
     def to_json(self) -> dict:
         return {
             "name": self.name,

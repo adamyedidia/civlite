@@ -279,9 +279,7 @@ class Unit(MapObject):
 
         game_state.add_animation_frame(sess, {
             "type": "UnitAttack",
-            "attack_type": ("melee" if not self.template.has_tag(UnitTag.RANGED) else "ranged") 
-                            if not self.template.has_tag(UnitTag.GUNPOWDER) and not self.template == UNITS.NANOSWARM 
-                            else ("gunpowder_melee" if not self.template.has_tag(UnitTag.RANGED) else "gunpowder_ranged"),
+            "attack_type": self.template.attack_type(),
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
             "support_coords": [(hex1.coords, hex2.coords) for hex1, hex2 in support_hexes],

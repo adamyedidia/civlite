@@ -39,6 +39,9 @@ import medievalCitySound from './sounds/medieval_city.mp3';
 import modernCitySound from './sounds/modern_city.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
+import infantryAttackSound from './sounds/infantry.mp3';
+import machineGunAttackSound from './sounds/machine_gun.mp3';
+import laserAttackSound from './sounds/laser.mp3';
 import SettingsDialog from './SettingsDialog';
 import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
@@ -928,6 +931,36 @@ export default function GamePage() {
             audio.play();
         } catch (error) {
             console.error('Error playing sound:', error);
+        }
+    }
+
+    function playLaserAttackSound(laserAttackSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(laserAttackSound);
+            audio.volume = 0.09 * volumeRef.current / 100;
+            audio.play();
+        }
+    }
+
+    function playMachineGunAttackSound(machineGunAttackSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(machineGunAttackSound);
+            audio.volume = 0.25 * volumeRef.current / 100;
+            audio.play();
+        }
+    }
+
+    function playInfantryAttackSound(infantryAttackSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(infantryAttackSound);
+            audio.volume = 0.09 * volumeRef.current / 100;
+            audio.play();
         }
     }
 
@@ -2428,6 +2461,12 @@ export default function GamePage() {
                         playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound, volume);
                     } else if (json.data.attack_type === 'gunpowder_ranged') {
                         playGunpowderRangedAttackSound(gunpowderRangedAttackSound, volume);
+                    } else if (json.data.attack_type === 'laser') {
+                        playLaserAttackSound(laserAttackSound, volume);
+                    } else if (json.data.attack_type === 'machine_gun') {
+                        playMachineGunAttackSound(machineGunAttackSound, volume);
+                    } else if (json.data.attack_type === 'infantry') {
+                        playInfantryAttackSound(infantryAttackSound, volume);
                     }
                     showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
                     json.data.support_coords.forEach(coords => {
