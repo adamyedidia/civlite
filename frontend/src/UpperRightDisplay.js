@@ -3,7 +3,6 @@ import './UpperRightDisplay.css';
 import { Grid, Table, TableBody, TableRow, TableCell, TableContainer, MenuItem, FormControl, InputLabel, Select } from '@mui/material';
 import { romanNumeral } from './TechListDialog.js';
 import scienceImg from './images/science.png';
-import woodImg from './images/wood.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';
 import sadImg from './images/sadface.png';
