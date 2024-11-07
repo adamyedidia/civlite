@@ -417,6 +417,10 @@ h2.tech-name {
     opacity: 0.3;
 }
 
+.wonder-age-display .wonder-vp-available.pulsing {
+    animation: pulseAnimation 1s infinite;
+}
+
 .wonder-display {
     border: 2px solid black;
     border-radius: 5px;

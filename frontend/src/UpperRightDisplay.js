@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import './UpperRightDisplay.css';
-import { Grid, Table, TableBody, TableRow, TableCell, TableContainer, MenuItem, FormControl, InputLabel, Select } from '@mui/material';
+import { Grid, Table, TableBody, TableRow, TableCell, TableContainer, MenuItem, FormControl, InputLabel, Select, Tooltip } from '@mui/material';
 import { romanNumeral } from './TechListDialog.js';
 import scienceImg from './images/science.png';
 import vitalityImg from './images/heart.png';
@@ -91,19 +91,26 @@ const WonderDisplay = ({ wonder, built, setHoveredWonder }) => {
 }
 
 const WonderAgeDisplay = ({ age, unlocked, wonders, built_wonders, vp_chunks_left, vp_chunks_total, templates, setHoveredWonder }) => {
+    const vp_chunks_next_wonder = unlocked ? (vp_chunks_left == vp_chunks_total ? 2 : 1) : 0;
+    const tooltip = !unlocked ? `Age ${age} not unlocked yet` :
+        vp_chunks_left < 0 ? `Maximum wonders built` :
+        `Next wonder earns ${vp_chunks_next_wonder} crowns (${vp_chunks_left * 5} vps)`;
+
     return <div className={`wonder-age-display ${unlocked ? "unlocked" : "locked"}`}>
         <div className="wonder-age">{romanNumeral(age)}</div>
-        <div className="wonder-vp">
-        {[...Array(vp_chunks_total)].map((_, index) => (
-            <img 
-                key={index}
-                src={vpImg} 
-                alt="Crown"
-                className={index >= vp_chunks_total - vp_chunks_left ? 'wonder-vp-available' : 'wonder-vp-unavailable'}
-                style={{width: '16px', height: '16px'}}
-            />
-        ))}
-        </div>
+        <Tooltip title={tooltip}>
+            <div className="wonder-vp">
+            {[...Array(vp_chunks_total)].map((_, index) => (
+                <img 
+                    key={index}
+                    src={vpImg} 
+                    alt="Crown"
+                    className={index >= vp_chunks_left ? 'wonder-vp-unavailable' : index >= vp_chunks_next_wonder ? 'wonder-vp-available' : 'wonder-vp-available pulsing'}
+                    style={{width: '16px', height: '16px'}}
+                />
+            ))}
+            </div>
+        </Tooltip>
         {wonders.map((wonder, index) => (
             <WonderDisplay key={index} wonder={templates.WONDERS[wonder]} built={built_wonders[wonder]} templates={templates} setHoveredWonder={setHoveredWonder}/>
         ))}
