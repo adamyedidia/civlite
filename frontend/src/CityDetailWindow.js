@@ -182,6 +182,16 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const bldgQueueMaxIndexFinishing = selectedCity.projected_build_queue_depth - 1;
     const availableBuildingEntry = (buildingName, index, clickable, botHighlight) => {
         const inOtherQueue = myCiv.buildings_in_all_queues.includes(buildingName);
+        let crowns = 0;
+        if (gameState.available_wonders.includes(buildingName)) {
+            const age = templates.WONDERS[buildingName].advancement_level;
+            if (gameState.wonder_vp_chunks_left_by_age[age] == gameState.vp_chunks_total_per_age) {
+                crowns = 2;
+            } else {
+                crowns = 1;
+            }
+        }
+
         return <div key={index} className='building-choices-row'>
             {botHighlight && <span className="bot-highlight">🤖</span>}
             <BriefBuildingDisplay 
@@ -193,6 +203,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                 onClick={clickable ? () => handleClickBuildingChoice(buildingName) : null}
                 description={descriptions?.[buildingName]}
                 payoffTime = {selectedCity.available_buildings_payoff_times?.[buildingName]}
+                crowns={crowns}
                 />
         </div>
     }

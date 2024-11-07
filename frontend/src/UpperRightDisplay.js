@@ -95,7 +95,6 @@ const WonderAgeDisplay = ({ age, unlocked, wonders, available_wonders, vp_chunks
     const tooltip = !unlocked ? `Age ${age} not unlocked yet` :
         vp_chunks_left < 0 ? `Maximum wonders built` :
         `Next wonder earns ${vp_chunks_next_wonder} crowns (${vp_chunks_left * 5} vps)`;
-    console.log(available_wonders, wonders)
 
     return <div className={`wonder-age-display ${unlocked ? "unlocked" : "locked"}`}>
         <div className="wonder-age">{romanNumeral(age)}</div>

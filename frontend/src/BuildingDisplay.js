@@ -6,6 +6,7 @@ import foodImg from './images/food.png';
 import scienceImg from './images/science.png';
 import metalImg from './images/metal.png';
 import cityImg from './images/city.png';
+import crownImg from './images/crown.png';
 import { WithTooltip } from './WithTooltip';
 import { IconUnitDisplay } from './UnitDisplay';
 import { ShrinkFontText } from './ShrinkFontText';
@@ -41,7 +42,7 @@ export const BriefBuildingDisplayTitle = ({ title }) => {
     );
 }
 
-export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, setHoveredUnit, description, payoffTime }) => {
+export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, clickable, style, templates, unitTemplatesByBuildingName, onClick, setHoveredBuilding, setHoveredWonder, setHoveredUnit, description, payoffTime, crowns }) => {
     let building_type = '';
     let building;
     if (templates.BUILDINGS?.[buildingName]) {
@@ -80,6 +81,9 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, clickable,
                 {romanNumeral(bldg_level)}. {building?.building_name || building?.name}
                 {descriptionObj ? <span> ({descriptionObj}) </span>: ""}
                 {payoffTime && displayYields ? <span> ({payoffTime}⏱) </span> : ""}
+                {crowns > 0 && <div style={{display: 'inline-block', marginLeft: '8px'}}><div style={{display: 'flex', gap: '4px'}}>
+                    {[...Array(crowns)].map((_, index) =>  <img index={index} src={crownImg} alt="" width="16" height="16"/>)}
+                </div></div>}
                 </WithTooltip>
             </span>
             {!hideCost && <span className="building-cost">{cost} <img src={woodImg} alt="" width="16" height="16" /></span>}
