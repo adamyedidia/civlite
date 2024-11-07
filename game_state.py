@@ -1155,6 +1155,8 @@ class GameState:
             return False
         if wonder in self.built_wonders:
             return False
+        if self.wonder_vp_chunks_left_by_age[wonder.advancement_level] <= 0:
+            return False
         return True
 
     def _refresh_available_wonders(self) -> None:

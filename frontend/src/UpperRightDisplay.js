@@ -84,17 +84,18 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     </CivDetailPanel>
 };
 
-const WonderDisplay = ({ wonder, built, setHoveredWonder }) => {
-    return <div className={`wonder-display ${built ? "built" : ""}`} onMouseEnter={() => setHoveredWonder(wonder)} onMouseLeave={() => setHoveredWonder(null)}>
+const WonderDisplay = ({ wonder, available, setHoveredWonder }) => {
+    return <div className={`wonder-display ${available ? "" : "built"}`} onMouseEnter={() => setHoveredWonder(wonder)} onMouseLeave={() => setHoveredWonder(null)}>
         {wonder.name}
     </div>
 }
 
-const WonderAgeDisplay = ({ age, unlocked, wonders, built_wonders, vp_chunks_left, vp_chunks_total, templates, setHoveredWonder }) => {
+const WonderAgeDisplay = ({ age, unlocked, wonders, available_wonders, vp_chunks_left, vp_chunks_total, templates, setHoveredWonder }) => {
     const vp_chunks_next_wonder = unlocked ? (vp_chunks_left == vp_chunks_total ? 2 : 1) : 0;
     const tooltip = !unlocked ? `Age ${age} not unlocked yet` :
         vp_chunks_left < 0 ? `Maximum wonders built` :
         `Next wonder earns ${vp_chunks_next_wonder} crowns (${vp_chunks_left * 5} vps)`;
+    console.log(available_wonders, wonders)
 
     return <div className={`wonder-age-display ${unlocked ? "unlocked" : "locked"}`}>
         <div className="wonder-age">{romanNumeral(age)}</div>
@@ -112,17 +113,16 @@ const WonderAgeDisplay = ({ age, unlocked, wonders, built_wonders, vp_chunks_lef
             </div>
         </Tooltip>
         {wonders.map((wonder, index) => (
-            <WonderDisplay key={index} wonder={templates.WONDERS[wonder]} built={built_wonders[wonder]} templates={templates} setHoveredWonder={setHoveredWonder}/>
+            <WonderDisplay key={index} wonder={templates.WONDERS[wonder]} available={available_wonders.includes(wonder)} templates={templates} setHoveredWonder={setHoveredWonder}/>
         ))}
     </div>
 }
 
-const WonderListDisplay = ({ wonders_by_age, game_age, built_wonders, templates, setHoveredWonder, vp_chunks_left_by_age, vp_chunks_total_per_age }) => {
-    console.log(vp_chunks_left_by_age, vp_chunks_total_per_age);
+const WonderListDisplay = ({ wonders_by_age, game_age, available_wonders, templates, setHoveredWonder, vp_chunks_left_by_age, vp_chunks_total_per_age }) => {
     return <CivDetailPanel title="wonders" icon={wonderImg} iconTooltip="Wonders" bignum="">
     <div className="wonder-list-display">
         {Object.entries(wonders_by_age).map(([age, wonders]) => {
-            return <WonderAgeDisplay key={age} unlocked={game_age >= parseInt(age)} age={parseInt(age)} wonders={wonders} built_wonders={built_wonders}
+            return <WonderAgeDisplay key={age} unlocked={game_age >= parseInt(age)} age={parseInt(age)} wonders={wonders} available_wonders={available_wonders}
              vp_chunks_left={vp_chunks_left_by_age[age]} vp_chunks_total={vp_chunks_total_per_age} templates={templates} setHoveredWonder={setHoveredWonder}/>
         })}
     </div>
@@ -344,7 +344,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
     turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, setHoveredWonder, civsById, declineViewCivsById}) => {
     return (
         <div className="upper-right-display">
-            {mainGameState && <WonderListDisplay wonders_by_age={mainGameState?.wonders_by_age} game_age={mainGameState?.advancement_level} built_wonders={mainGameState?.built_wonders} templates={templates} setHoveredWonder={setHoveredWonder}
+            {mainGameState && <WonderListDisplay wonders_by_age={mainGameState?.wonders_by_age} game_age={mainGameState?.advancement_level} available_wonders={mainGameState?.available_wonders} templates={templates} setHoveredWonder={setHoveredWonder}
             vp_chunks_left_by_age={mainGameState?.wonder_vp_chunks_left_by_age} vp_chunks_total_per_age={mainGameState?.vp_chunks_total_per_age}
             />}
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} templates={templates} disableUI={disableUI}/>}
