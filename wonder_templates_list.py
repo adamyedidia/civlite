@@ -189,7 +189,7 @@ class WONDERS():
     # 1886
     STATUE_OF_LIBERTY = WonderTemplate(
         name="Statue of Liberty", age=6,
-        per_turn=StealPopEffect(num=1, cities=5)
+        per_turn=StealPopEffect(num=1, cities=4)
     )
 
     # Eiffel Tower was 1889
