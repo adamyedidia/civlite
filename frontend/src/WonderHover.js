@@ -1,7 +1,7 @@
 import React from 'react';
 import './WonderHover.css';
 import UnitDisplay from './UnitDisplay';
-import { romanNumeral } from './TechListDialog';
+import { romanNumeral } from "./romanNumeral";
 import woodImg from './images/wood.png';
 
 

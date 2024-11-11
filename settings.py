@@ -37,6 +37,20 @@ GOOD_HEX_PROBABILITY = 0.2
 
 TECH_VP_REWARD = 2
 RENAISSANCE_VITALITY_BOOST = 1.5
+AGE_THRESHOLDS = {
+    0: 0,
+    1: 1,
+    2: 3,
+    3: 7,
+    4: 13,
+    5: 21,
+    6: 31,
+    7: 33,
+    8: 47,
+    9: 63,
+    10: 81,
+    11: 9999,
+}
 
 GAME_END_SCORE = 350
 EXTRA_GAME_END_SCORE_PER_PLAYER = 100

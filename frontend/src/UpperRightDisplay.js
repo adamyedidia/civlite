@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './UpperRightDisplay.css';
 import { Grid, Table, TableBody, TableRow, TableCell, TableContainer, MenuItem, FormControl, InputLabel, Select, Tooltip } from '@mui/material';
-import { romanNumeral } from './TechListDialog.js';
+import { romanNumeral } from "./romanNumeral.js";
 import scienceImg from './images/science.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';

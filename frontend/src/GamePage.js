@@ -31,7 +31,7 @@ import LowerRightDisplay from './LowerRightDisplay.js';
 import TechListDialog from './TechListDialog';
 import TaskBar from './TaskBar';
 import GreatPerson from './GreatPerson';
-import { romanNumeral } from './TechListDialog';
+import { romanNumeral } from "./romanNumeral.js";
 import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';

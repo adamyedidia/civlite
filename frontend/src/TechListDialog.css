@@ -18,6 +18,19 @@
     background-color: #ddd;
 }
 
+.tech-level-box .progress-bar {
+    width: 70%;
+    border: 1px solid black;
+}
+
+.tech-level-box .progress-bar .bar.stored {
+    background-color: #92d3dd;
+}
+
+.tech-level-box .progress-bar .bar.produced {
+    background-color: #d9f2f7;
+}
+
 .tech-level-box-header {
     display: flex;
     justify-content: space-between;

@@ -2,7 +2,7 @@ import React from 'react';
 import UnitDisplay from './UnitDisplay'; // Adjust the path as needed
 import './TechDisplay.css'; // Assuming you have a separate CSS file for styling
 import BuildingDisplay from './BuildingDisplay';
-import { romanNumeral } from './TechListDialog';
+import { romanNumeral } from "./romanNumeral";
 import scienceImg from './images/science.png';
 
 const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameState, onClick }) => {

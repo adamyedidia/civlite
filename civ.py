@@ -7,7 +7,7 @@ from TechStatus import TechStatus
 from assign_starting_locations import assign_starting_locations
 from move_type import MoveType
 from unit import Unit
-from settings import GOD_MODE
+from settings import AGE_THRESHOLDS, GOD_MODE
 from wonder_templates_list import WONDERS
 from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_people_by_name
 from civ_template import CivTemplate
@@ -178,31 +178,31 @@ class Civ:
             # We've teched to too many things, time for a Renaissance
             self.techs_status[TECHS.RENAISSANCE] = TechStatus.AVAILABLE
 
+    def next_age_progress(self) -> dict[str, int]:
+        total_tech_levels = sum([tech.advancement_level for tech in self.researched_techs])
+        age = max((age for age, threshold in AGE_THRESHOLDS.items() if threshold <= total_tech_levels), default=0)
+        return {
+            "age": age,
+            "partial": total_tech_levels - AGE_THRESHOLDS[age],
+            "needed": AGE_THRESHOLDS[age + 1] - AGE_THRESHOLDS[age],
+        }
+
     def get_advancement_level(self, fractional=False) -> float:
-        num_techs = len(self.researched_techs)
-        if num_techs == 0:
-            age = 0
-            techs_progress_towards_next_age = 0
-            needed_for_next_age = 1
-        elif num_techs <=2:
-            age = 1
-            techs_progress_towards_next_age = num_techs - 1
-            needed_for_next_age = 2
-        else:
-            age = 1 + num_techs // 3
-            techs_progress_towards_next_age = num_techs % 3
-            needed_for_next_age = 3
-        age = min(age, 10)
-        
+        progress = self.next_age_progress()
+        age = progress["age"]
+        progress_levels = progress["partial"]
+        total_levels_needed = progress["needed"]
         if not fractional:
             return age
         else:
+            missing_levels = total_levels_needed - progress_levels
             available_techs = [t for t in self._available_techs() if t is not TECHS.RENAISSANCE]
-            average_available_tech_cost = sum([tech.cost for tech in available_techs]) / len(available_techs) if len(available_techs) > 0 else 1
-            partial_tech_progress: float = self.science / average_available_tech_cost
-            clipped_partial_tech_progress: float = min(partial_tech_progress, 0.9)
+            average_available_tech_cost: float = sum([tech.cost for tech in available_techs]) / len(available_techs) if len(available_techs) > 0 else 1
+            average_available_tech_level: float = sum([min(tech.advancement_level, missing_levels) for tech in available_techs]) / len(available_techs) if len(available_techs) > 0 else 1
+            partial_tech_progress: float = self.science / average_available_tech_cost * average_available_tech_level
+            clipped_partial_tech_progress: float = min(partial_tech_progress, missing_levels * 0.9)
 
-            partial_age_progress = (techs_progress_towards_next_age + clipped_partial_tech_progress) / needed_for_next_age
+            partial_age_progress = (progress_levels + clipped_partial_tech_progress) / total_levels_needed
 
             return age + partial_age_progress
 
@@ -239,6 +239,7 @@ class Civ:
             "projected_city_power_income": self.projected_city_power_income,
             "in_decline": self.in_decline,
             "advancement_level": self.get_advancement_level(),
+            "next_age_progress": self.next_age_progress(),
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
             "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],

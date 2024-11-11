@@ -10,7 +10,7 @@ import crownImg from './images/crown.png';
 import { WithTooltip } from './WithTooltip';
 import { IconUnitDisplay } from './UnitDisplay';
 import { ShrinkFontText } from './ShrinkFontText';
-import { romanNumeral } from './TechListDialog';
+import { romanNumeral } from "./romanNumeral";
 
 const SingleYieldDisplay = ({ yield_value, img }) => {
     const rounded_val = Number.isInteger(yield_value) ? yield_value : yield_value.toFixed(0);

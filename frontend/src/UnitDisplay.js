@@ -14,7 +14,7 @@ import {
     MenuItem,
 } from '@mui/material';
 import { ShrinkFontText } from './ShrinkFontText.js';
-import { romanNumeral } from './TechListDialog.js';
+import { romanNumeral } from "./romanNumeral.js";
 
 export const BriefUnitDisplayTitle = ({ title }) => {
     return (

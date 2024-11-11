@@ -1,6 +1,6 @@
 import React from 'react';
 import './CivDisplay.css'; // Assuming you have a separate CSS file for styling
-import { romanNumeral } from './TechListDialog';
+import { romanNumeral } from "./romanNumeral";
 
 class CivDisplay extends React.Component {
 

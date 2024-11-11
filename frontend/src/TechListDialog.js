@@ -5,26 +5,27 @@ import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from "@mui
 import { IconUnitDisplay } from "./UnitDisplay";
 import { BriefBuildingDisplay } from "./BuildingDisplay";
 import scienceImg from './images/science.png';
+import ProgressBar from "./ProgressBar";
+import { romanNumeral } from "./romanNumeral";
 
 const TechColumn = ({children}) => {
     return <div className="tech-column">{children}</div>
 }
 
-export const romanNumeral = (level) => { return level === 0 ? '0' : level === 1 ? 'I' : level === 2 ? 'II' : level === 3 ? 'III' : level === 4 ? 'IV' : level === 5 ? 'V' : level === 6 ? 'VI' : level === 7 ? 'VII' : level === 8 ? 'VIII' : level === 9 ? 'IX' : level === 10 ? 'X' : level === 11 ? 'XI' : level === 12 ? 'XII' : level === 13 ? 'XIII' : '???';}
-
 const TechLevelBox = ({level, techs, myCiv, gameState, templates, setHoveredTech, handleClickTech}) => {
     const levelRomanNumeral = romanNumeral(level);
 
     // Need to keep this in sync with python code. Might be better to pass it down.
-    const myTechs = myCiv.num_researched_techs;
+    const nextAgeProgress = myCiv.next_age_progress;
     const unlockedLevel = myCiv.advancement_level;
-    const techsToUnlockNextLevel = 3 * unlockedLevel;
+    const researchingTechName = myCiv.researching_tech_name;
+    const reserachingTechLevel = (researchingTechName && researchingTechName != "Renaissance") ? templates.TECHS[researchingTechName].advancement_level : 0;
     return (
         <div className={`tech-level-box ${unlockedLevel < level ? 'disabled' : ''}`}>
             <div className='tech-level-box-header'>
                 <Typography variant="h5" style={{fontFamily: '"Times New Roman", serif'}}>{levelRomanNumeral}</Typography>
                 {unlockedLevel === level - 1  && 
-                    <Typography variant="h7"> ({myTechs}/{techsToUnlockNextLevel} to unlock) </Typography>
+                    <ProgressBar barText={`${nextAgeProgress.partial}/${nextAgeProgress.needed} lvls`} darkPercent={100 * nextAgeProgress.partial/nextAgeProgress.needed} lightPercent={100 * reserachingTechLevel/nextAgeProgress.needed}/>
                 }
             </div>
             {techs.map((tech) => (
