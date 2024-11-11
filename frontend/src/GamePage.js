@@ -41,7 +41,7 @@ import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import infantryAttackSound from './sounds/infantry_sound.mp3';
 import machineGunAttackSound from './sounds/machine_gun_sound.mp3';
-import laserAttackSound from './sounds/laser_sound.mp3';
+import laserAttackSound from './sounds/laser_gun_sound.mp3';
 import SettingsDialog from './SettingsDialog';
 import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
@@ -941,6 +941,8 @@ export default function GamePage() {
             let audio = new Audio(laserAttackSound);
             audio.volume = 0.09 * volumeRef.current / 100;
             audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
         }
     }
 
@@ -951,6 +953,8 @@ export default function GamePage() {
             let audio = new Audio(machineGunAttackSound);
             audio.volume = 0.25 * volumeRef.current / 100;
             audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
         }
     }
 
@@ -961,6 +965,8 @@ export default function GamePage() {
             let audio = new Audio(infantryAttackSound);
             audio.volume = 0.09 * volumeRef.current / 100;
             audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
         }
     }
 

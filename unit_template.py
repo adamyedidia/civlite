@@ -75,7 +75,7 @@ class UnitTemplate:
             return "laser"
         else:
             return  (("melee" if not self.has_tag(UnitTag.RANGED) else "ranged") 
-                            if not self.has_tag(UnitTag.GUNPOWDER) and not self.has_tag(UnitTag.ARMORED) and not self.name == "Nanoswarm"
+                            if not self.has_tag(UnitTag.GUNPOWDER)
                             else ("gunpowder_melee" if not self.has_tag(UnitTag.RANGED) else "gunpowder_ranged"))
 
     def to_json(self) -> dict:
