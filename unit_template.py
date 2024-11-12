@@ -71,6 +71,10 @@ class UnitTemplate:
             return "infantry"
         elif self.name in ['Gatling Gun', 'Machine Gun']:
             return "machine_gun"
+        elif self.name in ['Artillery']:
+            return "artillery"
+        elif self.name in ["Bazooka", "Rocket Artillery"]:
+            return "rocket"
         elif self.name in ["Nanoswarm", "Giant Death Robot", "Ironman"]:
             return "laser"
         else:

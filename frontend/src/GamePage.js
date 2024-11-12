@@ -39,6 +39,8 @@ import medievalCitySound from './sounds/medieval_city.mp3';
 import mountedMoveSound from './sounds/mounted_movement.mp3';
 import armoredMoveSound from './sounds/armored_movement.mp3';
 import modernCitySound from './sounds/modern_city.mp3';
+import artilleryAttackSound from './sounds/artillery_sound.mp3';
+import rocketAttackSound from './sounds/rocket_sound.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import infantryAttackSound from './sounds/infantry_sound.mp3';
@@ -991,6 +993,31 @@ export default function GamePage() {
         try {
             let audio = new Audio(infantryAttackSound);
             audio.volume = 0.09 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playArtilleryAttackSound(artilleryAttackSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(artilleryAttackSound);
+            audio.volume = 0.13 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+
+    function playRocketAttackSound(rocketAttackSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(rocketAttackSound);
+            audio.volume = 0.13 * volumeRef.current / 100;
             audio.play();
         } catch (error) {
             console.error('Error playing sound:', error);
@@ -2506,6 +2533,10 @@ export default function GamePage() {
                         playMachineGunAttackSound(machineGunAttackSound, volume);
                     } else if (json.data.attack_type === 'infantry') {
                         playInfantryAttackSound(infantryAttackSound, volume);
+                    } else if (json.data.attack_type === 'artillery') {
+                        playArtilleryAttackSound(artilleryAttackSound, volume);
+                    } else if (json.data.attack_type === 'rocket') {
+                        playRocketAttackSound(rocketAttackSound, volume);
                     }
                     showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
                     json.data.support_coords.forEach(coords => {
