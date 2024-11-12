@@ -36,6 +36,8 @@ import moveSound from './sounds/movement.mp3';
 import meleeAttackSound from './sounds/melee_attack.mp3';
 import rangedAttackSound from './sounds/ranged_attack.mp3';
 import medievalCitySound from './sounds/medieval_city.mp3';
+import mountedMoveSound from './sounds/mounted_movement.mp3';
+import armoredMoveSound from './sounds/armored_movement.mp3';
 import modernCitySound from './sounds/modern_city.mp3';
 import gunpowderMeleeAttackSound from './sounds/gunpowder_melee.mp3';
 import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
@@ -858,6 +860,31 @@ export default function GamePage() {
     
         try {
             let audio = new Audio(moveSound);
+            audio.volume = 0.5 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playMountedMoveSound(mountedMoveSound) {
+        if (!userHasInteracted) return;
+    
+        try {
+            let audio = new Audio(mountedMoveSound);
+            audio.volume = 0.7 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+
+    function playArmoredMoveSound(armoredMoveSound) {
+        if (!userHasInteracted) return;
+    
+        try {
+            let audio = new Audio(armoredMoveSound);
             audio.volume = 0.5 * volumeRef.current / 100;
             audio.play();
         } catch (error) {
@@ -2453,7 +2480,13 @@ export default function GamePage() {
             }
             switch (json.data.type) {
                 case 'UnitMovement':
-                    playMoveSound(moveSound, volume);
+                    if (json.data.movement_type === 'mounted') {
+                        playMountedMoveSound(mountedMoveSound, volume);
+                    } else if (json.data.movement_type === 'armored') {
+                        playArmoredMoveSound(armoredMoveSound, volume);
+                    } else {
+                        playMoveSound(moveSound, volume);
+                    }
                     showMovementArrows(json.data.coords);
                     setGameState(json.game_state);
                     break;
