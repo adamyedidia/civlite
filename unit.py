@@ -92,7 +92,7 @@ class Unit(MapObject):
 
             game_state.add_animation_frame(sess, {
                 "type": "UnitMovement",
-                "movement_type": "mounted" if self.template.has_tag(UnitTag.MOUNTED) else "armored" if self.template.name in ["Tank", "Rocket Launcher"] else "infantry",
+                "movement_type": "armored" if self.template.name in ["Tank", "Rocket Launcher"] else "mounted" if self.template.has_tag(UnitTag.MOUNTED) else "infantry",
                 "coords": coord_strs,
             }, hexes_must_be_visible=[starting_hex, new_hex], no_commit=True)
 
