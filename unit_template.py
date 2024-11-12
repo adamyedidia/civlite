@@ -67,7 +67,7 @@ class UnitTemplate:
         return any(t.value == tag_name for t in self.tags)
 
     def attack_type(self):
-        if self.name == ['Infantry', 'Ramparts']:
+        if self.name in ['Infantry', 'Ramparts']:
             return "infantry"
         elif self.name in ['Gatling Gun', 'Machine Gun']:
             return "machine_gun"
