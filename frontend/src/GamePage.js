@@ -1004,7 +1004,7 @@ export default function GamePage() {
 
         try {
             let audio = new Audio(artilleryAttackSound);
-            audio.volume = 0.13 * volumeRef.current / 100;
+            audio.volume = 0.4 * volumeRef.current / 100;
             audio.play();
         } catch (error) {
             console.error('Error playing sound:', error);
