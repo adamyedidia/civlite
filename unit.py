@@ -315,9 +315,8 @@ class Unit(MapObject):
         # shuffle(neighbors)  Do not shuffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
 
         # Don't abandon threatened cities
-        for neighboring_hex in neighbors:
-            if self.hex.city and neighboring_hex.units and neighboring_hex.units[0].civ != self.civ:
-                return None
+        if self.hex.is_threatened_city(game_state):
+            return None
 
         # Move to adjacent flags
         for target in [self.civ.target1, self.civ.target2]:
