@@ -643,7 +643,7 @@ class UNITS():
         name="Archangel",
         type="military",
         metal_cost=60,
-        strength=18,
+        strength=20,
         movement=2,
         range=1,
         tags=[UnitTag.WONDROUS],
