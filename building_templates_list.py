@@ -394,7 +394,7 @@ class BUILDINGS():
     )
     INTERNET = BuildingTemplate(
         name="Internet",
-        type=BuildingType.RURAL,
+        type=BuildingType.URBAN,
         cost=100,
         calculate_yields=YieldsPerPopulation(Yields(food=1, wood=1, metal=1, science=1)),      
         prereq=TECHS.COMPUTERS,
