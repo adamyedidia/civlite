@@ -504,6 +504,9 @@ class City(MapObjectSpawner):
             min_level = min([u.advancement_level for u in self.available_units])
         else:
             min_level = 0
+        if any([u.template.has_tag(UnitTag.DEFENSIVE) for u in self.unit_buildings]):
+            # Can always replace defensive units.
+            min_level = 0
         self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level >= min_level and not self.has_building(u)], reverse=True)
         self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders)
         self.available_city_buildings = self.civ.available_city_buildings
@@ -911,7 +914,7 @@ class City(MapObjectSpawner):
 
     def unit_buildings_ranked_for_bulldoze(self) -> list[UnitBuilding]:
         targets = self.unit_buildings.copy()
-        targets.sort(key=lambda b: b.template.advancement_level)
+        targets.sort(key=lambda b: (-b.template.has_tag(UnitTag.DEFENSIVE), b.template.advancement_level))
         return targets
 
     def building_in_queue(self, template) -> bool:
