@@ -299,48 +299,54 @@ class Unit(MapObject):
         return (self.hex.city and self.hex.city.civ != self.civ) or (self.hex.camp and self.hex.camp.civ != self.civ)
 
     def calculate_destination_hex(self, game_state):
+        self.destination = self._calculate_destination_hex(game_state)
+        return self.destination
+
+    def _calculate_destination_hex(self, game_state) -> Hex | None:
         # Stationary units don't move
         if self.template.movement == 0:
-            self.destination = None
-            return self.destination
+            return None
 
         # Don't leave besieging cities
         if self.currently_sieging():
-            self.destination = None
-            return self.destination
+            return None
 
         neighbors = self.hex.get_neighbors(game_state.hexes)
         # shuffle(neighbors)  Do not shuffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
+
+        # Don't abandon threatened cities
         for neighboring_hex in neighbors:
-            # Don't abandon threatened cities
-            if self.hex.city and neighboring_hex.units and neighboring_hex.units[0].civ.id != self.civ.id:
-                self.destination =  None
-                return self.destination
+            if self.hex.city and neighboring_hex.units and neighboring_hex.units[0].civ != self.civ:
+                return None
 
-            # Move into adjacent friendly empty threatened cities
-            if neighboring_hex.city is not None and neighboring_hex.is_threatened_city(game_state) and neighboring_hex.city.civ.id == self.civ.id and len(neighboring_hex.units) == 0:
-                self.destination = neighboring_hex
-                return self.destination
+        # Move to adjacent flags
+        for target in [self.civ.target1, self.civ.target2]:
+            for neighboring_hex in neighbors:            
+                if target == neighboring_hex:
+                    return neighboring_hex
 
-            # Attack neighboring friendly cities under seige
-            if (neighboring_hex.city and neighboring_hex.city.civ.id == self.civ.id and neighboring_hex.units and neighboring_hex.units[0].civ.id != self.civ.id):
-                self.destination = neighboring_hex
-                return self.destination
+        # Move into adjacent friendly empty threatened cities
+        for neighboring_hex in neighbors:
+            if neighboring_hex.city and neighboring_hex.is_threatened_city(game_state) and neighboring_hex.city.civ == self.civ and len(neighboring_hex.units) == 0:
+                return neighboring_hex
 
-            # Attack neighboring empty cities
-            if neighboring_hex.city and neighboring_hex.city.civ.id != self.civ.id and len(neighboring_hex.units) == 0:
-                self.destination = neighboring_hex
-                return self.destination
+        # Attack neighboring friendly cities under seige
+        for neighboring_hex in neighbors:
+            if (neighboring_hex.city and neighboring_hex.city.civ == self.civ and neighboring_hex.units and neighboring_hex.units[0].civ != self.civ):
+                return neighboring_hex
 
-            # Attack neighboring camps
-            if neighboring_hex.camp and neighboring_hex.camp.civ != self.civ and not (len(neighboring_hex.units) > 0 and neighboring_hex.units[0].civ.id == self.civ.id):
-                self.destination = neighboring_hex
-                return self.destination
+        # Attack neighboring empty cities
+        for neighboring_hex in neighbors:
+            if neighboring_hex.city and neighboring_hex.city.civ != self.civ and len(neighboring_hex.units) == 0:
+                return neighboring_hex
+
+        # Attack neighboring camps
+        for neighboring_hex in neighbors:
+            if neighboring_hex.camp and neighboring_hex.camp.civ != self.civ and not (len(neighboring_hex.units) > 0 and neighboring_hex.units[0].civ == self.civ):
+                return neighboring_hex
 
         # If none of the other things applied, go to nearest flag.
-        target = self.get_closest_target()
-        self.destination = target
-        return self.destination
+        return self.get_closest_target()
 
     def move_one_step(self, game_state: 'GameState', coord_strs: list[str], sensitive: bool = False) -> bool:
         # Potentially change your mind at the last minute

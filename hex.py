@@ -134,7 +134,7 @@ class Hex:
         """ Is there an enemy unit adjacent? """
         if not self.city: return False
         for hex in self.get_neighbors(game_state.hexes):
-            if hex.units and hex.units[0].civ.id != self.city.civ.id:
+            if hex.units and hex.units[0].civ != self.city.civ:
                 return True
         return False
 
