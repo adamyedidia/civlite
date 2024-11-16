@@ -1,61 +1,66 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
-
-<svg
-   fill="#000000"
-   height="800px"
-   width="800px"
-   version="1.1"
-   id="Layer_1"
-   viewBox="0 0 512 512"
-   xml:space="preserve"
-   sodipodi:docname="zeus.svg"
-   inkscape:version="1.2.1 (9c6d41e410, 2022-07-14)"
-   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
-   xmlns="http://www.w3.org/2000/svg"
-   xmlns:svg="http://www.w3.org/2000/svg"><defs
-   id="defs1302" /><sodipodi:namedview
-   id="namedview1300"
-   pagecolor="#ffffff"
-   bordercolor="#000000"
-   borderopacity="0.25"
-   inkscape:showpageshadow="2"
-   inkscape:pageopacity="0.0"
-   inkscape:pagecheckerboard="0"
-   inkscape:deskcolor="#d1d1d1"
-   showgrid="false"
-   inkscape:zoom="0.523125"
-   inkscape:cx="324.01434"
-   inkscape:cy="554.36081"
-   inkscape:window-width="1920"
-   inkscape:window-height="1017"
-   inkscape:window-x="-8"
-   inkscape:window-y="-8"
-   inkscape:window-maximized="1"
-   inkscape:current-layer="g1295" />
-<g
-   id="g1297">
-	<g
-   id="g1295">
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" x="0px" y="0px" viewBox="0 0 512 512" style="enable-background:new 0 0 512 512;" xml:space="preserve" width="512" height="512">
+<g>
+	<g>
+		<g>
+			<path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;&#9;&#9;M497.312,224.814c-13.612,15.112-32.328,24.606-54.254,24.606c-11.88,0-23.098-2.784-33.063-7.74&#10;&#9;&#9;&#9;&#9;c-12.583,23.249-37.179,39.025-65.443,39.025c-24.361,0-44.982-11.717-58.553-29.827"/>
+			<g>
+				<path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;&#9;&#9;&#9;M284.978,252.967v135.184c0,19.993,16.194,36.2,36.17,36.2h0c19.976,0,36.17-16.207,36.17-36.2v30.592&#10;&#9;&#9;&#9;&#9;&#9;c0,19.993,16.194,36.2,36.17,36.2h0c19.976,0,36.17-16.207,36.17-36.2v30.592c0,19.993,16.194,36.2,36.17,36.2h0&#10;&#9;&#9;&#9;&#9;&#9;c19.976,0,36.17-16.207,36.17-36.2V252.967c0-59.978-48.582-108.6-108.511-108.6h0&#10;&#9;&#9;&#9;&#9;&#9;C333.56,144.367,284.978,192.989,284.978,252.967z"/>
+				<g>
+					
+						<line style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" x1="357.319" y1="327.743" x2="357.319" y2="394.48"/>
+					
+						<line style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" x1="429.659" y1="327.743" x2="429.659" y2="429.281"/>
+				</g>
+			</g>
+			<g>
+				<g>
+					
+						<line style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" x1="357.319" y1="327.743" x2="357.319" y2="394.48"/>
+					
+						<line style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" x1="429.659" y1="299.02" x2="429.659" y2="429.281"/>
+				</g>
+			</g>
+		</g>
+		<g>
+			<path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;&#9;&#9;M14.688,224.814c13.612,15.112,32.328,24.606,54.254,24.606c11.88,0,23.098-2.784,33.063-7.74&#10;&#9;&#9;&#9;&#9;c12.583,23.249,37.179,39.025,65.443,39.025c24.361,0,44.982-11.717,58.553-29.827"/>
+			<g>
+				<path style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" d="&#10;&#9;&#9;&#9;&#9;&#9;M227.022,252.967v135.184c0,19.993-16.194,36.2-36.17,36.2h0c-19.976,0-36.17-16.207-36.17-36.2v30.592&#10;&#9;&#9;&#9;&#9;&#9;c0,19.993-16.194,36.2-36.17,36.2h0c-19.976,0-36.17-16.207-36.17-36.2v30.592c0,19.993-16.194,36.2-36.17,36.2h0&#10;&#9;&#9;&#9;&#9;&#9;c-19.976,0-36.17-16.207-36.17-36.2V252.967c0-59.978,48.582-108.6,108.511-108.6h0&#10;&#9;&#9;&#9;&#9;&#9;C178.44,144.367,227.022,192.989,227.022,252.967z"/>
+				<g>
+					
+						<line style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" x1="154.681" y1="327.743" x2="154.681" y2="394.48"/>
+					
+						<line style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" x1="82.341" y1="327.743" x2="82.341" y2="429.281"/>
+				</g>
+			</g>
+			<g>
+				<g>
+					
+						<line style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" x1="154.681" y1="327.743" x2="154.681" y2="394.48"/>
+					
+						<line style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" x1="82.341" y1="299.02" x2="82.341" y2="429.281"/>
+				</g>
+			</g>
+		</g>
 		
-	<path
-   sodipodi:type="star"
-   style="fill:#000000;stroke:#000000;stroke-width:18.432;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none"
-   id="path1796"
-   inkscape:flatsided="false"
-   sodipodi:sides="5"
-   sodipodi:cx="61.170849"
-   sodipodi:cy="103.99045"
-   sodipodi:r1="171.27838"
-   sodipodi:r2="69.567413"
-   sodipodi:arg1="-1.5707963"
-   sodipodi:arg2="-0.9424778"
-   inkscape:rounded="0"
-   inkscape:randomized="0"
-   d="M 61.170853,-67.287933 102.06155,47.709228 224.06627,51.062522 127.33339,125.48796 161.84575,242.55757 61.170849,173.55786 -39.504061,242.55757 -4.9916928,125.48796 -101.72457,51.062513 20.280149,47.709229 Z"
-   inkscape:transform-center-y="-21.011839"
-   transform="matrix(1.2846849,0,0,1.2846849,177.41473,138.7604)"
-   inkscape:transform-center-x="2.6094977e-06" /></g>
+			<rect x="227.022" y="272.682" style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" width="57.957" height="61.443"/>
+	</g>
+	
+		<ellipse style="fill:none;stroke:#000000;stroke-width:20;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10;" cx="256" cy="76.454" rx="91.699" ry="49.988"/>
 </g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 </svg>
