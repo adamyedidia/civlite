@@ -302,7 +302,7 @@ class Unit(MapObject):
         self.destination = self._calculate_destination_hex(game_state)
         return self.destination
 
-    def _calculate_destination_hex(self, game_state) -> Hex | None:
+    def _calculate_destination_hex(self, game_state) -> 'Hex | None':
         # Stationary units don't move
         if self.template.movement == 0:
             return None
@@ -315,7 +315,7 @@ class Unit(MapObject):
         if self.hex.is_threatened_city(game_state):
             return None
 
-        neighbors = self.hex.get_neighbors(game_state.hexes)
+        neighbors = list(self.hex.get_neighbors(game_state.hexes))
         # shuffle(neighbors)  Do not shuffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
 
         # Move to adjacent flags
