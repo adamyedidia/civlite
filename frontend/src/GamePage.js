@@ -55,6 +55,8 @@ import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 import { WithTooltip } from './WithTooltip.js';
 
+import { Card, CardContent } from '@mui/material';
+
 const difficultyLevels = {
     'Debug': 20,
     'Settler': 2.0,
@@ -428,6 +430,47 @@ export default function GamePage() {
 
     const [turnEndedByPlayerNum, setTurnEndedByPlayerNum] = useState({});
     const [gameOverDialogOpen, setGameOverDialogOpen] = useState(false);
+    const [currentAnnouncement, setCurrentAnnouncement] = useState(null);
+    const [pendingAnnouncements, setPendingAnnouncements] = useState([]);
+
+    const [announcementsIndicesAlreadyShown, setAnnouncementsIndicesAlreadyShown] = useState([]);
+
+    console.log('gameState', gameState);
+
+    console.log('turnNum', gameState?.turn_num);
+
+    useEffect(() => {
+        if (!gameState?.announcements || !gameState?.turn_num) return;
+
+        // Find unshown announcements for current turn
+        const unshownAnnouncements = gameState.announcements
+            .map((announcement, index) => ({ announcement, index }))
+            .filter(({ announcement, index }) => {
+                const turnMatch = announcement.match(/^\[T (\d+)\]/);
+                const turnNum = turnMatch ? parseInt(turnMatch[1]) : null;
+                return turnNum === gameState.turn_num && !announcementsIndicesAlreadyShown.includes(index);
+            });
+
+        if (unshownAnnouncements.length === 0) return;
+
+        // Set first announcement as current and rest as pending
+        setCurrentAnnouncement(unshownAnnouncements[0].announcement);
+        setAnnouncementsIndicesAlreadyShown(prev => [...prev, unshownAnnouncements[0].index]);
+        setPendingAnnouncements(unshownAnnouncements.slice(1));
+    }, [gameState?.turn_num, gameState?.announcements]);
+
+    const handleCloseAnnouncement = () => {
+        setCurrentAnnouncement(null);
+        
+        // Show next announcement if there are any pending
+        if (pendingAnnouncements.length > 0) {
+            const [nextAnnouncement, ...remainingAnnouncements] = pendingAnnouncements;
+            setCurrentAnnouncement(nextAnnouncement.announcement);
+            setAnnouncementsIndicesAlreadyShown(prev => [...prev, nextAnnouncement.index]);
+            setPendingAnnouncements(remainingAnnouncements);
+        }
+    };
+
 
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
@@ -3695,6 +3738,43 @@ export default function GamePage() {
                     onClose={() => setRulesDialogOpen(false)}
                     gameConstants={gameConstants}
                 />
+            )}
+            {currentAnnouncement && (
+                <Card 
+                    sx={{
+                        position: 'fixed',
+                        top: '50%',
+                        left: '50%',
+                        transform: 'translate(-50%, -50%)',
+                        zIndex: 9999,
+                        minWidth: 300,
+                        maxWidth: 500,
+                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                        boxShadow: '0 0 15px rgba(0,0,0,0.3)'
+                    }}
+                >
+                    <CardContent sx={{ position: 'relative', padding: '20px !important' }}>
+                        <IconButton
+                            onClick={handleCloseAnnouncement}
+                            sx={{
+                                position: 'absolute',
+                                right: 8,
+                                top: 8
+                            }}
+                        >
+                            x
+                        </IconButton>
+                        <Typography 
+                            variant="body1" 
+                            sx={{ 
+                                mt: 1,
+                                fontSize: '1.2em',
+                                pr: 4 // Make room for close button
+                            }}
+                            dangerouslySetInnerHTML={{ __html: currentAnnouncement }}
+                        />
+                    </CardContent>
+                </Card>        
             )}
             {allUnitsDialogOpen && <AllUnitsDialog open={allUnitsDialogOpen} onClose={() => setAllUnitsDialogOpen(false)} units={templates.UNITS}/>}
             {declinePreemptedDialogOpen && <DeclinePreemptedDialog open={declinePreemptedDialogOpen} onClose={() => setDeclinePreemptedDialogOpen(false)}/>}
