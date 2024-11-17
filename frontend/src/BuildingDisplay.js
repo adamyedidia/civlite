@@ -82,7 +82,7 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, clickable,
                 {descriptionObj ? <span> ({descriptionObj}) </span>: ""}
                 {payoffTime && displayYields ? <span> ({payoffTime}⏱) </span> : ""}
                 {crowns > 0 && <div style={{display: 'inline-block', marginLeft: '8px'}}><div style={{display: 'flex', gap: '4px'}}>
-                    {[...Array(crowns)].map((_, index) =>  <img index={index} src={crownImg} alt="" width="16" height="16"/>)}
+                    {[...Array(crowns)].map((_, index) =>  <img key={index} index={index} src={crownImg} alt="" width="16" height="16"/>)}
                 </div></div>}
                 </WithTooltip>
             </span>
