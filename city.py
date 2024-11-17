@@ -115,6 +115,7 @@ class City(MapObjectSpawner):
         self.develops_this_civ: dict[BuildingType, int] = {d: 0 for d in BuildingType}
         self.seen_by_players: set[int] = set()
         self.already_harvested_this_turn: bool = False
+        self.last_owner_civ_id: Optional[str] = None
 
         # Revolt stuff
         self.civ_to_revolt_into: Optional[CivTemplate] = None
@@ -970,6 +971,7 @@ class City(MapObjectSpawner):
         Called when an existing city changes owner; called by capture() and process_decline_option().
         """
         old_civ = self.civ
+        self.last_owner_civ_id = old_civ.id
 
         # Remove trade hub
         if self.is_trade_hub():
@@ -1396,6 +1398,7 @@ class City(MapObjectSpawner):
             "is_trade_hub": self.is_trade_hub(),
             "bot_favorite_builds": [b.name for b in self.bot_favorite_builds],
             "region": self.region.value,
+            "last_owner_civ_id": self.last_owner_civ_id,
         }
 
     @staticmethod
@@ -1439,6 +1442,7 @@ class City(MapObjectSpawner):
         city.founded_turn = json["founded_turn"]
         city.food_demand_reduction_recent_owner_change = json["food_demand_reduction_recent_owner_change"]
         city.seen_by_players = set(json["seen_by_players"])
+        city.last_owner_civ_id = json["last_owner_civ_id"]
 
         return city
 

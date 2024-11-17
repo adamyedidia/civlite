@@ -267,6 +267,7 @@ class GameState:
         self.advancement_level_progress = 0.0
         self.game_over = False  # TODO delete
         self.announcements = []
+        self.parsed_announcements = []
         self.fresh_cities_for_decline: dict[str, City] = {}
         self.unhappiness_threshold: float = 0.0
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
@@ -286,6 +287,22 @@ class GameState:
 
     def add_announcement(self, content):
         self.announcements.append(f'[T {self.turn_num}] {content}')
+
+    def add_parsed_announcement(self, content: dict):
+        self.parsed_announcements.append(content)
+
+    def get_existing_parsed_announcement(self, turn_num: int, type: str, civ_id: str) -> dict | None:
+        for existing in self.parsed_announcements:
+            if existing["turn_num"] == turn_num and existing["type"] == type and existing["civ_id"] == civ_id:
+                return existing
+        return None
+    
+    def add_to_message_of_existing_parsed_announcement(self, turn_num: int, type: str, civ_id: str, extra_message: str):
+        for existing in self.parsed_announcements:
+            if existing["turn_num"] == turn_num and existing["type"] == type and existing["civ_id"] == civ_id:
+                existing["message"] += extra_message
+                return True
+        return False
 
     def fresh_cities_from_json_postprocess(self) -> None:
         for city in self.fresh_cities_for_decline.values():
@@ -359,7 +376,13 @@ class GameState:
         return city
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
-        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have entered decline!')                
+        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have entered decline!')     
+        self.add_parsed_announcement({
+            "turn_num": self.turn_num,
+            "type": "decline",
+            "civ_id": civ.id,
+            "message": f"The {civ.moniker()} have entered decline!",
+        })           
         civ.game_player = None
         civ.in_decline = True
         game_player.civ_id = None
@@ -424,6 +447,20 @@ class GameState:
         if civ.has_ability('ExtraCityPower'):
             civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
+        if not self.add_to_message_of_existing_parsed_announcement(self.turn_num, "decline", civ.id, f" The {civ.moniker()} have been founded in {city.name}."):
+            self.add_parsed_announcement({
+                "turn_num": self.turn_num,
+                "type": "new_npc_civ",
+                "civ_id": civ.id,
+                "message": f"The {civ.moniker()} have been founded in {city.name}. They lack a great leader to guide them to greatness, so most likely not much will come of them.",
+            })
+        self.add_parsed_announcement({
+            "turn_num": self.turn_num,
+            "type": "revolt",
+            "civ_id": civ.id,
+            "victim_civ_id": city.last_owner_civ_id,
+            "message": f"My liege, a rebellion has erupted in {city.name}! The traitors, who call themselves the {civ.moniker()}, have seized control of the city. We must crush the rebellion and rescue the good people of {city.name} from the tyranny of the {civ.moniker()} at once!",
+        })
 
     def decline_priority(self, first_player_num: int, new_player_num: int) -> bool:
         """
@@ -1096,6 +1133,14 @@ class GameState:
             civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerWonder')[0], civ.template.name)
 
         self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={wonder.name}>{wonder.name}<wonder>!')
+        self.add_parsed_announcement({
+            "turn_num": self.turn_num,
+            "type": "wonder_built",
+            "civ_id": civ.id,
+            "wonder_name": wonder.name,
+            "message": f"The {civ.moniker()} have built the {wonder.name}.",
+            "message_for_civ": f"My liege, we have completed the {wonder.name}! Our name will be etched in the annals of history for all time.",
+        })
 
     def add_animation_frame_for_civ(self, sess, data: dict[str, Any], civ: Optional[Civ], no_commit: bool = False) -> None:
         if data['type'] not in ['UnitAttack', 'UnitMovement', 'StartOfNewTurn']:
@@ -1192,6 +1237,7 @@ class GameState:
             "game_over": self.game_over,
             "game_end_score": self.game_end_score(),
             "announcements": self.announcements[:],
+            "parsed_announcements": [parsed_announcement.copy() for parsed_announcement in self.parsed_announcements],
             "fresh_cities_for_decline": {coords: city.to_json(include_civ_details=True) for coords, city in self.fresh_cities_for_decline.items()},
             "unhappiness_threshold": self.unhappiness_threshold,
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
@@ -1223,6 +1269,7 @@ class GameState:
         game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}
         game_state.game_over = json["game_over"]
         game_state.announcements = json["announcements"][:]
+        game_state.parsed_announcements = [parsed_announcement.copy() for parsed_announcement in json["parsed_announcements"]]
         game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
 
         for civ in game_state.civs_by_id.values():

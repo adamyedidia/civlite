@@ -46,6 +46,10 @@ import gunpowderRangedAttackSound from './sounds/gunpowder_ranged.mp3';
 import infantryAttackSound from './sounds/infantry_sound.mp3';
 import machineGunAttackSound from './sounds/machine_gun_sound.mp3';
 import laserAttackSound from './sounds/laser_gun_sound.mp3';
+import declineSound from './sounds/decline_sound.mp3';
+import revoltSound from './sounds/revolt_sound.mp3';
+import wonderRenaissanceSound from './sounds/wonder_renaissance_sound.mp3';
+import enemyWonderSound from './sounds/enemy_wonder_sound.mp3';
 import SettingsDialog from './SettingsDialog';
 import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
@@ -435,42 +439,6 @@ export default function GamePage() {
 
     const [announcementsIndicesAlreadyShown, setAnnouncementsIndicesAlreadyShown] = useState([]);
 
-    console.log('gameState', gameState);
-
-    console.log('turnNum', gameState?.turn_num);
-
-    useEffect(() => {
-        if (!gameState?.announcements || !gameState?.turn_num) return;
-
-        // Find unshown announcements for current turn
-        const unshownAnnouncements = gameState.announcements
-            .map((announcement, index) => ({ announcement, index }))
-            .filter(({ announcement, index }) => {
-                const turnMatch = announcement.match(/^\[T (\d+)\]/);
-                const turnNum = turnMatch ? parseInt(turnMatch[1]) : null;
-                return turnNum === gameState.turn_num && !announcementsIndicesAlreadyShown.includes(index);
-            });
-
-        if (unshownAnnouncements.length === 0) return;
-
-        // Set first announcement as current and rest as pending
-        setCurrentAnnouncement(unshownAnnouncements[0].announcement);
-        setAnnouncementsIndicesAlreadyShown(prev => [...prev, unshownAnnouncements[0].index]);
-        setPendingAnnouncements(unshownAnnouncements.slice(1));
-    }, [gameState?.turn_num, gameState?.announcements]);
-
-    const handleCloseAnnouncement = () => {
-        setCurrentAnnouncement(null);
-        
-        // Show next announcement if there are any pending
-        if (pendingAnnouncements.length > 0) {
-            const [nextAnnouncement, ...remainingAnnouncements] = pendingAnnouncements;
-            setCurrentAnnouncement(nextAnnouncement.announcement);
-            setAnnouncementsIndicesAlreadyShown(prev => [...prev, nextAnnouncement.index]);
-            setPendingAnnouncements(remainingAnnouncements);
-        }
-    };
-
 
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
@@ -558,6 +526,70 @@ export default function GamePage() {
     useEffect(() => {
         engineStateRef.current = engineState;
     }, [engineState]);
+
+    const getMessageToShowFromParsedAnnouncement = (parsedAnnouncement) => {
+        return parsedAnnouncement.civ_id === myCivIdRef.current ? parsedAnnouncement.message_for_civ || parsedAnnouncement.message : parsedAnnouncement.message;
+    }
+
+    const playSoundForParsedAnnouncement = (parsedAnnouncement) => {
+        console.log("Playing sound for parsed announcement", parsedAnnouncement);
+
+        if (parsedAnnouncement.type === 'decline' || parsedAnnouncement.type === 'new_npc_civ') {
+            playDeclineSound(declineSound);
+        }
+        else if (parsedAnnouncement.type === 'revolt') {
+            playRevoltSound(revoltSound);
+        }
+        else if (parsedAnnouncement.type === 'renaissance' || parsedAnnouncement.type === 'wonder_built') {
+            console.log("Playing wonder sound for parsed announcement", parsedAnnouncement);
+            if (parsedAnnouncement.civ_id === myCivIdRef.current) {
+                playWonderRenaissanceSound(wonderRenaissanceSound);
+            }
+            else {
+                playEnemyWonderSound(enemyWonderSound);
+            }
+        }
+    }
+
+    useEffect(() => {
+        if (!gameState?.announcements || !gameState?.turn_num) return;
+
+        // Find unshown announcements for current turn
+        const unshownAnnouncements = gameState.parsed_announcements
+            .map((announcement, index) => ({ announcement, index }))
+            .filter(({ announcement, index }) => {
+                const turnNum = announcement.turn_num;
+                const type = announcement.type;
+                if (type === 'decline') {
+                    return turnNum === gameState.turn_num && !announcementsIndicesAlreadyShown.includes(index) && announcement.civ_id !== myCivIdRef.current;
+                }
+                if (type === 'revolt') {
+                    return turnNum === gameState.turn_num && !announcementsIndicesAlreadyShown.includes(index) && announcement.victim_civ_id === myCivIdRef.current;
+                }
+                return turnNum === gameState.turn_num && !announcementsIndicesAlreadyShown.includes(index);
+            });
+
+        if (unshownAnnouncements.length === 0) return;
+
+        // Set first announcement as current and rest as pending
+
+        setCurrentAnnouncement(getMessageToShowFromParsedAnnouncement(unshownAnnouncements[0]?.announcement));
+        playSoundForParsedAnnouncement(unshownAnnouncements[0]?.announcement);
+        setPendingAnnouncements(unshownAnnouncements.slice(1));
+    }, [gameState?.turn_num, gameState?.announcements]);
+
+    const handleCloseAnnouncement = () => {
+        setAnnouncementsIndicesAlreadyShown(prev => [...prev, currentAnnouncement.index]);
+        setCurrentAnnouncement(null);
+        
+        // Show next announcement if there are any pending
+        if (pendingAnnouncements.length > 0) {
+            const [nextAnnouncement, ...remainingAnnouncements] = pendingAnnouncements;
+            setCurrentAnnouncement(getMessageToShowFromParsedAnnouncement(nextAnnouncement.announcement));
+            playSoundForParsedAnnouncement(nextAnnouncement.announcement);
+            setPendingAnnouncements(remainingAnnouncements);
+        }
+    };
 
     const transitionEngineState = (newState, oldState) => {
         if (oldState && engineStateRef.current !== oldState) {
@@ -1066,6 +1098,55 @@ export default function GamePage() {
             console.error('Error playing sound:', error);
         }
     }
+
+    function playDeclineSound(declineSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(declineSound);
+            audio.volume = 0.3 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playRevoltSound(revoltSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(revoltSound);
+            audio.volume = 0.3 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playWonderRenaissanceSound(wonderRenaissanceSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(wonderRenaissanceSound);
+            audio.volume = 0.3 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
+    function playEnemyWonderSound(enemyWonderSound) {
+        if (!userHasInteracted) return;
+
+        try {
+            let audio = new Audio(enemyWonderSound);
+            audio.volume = 0.3 * volumeRef.current / 100;
+            audio.play();
+        } catch (error) {
+            console.error('Error playing sound:', error);
+        }
+    }
+
 
     const hexRefs = React.useRef({
         '-20,0,20': React.createRef(),

@@ -483,6 +483,13 @@ class Civ:
         if tech == TECHS.RENAISSANCE:
             logger.info(f"Renaissance for civ {self.moniker()}")
             game_state.add_announcement(f"The <civ id={self.id}>{self.moniker()}</civ> have completed a Renaissance.")
+            game_state.add_parsed_announcement({
+                "type": "renaissance",
+                "turn_num": game_state.turn_num,
+                "civ_id": self.id,
+                "message": f"The {self.moniker()} have completed a Renaissance.",
+                "message_for_civ": f"My liege, we have undergone a Renaissance! Our people are more joyous, vigorous, and prosperous than ever before.",
+            })
             cost: float = self.renaissance_cost()
             self.science -= cost
             for other_tech, status in self.techs_status.items():
@@ -569,6 +576,8 @@ class Civ:
         great_person: GreatPerson = great_people_by_name[great_person_name]
         great_person.apply(city=city, civ=self, game_state=game_state)
         game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
+        game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "decline", self.id, f" {great_person.name} will lead {self.moniker()} to glory.")
+        game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "revolt", self.id, f" The {self.moniker()} are led by a charismatic and unscrupulous individual known to us only as \"{great_person.name}\".")
         self.great_people_choices = []
         self._great_people_choices_city_id = None
         self._pop_great_people_choices_queue_if_needed(game_state)
