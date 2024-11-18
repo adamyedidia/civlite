@@ -437,9 +437,9 @@ export default function GamePage() {
     const [currentAnnouncement, setCurrentAnnouncement] = useState(null);
     const [pendingAnnouncements, setPendingAnnouncements] = useState([]);
 
-    const [announcementsIndicesAlreadyShown, setAnnouncementsIndicesAlreadyShown] = useState([]);
-
-
+    const [announcementsThisTurn, setAnnouncementsThisTurn] = useState([]);
+    const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
+    
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
 
@@ -551,44 +551,57 @@ export default function GamePage() {
         }
     }
 
-    useEffect(() => {
-        if (!gameState?.announcements || !gameState?.turn_num) return;
+    console.log('gameState', gameStateRef.current);
 
-        // Find unshown announcements for current turn
-        const unshownAnnouncements = gameState.parsed_announcements
-            .map((announcement, index) => ({ announcement, index }))
-            .filter(({ announcement, index }) => {
+    const refreshAnnouncements = (newGameState) => {
+        console.log("Refreshing announcements on turn", newGameState?.turn_num);
+        console.log("gameState", newGameState);
+
+        if (!newGameState?.parsed_announcements || !newGameState?.turn_num) return;
+
+        console.log('gameState.parsed_announcements', newGameState.parsed_announcements);
+        const newAnnouncementsThisTurn = newGameState.parsed_announcements.map((announcement, index) => ({ ...announcement, index }))
+            .filter(announcement => {
+                console.log("Checking announcement", announcement);
                 const turnNum = announcement.turn_num;
                 const type = announcement.type;
+                console.log("turnNum", turnNum, "type", type);
+                console.log("gameState.turn_num", newGameState.turn_num);
                 if (type === 'decline') {
-                    return turnNum === gameState.turn_num && !announcementsIndicesAlreadyShown.includes(index) && announcement.civ_id !== myCivIdRef.current;
+                    return turnNum === newGameState.turn_num - 1 && announcement.civ_id !== myCivIdRef.current;
                 }
                 if (type === 'revolt') {
-                    return turnNum === gameState.turn_num && !announcementsIndicesAlreadyShown.includes(index) && announcement.victim_civ_id === myCivIdRef.current;
+                    return turnNum === newGameState.turn_num - 1 && announcement.victim_civ_id === myCivIdRef.current;
                 }
-                return turnNum === gameState.turn_num && !announcementsIndicesAlreadyShown.includes(index);
+                if (type === 'new_npc_civ') {
+                    return turnNum === newGameState.turn_num - 1;
+                }
+                return turnNum === newGameState.turn_num;
             });
 
-        if (unshownAnnouncements.length === 0) return;
+        console.log("New announcements this turn", newAnnouncementsThisTurn);
 
-        // Set first announcement as current and rest as pending
+        setAnnouncementsThisTurn(newAnnouncementsThisTurn);
 
-        setCurrentAnnouncement(getMessageToShowFromParsedAnnouncement(unshownAnnouncements[0]?.announcement));
-        playSoundForParsedAnnouncement(unshownAnnouncements[0]?.announcement);
-        setPendingAnnouncements(unshownAnnouncements.slice(1));
-    }, [gameState?.turn_num, gameState?.announcements]);
+        setCurrentAnnouncementIndex(0);
+
+        if (newAnnouncementsThisTurn.length > 0) {
+            setCurrentAnnouncement(getMessageToShowFromParsedAnnouncement(newAnnouncementsThisTurn[0]));
+            playSoundForParsedAnnouncement(newAnnouncementsThisTurn[0]);
+        }        
+    }
 
     const handleCloseAnnouncement = () => {
-        setAnnouncementsIndicesAlreadyShown(prev => [...prev, currentAnnouncement.index]);
-        setCurrentAnnouncement(null);
-        
-        // Show next announcement if there are any pending
-        if (pendingAnnouncements.length > 0) {
-            const [nextAnnouncement, ...remainingAnnouncements] = pendingAnnouncements;
-            setCurrentAnnouncement(getMessageToShowFromParsedAnnouncement(nextAnnouncement.announcement));
-            playSoundForParsedAnnouncement(nextAnnouncement.announcement);
-            setPendingAnnouncements(remainingAnnouncements);
+        const newCurrentAnnouncementIndex = currentAnnouncementIndex + 1;
+
+        if (newCurrentAnnouncementIndex >= announcementsThisTurn.length) {
+            setCurrentAnnouncement(null);
+        } else {
+            setCurrentAnnouncement(getMessageToShowFromParsedAnnouncement(announcementsThisTurn[newCurrentAnnouncementIndex]));
+            playSoundForParsedAnnouncement(announcementsThisTurn[newCurrentAnnouncementIndex]);
         }
+
+        setCurrentAnnouncementIndex(newCurrentAnnouncementIndex);
     };
 
     const transitionEngineState = (newState, oldState) => {
@@ -3591,6 +3604,7 @@ export default function GamePage() {
                     const { myCiv } = getMyInfo(data.game_state);
                     sciencePopupIfNeeded(myCiv);
                 }
+                refreshAnnouncements(data.game_state);
             })
             .catch(error => {
                 console.error('Error fetching turn start game state:', error);
