@@ -9,7 +9,7 @@ from building_template import BuildingType
 
 from tech_templates_list import TECHS
 from tech_template import TechTemplate
-from unit_template import UnitTemplate
+from unit_template import UnitTag, UnitTemplate
 from unit_templates_list import UNITS
 
 if TYPE_CHECKING:
@@ -171,6 +171,8 @@ class GreatEngineer(GreatPerson):
             return False
         if city.military_slots <= city.num_buildings_of_type(BuildingType.UNIT):
             if all(unit.template.advancement_level >= self.unit_template.advancement_level for unit in city.unit_buildings):
+                return False
+            if self.unit_template.has_tag(UnitTag.DEFENSIVE):
                 return False
         return True
 
