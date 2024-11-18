@@ -131,7 +131,7 @@ const WonderListDisplay = ({ wonders_by_age, game_age, available_wonders, templa
 const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templates, centerMap, setHoveredCiv, setHoveredUnit, setHoveredBuilding, setSelectedCity, declineViewCivsById, myGamePlayer}) => {
     const civ = declineViewCivsById[city.civ_id];
     const civTemplate = templates.CIVS[civ.name];
-    return <div className="decline-option-row"
+    return <div className="decline-option-row clickable"
         style={{
             backgroundColor: civTemplate.primary_color, 
             borderColor: civTemplate.secondary_color}}
@@ -204,10 +204,21 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
     templates, 
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding, declineViewCivsById}) => {
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.is_decline_view_option);
+    const citiesRevoltingNextTurn = Object.values(mainGameState?.cities_by_id || {}).filter(city => (city.projected_on_decline_leaderboard && city.civ_id == myCiv?.id && !citiesReadyForRevolt.map(c => c.id).includes(city.id)));
     const unhappinessThreshold = mainGameState?.unhappiness_threshold
+    const previousUnhappinessThreshold = mainGameState?.previous_unhappiness_threshold
     // Max of all other players' scores
     const maxPlayerScore = Math.max(...Object.values(mainGameState?.game_player_by_player_num || {}).map(player => player.player_num === playerNum ? 0 : player.score));
     const distanceFromWin = mainGameState?.game_end_score - maxPlayerScore;
+    const newUnhappinessThresholdHigher = unhappinessThreshold > previousUnhappinessThreshold;
+    const unhappinesThresholdObject = <div className="unhappiness-threshold" style={{bottom: newUnhappinessThresholdHigher ? "" : "-10px", top: newUnhappinessThresholdHigher ? `${20 + Math.min(5, citiesReadyForRevolt.length) * 30}px` : ""}}>
+            <Tooltip title={`Next turn's threshold: ${unhappinessThreshold?.toFixed(2)}`}>
+                <div className="unhappiness-threshold-content">
+                    {Math.floor(unhappinessThreshold)}
+                    <img src={sadImg} height="16px" alt=""/>
+                </div>
+            </Tooltip>
+        </div>
     let content = <>
         {25 < distanceFromWin && distanceFromWin < 50 && <WithTooltip tooltip="Another player is within 50 points of winning. Declining may let them win.">
             <div className="distance-from-win">
@@ -232,15 +243,42 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
                         declineViewCivsById={declineViewCivsById} myGamePlayer={myGamePlayer}/>
                     })}
             </>}
+            {turnNum > 2 && <div className="unhappiness-threshold previous-threshold">
+                <Tooltip title={`This turn's threshold: ${previousUnhappinessThreshold?.toFixed(2)}`}>
+                    <div className="unhappiness-threshold-content">
+                        {Math.floor(previousUnhappinessThreshold)}
+                        <img src={sadImg} height="16px" alt=""/>
+                    </div>
+                </Tooltip>
+            </div>}
+            {turnNum > 1 && newUnhappinessThresholdHigher && unhappinesThresholdObject}
+        </div><div className="revolt-cities" style={{minHeight: newUnhappinessThresholdHigher ? "" : "30px"}}>
+            {citiesRevoltingNextTurn.length > 0 && <>
+                {citiesRevoltingNextTurn.sort((a, b) => b.unhappiness + b.projected_income.unhappiness - a.unhappiness - a.projected_income.unhappiness).map((city, index) => {
+                    return <Tooltip title="Your city will be revolting next turn">
+                    <div className="decline-option-row future-revolting"
+                    style={{
+                        backgroundColor: templates.CIVS[myCiv.name]?.primary_color, 
+                        borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
+                    >
+                    <div className="revolt-cities-row">
+                        <TextOnIcon image={workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
+                            <b>{city.population}</b>
+                        </TextOnIcon>
+                        {city.name}
+                        <div className="my-city-revolting"
+                                        style={{
+                                            backgroundColor: templates.CIVS[myCiv.name]?.primary_color, 
+                                            borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
+                                    >
+                                !
+                        </div>
+                    </div>
+                </div></Tooltip>
+                })}
+            </>}
+            {turnNum > 1 && !newUnhappinessThresholdHigher && unhappinesThresholdObject}
         </div>
-        {turnNum > 1 && <div className="unhappiness-threshold">
-            <WithTooltip tooltip={`Threshold unhappiness to enter decline choices: ${unhappinessThreshold?.toFixed(2)}`}>
-                <div className="unhappiness-threshold-content">
-                    {Math.floor(unhappinessThreshold)}
-                    <img src={sadImg} height="16px" alt=""/>
-                </div>
-            </WithTooltip>
-        </div>}
     </>
     if (0 < distanceFromWin && distanceFromWin <= 25 && !declineOptionsView) {
         content = <WithTooltip tooltip="Another player is within 25 points of winning. Declining now would let them win instantly.">

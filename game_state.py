@@ -11,7 +11,7 @@ from civ_templates_list import CIVS, find_civ_pool
 from map_object import MapObject
 from move_type import MoveType
 from region import Region
-from settings import GOD_MODE, WONDER_VPS
+from settings import GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
 from terrain_templates_list import TERRAINS
 from unit_building import UnitBuilding
 from wonder_templates_list import WONDERS
@@ -269,7 +269,8 @@ class GameState:
         self.announcements = []
         self.parsed_announcements = []
         self.fresh_cities_for_decline: dict[str, City] = {}
-        self.unhappiness_threshold: float = 0.0
+        self.unhappiness_threshold: float = MIN_UNHAPPINESS_THRESHOLD
+        self.previous_unhappiness_threshold: float = MIN_UNHAPPINESS_THRESHOLD
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
         self.no_db = False  # For headless games in scripts
 
@@ -1021,12 +1022,15 @@ class GameState:
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
         needed_revolt_choices: int = 5 - len(self.fresh_cities_for_decline)
-        cities_to_revolt: list[tuple[float, str, City]] = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.unhappiness >= 1 and city.under_siege_by_civ is None], reverse=True)
-        revolt_choices: list[tuple[float, str, City]] = cities_to_revolt[:needed_revolt_choices]
-        if len(revolt_choices) > 0:
-            self.unhappiness_threshold = revolt_choices[-1][0]
+        cities_to_revolt_without_threshold: list[tuple[float, str, City]] = sorted([(city.unhappiness, id, city) for id, city in self.cities_by_id.items() if city.under_siege_by_civ is None], reverse=True)
+        # Revolt choices are based on last turn's threshold
+        revolt_choices = [c for c in cities_to_revolt_without_threshold if c[0] >= self.unhappiness_threshold]
+        # Then update the threshold to what it would have been this turn.
+        self.previous_unhappiness_threshold = self.unhappiness_threshold
+        if len(cities_to_revolt_without_threshold) >= needed_revolt_choices:
+            self.unhappiness_threshold = max(cities_to_revolt_without_threshold[needed_revolt_choices - 1][0], MIN_UNHAPPINESS_THRESHOLD)
         else:
-            self.unhappiness_threshold = 0
+            self.unhappiness_threshold = MIN_UNHAPPINESS_THRESHOLD
         logger.info(f"revolt choices: {[city.name for _, _, city in revolt_choices]}; threshold: {self.unhappiness_threshold}")
         revolt_ids = set(id for _, id, _ in revolt_choices)
         for _, _, city in revolt_choices:
@@ -1240,6 +1244,7 @@ class GameState:
             "parsed_announcements": [parsed_announcement.copy() for parsed_announcement in self.parsed_announcements],
             "fresh_cities_for_decline": {coords: city.to_json(include_civ_details=True) for coords, city in self.fresh_cities_for_decline.items()},
             "unhappiness_threshold": self.unhappiness_threshold,
+            "previous_unhappiness_threshold": self.previous_unhappiness_threshold,
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
             "num_wonders_built_by_age": self.num_wonders_built_by_age,
             "wonder_vp_chunks_left_by_age": self.wonder_vp_chunks_left_by_age,
@@ -1271,6 +1276,7 @@ class GameState:
         game_state.announcements = json["announcements"][:]
         game_state.parsed_announcements = [parsed_announcement.copy() for parsed_announcement in json["parsed_announcements"]]
         game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
+        game_state.previous_unhappiness_threshold = float(json["previous_unhappiness_threshold"])
 
         for civ in game_state.civs_by_id.values():
             civ.from_json_postprocess(game_state)

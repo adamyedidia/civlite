@@ -193,6 +193,7 @@ h2.tech-name {
 
 .revolt-cities {
     width: 100%;
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 5px;
@@ -203,8 +204,11 @@ h2.tech-name {
     flex-direction: column;
     border: 5px solid transparent;
     border-radius: 5px;
-    cursor: pointer;
     gap: 5px;
+}
+
+.decline-option-row.future-revolting {
+    opacity: 0.5;
 }
 
 .revolt-cities-row {
@@ -226,7 +230,11 @@ h2.tech-name {
     font-size: 14px;
 }
 
-.decline-option-row:hover {
+.decline-option-row.clickable {
+    cursor: pointer;
+}
+
+.decline-option-row.clickable:hover {
     transform: scale(1.1);
 }
 
@@ -279,6 +287,7 @@ h2.tech-name {
     border-top-left-radius: 5px;
     border-bottom-left-radius: 5px;
     height: 20px;
+    opacity: 0.75;
 }
 
 .unhappiness-threshold::after {
@@ -294,6 +303,9 @@ h2.tech-name {
     border-color: transparent transparent transparent #ecb0b0; /* Match the element's background color */
 }
 
+.previous-threshold {
+    opacity: 1.0;
+}
 
 .unhappiness-threshold-content {
     display: flex;
