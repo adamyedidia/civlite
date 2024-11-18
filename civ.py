@@ -576,8 +576,8 @@ class Civ:
         great_person: GreatPerson = great_people_by_name[great_person_name]
         great_person.apply(city=city, civ=self, game_state=game_state)
         game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
-        game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "decline", self.id, f" {great_person.name} will lead {self.moniker()} to glory.")
-        game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "revolt", self.id, f" The {self.moniker()} are led by a charismatic and unscrupulous individual known to us only as \"{great_person.name}\".")
+        game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "decline", self.game_player.player_num if self.game_player else None, f" {great_person.name} will lead {self.moniker()} to glory.")
+        game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "revolt", self.game_player.player_num if self.game_player else None, f" The {self.moniker()} are led by a charismatic and unscrupulous individual known to us only as \"{great_person.name}\".")
         self.great_people_choices = []
         self._great_people_choices_city_id = None
         self._pop_great_people_choices_queue_if_needed(game_state)

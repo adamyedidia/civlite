@@ -551,35 +551,24 @@ export default function GamePage() {
         }
     }
 
-    console.log('gameState', gameStateRef.current);
-
     const refreshAnnouncements = (newGameState) => {
-        console.log("Refreshing announcements on turn", newGameState?.turn_num);
-        console.log("gameState", newGameState);
-
         if (!newGameState?.parsed_announcements || !newGameState?.turn_num) return;
-
-        console.log('gameState.parsed_announcements', newGameState.parsed_announcements);
         const newAnnouncementsThisTurn = newGameState.parsed_announcements.map((announcement, index) => ({ ...announcement, index }))
             .filter(announcement => {
-                console.log("Checking announcement", announcement);
                 const turnNum = announcement.turn_num;
                 const type = announcement.type;
-                console.log("turnNum", turnNum, "type", type);
-                console.log("gameState.turn_num", newGameState.turn_num);
+
                 if (type === 'decline') {
-                    return turnNum === newGameState.turn_num - 1 && announcement.civ_id !== myCivIdRef.current;
+                    return turnNum === newGameState.turn_num - 1 && announcement.player_num !== playerNumRef.current;
                 }
                 if (type === 'revolt') {
                     return turnNum === newGameState.turn_num - 1 && announcement.victim_civ_id === myCivIdRef.current;
                 }
                 if (type === 'new_npc_civ') {
-                    return turnNum === newGameState.turn_num - 1;
+                    return turnNum === newGameState.turn_num - 1 && announcement.player_num !== playerNumRef.current;
                 }
                 return turnNum === newGameState.turn_num;
             });
-
-        console.log("New announcements this turn", newAnnouncementsThisTurn);
 
         setAnnouncementsThisTurn(newAnnouncementsThisTurn);
 

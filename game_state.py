@@ -298,9 +298,9 @@ class GameState:
                 return existing
         return None
     
-    def add_to_message_of_existing_parsed_announcement(self, turn_num: int, type: str, civ_id: str, extra_message: str):
+    def add_to_message_of_existing_parsed_announcement(self, turn_num: int, type: str, player_num: Optional[int], extra_message: str):
         for existing in self.parsed_announcements:
-            if existing["turn_num"] == turn_num and existing["type"] == type and existing["civ_id"] == civ_id:
+            if existing["turn_num"] == turn_num and existing["type"] == type and player_num is not None and (existing_player_num := existing.get("player_num")) is not None and existing_player_num == player_num:
                 existing["message"] += extra_message
                 return True
         return False
@@ -382,6 +382,7 @@ class GameState:
             "turn_num": self.turn_num,
             "type": "decline",
             "civ_id": civ.id,
+            "player_num": game_player.player_num,
             "message": f"The {civ.moniker()} have entered decline!",
         })           
         civ.game_player = None
@@ -448,12 +449,13 @@ class GameState:
         if civ.has_ability('ExtraCityPower'):
             civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
-        if not self.add_to_message_of_existing_parsed_announcement(self.turn_num, "decline", civ.id, f" The {civ.moniker()} have been founded in {city.name}."):
+        if not self.add_to_message_of_existing_parsed_announcement(self.turn_num, "decline", civ.game_player.player_num if civ.game_player else None, f" The {civ.moniker()} have been founded in {city.name}."):
             self.add_parsed_announcement({
                 "turn_num": self.turn_num,
                 "type": "new_npc_civ",
+                "player_num": civ.game_player.player_num if civ.game_player else None,
                 "civ_id": civ.id,
-                "message": f"The {civ.moniker()} have been founded in {city.name}. They lack a great leader to guide them to greatness, so most likely not much will come of them.",
+                "message": f"The {civ.moniker()} have been founded in {city.name}.",
             })
         self.add_parsed_announcement({
             "turn_num": self.turn_num,
