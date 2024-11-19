@@ -7,15 +7,16 @@ import cityImg from './images/city.png';
 import scienceImg from './images/science.png';
 import tradeHubImg from './images/tradehub.png';
 import greatPersonImg from './images/greatperson.png';
+import phoenixImg from './images/phoenix.png';
 
 // For images in the public/images directory, use the public URL path
 const flag1Img = `${process.env.PUBLIC_URL}/images/flag.svg`;
 const flag2Img = `${process.env.PUBLIC_URL}/images/purple_flag.svg`;
 
-const TaskIcon = ({icon, onClick, tooltip}) => {
-    return <div className={`task-icon ${onClick ? 'clickable' : ''}`} onClick={onClick}>
+const TaskIcon = ({icon, onClick, tooltip, nobounce, iconOpacity}) => {
+    return <div className={`task-icon ${onClick ? 'clickable' : ''} ${nobounce ? '' : 'bounce'}`} onClick={onClick} style={{opacity: iconOpacity}}>
         <WithTooltip tooltip={tooltip}>
-            <img src={icon} />
+            <img src={icon} style={{opacity: iconOpacity}} />
         </WithTooltip>
     </div>
 }
@@ -34,17 +35,20 @@ export const TaskBar = ({myCiv, myCities, myUnits, canFoundCity, setSelectedCity
         </ul>
     );
 
-return <div className="task-bar">
-        {myCiv?.great_people_choices.length > 0 && !greatPersonChoiceDialogOpen && <TaskIcon icon={greatPersonImg} tooltip="Select Great Person" onClick={() => {setGreatPersonChoiceDialogOpen(true)}}/>}
-        {!myCiv?.researching_tech_name && !techChoiceDialogOpen && <TaskIcon icon={scienceImg} onClick={() => {setTechChoiceDialogOpen(true)}} tooltip="Choose research" />}
-        {canFoundCity && myCiv?.city_power > 100 && <TaskIcon icon={cityImg} onClick={() => {setFoundingCity(true)}} tooltip="Found city" />}
-        {!myCiv?.trade_hub_id && anyUnhappyCities && <TaskIcon icon={tradeHubImg} 
-            tooltip={<div>Select trade hub (in city window). Unhappy cities: {unhappyCitiesList}</div>}
-        />}
-        {!myCiv?.target1 && myUnits.length > 0 && <TaskIcon icon={flag1Img} tooltip="Select primary flag" />}
-        {!myCiv?.target2 && myUnits.length > 1 && <TaskIcon icon={flag2Img} tooltip="Select secondary flag" />}
-    </div>
-}
+    return <div className="task-bar">
+            {myCiv?.great_people_choices.length > 0 && !greatPersonChoiceDialogOpen && <TaskIcon icon={greatPersonImg} tooltip="Select Great Person" onClick={() => {setGreatPersonChoiceDialogOpen(true)}}/>}
+            {!myCiv?.researching_tech_name && !techChoiceDialogOpen && <TaskIcon icon={scienceImg} onClick={() => {setTechChoiceDialogOpen(true)}} tooltip="Choose research" />}
+            {canFoundCity && myCiv?.city_power > 100 && <TaskIcon icon={cityImg} onClick={() => {setFoundingCity(true)}} tooltip="Found city" />}
+            {!myCiv?.trade_hub_id && anyUnhappyCities && <TaskIcon icon={tradeHubImg} 
+                tooltip={<div>Select trade hub (in city window). Unhappy cities: {unhappyCitiesList}</div>}
+            />}
+            {!myCiv?.target1 && myUnits.length > 0 && <TaskIcon icon={flag1Img} tooltip="Select primary flag" />}
+            {!myCiv?.target2 && myUnits.length > 1 && <TaskIcon icon={flag2Img} tooltip="Select secondary flag" />}
+            {myCities?.filter(city => city.projected_on_decline_leaderboard).map((city, index) => 
+                <TaskIcon icon={phoenixImg} tooltip={city.civ_to_revolt_into ? `${city.name} on decline choices` : `${city.name} will enter decline options`} nobounce iconOpacity={city.civ_to_revolt_into ? 1 : 0.5}/>)
+            }
+        </div>
+    }
 
 export default TaskBar;
 

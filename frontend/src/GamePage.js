@@ -3061,6 +3061,11 @@ export default function GamePage() {
                             </text>    
                         </>
                     }
+                    {friendly && (city.projected_on_decline_leaderboard || city.civ_to_revolt_into) && <>
+                        <circle cx={6.5} cy={3} r={0.7} fill={city.civ_to_revolt_into ? "white" : "lightgrey"} opacity={city.civ_to_revolt_into ? 1 : 0.75}/>
+                        <image href={declineImg} x={6.0} y={2.5} height="1" opacity={city.civ_to_revolt_into ? 1 : 0.75}/>
+                    </>
+                    }
                     {myCiv && !everControlled && 
                         <image href={vpImage} x={5.75} y={1.1} height="1" />
                     }
