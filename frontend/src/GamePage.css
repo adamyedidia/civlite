@@ -148,6 +148,11 @@ body {
   border-color: transparent transparent transparent #111c;
 }
 
+.announcement-fade-out {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}
+
 .puppet-arrow {
   height: 6px;
 }

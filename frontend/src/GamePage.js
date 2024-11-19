@@ -435,13 +435,36 @@ export default function GamePage() {
     const [turnEndedByPlayerNum, setTurnEndedByPlayerNum] = useState({});
     const [gameOverDialogOpen, setGameOverDialogOpen] = useState(false);
     const [currentAnnouncement, setCurrentAnnouncement] = useState(null);
-    const [pendingAnnouncements, setPendingAnnouncements] = useState([]);
+    const [isAnnouncementFading, setIsAnnouncementFading] = useState(false);
 
     const [announcementsThisTurn, setAnnouncementsThisTurn] = useState([]);
     const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
     
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
+
+    const startAnnouncementFadeOut = () => {
+        setIsAnnouncementFading(true);
+        setTimeout(() => {
+            setCurrentAnnouncement(null);
+            setIsAnnouncementFading(false);
+            handleCloseAnnouncement();
+        }, 500);
+    };
+
+    useEffect(() => {
+        let timeoutId;
+        if (currentAnnouncement) {
+            timeoutId = setTimeout(() => {
+                startAnnouncementFadeOut();
+            }, 3000);
+        }
+        return () => {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [currentAnnouncement]);
 
     const getMyInfo = (gameState) => {
         const gamePlayer = gameState?.game_player_by_player_num?.[playerNum];
@@ -3829,41 +3852,26 @@ export default function GamePage() {
                 />
             )}
             {currentAnnouncement && (
-                <Card 
-                    sx={{
+                <div 
+                    onClick={startAnnouncementFadeOut}
+                    style={{
                         position: 'fixed',
-                        top: '50%',
+                        top: '60px',  // Position below turn counter
                         left: '50%',
-                        transform: 'translate(-50%, -50%)',
-                        zIndex: 9999,
-                        minWidth: 300,
-                        maxWidth: 500,
-                        backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                        boxShadow: '0 0 15px rgba(0,0,0,0.3)'
+                        transform: 'translateX(-50%)',
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        color: 'white',
+                        padding: '15px 30px',
+                        borderRadius: '5px',
+                        zIndex: 1000,
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                        maxWidth: '80%'
                     }}
+                    className={isAnnouncementFading ? 'announcement-fade-out' : ''}
                 >
-                    <CardContent sx={{ position: 'relative', padding: '20px !important' }}>
-                        <IconButton
-                            onClick={handleCloseAnnouncement}
-                            sx={{
-                                position: 'absolute',
-                                right: 8,
-                                top: 8
-                            }}
-                        >
-                            x
-                        </IconButton>
-                        <Typography 
-                            variant="body1" 
-                            sx={{ 
-                                mt: 1,
-                                fontSize: '1.2em',
-                                pr: 4 // Make room for close button
-                            }}
-                            dangerouslySetInnerHTML={{ __html: currentAnnouncement }}
-                        />
-                    </CardContent>
-                </Card>        
+                    {currentAnnouncement}
+                </div>
             )}
             {allUnitsDialogOpen && <AllUnitsDialog open={allUnitsDialogOpen} onClose={() => setAllUnitsDialogOpen(false)} units={templates.UNITS}/>}
             {declinePreemptedDialogOpen && <DeclinePreemptedDialog open={declinePreemptedDialogOpen} onClose={() => setDeclinePreemptedDialogOpen(false)}/>}
