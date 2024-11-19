@@ -418,19 +418,35 @@ h2.tech-name {
     font-weight: bold;
 }
 
-.wonder-age-display .wonder-vp {
+.wonder-age-display .wonder-vp-container {
     display: flex;
     align-items: center;
-    gap: 5px;
     justify-content: center;
+}
+
+.wonder-age-display .wonder-vp {
+    position: relative;
+    z-index: 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    width: fit-content;
 }
 
 .wonder-age-display .wonder-vp-unavailable {
     opacity: 0.3;
 }
 
-.wonder-age-display .wonder-vp-available.pulsing {
-    animation: pulseAnimation 1s infinite;
+.wonder-age-display .wonder-vps-next {
+    position: absolute;
+    left: -3px;
+    top: -10%;
+    height: 120%;
+    background-color: #fff;
+    opacity: 0.8;
+    border-radius: 4px;
+    z-index: -1;
 }
 
 .wonder-display {
