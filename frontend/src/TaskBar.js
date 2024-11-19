@@ -45,7 +45,7 @@ export const TaskBar = ({myCiv, myCities, myUnits, canFoundCity, setSelectedCity
             {!myCiv?.target1 && myUnits.length > 0 && <TaskIcon icon={flag1Img} tooltip="Select primary flag" />}
             {!myCiv?.target2 && myUnits.length > 1 && <TaskIcon icon={flag2Img} tooltip="Select secondary flag" />}
             {myCities?.filter(city => city.projected_on_decline_leaderboard).map((city, index) => 
-                <TaskIcon icon={phoenixImg} tooltip={city.civ_to_revolt_into ? `${city.name} on decline choices` : `${city.name} will enter decline options`} nobounce iconOpacity={city.civ_to_revolt_into ? 1 : 0.5}/>)
+                <TaskIcon key={index} icon={phoenixImg} tooltip={city.civ_to_revolt_into ? `${city.name} on decline choices` : `${city.name} will enter decline options`} nobounce iconOpacity={city.civ_to_revolt_into ? 1 : 0.5}/>)
             }
         </div>
     }
