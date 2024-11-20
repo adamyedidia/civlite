@@ -87,7 +87,7 @@ assyrian_cities = [
     "Dur-Sharrukin", "Kar-Tukulti-Ninurta", "Tarbisu", "Nisibis", "Harran"
 ]
 caralan_cities = [
-    "Caral", "Aspero", "spero", "Huaca Prieta", "Bandurria",
+    "Caral", "Aspero", "Huaca Prieta", "Bandurria",
     "Pacopampa", "Sechín Alto", "Kotosh", "Garagay", "Huaycán de Cieneguilla"
 ]
 troy_cities = [
