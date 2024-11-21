@@ -337,7 +337,6 @@ class City(MapObjectSpawner):
             self.projected_income += {key: sum(amnt for amnt, distance in puppet_vals.values()) for key, puppet_vals in self.projected_income_puppets.items()}
 
         self.projected_on_decline_leaderboard = (self.unhappiness + self.projected_income.unhappiness > game_state.unhappiness_threshold)
-        print(f"{self.name} projected on decline leaderboard: {self.projected_on_decline_leaderboard}")
 
     def _get_projected_yields_without_focus(self, game_state) -> Yields:
         yields = Yields(food=2, science=self.population)
@@ -433,7 +432,7 @@ class City(MapObjectSpawner):
         if self.founded_turn is None: return 0  # Not sure why we're even calculating this.
         if self.capital: 
             return 0
-        result: float = 1.0 * self.age(game_state)
+        result: float = 1.0 * self.age(game_state) * game_state.prosperity_multiplier
 
         if self.is_territory_capital:
             result -= 2 * len(self.get_puppets(game_state))

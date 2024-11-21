@@ -234,6 +234,9 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
         >
             {declineOptionsView ? "Close Decline View" : "View Decline Options"}
         </Button>}
+        <div className="prosperity-multiplier">
+            {mainGameState.prosperity_multiplier.toFixed(2)}
+        </div>
         <div className="revolt-cities">
             {citiesReadyForRevolt.length > 0 && <>
                 {citiesReadyForRevolt.sort((a, b) => b.revolting_starting_vitality - a.revolting_starting_vitality).map((city, index) => {
@@ -245,7 +248,7 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
                         declineViewCivsById={declineViewCivsById} myGamePlayer={myGamePlayer}/>
                     })}
             </>}
-            {turnNum > 2 && <div className="unhappiness-threshold previous-threshold">
+            {turnNum > 2 && <div className="unhappiness-threshold previous-threshold" style={{bottom: (newUnhappinessThresholdHigher && citiesReadyForRevolt.length == 5) ? "-40px" : ""}}>
                 <Tooltip title={`This turn's threshold: ${previousUnhappinessThreshold?.toFixed(2)}`}>
                     <div className="unhappiness-threshold-content">
                         {Math.floor(previousUnhappinessThreshold)}
@@ -254,7 +257,7 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
                 </Tooltip>
             </div>}
             {turnNum > 1 && newUnhappinessThresholdHigher && unhappinesThresholdObject}
-        </div><div className="revolt-cities" style={{minHeight: newUnhappinessThresholdHigher ? "" : "30px"}}>
+        </div><div className="revolt-cities" style={{minHeight: (newUnhappinessThresholdHigher && citiesReadyForRevolt.length > 5) ? "" : "30px"}}>
             {citiesRevoltingNextTurn.length > 0 && <>
                 {citiesRevoltingNextTurn.sort((a, b) => b.unhappiness + b.projected_income.unhappiness - a.unhappiness - a.projected_income.unhappiness).map((city, index) => {
                     return <Tooltip title="Your city will be revolting next turn">
