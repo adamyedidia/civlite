@@ -234,6 +234,9 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
         >
             {declineOptionsView ? "Close Decline View" : "View Decline Options"}
         </Button>}
+        <div className="prosperity-multiplier">
+            {mainGameState.prosperity_multiplier.toFixed(2)}
+        </div>
         <div className="revolt-cities">
             {citiesReadyForRevolt.length > 0 && <>
                 {citiesReadyForRevolt.sort((a, b) => b.revolting_starting_vitality - a.revolting_starting_vitality).map((city, index) => {

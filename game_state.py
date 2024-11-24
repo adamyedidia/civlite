@@ -273,6 +273,7 @@ class GameState:
         self.previous_unhappiness_threshold: float = MIN_UNHAPPINESS_THRESHOLD
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
         self.no_db = False  # For headless games in scripts
+        self.prosperity_multiplier: float = 1.0
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -1049,6 +1050,27 @@ class GameState:
                 if neighbor.city is not None:
                     neighbor.city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
 
+        # Update prosperity multiplier
+        TARGET_THRESHOLD = 40
+        MAX_DECAY_RATE = 0.7
+        MAX_PROSPERITY = 3 ** (self.advancement_level / 9)
+        # set decay_power such that the equilibrium value at threshold=0 is MAX_PROSPERITY
+        # (MAX_PROSPERITY * MAX_DECAY_RATE ** (-1) ** decay_power = MAX_PROSPERITY
+        # MAX_PROSPERITY ** (1 - decay_power) = MAX_DECAY_RATE ** (-decay_power)
+        # log(MAX_PROSPERITY) / log(MAX_DECAY_RATE) = (- decay_power) / (1 - decay_power)
+        # log(MAX_PROSPERITY) / log(MAX_DECAY_RATE) (1 - decay_power) = - decay_power
+        # decay_power = 1 / (1 - log(MAX_DECAY_RATE) / log(MAX_PROSPERITY))
+        decay_power = 1 / (1 - math.log(MAX_DECAY_RATE) / math.log(MAX_PROSPERITY + 1e-6))
+        # Push the gap towards TARGET_THRESHOLD
+        print(f"\n\n\n=============================")
+        gap = self.unhappiness_threshold - TARGET_THRESHOLD
+        print(f"{self.prosperity_multiplier=} {decay_power=} {gap=}")
+        self.prosperity_multiplier *= MAX_DECAY_RATE ** (gap / TARGET_THRESHOLD)
+        print(f"{self.prosperity_multiplier=}")
+        # And decay toward neutral
+        self.prosperity_multiplier = self.prosperity_multiplier ** decay_power
+        print(f"{self.prosperity_multiplier=}")
+
     def sample_new_civs(self, n, region: Region | None = None) -> list[CivTemplate]:
         advancement_level_to_use = max(self.advancement_level, 1)
         civs_already_in_game: list[CivTemplate] = [civ.template for civ in self.civs_by_id.values()] + \
@@ -1250,7 +1272,8 @@ class GameState:
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
             "num_wonders_built_by_age": self.num_wonders_built_by_age,
             "wonder_vp_chunks_left_by_age": self.wonder_vp_chunks_left_by_age,
-            "vp_chunks_total_per_age": len(self.game_player_by_player_num)
+            "vp_chunks_total_per_age": len(self.game_player_by_player_num),
+            "prosperity_multiplier": self.prosperity_multiplier,
         }
 
     @staticmethod
@@ -1279,6 +1302,7 @@ class GameState:
         game_state.parsed_announcements = [parsed_announcement.copy() for parsed_announcement in json["parsed_announcements"]]
         game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
         game_state.previous_unhappiness_threshold = float(json["previous_unhappiness_threshold"])
+        game_state.prosperity_multiplier = float(json["prosperity_multiplier"])
 
         for civ in game_state.civs_by_id.values():
             civ.from_json_postprocess(game_state)

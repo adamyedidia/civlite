@@ -170,7 +170,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const unhappinessBarsMaxWidth = 180;
     const unhappinessBarsWidthPerUnit = Math.min(10, unhappinessBarsMaxWidth/foodDemanded, unhappinessBarsMaxWidth/projectedIncome['food']);
     const numPuppets = Object.keys(selectedCity?.projected_income_puppets?.["wood"] || {}).length;
-    const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> : <><p>Food Demand {foodDemanded}:</p> <ul> 
+    const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> : <><p>Food Demand {foodDemanded.toFixed(2)}:</p> <ul> 
         <li>{(gameState.turn_num - selectedCity.founded_turn)} from age (1/turn since founding turn {selectedCity.founded_turn})</li> 
         {numPuppets > 0 ? <li>-{2 * numPuppets} from puppets (-2/puppet) </li> : ""}
         {selectedCity.food_demand_reduction_recent_owner_change > 0 ? <li>-{selectedCity.food_demand_reduction_recent_owner_change} from recent owner change</li> : ""}
@@ -385,7 +385,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                 </tr>
                                 <tr>
                                     <td className="label">
-                                        {foodDemanded}
+                                        {Math.floor(foodDemanded)}
                                     </td>
                                     <td>
                                         <div className="bar demand" style={{width: `${Math.floor(foodDemanded * unhappinessBarsWidthPerUnit)}px`}}>

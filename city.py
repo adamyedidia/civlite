@@ -432,7 +432,7 @@ class City(MapObjectSpawner):
         if self.founded_turn is None: return 0  # Not sure why we're even calculating this.
         if self.capital: 
             return 0
-        result: float = 1.0 * self.age(game_state)
+        result: float = 1.0 * self.age(game_state) * game_state.prosperity_multiplier
 
         if self.is_territory_capital:
             result -= 2 * len(self.get_puppets(game_state))
