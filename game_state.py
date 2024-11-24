@@ -12,6 +12,8 @@ from map_object import MapObject
 from move_type import MoveType
 from region import Region
 from settings import GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
+from tenet_template import TenetTemplate
+from tenet_template_list import TENETS
 from terrain_templates_list import TERRAINS
 from unit_building import UnitBuilding
 from wonder_templates_list import WONDERS
@@ -273,6 +275,7 @@ class GameState:
         self.previous_unhappiness_threshold: float = MIN_UNHAPPINESS_THRESHOLD
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
         self.no_db = False  # For headless games in scripts
+        self.tenets_claimed_by_player_nums = {t: [] for t in TENETS.all()}
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -677,6 +680,12 @@ class GameState:
             tech = TECHS.by_name(tech_name)
             civ.select_tech(tech)
 
+        if move_type == MoveType.CHOOSE_TENET:
+            tenet_name = move_data['tenet_name']
+            tenet = TENETS.by_name(tenet_name)
+            assert game_player is not None
+            game_player.select_tenet(tenet, self)
+
         if move_type == MoveType.CHOOSE_BUILDING:
             building_name = move_data['building_name']
             city_id = move_data['city_id']
@@ -853,6 +862,13 @@ class GameState:
         for obj in self.all_map_objects():
             obj.update_nearby_hexes_hostile_foundability(self.hexes)
 
+    def refresh_tenets_claimed_by_player_nums(self):
+        self.tenets_claimed_by_player_nums = {t: [] for t in TENETS.all()}
+        for player_num, player in self.game_player_by_player_num.items():
+            for tenet in player.tenets:
+                self.tenets_claimed_by_player_nums[tenet].append(player_num)
+        for player in self.game_player_by_player_num.values():
+            player.update_active_tenet_choice_level(self)
 
     def load_and_update_from_player_moves(self, moves_by_player_num: dict[int, list]) -> None:
         # Defaults to being permissive; city_ids that exist will cause it to be the case that
@@ -994,6 +1010,7 @@ class GameState:
         for game_player in self.game_player_by_player_num.values():
             game_player.decline_this_turn = False
             game_player.failed_to_decline_this_turn = False
+            self.refresh_tenets_claimed_by_player_nums()
 
         self.sync_advancement_level()
 
@@ -1250,7 +1267,8 @@ class GameState:
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
             "num_wonders_built_by_age": self.num_wonders_built_by_age,
             "wonder_vp_chunks_left_by_age": self.wonder_vp_chunks_left_by_age,
-            "vp_chunks_total_per_age": len(self.game_player_by_player_num)
+            "vp_chunks_total_per_age": len(self.game_player_by_player_num),
+            "tenets_claimed_by_player_nums": {t.name: value for t, value in self.tenets_claimed_by_player_nums.items()},
         }
 
     @staticmethod
@@ -1279,6 +1297,7 @@ class GameState:
         game_state.parsed_announcements = [parsed_announcement.copy() for parsed_announcement in json["parsed_announcements"]]
         game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
         game_state.previous_unhappiness_threshold = float(json["previous_unhappiness_threshold"])
+        game_state.tenets_claimed_by_player_nums = {TENETS.by_name(name): value for name, value in json["tenets_claimed_by_player_nums"].items()}
 
         for civ in game_state.civs_by_id.values():
             civ.from_json_postprocess(game_state)

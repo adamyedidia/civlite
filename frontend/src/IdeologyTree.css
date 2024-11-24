@@ -1,0 +1,77 @@
+.tenet-hover-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    background-color: #f8cbf0;
+    cursor: default;
+    height: 100px;
+    width: 500px;
+}
+
+.tenet-card {
+    padding: 2px 5px;
+    border-radius: 20px;
+    margin: 2px 0;
+    border: 1px solid black;
+    cursor: default;
+    height: 40px;
+    width: 200px;
+}
+
+.tenet-card.available {
+    background-color: #f6e7f3;
+}
+
+.tenet-card.taken {
+    background-color: #f6a7e8;
+}
+
+.tenet-card.unavailable {
+    background-color: #d1b4cb;
+    opacity: 0.5;
+}
+
+.tenet-card.active-choice {
+    background-color: #d6c0d1;
+    cursor: pointer;
+    animation: pulse 1s infinite;
+}
+
+.tenet-card.active-choice:hover {
+    transform: scale(1.1);
+    background-color: #f6e7f3;
+}
+
+.tenet-card .tenet-name {
+    text-align: center;
+}
+
+.tenet-level-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
+.tenet-dialog-content {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 1000px;
+}
+
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}

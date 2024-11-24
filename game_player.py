@@ -1,4 +1,12 @@
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
+from settings import STRICT_MODE
+
+from tenet_template import TenetTemplate
+from tenet_template_list import TENETS
+
+if TYPE_CHECKING:
+    from game_state import GameState
+    from civ import Civ
 
 class GamePlayer:
     def __init__(self, player_num: int, username: str, is_bot: bool = False, vitality_multiplier: float = 1.0):
@@ -14,9 +22,31 @@ class GamePlayer:
         self.is_bot = is_bot
         self.vitality_multiplier = vitality_multiplier
 
+        self.tenets: dict[TenetTemplate, dict] = {}
+        self.active_tenet_choice_level: Optional[int] = None
+
     @property
     def score(self) -> int:
         return sum(self.score_dict.values())
+
+    def select_tenet(self, tenet: TenetTemplate, game_state: 'GameState'):
+        if STRICT_MODE:
+            assert tenet not in self.tenets
+            assert game_state.tenets_claimed_by_player_nums[tenet] == []
+        self.tenets[tenet] = {}
+        self.update_active_tenet_choice_level(game_state)
+
+    def get_current_civ(self, game_state: 'GameState') -> 'Civ':
+        assert self.civ_id is not None
+        return game_state.civs_by_id[self.civ_id]
+    
+    def update_active_tenet_choice_level(self, game_state: 'GameState'):
+        civ_level = self.get_current_civ(game_state).get_advancement_level()
+        tenet_level = len(self.tenets)
+        if tenet_level < civ_level:
+            self.active_tenet_choice_level = tenet_level + 1
+        else:
+            self.active_tenet_choice_level = None
 
     def to_json(self) -> dict:
         return {
@@ -30,6 +60,8 @@ class GamePlayer:
             "failed_to_decline_this_turn": self.failed_to_decline_this_turn,
             "all_civ_ids": self.all_civ_ids,
             "vitality_multiplier": self.vitality_multiplier,
+            "tenets": {t.name: info for t, info in self.tenets.items()},
+            "active_tenet_choice_level": self.active_tenet_choice_level,
         }
     
     @staticmethod
@@ -45,6 +77,8 @@ class GamePlayer:
         game_player.decline_this_turn = json["decline_this_turn"]
         game_player.failed_to_decline_this_turn = json["failed_to_decline_this_turn"]
         game_player.all_civ_ids = json["all_civ_ids"]
+        game_player.tenets = {TENETS.by_name(name): info for name, info in json["tenets"].items()}
+        game_player.active_tenet_choice_level = json["active_tenet_choice_level"]
 
         return game_player
 
