@@ -6,6 +6,8 @@ from collections import defaultdict
 from TechStatus import TechStatus
 from assign_starting_locations import assign_starting_locations
 from move_type import MoveType
+from tenet_template import TenetTemplate
+from tenet_template_list import TENETS
 from unit import Unit
 from settings import AGE_THRESHOLDS, GOD_MODE
 from wonder_templates_list import WONDERS
@@ -113,9 +115,16 @@ class Civ:
             if city.civ.id == self.id:
                 self.projected_science_income += city.projected_income.science
                 self.projected_city_power_income += city.projected_income.city_power
+        
+        if self.has_tenet(TENETS.RISE_OF_EQUALITY):
+            if self.get_advancement_level() > game_state.advancement_level:
+                self.projected_city_power_income += 50
 
     def has_tech(self, tech: TechTemplate) -> bool:
         return self.techs_status[tech] == TechStatus.RESEARCHED
+
+    def has_tenet(self, tenet: TenetTemplate) -> bool:
+        return self.game_player is not None and tenet in self.game_player.tenets
 
     @property
     def researching_tech(self) -> TechTemplate | None:
@@ -506,9 +515,15 @@ class Civ:
 
         self.get_new_tech_choices()
 
-    def roll_turn_pre_harvest(self) -> None:
+    def roll_turn_pre_harvest(self, game_state: 'GameState') -> None:
         self.city_power += self.projected_city_power_income
         self.science += self.projected_science_income
+
+        if self.has_tenet(TENETS.PROMISE_OF_FREEDOM):
+            my_age = self.get_advancement_level()
+            for civ in game_state.civs_by_id.values():
+                if civ.get_advancement_level() < my_age:
+                    civ.gain_vps(-1, "Promise of Freedom")
 
     def roll_turn_post_harvest(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)

@@ -993,7 +993,7 @@ class GameState:
         for city in cities_copy:
             city.roll_turn_pre_harvest(self)
         for civ in self.civs_by_id.values():
-            civ.roll_turn_pre_harvest()
+            civ.roll_turn_pre_harvest(self)
         for city in cities_copy:
             city.roll_turn_post_harvest(sess, self)
 
@@ -1154,6 +1154,10 @@ class GameState:
         
         if civ.has_ability('ExtraVpsPerWonder'):
             civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerWonder')[0], civ.template.name)
+
+        if civ.has_tenet(TENETS.GLORIOUS_ORDER):
+            assert civ.game_player is not None  # This is guaranteed by civ.has_tenet
+            civ.game_player.tenets[TENETS.GLORIOUS_ORDER]["num_wonders_built"] += 1
 
         self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={wonder.name}>{wonder.name}<wonder>!')
         self.add_parsed_announcement({

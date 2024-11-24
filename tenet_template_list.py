@@ -1,57 +1,60 @@
 from typing import Generator
+from building_template import BuildingType
+from effects_list import BuildUnitsEffect, GainSlotsEffect, PointsEffect, UpgradeTerrainEffect
+from settings import WONDER_VPS
 from tenet_template import TenetTemplate
+from terrain_templates_list import TERRAINS
+from unit_templates_list import UNITS
+from yields import Yields
 
 class TENETS():
-    GREEK_FIRE = TenetTemplate(
+    TALES_OF_SCHEHERAZADE = TenetTemplate(
         advancement_level=1,
-        name="Greek Fire",
-        quest_description="Urbanize a city to max urban slots (4)",
-        description="Your ranged units always act first in turn order.",
+        name="Tales of Scheherazade",
+        instant_effect=PointsEffect(lambda _c, _g: 5, label="Scheherazade", description="Gain 5 points."),
     )
 
-    AEGIS_OF_CONQUERORS = TenetTemplate(
+    MAUIS_FISHHOOK = TenetTemplate(
         advancement_level=1,
-        name="Aegis of Conquerors",
-        quest_description="Build 5 cities on Hills.",
-        description="Your strongest infantry unit takes only 2 damage from each attack."
+        name="Mauis Fishhook",
+        instant_effect=GainSlotsEffect(2, BuildingType.RURAL)
     )
 
-    FOUNTAIN_OF_YOUTH = TenetTemplate(
+    PROMETHEAN_FIRE = TenetTemplate(
         advancement_level=1,
-        name="Fountain of Youth",
-        quest_description="Clear 8 barbarian camps.",
-        description="Your vitality decays slower."        
+        name="Promethean Fire",
+        instant_effect=UpgradeTerrainEffect(2, TERRAINS.MOUNTAINS, Yields(metal=3, science=3), "Volcano"),
     )
 
-    KNIGHTS_OF_ATLANTIS = TenetTemplate(
+    DAVID_VS_GOLIATH = TenetTemplate(
         advancement_level=1,
-        name="Knights of Atlantis",
-        quest_description="Own 4 coastal cities.",
-        description="Your mounted units have +1 speed."           
-    )
-
-    LURE_OF_SUPREMACY = TenetTemplate(
-        advancement_level=2,
-        name="Lure of Supremacy",
-        description="Military units get +10% strength against units of lower tech level."
-    )
-
-    SONG_OF_FREEDOM = TenetTemplate(
-        advancement_level=2,
-        name="Song of Freedom",
-        description="All players in an age earlier than you lose 1 vp per turn."
+        name="David vs Goliath",
+        instant_effect=BuildUnitsEffect(UNITS.SLINGER, num=1, extra_str=2)
     )
 
     RISE_OF_EQUALITY = TenetTemplate(
         advancement_level=2,
         name="Rise of Equality",
+        description="Gain 50 city power per turn on which your age is ahead of the global age."
+    )
+
+    PROMISE_OF_FREEDOM = TenetTemplate(
+        advancement_level=2,
+        name="Promise of Freedom",
+        description="All players in an age earlier than you lose 1 vp per turn."
+    )
+
+    HYMN_OF_UNITY = TenetTemplate(
+        advancement_level=2,
+        name="Hymn of Unity",
         description="Instantly capture cities that are in an earlier age than yours.",
     )
 
     GLORIOUS_ORDER = TenetTemplate(
         advancement_level=2,
         name="Glorious Order",
-        description="You can build wonders from your civ's age when ahead of the global age."
+        description="You can build wonders from your civ's age when ahead of the global age. Your cities demand 1 less food per wonder your ideology has built.",
+        initialize_data=lambda game_player: {"num_wonders_built": game_player.score_dict.get("Wonders", 0) / WONDER_VPS}
     )
 
     # all & by_name are copy-pasted methods to all template lists.

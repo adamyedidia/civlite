@@ -28,12 +28,18 @@ class GamePlayer:
     @property
     def score(self) -> int:
         return sum(self.score_dict.values())
+    
+    def has_tenet(self, tenet: TenetTemplate) -> bool:
+        return tenet in self.tenets
 
     def select_tenet(self, tenet: TenetTemplate, game_state: 'GameState'):
         if STRICT_MODE:
             assert tenet not in self.tenets
             assert game_state.tenets_claimed_by_player_nums[tenet] == []
-        self.tenets[tenet] = {}
+        if tenet.initialize_data is not None:
+            self.tenets[tenet] = tenet.initialize_data(self)
+        else:
+            self.tenets[tenet] = {}
         self.update_active_tenet_choice_level(game_state)
 
     def get_current_civ(self, game_state: 'GameState') -> 'Civ':

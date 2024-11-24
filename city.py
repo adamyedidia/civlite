@@ -11,6 +11,7 @@ from map_object_spawner import MapObjectSpawner
 from move_type import MoveType
 from region import Region
 from settings import BASE_WONDER_COST, GOD_MODE
+from tenet_template_list import TENETS
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
 from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY, FRESH_CITY_VITALITY_PER_TURN, REVOLT_VITALITY_PER_TURN, REVOLT_VITALITY_PER_UNHAPPINESS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
@@ -441,6 +442,9 @@ class City(MapObjectSpawner):
             result -= ability.numbers[1]
         for ability, _ in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
             result -= ability.numbers[0] + ability.numbers[1]
+        if self.civ.has_tenet(TENETS.GLORIOUS_ORDER):
+            assert self.civ.game_player is not None  # Guaranteed by civ.has_tenet
+            result -= self.civ.game_player.tenets[TENETS.GLORIOUS_ORDER]["num_wonders_built"]
         parent = self.get_territory_parent(game_state)
         if parent is not None:
             for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):

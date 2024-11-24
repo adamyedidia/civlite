@@ -2,6 +2,7 @@ import abc
 from typing import TYPE_CHECKING
 
 from map_object import MapObject
+from tenet_template_list import TENETS
 from unit import Unit
 
 if TYPE_CHECKING:
@@ -30,14 +31,14 @@ class MapObjectSpawner(MapObject):
 
     def handle_siege(self, sess, game_state: 'GameState') -> None:
         siege_state = self.get_siege_state(game_state)
-
-        if self.under_siege_by_civ is None:
-            self.under_siege_by_civ = siege_state
+        if siege_state is None:
+            self.under_siege_by_civ = None
+            return
+        
+        if self.under_siege_by_civ == siege_state or (siege_state.has_tenet(TENETS.HYMN_OF_UNITY) and siege_state.get_advancement_level() > self.civ.get_advancement_level()):
+            self.capture(sess, siege_state, game_state)
         else:
-            if siege_state is None or siege_state.id != self.under_siege_by_civ.id:
-                self.under_siege_by_civ = siege_state
-            else:
-                self.capture(sess, siege_state, game_state)
+            self.under_siege_by_civ = siege_state
 
     @abc.abstractmethod
     def capture(self, sess, siege_state: 'Civ', game_state: 'GameState') -> None:
