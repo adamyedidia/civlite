@@ -118,7 +118,10 @@ class Civ:
         
         if self.has_tenet(TENETS.RISE_OF_EQUALITY):
             if self.get_advancement_level() > game_state.advancement_level:
-                self.projected_city_power_income += 50
+                self.projected_city_power_income += 25
+        for player in game_state.game_player_by_player_num.values():
+            if player.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() > self.get_advancement_level():
+                self.projected_city_power_income -= 25
 
     def has_tech(self, tech: TechTemplate) -> bool:
         return self.techs_status[tech] == TechStatus.RESEARCHED
@@ -259,6 +262,7 @@ class Civ:
             "score_dict": self.score_dict,
             "unique_units_built": self.unique_units_built,
             "renaissances": self.renaissances,
+            "has_tenet_choice": self.game_player is not None and self.game_player.active_tenet_choice_level is not None,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -381,6 +385,13 @@ class Civ:
         if  len(self.great_people_choices) > 0:
             choice: GreatPerson = max(self.great_people_choices, key=lambda g: (isinstance(g, GreatGeneral), random.random()))
             game_state.resolve_move(MoveType.SELECT_GREAT_PERSON, {'great_person_name': choice.name}, civ=self)
+
+        if self.game_player is not None and self.game_player.active_tenet_choice_level is not None:
+            choices: list[TenetTemplate] = [t for t in TENETS.all() if t.advancement_level == self.game_player.active_tenet_choice_level]
+            choices = [t for t in choices if game_state.tenets_claimed_by_player_nums[t] == []]
+            if choices:
+                choice = random.choice(choices)
+                game_state.resolve_move(MoveType.CHOOSE_TENET, {'tenet_name': choice.name}, civ=self, game_player=self.game_player)
 
         my_cities = self.get_my_cities(game_state)
         my_territory_capitals = [city for city in my_cities if city.is_territory_capital]
@@ -524,6 +535,8 @@ class Civ:
             for civ in game_state.civs_by_id.values():
                 if civ.get_advancement_level() < my_age:
                     civ.gain_vps(-1, "Promise of Freedom")
+            if my_age > game_state.advancement_level:
+                self.gain_vps(1, "Promise of Freedom")
 
     def roll_turn_post_harvest(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)

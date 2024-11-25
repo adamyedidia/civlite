@@ -262,7 +262,7 @@ class GameState:
         self.built_wonders: dict[WonderTemplate, WonderBuiltInfo] = {}
         self.num_wonders_built_by_age: dict[int, int] = {age: 0 for age in range(0, 10)}
         self.wonder_vp_chunks_left_by_age: dict[int, int] = {}
-        self.available_wonders: list[WonderTemplate] = []
+        self.available_wonders_by_age: dict[int, list[WonderTemplate]] = {}
         self.one_per_civs_built_by_civ_id: dict[str, dict[str, str]] = {}  # civ_id: {building_name: city_id}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
@@ -1221,8 +1221,8 @@ class GameState:
         if not no_commit:
             sess.commit()
 
-    def wonder_buildable(self, wonder) -> bool:
-        if wonder.advancement_level > self.advancement_level:
+    def wonder_buildable(self, wonder, exclude_by_age: bool = True) -> bool:
+        if exclude_by_age and wonder.advancement_level > self.advancement_level:
             # Can't build it yet
             return False
         if wonder in self.built_wonders:
@@ -1234,7 +1234,11 @@ class GameState:
     def _refresh_available_wonders(self) -> None:
         # This only gets called after the game has fully rolled, so it wont' prevent the 2nd player building the wonder in the same turn
         # To make ties be generous.
-        self.available_wonders = [wonder for wonders in self.wonders_by_age.values() for wonder in wonders if self.wonder_buildable(wonder)]
+        self.available_wonders_by_age = {age: [wonder for wonder in wonders if self.wonder_buildable(wonder, exclude_by_age=False)] for age, wonders in self.wonders_by_age.items()}
+
+    @property
+    def available_wonders(self) -> list[WonderTemplate]:
+        return [wonder for age, wonders in self.available_wonders_by_age.items() for wonder in wonders if age <= self.advancement_level]
 
     def get_civ_by_name(self, civ_name: str) -> Civ:
         for civ in self.civs_by_id.values():
@@ -1256,6 +1260,7 @@ class GameState:
             "wonders_by_age": {age: [wonder.name for wonder in wonders] for age, wonders in self.wonders_by_age.items()},
             "built_wonders": {wonder.name: built_wonder.to_json() for wonder, built_wonder in self.built_wonders.items()},
             "available_wonders": [w.name for w in self.available_wonders],
+            "available_wonders_by_age": {age: [w.name for w in wonders] for age, wonders in self.available_wonders_by_age.items()},
             "one_per_civs_built_by_civ_id": {civ_id: {building_name: city_id for building_name, city_id in v.items()} for civ_id, v in self.one_per_civs_built_by_civ_id.items()},
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
@@ -1292,7 +1297,7 @@ class GameState:
         game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json) for wonder_name, wonder_json in json["built_wonders"].items()}
         game_state.num_wonders_built_by_age = {int(age): cost for age, cost in json["num_wonders_built_by_age"].items()}
         game_state.wonder_vp_chunks_left_by_age = {int(age): chunks for age, chunks in json["wonder_vp_chunks_left_by_age"].items()}
-        game_state.available_wonders = [WONDERS.by_name(wonder_name) for wonder_name in json["available_wonders"]]
+        game_state.available_wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["available_wonders_by_age"].items()}
         game_state.one_per_civs_built_by_civ_id = {civ_id: {building_name: city_id for building_name, city_id in v.items()} for civ_id, v in json["one_per_civs_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}

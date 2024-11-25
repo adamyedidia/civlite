@@ -2516,6 +2516,7 @@ export default function GamePage() {
             setGameState(declineViewGameState);
             setTechChoiceDialogOpen(false);
             setGreatPersonChoiceDialogOpen(false);
+            setIdeologyTreeOpen(false);
         } else {
             // If we are toggling back from the decline view
             setGameState(nonDeclineViewGameState);
@@ -3570,6 +3571,7 @@ export default function GamePage() {
                                 canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} 
                                 setTechChoiceDialogOpen={setTechChoiceDialogOpen} techChoiceDialogOpen={techChoiceDialogOpen}
                                 setGreatPersonChoiceDialogOpen={setGreatPersonChoiceDialogOpen} greatPersonChoiceDialogOpen={greatPersonChoiceDialogOpen}
+                                setIdeologyTreeOpen={setIdeologyTreeOpen} ideologyTreeOpen={ideologyTreeOpen}
                             />
                         }
 

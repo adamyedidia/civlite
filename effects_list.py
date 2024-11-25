@@ -397,6 +397,12 @@ class UpgradeTerrainEffect(CityTargetEffect):
             hex.yields = self.total_yields
             for possible_city in hex.get_neighbors(game_state.hexes, include_self=False):
                 if possible_city.city is not None:
-                    possible_city.city.terrains_dict[old_terrain_type] -= 1
-                    possible_city.city.terrains_dict[self.terrain] += 1
+                    if possible_city.city.terrains_dict[old_terrain_type] == 1:
+                        del possible_city.city.terrains_dict[old_terrain_type]
+                    else:
+                        possible_city.city.terrains_dict[old_terrain_type] -= 1
+                    if self.terrain in possible_city.city.terrains_dict:
+                        possible_city.city.terrains_dict[self.terrain] += 1
+                    else:
+                        possible_city.city.terrains_dict[self.terrain] = 1
 

@@ -516,7 +516,10 @@ class City(MapObjectSpawner):
             # Can always replace defensive units.
             min_level = 0
         self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level >= min_level and not self.has_building(u)], reverse=True)
-        self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders)
+        if self.civ.has_tenet(TENETS.GLORIOUS_ORDER):
+            self.available_wonders: list[WonderTemplate] = sorted(sum([game_state.available_wonders_by_age[i] for i in range(int(self.civ.get_advancement_level()) + 1)], []))
+        else:
+            self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders)
         self.available_city_buildings = self.civ.available_city_buildings
 
         self._update_city_building_descriptions(game_state)

@@ -10,7 +10,7 @@ from yields import Yields
 class TENETS():
     TALES_OF_SCHEHERAZADE = TenetTemplate(
         advancement_level=1,
-        name="Tales of Scheherazade",
+        name="Scheherazade's Tales",
         instant_effect=PointsEffect(lambda _c, _g: 5, label="Scheherazade", description="Gain 5 points."),
     )
 
@@ -35,19 +35,19 @@ class TENETS():
     RISE_OF_EQUALITY = TenetTemplate(
         advancement_level=2,
         name="Rise of Equality",
-        description="Gain 50 city power per turn on which your age is ahead of the global age."
+        description="Each turn all players in an age earlier than you lose 25 city_power; if your age is ahead of the game age, gain 25 city_power."
     )
 
     PROMISE_OF_FREEDOM = TenetTemplate(
         advancement_level=2,
         name="Promise of Freedom",
-        description="All players in an age earlier than you lose 1 vp per turn."
+        description="Each turn all players in an age earlier than you lose 1 vp; if your age is ahead of the game age, gain 1 vp."
     )
 
     HYMN_OF_UNITY = TenetTemplate(
         advancement_level=2,
         name="Hymn of Unity",
-        description="Instantly capture cities that are in an earlier age than yours.",
+        description="Instantly capture cities that are in an earlier age than yours without siege.",
     )
 
     GLORIOUS_ORDER = TenetTemplate(

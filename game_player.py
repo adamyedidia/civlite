@@ -40,6 +40,17 @@ class GamePlayer:
             self.tenets[tenet] = tenet.initialize_data(self)
         else:
             self.tenets[tenet] = {}
+        if tenet.instant_effect is not None:
+            civ = self.get_current_civ(game_state)
+            target = civ.capital_city(game_state)
+            if target is None:
+                my_cities = civ.get_my_cities(game_state)
+                if my_cities:
+                    target = max(my_cities, key=lambda c: c.population)
+                else:
+                    target = None
+            if target is not None:
+                tenet.instant_effect.apply(city=target, game_state=game_state)
         self.update_active_tenet_choice_level(game_state)
 
     def get_current_civ(self, game_state: 'GameState') -> 'Civ':
