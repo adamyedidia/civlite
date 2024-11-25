@@ -35,7 +35,7 @@ class TENETS():
     RISE_OF_EQUALITY = TenetTemplate(
         advancement_level=2,
         name="Rise of Equality",
-        description="Each turn all players in an age earlier than you lose 25 city_power; if your age is ahead of the game age, gain 25 city_power."
+        description="Steal 10 city_power income from all players in an age earlier than you."
     )
 
     PROMISE_OF_FREEDOM = TenetTemplate(
@@ -53,8 +53,7 @@ class TENETS():
     GLORIOUS_ORDER = TenetTemplate(
         advancement_level=2,
         name="Glorious Order",
-        description="You can build wonders from your civ's age when ahead of the global age. Your cities demand 1 less food per wonder your ideology has built.",
-        initialize_data=lambda game_player: {"num_wonders_built": game_player.score_dict.get("Wonders", 0) / WONDER_VPS}
+        description="You can build wonders from your civ's age when ahead of the global age. Cities in ages behind yours demand 4 more food per turn.",
     )
 
     # all & by_name are copy-pasted methods to all template lists.

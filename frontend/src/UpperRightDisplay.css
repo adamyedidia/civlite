@@ -343,6 +343,43 @@ h2.tech-name {
 
 /*
 ==========================================
+============== IDEOLOGY AREA =============
+==========================================
+*/
+
+.ideology-area .panel-content{
+    border-color: #d3cb2c;
+    background-color: #f5f2c2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;   
+}
+
+.ideology-area .level-markers {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+}
+
+.ideology-area .level {
+    display: flex;
+    align-items: flex-start;
+    justify-content: left;
+    gap: 5px;
+    width: 100%;
+    border-top: 2px solid #00000033;
+    padding-top: 5px;
+}
+
+.ideology-area .level .tenet-marker.inactive {
+    opacity: 0.3;
+}
+
+/*
+==========================================
 =============== SCORE AREA ===============
 ==========================================
 */

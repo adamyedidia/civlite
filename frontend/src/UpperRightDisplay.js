@@ -9,6 +9,8 @@ import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import workerImg from './images/worker.png';
 import wonderImg from './images/wonders.png';
+import ideologyImg from './images/ideology.png';
+import fireImg from './images/fire.svg';
 import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
 import { TextOnIcon } from './TextOnIcon.js';
@@ -376,9 +378,46 @@ const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTec
     </CivDetailPanel>
 }
 
+const A2TenetIcon = ({tenetName}) => {
+    const img = tenetName === "Rise of Equality" ? cityImg : tenetName === "Promise of Freedom" ? vpImg : tenetName === "Glorious Order" ? sadImg : tenetName === "Hymn of Unity" ? fireImg : "";
+    return <img src={img} alt={tenetName} height="20px"/>
+}
+
+const IdeologyLevelDisplay = ({lvl, tenets, myPlayerNum, myCiv, templates, setHoveredTenet}) => {
+    const opponentTenets = tenets.filter(tenet => tenet.player_num !== myPlayerNum);
+    return <div className={`level ${lvl > myCiv.advancement_level ? 'active' : ''}`}>
+        <div style={{width: "30px"}}>{romanNumeral(lvl)}</div>
+        {myCiv.advancement_level === lvl && <span>★</span>}
+        {opponentTenets.map((tenet, index) => (
+            <div key={index} className={`tenet-marker ${lvl <= myCiv.advancement_level ? 'inactive' : 'active'}`} onMouseEnter={() => setHoveredTenet(templates.TENETS[tenet.tenet])} onMouseLeave={() => setHoveredTenet(null)}>
+                <A2TenetIcon tenetName={tenet.tenet}/>
+            </div>
+        ))}
+    </div>
+}
+
+const IdeologyDisplay = ({myCiv, myPlayerNum, gameState, templates, setIdeologyTreeOpen, setHoveredTenet}) => {
+    const levelMarkers = gameState?.advancement_level_tenets_display
+    let levelsToDisplay = [...new Set(levelMarkers.map(marker => marker[0]))];
+    if (!levelsToDisplay.includes(myCiv.advancement_level)) {
+        levelsToDisplay.push(myCiv.advancement_level);
+    }
+    levelsToDisplay.sort((a, b) => b - a);
+    return <CivDetailPanel title='ideology' icon={ideologyImg} iconTooltip="Ideology" bignum="">
+        <Button variant="contained" color="primary" onClick={() => setIdeologyTreeOpen(true)}>
+            Ideologies
+        </Button>
+        <div className="level-markers">
+            {levelsToDisplay.map((lvl, index) => {
+                const tenets = levelMarkers.filter(marker => marker[0] === lvl)[0][1];
+                return <IdeologyLevelDisplay key={index} lvl={lvl} tenets={tenets} myPlayerNum={myPlayerNum} myCiv={myCiv} templates={templates} setHoveredTenet={setHoveredTenet}/>
+            })}
+        </div>
+    </CivDetailPanel>
+}
 const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disableUI, centerMap, declineOptionsView,
     templates,
-    setConfirmEnterDecline, setTechChoiceDialogOpen, setHoveredUnit, setHoveredBuilding, setHoveredTech, 
+    setConfirmEnterDecline, setTechChoiceDialogOpen, setIdeologyTreeOpen, setHoveredUnit, setHoveredBuilding, setHoveredTech, setHoveredTenet,
     toggleFoundingCity, myCiv, myGamePlayer, myCities, setTechListDialogOpen, 
     turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, setHoveredWonder, civsById, declineViewCivsById}) => {
     return (
@@ -393,6 +432,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
                 declineViewGameState={declineViewGameState} mainGameState={mainGameState} templates={templates}
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
                 declineViewCivsById={declineViewCivsById}/>}
+            {myCiv && <IdeologyDisplay myCiv={myCiv} myPlayerNum={myGamePlayer?.player_num} gameState={mainGameState} templates={templates} setIdeologyTreeOpen={setIdeologyTreeOpen} setHoveredTenet={setHoveredTenet}/>}
             {myGamePlayer?.score > 0 && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={mainGameState.game_end_score} gameState={mainGameState}/>}
         </div>
     );

@@ -870,6 +870,25 @@ class GameState:
         for player in self.game_player_by_player_num.values():
             player.update_active_tenet_choice_level(self)
 
+    def advancement_level_tenets_display(self):
+        data = []
+        for player in self.game_player_by_player_num.values():
+            a2_tenets = [t for t in player.tenets if t.advancement_level == 2]
+            for tenet in a2_tenets:
+                data.append({
+                    "player_num": player.player_num,
+                    "advancement_level": player.get_current_civ(self).get_advancement_level(),
+                    "tenet": tenet.name,
+                })
+        # Now gather by level
+        result = {}
+        for d in data:
+            if d["advancement_level"] not in result:
+                result[d["advancement_level"]] = []
+            result[d["advancement_level"]].append(d)
+        result = sorted(result.items())
+        return result
+
     def load_and_update_from_player_moves(self, moves_by_player_num: dict[int, list]) -> None:
         # Defaults to being permissive; city_ids that exist will cause it to be the case that
         # only commands from that player's player num get respected
@@ -1155,10 +1174,6 @@ class GameState:
         if civ.has_ability('ExtraVpsPerWonder'):
             civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerWonder')[0], civ.template.name)
 
-        if civ.has_tenet(TENETS.GLORIOUS_ORDER):
-            assert civ.game_player is not None  # This is guaranteed by civ.has_tenet
-            civ.game_player.tenets[TENETS.GLORIOUS_ORDER]["num_wonders_built"] += 1
-
         self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={wonder.name}>{wonder.name}<wonder>!')
         self.add_parsed_announcement({
             "turn_num": self.turn_num,
@@ -1278,6 +1293,7 @@ class GameState:
             "wonder_vp_chunks_left_by_age": self.wonder_vp_chunks_left_by_age,
             "vp_chunks_total_per_age": len(self.game_player_by_player_num),
             "tenets_claimed_by_player_nums": {t.name: value for t, value in self.tenets_claimed_by_player_nums.items()},
+            "advancement_level_tenets_display": self.advancement_level_tenets_display(),
         }
 
     @staticmethod

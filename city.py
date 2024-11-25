@@ -442,9 +442,9 @@ class City(MapObjectSpawner):
             result -= ability.numbers[1]
         for ability, _ in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
             result -= ability.numbers[0] + ability.numbers[1]
-        if self.civ.has_tenet(TENETS.GLORIOUS_ORDER):
-            assert self.civ.game_player is not None  # Guaranteed by civ.has_tenet
-            result -= self.civ.game_player.tenets[TENETS.GLORIOUS_ORDER]["num_wonders_built"]
+        for game_player in game_state.game_player_by_player_num.values():
+            if game_player.has_tenet(TENETS.GLORIOUS_ORDER) and game_player.get_current_civ(game_state).get_advancement_level() > self.civ.get_advancement_level():
+                result += 4
         parent = self.get_territory_parent(game_state)
         if parent is not None:
             for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):

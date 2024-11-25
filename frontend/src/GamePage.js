@@ -3452,7 +3452,9 @@ export default function GamePage() {
                         setHoveredTech={setHoveredTech}
                         setHoveredCiv={setHoveredCiv}
                         setHoveredWonder={setHoveredWonder}
+                        setHoveredTenet={setHoveredTenet}
                         setTechChoiceDialogOpen={setTechChoiceDialogOpen}
+                        setIdeologyTreeOpen={setIdeologyTreeOpen}
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
                         isFoundingCity={foundingCity}
@@ -3522,9 +3524,6 @@ export default function GamePage() {
                                     </Typography>
                                 </div>
                                 </WithTooltip>
-                            </div>
-                            <div onClick={() => setIdeologyTreeOpen(true)}>
-                                <img src={ideologyImg} height="60px"/>
                             </div>
                         </>}
                     </div>

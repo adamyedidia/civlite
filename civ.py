@@ -116,12 +116,11 @@ class Civ:
                 self.projected_science_income += city.projected_income.science
                 self.projected_city_power_income += city.projected_income.city_power
         
-        if self.has_tenet(TENETS.RISE_OF_EQUALITY):
-            if self.get_advancement_level() > game_state.advancement_level:
-                self.projected_city_power_income += 25
         for player in game_state.game_player_by_player_num.values():
             if player.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() > self.get_advancement_level():
-                self.projected_city_power_income -= 25
+                self.projected_city_power_income -= 10
+            if self.has_tenet(TENETS.GLORIOUS_ORDER) and player.get_current_civ(game_state).get_advancement_level() < self.get_advancement_level():
+                self.projected_city_power_income += 10
 
     def has_tech(self, tech: TechTemplate) -> bool:
         return self.techs_status[tech] == TechStatus.RESEARCHED
