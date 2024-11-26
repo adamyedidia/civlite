@@ -100,8 +100,9 @@ class TENETS():
     FOUNTAIN_OF_YOUTH = TenetTemplate(
         advancement_level=3,
         name="Fountain of Youth",
-        description="Placeholder",
-        instant_effect=PointsEffect(lambda _c, _g: 1, label="Fountain of Youth", description="Gain 1 vp."),
+        description="Your vitality decays at 90% the normal rate.",
+        quest_description="Spend 10 turns with less than 50% vitality.",
+        quest_target=10,
     )
 
     YGGDRASILS_SEEDS = TenetTemplate(

@@ -555,7 +555,14 @@ class Civ:
                     "tech": researching_tech.name,
                 }, self)
 
-        self.vitality *= VITALITY_DECAY_RATE        
+        if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) and self.vitality < 0.5:
+            assert self.game_player is not None  # guaranteed by has_tenet
+            self.game_player.increment_tenet_progress(TENETS.FOUNTAIN_OF_YOUTH)
+
+        vitality_decay_rate = VITALITY_DECAY_RATE
+        if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH, check_complete_quest=True):
+            vitality_decay_rate = 1 - (0.9 * (1 - vitality_decay_rate))
+        self.vitality *= vitality_decay_rate
         self.update_max_territories(game_state)
 
     def from_json_postprocess(self, game_state: 'GameState') -> None:
