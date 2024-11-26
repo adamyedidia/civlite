@@ -1260,10 +1260,30 @@ class GameState:
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         if self.game_over:
             from_civ_perspectives = None
+        hexes = {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()}
+        for civ in from_civ_perspectives or self.civs_by_id.values():
+            if civ.game_player is None:
+                continue
+            game_player = civ.game_player
+            quest_tenets = [t for t in game_player.tenets if t.quest_target > 0]
+            if len(quest_tenets) == 0:
+                continue
+            quest_tenet = quest_tenets[0]
+            if game_player.has_tenet(quest_tenet, check_complete_quest=True):
+                continue
+            quest_data = game_player.tenets[quest_tenet]
+            # At this point game_player has quest_tenet as an open quest with quest_data.
+            if quest_tenet == TENETS.EL_DORADO:
+                for coords in quest_data['hexes']:
+                    hexes[coords]['quest'] = "El Dorado"
+            if quest_tenet == TENETS.HOLY_GRAIL:
+                holy_city = self.cities_by_id.get(quest_data['holy_city_id'])
+                if holy_city is not None:
+                    hexes[holy_city.hex.coords]['quest'] = "Holy Grail"
 
         return {
             "game_id": self.game_id,
-            "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
+            "hexes": hexes,
             "civs_by_id": {civ_id: civ.to_json() for civ_id, civ in self.civs_by_id.items()},
             "cities_by_id": {city_id: city.to_json() for city_id, city in self.cities_by_id.items()},
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},

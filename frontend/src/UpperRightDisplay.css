@@ -378,6 +378,21 @@ h2.tech-name {
     opacity: 0.3;
 }
 
+.ideology-area .ideology-columns {
+    display: flex;
+    flex-direction: row;
+    align-items: space-between;
+    width: 100%;
+}
+
+.ideology-area .ideology-columns .ideology-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 45%;
+}
+
 /*
 ==========================================
 =============== SCORE AREA ===============

@@ -396,7 +396,7 @@ const IdeologyLevelDisplay = ({lvl, tenets, myPlayerNum, myCiv, templates, setHo
     </div>
 }
 
-const IdeologyDisplay = ({myCiv, myPlayerNum, gameState, templates, setIdeologyTreeOpen, setHoveredTenet}) => {
+const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeologyTreeOpen, setHoveredTenet}) => {
     const levelMarkers = gameState?.advancement_level_tenets_display
     let levelsToDisplay = [...new Set(levelMarkers.map(marker => marker.advancement_level))];
     if (!levelsToDisplay.includes(myCiv.advancement_level)) {
@@ -407,11 +407,20 @@ const IdeologyDisplay = ({myCiv, myPlayerNum, gameState, templates, setIdeologyT
         <Button variant="contained" color="primary" onClick={() => setIdeologyTreeOpen(true)}>
             Ideologies
         </Button>
-        <div className="level-markers">
-            {levelsToDisplay.map((lvl, index) => {
-                const tenets = levelMarkers.filter(marker => marker.advancement_level === lvl);
-                return <IdeologyLevelDisplay key={index} lvl={lvl} tenets={tenets} myPlayerNum={myPlayerNum} myCiv={myCiv} templates={templates} setHoveredTenet={setHoveredTenet}/>
-            })}
+        <div className='ideology-columns'>
+            {myGamePlayer.tenets.length > 1 && <div className="ideology-column">
+                <div className="ideology-column-title">Ideals</div>
+                <div className="level-markers">
+                    {levelsToDisplay.map((lvl, index) => {
+                        const tenets = levelMarkers.filter(marker => marker.advancement_level === lvl);
+                        return <IdeologyLevelDisplay key={index} lvl={lvl} tenets={tenets} myPlayerNum={myGamePlayer?.player_num} myCiv={myCiv} templates={templates} setHoveredTenet={setHoveredTenet}/>
+                    })}
+                </div>
+            </div>}
+            {myGamePlayer.tenets.length > 2 && <div className="ideology-column">
+                <div className="ideology-column-title">Quest</div>
+                <div className="quest-progress">{myGamePlayer.tenet_quest.progress}/{myGamePlayer.tenet_quest.target}</div>
+            </div>}
         </div>
     </CivDetailPanel>
 }
@@ -432,7 +441,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
                 declineViewGameState={declineViewGameState} mainGameState={mainGameState} templates={templates}
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
                 declineViewCivsById={declineViewCivsById}/>}
-            {myCiv && <IdeologyDisplay myCiv={myCiv} myPlayerNum={myGamePlayer?.player_num} gameState={mainGameState} templates={templates} setIdeologyTreeOpen={setIdeologyTreeOpen} setHoveredTenet={setHoveredTenet}/>}
+            {myCiv && <IdeologyDisplay myCiv={myCiv} myGamePlayer={myGamePlayer} gameState={mainGameState} templates={templates} setIdeologyTreeOpen={setIdeologyTreeOpen} setHoveredTenet={setHoveredTenet}/>}
             {myGamePlayer?.score > 0 && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={mainGameState.game_end_score} gameState={mainGameState}/>}
         </div>
     );
