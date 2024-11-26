@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 
 
 class TenetTemplate:
-    def __init__(self, name, advancement_level, initialize_data: Callable[['GamePlayer'], dict] | None=None, description: str | None=None, instant_effect: CityTargetEffect | None=None, quest_description: str | None=None):
+    def __init__(self, name, advancement_level, initialize_data: Callable[['GamePlayer'], dict] | None=None, description: str | None=None, instant_effect: CityTargetEffect | None=None, quest_description: str | None=None, quest_target: int = 0):
         self.name = name
         if description is not None:
             self.description = description
@@ -18,6 +18,7 @@ class TenetTemplate:
         self.quest_description = quest_description
         self.instant_effect = instant_effect
         self.initialize_data = initialize_data
+        self.quest_target = quest_target
 
     def to_json(self):
         return {

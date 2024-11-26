@@ -119,14 +119,14 @@ class Civ:
         for player in game_state.game_player_by_player_num.values():
             if player.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() > self.get_advancement_level():
                 self.projected_city_power_income -= 10
-            if self.has_tenet(TENETS.GLORIOUS_ORDER) and player.get_current_civ(game_state).get_advancement_level() < self.get_advancement_level():
+            if self.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() < self.get_advancement_level():
                 self.projected_city_power_income += 10
 
     def has_tech(self, tech: TechTemplate) -> bool:
         return self.techs_status[tech] == TechStatus.RESEARCHED
 
-    def has_tenet(self, tenet: TenetTemplate) -> bool:
-        return self.game_player is not None and tenet in self.game_player.tenets
+    def has_tenet(self, tenet: TenetTemplate, check_complete_quest: bool = False) -> bool:
+        return self.game_player is not None and self.game_player.has_tenet(tenet, check_complete_quest)
 
     @property
     def researching_tech(self) -> TechTemplate | None:
@@ -488,6 +488,8 @@ class Civ:
 
         if tech != TECHS.RENAISSANCE:
             self.gain_vps(TECH_VP_REWARD * tech.advancement_level, f"Research ({TECH_VP_REWARD}/tech level)")
+            if self.has_tenet(TENETS.RATIONALISM):
+                self.gain_vps(min(0, tech.advancement_level - 3), f"Rationalism")
 
             for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
                 amount = ability.numbers[0] * tech.advancement_level

@@ -398,7 +398,7 @@ const IdeologyLevelDisplay = ({lvl, tenets, myPlayerNum, myCiv, templates, setHo
 
 const IdeologyDisplay = ({myCiv, myPlayerNum, gameState, templates, setIdeologyTreeOpen, setHoveredTenet}) => {
     const levelMarkers = gameState?.advancement_level_tenets_display
-    let levelsToDisplay = [...new Set(levelMarkers.map(marker => marker[0]))];
+    let levelsToDisplay = [...new Set(levelMarkers.map(marker => marker.advancement_level))];
     if (!levelsToDisplay.includes(myCiv.advancement_level)) {
         levelsToDisplay.push(myCiv.advancement_level);
     }
@@ -409,7 +409,7 @@ const IdeologyDisplay = ({myCiv, myPlayerNum, gameState, templates, setIdeologyT
         </Button>
         <div className="level-markers">
             {levelsToDisplay.map((lvl, index) => {
-                const tenets = levelMarkers.filter(marker => marker[0] === lvl)[0][1];
+                const tenets = levelMarkers.filter(marker => marker.advancement_level === lvl);
                 return <IdeologyLevelDisplay key={index} lvl={lvl} tenets={tenets} myPlayerNum={myPlayerNum} myCiv={myCiv} templates={templates} setHoveredTenet={setHoveredTenet}/>
             })}
         </div>

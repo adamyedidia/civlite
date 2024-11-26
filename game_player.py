@@ -29,8 +29,16 @@ class GamePlayer:
     def score(self) -> int:
         return sum(self.score_dict.values())
     
-    def has_tenet(self, tenet: TenetTemplate) -> bool:
-        return tenet in self.tenets
+    def has_tenet(self, tenet: TenetTemplate, check_complete_quest: bool = False) -> bool:
+        if not tenet in self.tenets:
+            return False
+        if check_complete_quest and tenet.quest_target > 0:
+            return self.tenets[tenet]["progress"] >= tenet.quest_target
+        return True
+    
+    def increment_tenet_progress(self, tenet: TenetTemplate):
+        if tenet.quest_target > 0:
+            self.tenets[tenet]["progress"] += 1
 
     def select_tenet(self, tenet: TenetTemplate, game_state: 'GameState'):
         if STRICT_MODE:
@@ -40,6 +48,8 @@ class GamePlayer:
             self.tenets[tenet] = tenet.initialize_data(self)
         else:
             self.tenets[tenet] = {}
+        if tenet.quest_target > 0:
+            self.tenets[tenet]["progress"] = 0
         if tenet.instant_effect is not None:
             civ = self.get_current_civ(game_state)
             target = civ.capital_city(game_state)

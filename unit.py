@@ -1,7 +1,9 @@
 from math import ceil
 import random
 from typing import TYPE_CHECKING, Generator, Optional
+from civ_templates_list import CIVS
 from map_object import MapObject
+from tenet_template_list import TENETS
 from wonder_templates_list import WONDERS
 from settings import UNIT_KILL_REWARD, DAMAGE_DOUBLE_EXPONENT, DAMAGE_EQUAL_STR
 from unit_template import UnitTemplate, UnitTag
@@ -242,6 +244,9 @@ class Unit(MapObject):
             for _ in range(original_stack_size - final_stack_size):
                 from_civ.gain_vps(UNIT_KILL_REWARD, f"Unit Kill ({UNIT_KILL_REWARD}/unit)")
 
+                if from_civ is not None and from_civ.has_tenet(TENETS.HONOR) and self.civ == CIVS.BARBARIAN:
+                    from_civ.gain_vps(UNIT_KILL_REWARD, f"Honor")
+
                 if from_civ.has_ability('ExtraVpsPerUnitKilled') and from_unit is not None:
                     tag, amount = from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')
                     if tag is None or from_unit.template.has_tag_by_name(tag):
@@ -256,6 +261,9 @@ class Unit(MapObject):
 
                 for ability, _ in from_civ.passive_building_abilities_of_name('CityPowerPerKill', game_state):
                     from_civ.city_power += ability.numbers[0]
+
+                if (from_civ.has_tenet(TENETS.NINJAS) and self.template.has_tag(UnitTag.INFANTRY)) or (from_civ.has_tenet(TENETS.DRAGONS) and self.template.has_tag(UnitTag.MOUNTED)) or (from_civ.has_tenet(TENETS.GIANTS) and self.template.has_tag(UnitTag.SIEGE)) or (from_civ.has_tenet(TENETS.UNICORNS) and self.template.has_tag(UnitTag.MOUNTED)):
+                    from_civ.city_power += 10
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
         self_hex_coords = self.hex.coords

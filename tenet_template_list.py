@@ -56,6 +56,83 @@ class TENETS():
         description="You can build wonders from your civ's age when ahead of the global age. Cities in ages behind yours demand 4 more food per turn.",
     )
 
+    HOLY_GRAIL = TenetTemplate(
+        advancement_level=3,
+        name="Holy Grail",
+        description="Placeholder",
+        instant_effect=PointsEffect(lambda _c, _g: 1, label="Holy Grail", description="Gain 1 vp."),
+    )
+
+    EL_DORADO = TenetTemplate(
+        advancement_level=3,
+        name="El Dorado",
+        description="Placeholder",
+        instant_effect=PointsEffect(lambda _c, _g: 1, label="", description="Gain 1 vp."),
+    )
+
+    FOUNTAIN_OF_YOUTH = TenetTemplate(
+        advancement_level=3,
+        name="Fountain of Youth",
+        description="Placeholder",
+        instant_effect=PointsEffect(lambda _c, _g: 1, label="Fountain of Youth", description="Gain 1 vp."),
+    )
+
+    YGGDRASILS_SEEDS = TenetTemplate(
+        advancement_level=3,
+        name="Yggdrasils Seeds",
+        description="New cities you build immediately expand twice and start with 50 food, 50 wood, and 50 metal.",
+        quest_description="Build 4 cities on forests.",
+        quest_target=4,
+    )
+
+    FAITH = TenetTemplate(
+        advancement_level=4,
+        name="Faith",
+        description="Gain double vps for wonder crowns.",
+    )
+
+    RATIONALISM = TenetTemplate(
+        advancement_level=4,
+        name="Rationalism",
+        description="Upon completing a tech, gain extra vps for its level above III.",
+    )
+
+    HONOR = TenetTemplate(
+        advancement_level=4,
+        name="Honor",
+        description="Gain double vps for fighting barbarian units and camps.",
+    )
+
+    COMMUNITY = TenetTemplate(
+        advancement_level=4,
+        name="Community",
+        description="Gain double vps for developing in your cities.",
+    )
+
+    DRAGONS = TenetTemplate(
+        advancement_level=5,
+        name="Dragons",
+        description="+10 city power for each kill by a ranged unit.",
+    )
+
+    UNICORNS = TenetTemplate(
+        advancement_level=5,
+        name="Unicorns",
+        description="+10 city power for each kill by a mounted unit.",
+    )
+
+    GIANTS = TenetTemplate(
+        advancement_level=5,
+        name="Giants",
+        description="+10 city power for each kill by a seige unit.",
+    )
+
+    NINJAS = TenetTemplate(
+        advancement_level=5,
+        name="Ninjas",
+        description="+10 city power for each kill by an infantry unit.",
+    )
+
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
     # That handled the dynamic type properly.

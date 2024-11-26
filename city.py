@@ -185,6 +185,19 @@ class City(MapObjectSpawner):
             if adopt_focus:
                 self.focus = choice.focus
 
+            # Take all the wood and metal over.
+            new_parent = self.get_territory_parent(game_state)
+            assert new_parent is not None
+            distance = self.hex.distance_to(new_parent.hex)
+            penalty = new_parent.puppet_distance_penalty(distance)
+            new_parent.wood += self.wood * penalty
+            self.wood = 0
+            for bldg in new_parent.unit_buildings:
+                new_parent.metal += bldg.metal * penalty
+                bldg.metal = 0
+            new_parent.metal += self.metal * penalty
+            self.metal = 0
+
     @property
     def is_territory_capital(self) -> bool:
         return self._territory_parent_id is None
@@ -908,7 +921,9 @@ class City(MapObjectSpawner):
         if not free:
             self.civ.city_power -= self.develop_cost(type)
             self.develops_this_civ[type] += 1
-        self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)    
+        self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)  
+        if self.civ.has_tenet(TENETS.COMMUNITY):
+            self.civ.gain_vps(DEVELOP_VPS, "Community")
         if self.civ.has_ability("OnDevelop"):
             civ_type, effect = self.civ.numbers_of_ability("OnDevelop")
             if civ_type == type:
@@ -1007,7 +1022,6 @@ class City(MapObjectSpawner):
 
         # Fix territory parent lines
         self.orphan_territory_children(game_state)
-        self.set_territory_parent_if_needed(game_state, adopt_focus=True)
 
         # Reset various properties
         self.under_siege_by_civ = None
@@ -1022,6 +1036,7 @@ class City(MapObjectSpawner):
         self.metal = 0
         for bldg in self.unit_buildings:
             bldg.metal = 0
+        self.set_territory_parent_if_needed(game_state, adopt_focus=True)
 
         # Update available stuff
         self.midturn_update(game_state)

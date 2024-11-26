@@ -3,7 +3,7 @@
     padding: 10px;
     margin: 10px;
     border-radius: 5px;
-    background-color: #f8cbf0;
+    background-color: #d3cb2c;
     cursor: default;
     width: 500px;
 }
@@ -19,27 +19,23 @@
 }
 
 .tenet-card.available {
-    background-color: #f6e7f3;
-}
-
-.tenet-card.taken {
-    background-color: #f6a7e8;
+    background-color: #f5f2c2;
 }
 
 .tenet-card.unavailable {
-    background-color: #d1b4cb;
+    background-color: #f5f2c2;
     opacity: 0.5;
 }
 
 .tenet-card.active-choice {
-    background-color: #d6c0d1;
+    background-color: #d3cb2c;
     cursor: pointer;
     animation: pulse 1s infinite;
 }
 
 .tenet-card.active-choice:hover {
     transform: scale(1.1);
-    background-color: #f6e7f3;
+    background-color: #fbf24f;
 }
 
 .tenet-card .tenet-name {
@@ -50,7 +46,43 @@
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    border-top: 2px dashed #d3cb2c;
+    padding-top: 10px;
+    width: 100%;
+}
+
+.tenet-level-box.future {
+    opacity: 0.5;
+}
+
+.tenet-level-box.active-choice {
+    background-color: #fbf24f;
+}
+
+.tenet-level-box-header {
+    width: 8%;
+    text-align: left;
+}
+
+.tenet-level-box-content {
+    width: 90%;
+}
+
+.tenet-choices-list {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.chosen-tenet-level-box {
+    width: 100%;
+    background-color: #fbf24f;
+    border-radius: 10px;
+    border: 1px solid #d3cb2c;
+    padding: 2px 10px;
 }
 
 .tenet-dialog-content {

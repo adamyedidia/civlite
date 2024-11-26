@@ -14,9 +14,7 @@ export const TenetDisplay = ({ tenet }) => {
 
 const TenetCardSmall = ({ tenet, handleClickTenet, setHoveredTenet, gameState, myGamePlayer }) => {
     const claimedByPlayers = gameState.tenets_claimed_by_player_nums[tenet.name]
-    console.log(myGamePlayer.tenets[tenet.name])
-    const status = myGamePlayer.tenets[tenet.name] !== undefined ? "taken" : 
-        claimedByPlayers.length > 0 ? "unavailable" : 
+    const status = claimedByPlayers.length > 0 ? "unavailable" : 
         myGamePlayer.active_tenet_choice_level == tenet.advancement_level ? "active-choice" : "available";
     return <div className={`tenet-card ${status}`}
         onClick={() => handleClickTenet(tenet)} onMouseEnter={() => setHoveredTenet(tenet)} onMouseLeave={() => setHoveredTenet(null)}>
@@ -24,12 +22,50 @@ const TenetCardSmall = ({ tenet, handleClickTenet, setHoveredTenet, gameState, m
     </div>
 }
 
+const IDEOLOGY_LEVEL_STRINGS = [
+    {},
+    {"question": "What are our oldest legends?", "header": "Legend"},
+    {"question": "Where will we lead the world?", "header": "Aspiration"},
+    {"question": "What do we seek?", "header": "Quest"},
+    {"question": "How do we build a better world?", "header": "Path"},
+    {"question": "What fantasies inspire our children?", "header": "Tales"},
+    {"question": "What stories do we remember?", "header": "History"},
+    {"question": "", "header": ""},
+    {"question": "", "header": ""},
+    {"question": "", "header": ""},
+]
+
 const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTenet, setHoveredTenet}) => {
-    return <div className="tenet-level-box">
-        {romanNumeral(level)}
-        {tenets.map((tenet, index) => 
-            <TenetCardSmall tenet={tenet} key={index} handleClickTenet={handleClickTenet} setHoveredTenet={setHoveredTenet} gameState={gameState} myGamePlayer={myGamePlayer}/>
-        )}
+    const myTenet = tenets.find(tenet => myGamePlayer.tenets[tenet.name] !== undefined);
+    const future = myTenet === undefined && level > myGamePlayer.active_tenet_choice_level;
+    const status = future ? "future" : level == myGamePlayer.active_tenet_choice_level ? "active-choice" : "";
+    return <div className={`tenet-level-box ${status}`}>
+        <div className="tenet-level-box-header">
+            {romanNumeral(level)}. {IDEOLOGY_LEVEL_STRINGS[level].header}
+        </div>
+        <div className="tenet-level-box-content">
+        {myTenet !== undefined ? 
+            <ChosenTenetLevelBox tenet={myTenet} setHoveredTenet={setHoveredTenet}/> 
+            :
+            <>
+            <Typography variant="body1" style={{textAlign: "center"}}>
+                {IDEOLOGY_LEVEL_STRINGS[level].question}
+            </Typography>
+            <div className="tenet-choices-list">
+                {tenets.map((tenet, index) => 
+                    <TenetCardSmall tenet={tenet} key={index} handleClickTenet={handleClickTenet} setHoveredTenet={setHoveredTenet} gameState={gameState} myGamePlayer={myGamePlayer}/>
+                )}
+            </div>
+            </>
+        }
+        </div>
+    </div>
+}
+
+const ChosenTenetLevelBox = ({ tenet, setHoveredTenet }) => {
+    return <div className="chosen-tenet-level-box">
+        <Typography variant="h6" className="tenet-name"> {tenet.name} </Typography>
+        <Typography variant="body1" className="tenet-description"> {tenet.description} </Typography>
     </div>
 }
 
@@ -79,6 +115,9 @@ const IdeologyTreeDialog = ({open, onClose, handleClickTenet, setHoveredTenet, t
             <DialogContent className="tenet-dialog-content">
                 {tenetLevelBox(1)}
                 {tenetLevelBox(2)}
+                {tenetLevelBox(3)}
+                {tenetLevelBox(4)}
+                {tenetLevelBox(5)}
             </DialogContent>
         </Dialog>
     )

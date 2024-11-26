@@ -2,6 +2,7 @@ import math
 from typing import Any, Generator, Optional
 from animation_frame import AnimationFrame
 from building import QueueEntry
+from building_template import BuildingType
 from camp import Camp
 from collections import defaultdict
 from city import City, get_city_name_for_civ
@@ -14,6 +15,7 @@ from region import Region
 from settings import GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
 from tenet_template import TenetTemplate
 from tenet_template_list import TENETS
+from terrain_template import TerrainTemplate
 from terrain_templates_list import TERRAINS
 from unit_building import UnitBuilding
 from wonder_templates_list import WONDERS
@@ -372,10 +374,20 @@ class GameState:
         civ.city_power -= 100
         city = self.new_city(civ, hex, city_id)
         self.register_city(city)
-        city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
 
         civ.gain_vps(2, "Founded Cities (2/city)")
-    
+        if civ.has_tenet(TENETS.YGGDRASILS_SEEDS) and hex.terrain == TERRAINS.FOREST:
+            assert civ.game_player is not None  # guaranteed by has_tenet
+            civ.game_player.increment_tenet_progress(TENETS.YGGDRASILS_SEEDS)
+        if civ.has_tenet(TENETS.YGGDRASILS_SEEDS, check_complete_quest=True):
+            city.food += 50
+            city.wood += 50
+            city.metal += 50
+            city.develop(BuildingType.RURAL, self, free=True)
+            city.develop(BuildingType.RURAL, self, free=True)
+
+        city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
+
         self.refresh_foundability_by_civ()
         return city
 
@@ -773,17 +785,6 @@ class GameState:
                 # Transfer the expansion costs.
                 city.develops_this_civ = instead_of_city.develops_this_civ
                 instead_of_city.develops_this_civ = {key: 0 for key in instead_of_city.develops_this_civ}
-
-                # Take all the wood and metal over.
-                new_parent = instead_of_city.get_territory_parent(self)
-                assert new_parent is not None
-                new_parent.wood += instead_of_city.wood
-                instead_of_city.wood = 0
-                for bldg in new_parent.unit_buildings:
-                    new_parent.metal += bldg.metal
-                    bldg.metal = 0
-                new_parent.metal += instead_of_city.metal
-                instead_of_city.metal = 0
             if previous_parent is not None and previous_parent.id != instead_of_city_id:
                 previous_parent.orphan_territory_children(self, make_new_territory=False)
 
@@ -880,14 +881,7 @@ class GameState:
                     "advancement_level": player.get_current_civ(self).get_advancement_level(),
                     "tenet": tenet.name,
                 })
-        # Now gather by level
-        result = {}
-        for d in data:
-            if d["advancement_level"] not in result:
-                result[d["advancement_level"]] = []
-            result[d["advancement_level"]].append(d)
-        result = sorted(result.items())
-        return result
+        return data
 
     def load_and_update_from_player_moves(self, moves_by_player_num: dict[int, list]) -> None:
         # Defaults to being permissive; city_ids that exist will cause it to be the case that
@@ -1173,6 +1167,8 @@ class GameState:
         
         if civ.has_ability('ExtraVpsPerWonder'):
             civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerWonder')[0], civ.template.name)
+        if civ.has_tenet(TENETS.FAITH):
+            civ.gain_vps(vp_chunks * WONDER_VPS, "Faith")
 
         self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={wonder.name}>{wonder.name}<wonder>!')
         self.add_parsed_announcement({
