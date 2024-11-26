@@ -223,6 +223,8 @@ class Civ:
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 3
         bonuses: int = len([ability for ability, _ in self.passive_building_abilities_of_name('ExtraTerritory', game_state)])
+        if self.has_tenet(TENETS.EL_DORADO, check_complete_quest=True):
+            bonuses -= 1
         self.max_territories = base + bonuses
 
     def _available_techs(self) -> list[TechTemplate]:

@@ -393,6 +393,12 @@ class Unit(MapObject):
         self.update_hex(hex)
         hex.units.append(self)
 
+        if self.civ.has_tenet(TENETS.EL_DORADO):
+            assert self.civ.game_player is not None  # guaranteed by has_tenet
+            if hex.coords in self.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"]:
+                self.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"].remove(hex.coords)
+                self.civ.game_player.increment_tenet_progress(TENETS.EL_DORADO)
+
     def turn_end(self, game_state: 'GameState') -> None:
         self.has_moved = False
         self.attacks_used = 0

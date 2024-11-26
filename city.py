@@ -369,6 +369,10 @@ class City(MapObjectSpawner):
             resource, amount = self.civ.numbers_of_ability("IncreaseCapitalYields")
             yields += {resource: amount}
 
+        if self.civ.has_tenet(TENETS.EL_DORADO, check_complete_quest=True):
+            yields.metal += 5 * self.military_slots
+            yields.wood += 5 * self.urban_slots
+
         return yields * self.civ.vitality
 
     def _get_projected_yields_from_focus(self, game_state) -> Yields:

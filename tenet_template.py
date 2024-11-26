@@ -2,11 +2,11 @@ from typing import Callable, TYPE_CHECKING
 from effect import CityTargetEffect
 
 if TYPE_CHECKING:
-    from game_player import GamePlayer
+    from game_state import GameState
 
 
 class TenetTemplate:
-    def __init__(self, name, advancement_level, initialize_data: Callable[['GamePlayer'], dict] | None=None, description: str | None=None, instant_effect: CityTargetEffect | None=None, quest_description: str | None=None, quest_target: int = 0):
+    def __init__(self, name, advancement_level, initialize_data: Callable[['GameState'], dict] | None=None, description: str | None=None, instant_effect: CityTargetEffect | None=None, quest_description: str | None=None, quest_target: int = 0):
         self.name = name
         if description is not None:
             self.description = description

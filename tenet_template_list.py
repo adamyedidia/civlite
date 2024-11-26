@@ -1,4 +1,5 @@
-from typing import Generator
+import random
+from typing import Generator, TYPE_CHECKING
 from building_template import BuildingType
 from effects_list import BuildUnitsEffect, GainSlotsEffect, PointsEffect, UpgradeTerrainEffect
 from settings import WONDER_VPS
@@ -6,6 +7,28 @@ from tenet_template import TenetTemplate
 from terrain_templates_list import TERRAINS
 from unit_templates_list import UNITS
 from yields import Yields
+
+if TYPE_CHECKING:
+    from game_state import GameState
+
+def el_dorado_generate_hexes(game_state: 'GameState') -> list[str]:
+    hexes = list(game_state.hexes.values())
+    region_centers = random.sample(hexes, 2)
+    i = 0
+    while region_centers[0].distance_to(region_centers[1]) < 6 and i < 100:
+        sample = random.sample(hexes, 2)
+        if sample[0].distance_to(sample[1]) > region_centers[0].distance_to(region_centers[1]):
+            region_centers = sample
+        i += 1
+
+    num_in_center_0 = random.randint(1, 4)
+    num_in_center_1 = random.randint(1, 4)
+    result = []
+    for center, num_in_center in zip(region_centers, [num_in_center_0, num_in_center_1]):
+        nearby_hexes = center.get_distance_2_hexes(game_state.hexes, exclude_ocean=True)
+        options = [h.coords for h in nearby_hexes if h.city is None]
+        result.extend(random.sample(options, num_in_center))
+    return result
 
 class TENETS():
     TALES_OF_SCHEHERAZADE = TenetTemplate(
@@ -66,8 +89,10 @@ class TENETS():
     EL_DORADO = TenetTemplate(
         advancement_level=3,
         name="El Dorado",
-        description="Placeholder",
-        instant_effect=PointsEffect(lambda _c, _g: 1, label="", description="Gain 1 vp."),
+        description="-1 max territories. In your territory capitals, +5 metal per military slot and +5 wood per urban slot.",
+        quest_description="Explore the 7 marked hexes.",
+        quest_target=7,
+        initialize_data=lambda game_state: {"hexes": el_dorado_generate_hexes(game_state)},
     )
 
     FOUNTAIN_OF_YOUTH = TenetTemplate(

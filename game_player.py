@@ -45,7 +45,7 @@ class GamePlayer:
             assert tenet not in self.tenets
             assert game_state.tenets_claimed_by_player_nums[tenet] == []
         if tenet.initialize_data is not None:
-            self.tenets[tenet] = tenet.initialize_data(self)
+            self.tenets[tenet] = tenet.initialize_data(game_state)
         else:
             self.tenets[tenet] = {}
         if tenet.quest_target > 0:
