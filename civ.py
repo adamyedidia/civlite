@@ -609,8 +609,18 @@ class Civ:
         game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
         game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "decline", self.game_player.player_num if self.game_player else None, f" {great_person.name} will lead {self.moniker()} to glory.")
         game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "revolt", self.game_player.player_num if self.game_player else None, f" The {self.moniker()} are led by a charismatic and unscrupulous individual known to us only as \"{great_person.name}\".")
-        self.great_people_choices = []
-        self._great_people_choices_city_id = None
+        if self.has_tenet(TENETS.HOLY_GRAIL, check_complete_quest=True):
+            assert self.game_player is not None
+            if self.game_player.tenets[TENETS.HOLY_GRAIL].get("second_great_person_choice", False):
+                self.great_people_choices = []
+                self._great_people_choices_city_id = None
+                self.game_player.tenets[TENETS.HOLY_GRAIL]["second_great_person_choice"] = False
+            else:
+                self.great_people_choices.remove(great_person)
+                self.game_player.tenets[TENETS.HOLY_GRAIL]["second_great_person_choice"] = True
+        else:
+            self.great_people_choices = []
+            self._great_people_choices_city_id = None
         self._pop_great_people_choices_queue_if_needed(game_state)
 
     def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: 'UnitTemplate', hex: 'Hex', bonus_strength: int=0, stack_size=1) -> 'Unit | None':

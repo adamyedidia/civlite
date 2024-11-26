@@ -36,9 +36,9 @@ class GamePlayer:
             return self.tenets[tenet]["progress"] >= tenet.quest_target
         return True
     
-    def increment_tenet_progress(self, tenet: TenetTemplate):
+    def increment_tenet_progress(self, tenet: TenetTemplate, amount: int = 1):
         if tenet.quest_target > 0:
-            self.tenets[tenet]["progress"] += 1
+            self.tenets[tenet]["progress"] += amount
 
     def select_tenet(self, tenet: TenetTemplate, game_state: 'GameState'):
         if STRICT_MODE:

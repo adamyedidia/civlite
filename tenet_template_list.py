@@ -82,8 +82,10 @@ class TENETS():
     HOLY_GRAIL = TenetTemplate(
         advancement_level=3,
         name="Holy Grail",
-        description="Placeholder",
-        instant_effect=PointsEffect(lambda _c, _g: 1, label="Holy Grail", description="Gain 1 vp."),
+        description="When choosing Great People, you can select two of the choices.",
+        quest_description="Kill 30 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 unhappiness and this counts as 3 kills.",
+        quest_target=30,
+        initialize_data=lambda game_state: {"holy_city_id": random.choice(list(game_state.cities_by_id.keys()))},
     )
 
     EL_DORADO = TenetTemplate(

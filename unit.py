@@ -265,6 +265,12 @@ class Unit(MapObject):
                 if (from_civ.has_tenet(TENETS.NINJAS) and self.template.has_tag(UnitTag.INFANTRY)) or (from_civ.has_tenet(TENETS.DRAGONS) and self.template.has_tag(UnitTag.MOUNTED)) or (from_civ.has_tenet(TENETS.GIANTS) and self.template.has_tag(UnitTag.SIEGE)) or (from_civ.has_tenet(TENETS.UNICORNS) and self.template.has_tag(UnitTag.MOUNTED)):
                     from_civ.city_power += 10
 
+                if from_civ.game_player is not None \
+                    and from_civ.has_tenet(TENETS.HOLY_GRAIL) \
+                    and (holy_city := game_state.cities_by_id.get(from_civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"])) is not None \
+                    and holy_city.civ == self.civ:
+                    from_civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL)
+
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
         self_hex_coords = self.hex.coords
         target_hex_coords = target.hex.coords
