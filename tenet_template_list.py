@@ -89,9 +89,9 @@ class TENETS():
         advancement_level=3,
         name="Holy Grail",
         description="When choosing Great People, you can select two of the choices.",
-        quest_description="Kill 30 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 unhappiness and this counts as 3 kills.",
+        quest_description="Kill 20 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 unhappiness and this counts as 3 kills.",
         quest_complete_message="We may never find the goblet of the Lord. But the deeds of our crusades shall echo through the ages, and the heros of our people will remember the call.",
-        quest_target=30,
+        quest_target=20,
         initialize_data=lambda game_state: {"holy_city_id": random.choice(list(game_state.cities_by_id.keys()))},
     )
 
@@ -109,9 +109,9 @@ class TENETS():
         advancement_level=3,
         name="Fountain of Youth",
         description="Your vitality decays at 90% the normal rate.",
-        quest_description="Spend 10 turns with less than 50% vitality.",
+        quest_description="Spend 7 turns with less than 70% vitality.",
         quest_complete_message="In all the ages of history no person has escaped death by drinking from a simple fountain. But what no person can do, perhaps a people can. Though we each die, together our lineage and our ideas live on.",
-        quest_target=10,
+        quest_target=7,
     )
 
     YGGDRASILS_SEEDS = TenetTemplate(

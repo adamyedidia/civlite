@@ -556,7 +556,7 @@ class Civ:
                     "tech": researching_tech.name,
                 }, self)
 
-        if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) and self.vitality < 0.5:
+        if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) and self.vitality < 0.7:
             assert self.game_player is not None  # guaranteed by has_tenet
             self.game_player.increment_tenet_progress(TENETS.FOUNTAIN_OF_YOUTH, game_state)
 
