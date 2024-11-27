@@ -10,6 +10,7 @@ from unit_template import UnitTemplate, UnitTag
 from unit_templates_list import UNITS
 from utils import generate_unique_id
 from logging_setup import logger
+import score_strings
 
 
 if TYPE_CHECKING:
@@ -242,7 +243,7 @@ class Unit(MapObject):
 
         if from_civ is not None:
             for _ in range(original_stack_size - final_stack_size):
-                from_civ.gain_vps(UNIT_KILL_REWARD, f"Unit Kill ({UNIT_KILL_REWARD}/unit)")
+                from_civ.gain_vps(UNIT_KILL_REWARD, score_strings.UNIT_KILL)
 
                 if from_civ is not None and from_civ.has_tenet(TENETS.HONOR) and self.civ.template == CIVS.BARBARIAN:
                     from_civ.gain_vps(UNIT_KILL_REWARD, f"Honor")

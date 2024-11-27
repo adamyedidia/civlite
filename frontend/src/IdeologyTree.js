@@ -19,9 +19,14 @@ const TenetCardSmall = ({ tenet, handleClickTenet, setHoveredTenet, gameState, m
     const claimedByPlayers = gameState.tenets_claimed_by_player_nums[tenet.name]
     const status = claimedByPlayers.length > 0 ? "unavailable" : 
         myGamePlayer.active_tenet_choice_level == tenet.advancement_level ? "active-choice" : "available";
+    const extraA6Info = myGamePlayer.a6_tenet_info?.[tenet.name];
+    const title = extraA6Info ? extraA6Info.full_name : tenet.name;
+    console.log("extraA6Info", extraA6Info);
+    console.log("title", title);
     return <div className={`tenet-card ${status}`}
         onClick={() => handleClickTenet(tenet)} onMouseEnter={() => setHoveredTenet(tenet)} onMouseLeave={() => setHoveredTenet(null)}>
-        <Typography variant="h6" className="tenet-name"> {tenet.name} </Typography>
+        <Typography variant="h6" className="tenet-name"> {title} </Typography>
+        {extraA6Info && <Typography variant="body1" style={{textAlign: "center"}}> {extraA6Info.score} vps</Typography>}
     </div>
 }
 
@@ -48,7 +53,7 @@ const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTene
         </div>
         <div className="tenet-level-box-content">
         {myTenet !== undefined ? 
-            <ChosenTenetLevelBox tenet={myTenet} setHoveredTenet={setHoveredTenet}/> 
+            <ChosenTenetLevelBox tenet={myTenet} setHoveredTenet={setHoveredTenet} myGamePlayer={myGamePlayer}/> 
             :
             <>
             <Typography variant="h5" className='ideology-question'>
@@ -65,10 +70,18 @@ const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTene
     </div>
 }
 
-const ChosenTenetLevelBox = ({ tenet, setHoveredTenet }) => {
-    return <div className="chosen-tenet-level-box">
-        <Typography variant="h6" className="tenet-name"> {tenet.name} </Typography>
-        <Typography variant="body1" className="tenet-description"> {tenet.description} </Typography>
+const ChosenTenetLevelBox = ({ tenet, setHoveredTenet, myGamePlayer }) => {
+    const questIncomplete = tenet.advancement_level === 3 && myGamePlayer.tenet_quest.progress < myGamePlayer.tenet_quest.target
+    const name = tenet.advancement_level === 6 ? myGamePlayer.a6_tenet_info[tenet.name].full_name : tenet.name;
+    console.log(myGamePlayer.a6_tenet_info[tenet.name], name)
+    return <div className="chosen-tenet-level-box" onMouseEnter={() => setHoveredTenet(tenet)} onMouseLeave={() => setHoveredTenet(null)}>
+        <Typography variant="h6" className="tenet-name"> {name} </Typography>
+        <Typography variant="body1" className="tenet-description"> 
+            {questIncomplete ? 
+                `Quest [${myGamePlayer.tenet_quest.progress}/${myGamePlayer.tenet_quest.target}]: ${tenet.quest_description}`
+                : tenet.description
+            } 
+        </Typography>
     </div>
 }
 
@@ -121,6 +134,7 @@ const IdeologyTreeDialog = ({open, onClose, handleClickTenet, setHoveredTenet, t
                 {tenetLevelBox(3)}
                 {tenetLevelBox(4)}
                 {tenetLevelBox(5)}
+                {tenetLevelBox(6)}
             </DialogContent>
         </Dialog>
     )

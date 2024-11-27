@@ -23,6 +23,7 @@ from unit_templates_list import UNITS
 from utils import generate_unique_id
 from building_templates_list import BUILDINGS
 from tech_templates_list import TECHS
+import score_strings
 
 import random
 from logging_setup import logger
@@ -489,7 +490,7 @@ class Civ:
         self.fill_out_available_buildings(game_state)
 
         if tech != TECHS.RENAISSANCE:
-            self.gain_vps(TECH_VP_REWARD * tech.advancement_level, f"Research ({TECH_VP_REWARD}/tech level)")
+            self.gain_vps(TECH_VP_REWARD * tech.advancement_level, score_strings.TECH)
             if self.has_tenet(TENETS.RATIONALISM):
                 self.gain_vps(max(0, tech.advancement_level - 3), f"Rationalism")
 

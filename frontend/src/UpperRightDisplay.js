@@ -446,7 +446,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
                 declineViewGameState={declineViewGameState} mainGameState={mainGameState} templates={templates}
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
                 declineViewCivsById={declineViewCivsById}/>}
-            {myCiv && <IdeologyDisplay myCiv={myCiv} myGamePlayer={myGamePlayer} gameState={mainGameState} templates={templates} setIdeologyTreeOpen={setIdeologyTreeOpen} setHoveredTenet={setHoveredTenet}/>}
+            {myCiv && <IdeologyDisplay myCiv={myCiv} myGamePlayer={myGamePlayer} gameState={mainGameState} templates={templates} setIdeologyTreeOpen={() => {setIdeologyTreeOpen(true); setDeclineOptionsView(false);}} setHoveredTenet={setHoveredTenet}/>}
             {myGamePlayer?.score > 0 && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={mainGameState.game_end_score} gameState={mainGameState}/>}
         </div>
     );

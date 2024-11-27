@@ -1,5 +1,6 @@
 import math
 from typing import TYPE_CHECKING, Generator, Literal, Optional, Union
+import score_strings
 from building import Building, QueueEntry
 from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
@@ -33,9 +34,6 @@ if TYPE_CHECKING:
     from ability import Ability
 
 TRADE_HUB_CITY_POWER_PER_TURN = 20
-
-_DEVELOPMENT_VPS_STR = f"Development ({DEVELOP_VPS} each)"
-
 
 class BuildingDescription:
     def __init__(self):
@@ -932,7 +930,7 @@ class City(MapObjectSpawner):
         if not free:
             self.civ.city_power -= self.develop_cost(type)
             self.develops_this_civ[type] += 1
-        self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)  
+        self.civ.gain_vps(DEVELOP_VPS, score_strings.DEVELOPMENT)  
         if self.civ.has_tenet(TENETS.COMMUNITY):
             self.civ.gain_vps(DEVELOP_VPS, "Community")
         if self.civ.has_ability("OnDevelop"):

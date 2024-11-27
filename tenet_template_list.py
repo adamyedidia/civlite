@@ -7,6 +7,7 @@ from tenet_template import TenetTemplate
 from terrain_templates_list import TERRAINS
 from unit_templates_list import UNITS
 from yields import Yields
+import score_strings
 
 if TYPE_CHECKING:
     from game_state import GameState
@@ -170,6 +171,38 @@ class TENETS():
         description="+10 city power for each kill by an infantry unit.",
     )
 
+    SPLENDOR = TenetTemplate(
+        advancement_level=6,
+        name="Splendor",
+        description="4x/3x/2x the points from wonder crowns from your first/second/third civilization (whichever is best).",
+        a6_score_key=score_strings.WONDER,
+        a6_score_weights=[4, 3, 2],
+    )
+
+    WISDOM = TenetTemplate(
+        advancement_level=6,
+        name="Wisdom",
+        description="4x/3x/2x the points from Research from your first/second/third civilization (whichever is best).",
+        a6_score_key=score_strings.TECH,
+        a6_score_weights=[4, 3, 2],
+    )
+
+    MIGHT = TenetTemplate(
+        advancement_level=6,
+        name="Might",
+        description="4x/3x/2x the points from unit kills from your first/second/third civilization (whichever is best).",
+        a6_score_key=score_strings.UNIT_KILL,
+        a6_score_weights=[4, 3, 2],
+    )
+
+    PROSPERITY = TenetTemplate(
+        advancement_level=6,
+        name="Prosperity",
+        description="6x/4x/2x the points from development from your first/second/third civilization (whichever is best).",
+        a6_score_key=score_strings.DEVELOPMENT,
+        a6_score_weights=[6, 4, 2],
+    )
+
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
     # That handled the dynamic type properly.
@@ -187,5 +220,5 @@ class TENETS():
     
 tenets_by_level = {
     i: [t for t in TENETS.all() if t.advancement_level == i]
-    for i in range(5)
+    for i in range(1, 10)
 }

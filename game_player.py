@@ -2,7 +2,7 @@ from typing import Optional, TYPE_CHECKING
 from settings import STRICT_MODE
 
 from tenet_template import TenetTemplate
-from tenet_template_list import TENETS
+from tenet_template_list import TENETS, tenets_by_level
 
 if TYPE_CHECKING:
     from game_state import GameState
@@ -24,6 +24,7 @@ class GamePlayer:
 
         self.tenets: dict[TenetTemplate, dict] = {}
         self.active_tenet_choice_level: Optional[int] = None
+        self.a6_tenet_info: Optional[dict] = None
 
     @property
     def score(self) -> int:
@@ -68,6 +69,9 @@ class GamePlayer:
                     target = None
             if target is not None:
                 tenet.instant_effect.apply(city=target, game_state=game_state)
+        if self.active_tenet_choice_level == 6:
+            assert self.a6_tenet_info is not None and tenet.name in self.a6_tenet_info
+            self.get_current_civ(game_state).gain_vps(self.a6_tenet_info[tenet.name]["score"], self.a6_tenet_info[tenet.name]["full_name"])
         self.update_active_tenet_choice_level(game_state)
 
     def get_current_civ(self, game_state: 'GameState') -> 'Civ':
@@ -81,6 +85,19 @@ class GamePlayer:
             self.active_tenet_choice_level = tenet_level + 1
         else:
             self.active_tenet_choice_level = None
+        
+        self.a6_tenet_info = {}
+        first_three_civs = [game_state.civs_by_id[civ_id] for civ_id in self.all_civ_ids[:-1][:3]]
+        if len(first_three_civs) > 0:
+            for tenet in tenets_by_level[6]:
+                assert tenet.a6_score_key is not None and tenet.a6_score_weights is not None
+                key: str = tenet.a6_score_key
+                weights: list[int] = tenet.a6_score_weights
+                best_idx = max(range(len(first_three_civs)), key=lambda i: first_three_civs[i].score_dict.get(key, 0) * (weights[i] - 1))
+                self.a6_tenet_info[tenet.name] = {
+                    "full_name": f"{tenet.name} of {first_three_civs[best_idx].template.name}",
+                    "score": first_three_civs[best_idx].score_dict.get(key, 0) * (weights[best_idx] - 1),
+                }
 
     def tenet_quest_display(self) -> dict:
         quest_tenet = [t for t in self.tenets if t.quest_target > 0]
@@ -108,6 +125,7 @@ class GamePlayer:
             "tenets": {t.name: info for t, info in self.tenets.items()},
             "active_tenet_choice_level": self.active_tenet_choice_level,
             "tenet_quest": self.tenet_quest_display(),
+            "a6_tenet_info": self.a6_tenet_info,
         }
     
     @staticmethod
@@ -125,6 +143,7 @@ class GamePlayer:
         game_player.all_civ_ids = json["all_civ_ids"]
         game_player.tenets = {TENETS.by_name(name): info for name, info in json["tenets"].items()}
         game_player.active_tenet_choice_level = json["active_tenet_choice_level"]
+        game_player.a6_tenet_info = json["a6_tenet_info"]
 
         return game_player
 

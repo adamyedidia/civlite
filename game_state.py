@@ -32,6 +32,7 @@ from unit import Unit
 import random
 from unit_templates_list import UNITS
 from utils import dream_key, staged_moves_key, deterministic_hash
+import score_strings
 
 from sqlalchemy import and_, func
 
@@ -1163,7 +1164,7 @@ class GameState:
             self.built_wonders[wonder] = WonderBuiltInfo(self.turn_num)
         self.built_wonders[wonder].infos.append((city.id, civ.id))
         vp_chunks = self.wonder_vp_chunks(wonder.advancement_level)
-        civ.gain_vps(vp_chunks * WONDER_VPS, "Wonders")
+        civ.gain_vps(vp_chunks * WONDER_VPS, score_strings.WONDER)
         self.wonder_vp_chunks_left_by_age[wonder.advancement_level] -= vp_chunks
         
         if civ.has_ability('ExtraVpsPerWonder'):
