@@ -378,9 +378,10 @@ class GameState:
         civ.gain_vps(2, "Founded Cities (2/city)")
         if civ.has_tenet(TENETS.YGGDRASILS_SEEDS) and hex.terrain == TERRAINS.FOREST:
             assert civ.game_player is not None  # guaranteed by has_tenet
-            civ.game_player.increment_tenet_progress(TENETS.YGGDRASILS_SEEDS)
+            civ.game_player.increment_tenet_progress(TENETS.YGGDRASILS_SEEDS, self)
         if civ.has_tenet(TENETS.YGGDRASILS_SEEDS, check_complete_quest=True):
             city.food += 50
+            city.grow(self)
             city.wood += 50
             city.metal += 50
             city.develop(BuildingType.RURAL, self, free=True)
@@ -1261,7 +1262,7 @@ class GameState:
         if self.game_over:
             from_civ_perspectives = None
         hexes = {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()}
-        for civ in from_civ_perspectives or self.civs_by_id.values():
+        for civ in from_civ_perspectives or []:
             if civ.game_player is None:
                 continue
             game_player = civ.game_player

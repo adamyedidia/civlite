@@ -430,7 +430,7 @@ class City(MapObjectSpawner):
         self.handle_unhappiness(game_state)
 
         if self.civ.has_tenet(TENETS.HOLY_GRAIL) and self.civ.game_player and self.id == self.civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]:
-            self.civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL, 3)
+            self.civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL, game_state, 3)
             self.unhappiness += 30
 
     def update_seen_by_players(self, game_state: 'GameState') -> None:
@@ -464,6 +464,9 @@ class City(MapObjectSpawner):
         for ability, _ in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
             result -= ability.numbers[0] + ability.numbers[1]
         for game_player in game_state.game_player_by_player_num.values():
+            if game_player.civ_id is None:
+                # This can happen if the game player is in mid decline.
+                continue
             if game_player.has_tenet(TENETS.GLORIOUS_ORDER) and game_player.get_current_civ(game_state).get_advancement_level() > self.civ.get_advancement_level():
                 result += 4
         parent = self.get_territory_parent(game_state)
@@ -537,7 +540,7 @@ class City(MapObjectSpawner):
             # Can always replace defensive units.
             min_level = 0
         self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level >= min_level and not self.has_building(u)], reverse=True)
-        if self.civ.has_tenet(TENETS.GLORIOUS_ORDER):
+        if self.civ.has_tenet(TENETS.GLORIOUS_ORDER) and self.civ.get_advancement_level() >= game_state.advancement_level:
             self.available_wonders: list[WonderTemplate] = sorted(sum([game_state.available_wonders_by_age[i] for i in range(int(self.civ.get_advancement_level()) + 1)], []))
         else:
             self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders)
@@ -761,7 +764,7 @@ class City(MapObjectSpawner):
             best_hex = min(free_neighbors, key=lambda h: (h.distance_to(self.get_closest_target() or spawn_hex), random.random()))
             if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ:
                 # Kick out the unit that's there to build defensive units.
-                spawn_hex.units[0].take_one_step_to_hex(best_hex)
+                spawn_hex.units[0].take_one_step_to_hex(best_hex, game_state)
                 return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
             else:
                 return civ.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)

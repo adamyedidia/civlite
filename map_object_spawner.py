@@ -1,5 +1,6 @@
 import abc
 from typing import TYPE_CHECKING
+from civ_templates_list import CIVS
 
 from map_object import MapObject
 from tenet_template_list import TENETS
@@ -35,7 +36,7 @@ class MapObjectSpawner(MapObject):
             self.under_siege_by_civ = None
             return
         
-        if self.under_siege_by_civ == siege_state or (siege_state.has_tenet(TENETS.HYMN_OF_UNITY) and siege_state.get_advancement_level() > self.civ.get_advancement_level()):
+        if self.under_siege_by_civ == siege_state or (siege_state.has_tenet(TENETS.HYMN_OF_UNITY) and siege_state.get_advancement_level() > self.civ.get_advancement_level()) and self.civ.template != CIVS.BARBARIAN:
             self.capture(sess, siege_state, game_state)
         else:
             self.under_siege_by_civ = siege_state

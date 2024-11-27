@@ -403,12 +403,13 @@ const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeology
         levelsToDisplay.push(myCiv.advancement_level);
     }
     levelsToDisplay.sort((a, b) => b - a);
+    const numTenets = Object.keys(myGamePlayer.tenets).length;
     return <CivDetailPanel title='ideology' icon={ideologyImg} iconTooltip="Ideology" bignum="">
         <Button variant="contained" color="primary" onClick={() => setIdeologyTreeOpen(true)}>
             Ideologies
         </Button>
         <div className='ideology-columns'>
-            {myGamePlayer.tenets.length > 1 && <div className="ideology-column">
+            {numTenets > 1 && <div className="ideology-column">
                 <div className="ideology-column-title">Ideals</div>
                 <div className="level-markers">
                     {levelsToDisplay.map((lvl, index) => {
@@ -417,9 +418,13 @@ const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeology
                     })}
                 </div>
             </div>}
-            {myGamePlayer.tenets.length > 2 && <div className="ideology-column">
-                <div className="ideology-column-title">Quest</div>
-                <div className="quest-progress">{myGamePlayer.tenet_quest.progress}/{myGamePlayer.tenet_quest.target}</div>
+            {myGamePlayer.tenet_quest?.name && <div className="ideology-column">
+                <div className="ideology-column-title">Quest for {myGamePlayer.tenet_quest.name}</div>
+                {myGamePlayer.tenet_quest.progress < myGamePlayer.tenet_quest.target ?
+                    <div className="quest-progress">{myGamePlayer.tenet_quest.progress}/{myGamePlayer.tenet_quest.target}</div>
+                    :
+                    <div className="quest-complete">COMPLETE</div>
+                }
             </div>}
         </div>
     </CivDetailPanel>

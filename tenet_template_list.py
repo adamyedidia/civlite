@@ -11,6 +11,7 @@ from yields import Yields
 if TYPE_CHECKING:
     from game_state import GameState
 
+EL_DORADO_NUM_HEXES = 7
 def el_dorado_generate_hexes(game_state: 'GameState') -> list[str]:
     hexes = list(game_state.hexes.values())
     region_centers = random.sample(hexes, 2)
@@ -22,11 +23,15 @@ def el_dorado_generate_hexes(game_state: 'GameState') -> list[str]:
         i += 1
 
     num_in_center_0 = random.randint(1, 4)
-    num_in_center_1 = random.randint(1, 4)
+    num_in_center_1 = EL_DORADO_NUM_HEXES - num_in_center_0
     result = []
     for center, num_in_center in zip(region_centers, [num_in_center_0, num_in_center_1]):
-        nearby_hexes = center.get_distance_2_hexes(game_state.hexes, exclude_ocean=True)
-        options = [h.coords for h in nearby_hexes if h.city is None]
+        options = []
+        d = 2
+        while len(options) < num_in_center:
+            nearby_hexes = center.get_hexes_within_range_expensive(game_state.hexes, d, exclude_ocean=True)
+            options = [h.coords for h in nearby_hexes if h.city is None]
+            d += 1
         result.extend(random.sample(options, num_in_center))
     return result
 
@@ -84,6 +89,7 @@ class TENETS():
         name="Holy Grail",
         description="When choosing Great People, you can select two of the choices.",
         quest_description="Kill 30 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 unhappiness and this counts as 3 kills.",
+        quest_complete_message="We may never find the goblet of the Lord. But the deeds of our crusades shall echo through the ages, and the heros of our people will remember the call.",
         quest_target=30,
         initialize_data=lambda game_state: {"holy_city_id": random.choice(list(game_state.cities_by_id.keys()))},
     )
@@ -92,8 +98,9 @@ class TENETS():
         advancement_level=3,
         name="El Dorado",
         description="-1 max territories. In your territory capitals, +5 metal per military slot and +5 wood per urban slot.",
-        quest_description="Explore the 7 marked hexes.",
-        quest_target=7,
+        quest_description=f"Explore the {EL_DORADO_NUM_HEXES} marked hexes.",
+        quest_complete_message="After a long search we conclude that El Dorado was a myth. But we will not lose heart; if we shall find the City of Gold in the ruined wilderness, we must build the City with our own hands. Look not to the past for El Dorato, look to the future.",
+        quest_target=EL_DORADO_NUM_HEXES,
         initialize_data=lambda game_state: {"hexes": el_dorado_generate_hexes(game_state)},
     )
 
@@ -102,6 +109,7 @@ class TENETS():
         name="Fountain of Youth",
         description="Your vitality decays at 90% the normal rate.",
         quest_description="Spend 10 turns with less than 50% vitality.",
+        quest_complete_message="In all the ages of history no person has escaped death by drinking from a simple fountain. But what no person can do, perhaps a people can. Though we each die, together our lineage and our ideas live on.",
         quest_target=10,
     )
 
@@ -109,8 +117,9 @@ class TENETS():
         advancement_level=3,
         name="Yggdrasils Seeds",
         description="New cities you build immediately expand twice and start with 50 food, 50 wood, and 50 metal.",
-        quest_description="Build 4 cities on forests.",
-        quest_target=4,
+        quest_description="Build 3 cities on forests.",
+        quest_complete_message="Yggdrasil's seeds have taken root. The world tree will grow and bear fruit for all eternity.",
+        quest_target=3,
     )
 
     FAITH = TenetTemplate(

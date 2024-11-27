@@ -491,7 +491,7 @@ class Civ:
         if tech != TECHS.RENAISSANCE:
             self.gain_vps(TECH_VP_REWARD * tech.advancement_level, f"Research ({TECH_VP_REWARD}/tech level)")
             if self.has_tenet(TENETS.RATIONALISM):
-                self.gain_vps(min(0, tech.advancement_level - 3), f"Rationalism")
+                self.gain_vps(max(0, tech.advancement_level - 3), f"Rationalism")
 
             for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
                 amount = ability.numbers[0] * tech.advancement_level
@@ -557,7 +557,7 @@ class Civ:
 
         if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) and self.vitality < 0.5:
             assert self.game_player is not None  # guaranteed by has_tenet
-            self.game_player.increment_tenet_progress(TENETS.FOUNTAIN_OF_YOUTH)
+            self.game_player.increment_tenet_progress(TENETS.FOUNTAIN_OF_YOUTH, game_state)
 
         vitality_decay_rate = VITALITY_DECAY_RATE
         if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH, check_complete_quest=True):

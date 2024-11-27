@@ -3050,7 +3050,7 @@ export default function GamePage() {
         </CityRectangle>
     }
 
-    const City = ({ city, isHovered, isSelected, isUnitInHex, everControlled, myGamePlayer, holyCity }) => {
+    const City = ({ city, isHovered, isSelected, isUnitInHex, everControlled, myGamePlayer }) => {
         const civTemplate = templates.CIVS[civsById?.[city.civ_id]?.name]
         
         const primaryColor = civTemplate?.primary_color;
@@ -3129,10 +3129,6 @@ export default function GamePage() {
                     {myCiv && !everControlled && 
                         <image href={vpImage} x={5.75} y={1.1} height="1" />
                     }
-                    {holyCity && <>
-                        <line x1="-0.5" y1="-2.5" x2="0.5" y2="-2.5" stroke="yellow" strokeWidth="0.2"/>
-                        <line x1="0" y1="-3" x2="0" y2="-2" stroke="yellow" strokeWidth="0.2"/>
-                    </>}
                 </CityRectangle>
                 {declineOptionsView && city.is_decline_view_option && <>
                     <image href={vitalityImg} x="-1.8" y="-1" height="3.6" width="3.6" />
@@ -3399,12 +3395,15 @@ export default function GamePage() {
                                         isUnitInHex={hex?.units?.length > 0}
                                         everControlled={hex?.city?.ever_controlled_by_civ_ids[myCivId]}
                                         myGamePlayer={myGamePlayer}
-                                        holyCity={hex.quest === 'Holy Grail'}
                                     />}
                                     {hex.fog_city_name && <FogCity 
                                         cityName={hex.fog_city_name}  
                                         capital={hex.fog_city_player_capital}
                                     />}
+                                    {hex.quest === 'Holy Grail' && <>
+                                        <line x1="-0.5" y1="-2" x2="0.5" y2="-2" stroke="yellow" strokeWidth="0.2"/>
+                                        <line x1="0" y1="-2.5" x2="0" y2="-0.5" stroke="yellow" strokeWidth="0.2"/>
+                                    </>}
                                     {hex.camp && <Camp
                                         camp={hex.camp}
                                         isUnitInHex={hex?.units?.length > 0}

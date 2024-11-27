@@ -381,7 +381,7 @@ h2.tech-name {
 .ideology-area .ideology-columns {
     display: flex;
     flex-direction: row;
-    align-items: space-between;
+    justify-content: space-between;
     width: 100%;
 }
 

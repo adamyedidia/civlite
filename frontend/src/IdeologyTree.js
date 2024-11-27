@@ -8,7 +8,10 @@ import { romanNumeral } from "./romanNumeral";
 export const TenetDisplay = ({ tenet }) => {
     return <div className="tenet-hover-card">
         <Typography variant="h6" className="tenet-name"> {tenet.name} </Typography>
-        <Typography variant="body1" className="tenet-description"> {tenet.description} </Typography>
+        {tenet.quest_description &&
+            <Typography variant="body1" className="tenet-quest-description"> Quest: {tenet.quest_description} </Typography>
+        }
+        <Typography variant="body1" className="tenet-description" style={{opacity: tenet.quest_description ? 0.5 : 1}}> {tenet.description} </Typography>
     </div>
 }
 
@@ -48,7 +51,7 @@ const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTene
             <ChosenTenetLevelBox tenet={myTenet} setHoveredTenet={setHoveredTenet}/> 
             :
             <>
-            <Typography variant="body1" style={{textAlign: "center"}}>
+            <Typography variant="h5" className='ideology-question'>
                 {IDEOLOGY_LEVEL_STRINGS[level].question}
             </Typography>
             <div className="tenet-choices-list">

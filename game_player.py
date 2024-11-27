@@ -36,9 +36,16 @@ class GamePlayer:
             return self.tenets[tenet]["progress"] >= tenet.quest_target
         return True
     
-    def increment_tenet_progress(self, tenet: TenetTemplate, amount: int = 1):
+    def increment_tenet_progress(self, tenet: TenetTemplate, game_state: 'GameState', amount: int = 1):
         if tenet.quest_target > 0:
             self.tenets[tenet]["progress"] += amount
+        if self.tenets[tenet]["progress"] >= tenet.quest_target:
+            game_state.add_parsed_announcement({
+                "turn_num": game_state.turn_num,
+                "type": "quest_complete",
+                "civ_id": self.civ_id,
+                "message": f'QUEST COMPLETE: {tenet.quest_complete_message}',
+            })
 
     def select_tenet(self, tenet: TenetTemplate, game_state: 'GameState'):
         if STRICT_MODE:
@@ -75,6 +82,17 @@ class GamePlayer:
         else:
             self.active_tenet_choice_level = None
 
+    def tenet_quest_display(self) -> dict:
+        quest_tenet = [t for t in self.tenets if t.quest_target > 0]
+        if not quest_tenet:
+            return {}
+        quest_tenet = quest_tenet[0]
+        return {
+            "name": quest_tenet.name,
+            "progress": self.tenets[quest_tenet]["progress"],
+            "target": quest_tenet.quest_target,
+        }
+
     def to_json(self) -> dict:
         return {
             "player_num": self.player_num,
@@ -89,6 +107,7 @@ class GamePlayer:
             "vitality_multiplier": self.vitality_multiplier,
             "tenets": {t.name: info for t, info in self.tenets.items()},
             "active_tenet_choice_level": self.active_tenet_choice_level,
+            "tenet_quest": self.tenet_quest_display(),
         }
     
     @staticmethod

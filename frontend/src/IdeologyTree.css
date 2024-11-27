@@ -8,6 +8,10 @@
     width: 500px;
 }
 
+.tenet-quest-description {
+    border-bottom: 1px dashed #0008;
+}
+
 .tenet-card {
     padding: 2px 5px;
     border-radius: 20px;
@@ -63,6 +67,10 @@
 .tenet-level-box-header {
     width: 8%;
     text-align: left;
+}
+
+.ideology-question {
+    text-align: center;
 }
 
 .tenet-level-box-content {
