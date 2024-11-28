@@ -219,7 +219,7 @@ class TENETS():
 
     PLACEHOLDER_NAME = TenetTemplate(
         advancement_level=7,
-        name="Placeholder",
+        name="[Needs a Name]",
         description="Your trade hub now spends 60 city power to steal 3 wood from every other city.",
         a7_yield="wood",
     )

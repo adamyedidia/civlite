@@ -31,14 +31,15 @@
 }
 
 .tenet-card.active-choice {
-    background-color: #d3cb2c;
+    background-color: #fdf898;
     cursor: pointer;
     animation: pulse 1s infinite;
 }
 
 .tenet-card.active-choice:hover {
     transform: scale(1.1);
-    background-color: #fbf24f;
+    background-color: rgb(250, 248, 206);
+    animation: none;
 }
 
 .tenet-card .tenet-name {
@@ -60,7 +61,7 @@
 }
 
 .tenet-level-box.active-choice {
-    background-color: #fbf24f;
+    background-color: #fdda13;
 }
 
 .tenet-level-box-header {

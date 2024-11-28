@@ -391,7 +391,8 @@ class UpgradeTerrainEffect(CityTargetEffect):
     
     def apply(self, city: 'City', game_state: 'GameState'):
         neighbors = list(city.hex.get_neighbors(game_state.hexes, include_self=False))
-        for hex in random.sample(neighbors, self.num):
+        neighbors.sort(key=lambda h: (h.yields.total(), random.random()))
+        for hex in neighbors[:self.num]:
             old_terrain_type = hex.terrain
             hex.terrain = self.terrain
             hex.yields = self.total_yields

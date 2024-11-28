@@ -1318,8 +1318,8 @@ class GameState:
             "vp_chunks_total_per_age": len(self.game_player_by_player_num),
             "tenets_claimed_by_player_nums": {t.name: value for t, value in self.tenets_claimed_by_player_nums.items()},
             "advancement_level_tenets_display": self.advancement_level_tenets_display(),
-            "a8_tenets_yields_stolen_last_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_last_turn.items()},
-            "a8_tenets_yields_stolen_this_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_this_turn.items()},
+            "a7_tenets_yields_stolen_last_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_last_turn.items()},
+            "a7_tenets_yields_stolen_this_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_this_turn.items()},
         }
 
     @staticmethod
@@ -1349,8 +1349,8 @@ class GameState:
         game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
         game_state.previous_unhappiness_threshold = float(json["previous_unhappiness_threshold"])
         game_state.tenets_claimed_by_player_nums = {TENETS.by_name(name): value for name, value in json["tenets_claimed_by_player_nums"].items()}
-        game_state.a7_tenets_yields_stolen_last_turn = {civ_id: Yields.from_json(yields_json) for civ_id, yields_json in json["a8_tenets_yields_stolen_last_turn"].items()}
-        game_state.a7_tenets_yields_stolen_this_turn = {civ_id: Yields.from_json(yields_json) for civ_id, yields_json in json["a8_tenets_yields_stolen_this_turn"].items()}
+        game_state.a7_tenets_yields_stolen_last_turn = {civ_id: Yields.from_json(yields_json) for civ_id, yields_json in json["a7_tenets_yields_stolen_last_turn"].items()}
+        game_state.a7_tenets_yields_stolen_this_turn = {civ_id: Yields.from_json(yields_json) for civ_id, yields_json in json["a7_tenets_yields_stolen_this_turn"].items()}
 
         for civ in game_state.civs_by_id.values():
             civ.from_json_postprocess(game_state)
