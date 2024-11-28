@@ -34,19 +34,28 @@ class GamePlayer:
         if not tenet in self.tenets:
             return False
         if check_complete_quest and tenet.quest_target > 0:
-            return self.tenets[tenet]["progress"] >= tenet.quest_target
+            return self.tenets[tenet]["complete"]
         return True
+
+    def tenet_at_level(self, level: int) -> TenetTemplate | None:
+        if len(self.tenets) >= level:
+            return [t for t in self.tenets if t.advancement_level == level][0]
+        return None
     
     def increment_tenet_progress(self, tenet: TenetTemplate, game_state: 'GameState', amount: int = 1):
         if tenet.quest_target > 0:
             self.tenets[tenet]["progress"] += amount
-        if self.tenets[tenet]["progress"] >= tenet.quest_target:
-            game_state.add_parsed_announcement({
-                "turn_num": game_state.turn_num,
-                "type": "quest_complete",
-                "civ_id": self.civ_id,
-                "message": f'QUEST COMPLETE: {tenet.quest_complete_message}',
-            })
+
+    def check_quest_complete(self, game_state: 'GameState'):
+        for tenet in self.tenets:
+            if tenet.quest_target > 0 and self.tenets[tenet]["progress"] >= tenet.quest_target and not self.tenets[tenet]["complete"]:
+                self.tenets[tenet]["complete"] = True
+                game_state.add_parsed_announcement({
+                    "turn_num": game_state.turn_num,
+                    "type": "quest_complete",
+                    "civ_id": self.civ_id,
+                    "message": f'QUEST COMPLETE: {tenet.quest_complete_message}',
+                })
 
     def select_tenet(self, tenet: TenetTemplate, game_state: 'GameState'):
         if STRICT_MODE:
@@ -58,6 +67,7 @@ class GamePlayer:
             self.tenets[tenet] = {}
         if tenet.quest_target > 0:
             self.tenets[tenet]["progress"] = 0
+            self.tenets[tenet]["complete"] = False
         if tenet.instant_effect is not None:
             civ = self.get_current_civ(game_state)
             target = civ.capital_city(game_state)
@@ -108,9 +118,11 @@ class GamePlayer:
             "name": quest_tenet.name,
             "progress": self.tenets[quest_tenet]["progress"],
             "target": quest_tenet.quest_target,
+            "complete": self.tenets[quest_tenet]["complete"],
         }
 
     def to_json(self) -> dict:
+        a7_tenet = self.tenet_at_level(7)
         return {
             "player_num": self.player_num,
             "username": self.username,
@@ -126,6 +138,7 @@ class GamePlayer:
             "active_tenet_choice_level": self.active_tenet_choice_level,
             "tenet_quest": self.tenet_quest_display(),
             "a6_tenet_info": self.a6_tenet_info,
+            "a7_tenet_yield": a7_tenet.a7_yield if a7_tenet is not None else None,
         }
     
     @staticmethod

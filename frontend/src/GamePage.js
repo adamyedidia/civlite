@@ -3490,6 +3490,7 @@ export default function GamePage() {
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
+                        myGamePlayer={myGamePlayer}
                         myTerritoryCapitals={myTerritoryCapitals}
                         myCivTemplate={templates.CIVS[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
                         myCiv={myCiv}
@@ -3579,7 +3580,7 @@ export default function GamePage() {
                         </Button>}
                         {engineState === EngineStates.PLAYING && !declineOptionsView && myCiv &&
                             <TaskBar 
-                                myCiv={myCiv} myCities={myCities} myUnits={myUnits} 
+                                myCiv={myCiv} myGamePlayer={myGamePlayer} myCities={myCities} myUnits={myUnits} 
                                 canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} 
                                 setTechChoiceDialogOpen={setTechChoiceDialogOpen} techChoiceDialogOpen={techChoiceDialogOpen}
                                 setGreatPersonChoiceDialogOpen={setGreatPersonChoiceDialogOpen} greatPersonChoiceDialogOpen={greatPersonChoiceDialogOpen}

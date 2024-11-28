@@ -38,8 +38,8 @@ const IDEOLOGY_LEVEL_STRINGS = [
     {"question": "How do we build a better world?", "header": "Path"},
     {"question": "What fantasies inspire our children?", "header": "Tales"},
     {"question": "What stories do we remember?", "header": "History"},
-    {"question": "", "header": ""},
-    {"question": "", "header": ""},
+    {"question": "How do we prove our worth?", "header": "Cold War"},
+    {"question": "How does the world see us?", "header": "Identity"},
     {"question": "", "header": ""},
 ]
 
@@ -71,9 +71,8 @@ const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTene
 }
 
 const ChosenTenetLevelBox = ({ tenet, setHoveredTenet, myGamePlayer }) => {
-    const questIncomplete = tenet.advancement_level === 3 && myGamePlayer.tenet_quest.progress < myGamePlayer.tenet_quest.target
+    const questIncomplete = tenet.advancement_level === 3 && !myGamePlayer.tenet_quest.complete
     const name = tenet.advancement_level === 6 ? myGamePlayer.a6_tenet_info[tenet.name].full_name : tenet.name;
-    console.log(myGamePlayer.a6_tenet_info[tenet.name], name)
     return <div className="chosen-tenet-level-box" onMouseEnter={() => setHoveredTenet(tenet)} onMouseLeave={() => setHoveredTenet(null)}>
         <Typography variant="h6" className="tenet-name"> {name} </Typography>
         <Typography variant="body1" className="tenet-description"> 
@@ -135,6 +134,8 @@ const IdeologyTreeDialog = ({open, onClose, handleClickTenet, setHoveredTenet, t
                 {tenetLevelBox(4)}
                 {tenetLevelBox(5)}
                 {tenetLevelBox(6)}
+                {tenetLevelBox(7)}
+                {tenetLevelBox(8)}
             </DialogContent>
         </Dialog>
     )

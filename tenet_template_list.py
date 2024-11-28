@@ -203,6 +203,55 @@ class TENETS():
         a6_score_weights=[6, 4, 2],
     )
 
+    SPACE_RACE = TenetTemplate(
+        advancement_level=7,
+        name="Space Race",
+        description="Your trade hub now spends 60 city power to steal 3 science from every other city.",
+        a7_yield="science",
+    )
+
+    IRON_CURTAIN = TenetTemplate(
+        advancement_level=7,
+        name="Iron Curtain",
+        description="Your trade hub now spends 60 city power to steal 3 metal from every other city.",
+        a7_yield="metal",
+    )
+
+    PLACEHOLDER_NAME = TenetTemplate(
+        advancement_level=7,
+        name="Placeholder",
+        description="Your trade hub now spends 60 city power to steal 3 wood from every other city.",
+        a7_yield="wood",
+    )
+
+    POPULATION_BOOM = TenetTemplate(
+        advancement_level=7,
+        name="Population Boom",
+        description="Your trade hub now spends 60 city power to gain 3 food from every other city.",
+        a7_yield="food",
+    )
+
+    FIRST_WORLD = TenetTemplate(
+        advancement_level=8,
+        name="First World",
+        description="45 vp.",
+        instant_effect=PointsEffect(lambda _c, _g: 45, label="First World", description="Gain 45 vp."),
+    )
+
+    SECOND_WORLD = TenetTemplate(
+        advancement_level=8,
+        name="Second World",
+        description="30 vp.",
+        instant_effect=PointsEffect(lambda _c, _g: 30, label="Second World", description="Gain 30 vp."),
+    )
+
+    THIRD_WORLD = TenetTemplate(
+        advancement_level=8,
+        name="Third World",
+        description="15 vp.",
+        instant_effect=PointsEffect(lambda _c, _g: 15, label="Third World", description="Gain 15 vp."),
+    )
+
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
     # That handled the dynamic type properly.

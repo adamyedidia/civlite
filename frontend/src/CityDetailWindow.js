@@ -13,12 +13,12 @@ import neutralImg from './images/neutralface.png';
 import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import declineImg from './images/phoenix.png';
-import tradeHubImg from './images/tradehub.png';
 import workerImg from './images/worker.png';
 import { CityDetailPanel } from './CityDetailPanel.js';
 import { TextOnIcon } from './TextOnIcon.js';
 import ProgressBar from './ProgressBar.js';
 import { WithTooltip } from './WithTooltip.js';
+import TradeHubIcon from './TradeHubIcon.js';
 
 const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) => {
     if (myCiv === null) {return}
@@ -48,7 +48,7 @@ const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) =
     </div>
 }
 
-const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
+const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
     selectedCity,
     unitTemplatesByBuildingName, templates,
     setHoveredUnit, setHoveredBuilding, setHoveredWonder, setSelectedCity, centerMap
@@ -351,9 +351,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                 `Make this city your trade hub (20 city power -> 10 unhappiness)`}>
                             <div className="trade-hub"
                                 onClick = {handleClickTradeHub}>
-                                    <img 
-                                    src={tradeHubImg}
-                                    alt=""
+                                    <TradeHubIcon myGamePlayer={myGamePlayer}
                                     className={selectedCity.is_trade_hub ? "active" : "not-active"}
                                     />
                             </div>
@@ -365,8 +363,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                 `demand exceds income; city is gaining unhappiness ${projectedIncome['unhappiness'].toFixed(2)}`}
                             >
                                 <div className="unhappiness-income-value">
-                                    +{projectedIncome['city_power'] > 0 ? Math.floor(projectedIncome['city_power']) : Math.floor(projectedIncome['unhappiness'])}
-                                    <img src={projectedIncome['city_power'] > 0 ? cityImg : sadImg}  alt="" height="30px"/>
+                                    +{projectedIncome['city_power'] !== 0 ? Math.floor(projectedIncome['city_power']) : Math.floor(projectedIncome['unhappiness'])}
+                                    <img src={projectedIncome['city_power'] !== 0 ? cityImg : sadImg}  alt="" height="30px"/>
                                 </div>
                             </WithTooltip>
                             <WithTooltip tooltip={foodDemandTooltip}>

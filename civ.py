@@ -128,6 +128,11 @@ class Civ:
 
     def has_tenet(self, tenet: TenetTemplate, check_complete_quest: bool = False) -> bool:
         return self.game_player is not None and self.game_player.has_tenet(tenet, check_complete_quest)
+    
+    def tenet_at_level(self, level: int) -> TenetTemplate | None:
+        if self.game_player is None:
+            return None
+        return self.game_player.tenet_at_level(level)
 
     @property
     def researching_tech(self) -> TechTemplate | None:
@@ -583,6 +588,9 @@ class Civ:
             return lst[0]
         else:
             return None
+        
+    def largest_city(self, game_state: 'GameState') -> 'City | None':
+        return max(game_state.cities_by_id.values(), key=lambda c: c.population, default=None)
 
     def get_great_person(self, age: int, city: 'City', game_state: 'GameState'):
         self._great_people_choices_queue.append((age, city.id))

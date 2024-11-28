@@ -9,7 +9,8 @@ class TenetTemplate:
     def __init__(self, name, advancement_level, initialize_data: Callable[['GameState'], dict] | None=None, description: str | None=None, 
                  instant_effect: CityTargetEffect | None=None, 
                  quest_description: str | None=None, quest_target: int = 0, quest_complete_message: str | None=None, 
-                 a6_score_key: str | None=None, a6_score_weights: list[float] | None=None):
+                 a6_score_key: str | None=None, a6_score_weights: list[float] | None=None,
+                 a7_yield: str | None=None):
         self.name = name
         if description is not None:
             self.description = description
@@ -25,6 +26,7 @@ class TenetTemplate:
         self.quest_complete_message = quest_complete_message
         self.a6_score_key = a6_score_key
         self.a6_score_weights = a6_score_weights
+        self.a7_yield = a7_yield
 
         if any([self.quest_description, self.quest_complete_message, self.quest_target]):
             assert all([self.quest_description, self.quest_complete_message, self.quest_target]), "quest_description, quest_complete_message, and quest_target must all be provided"

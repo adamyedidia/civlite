@@ -325,17 +325,28 @@ class City(MapObjectSpawner):
             self.food_demand: float = self._calculate_food_demand(game_state)
 
         self.projected_income = self.projected_income_base + {self.focus: self.projected_income_focus[self.focus]}
- 
-        self.projected_income.unhappiness = max(0, self.food_demand - self.projected_income.food)
-        self.projected_income.city_power = max(0, self.projected_income.food - self.food_demand)
 
         if self.is_trade_hub():
-            city_power_to_consume: float = min(
-                TRADE_HUB_CITY_POWER_PER_TURN, 
-                self.civ.city_power, 
-                2 * (self.unhappiness + self.projected_income.unhappiness))
-            self.projected_income.unhappiness -= 0.5 * city_power_to_consume
+            my_a7_tenet = self.civ.tenet_at_level(7)
+            max_to_consume = 20 if my_a7_tenet is None else 60
+            if my_a7_tenet is None:
+                max_to_consume = min(max_to_consume, 2 * (self.unhappiness + self.projected_income.unhappiness))
+            city_power_to_consume: float = min(max_to_consume, self.civ.city_power)
             self.projected_income.city_power -= city_power_to_consume
+            fraction_consumed = city_power_to_consume / max_to_consume if max_to_consume > 0 else 0
+
+            if my_a7_tenet is None:
+                self.projected_income.unhappiness -= 10 * fraction_consumed
+            else:
+                amount = 3 * fraction_consumed
+                type = my_a7_tenet.a7_yield
+                assert type is not None
+                self.projected_income += Yields(**{type: amount * len(game_state.cities_by_id)})
+                game_state.a7_tenets_yields_stolen_this_turn[self.civ.id] = Yields(**{type: amount})
+
+ 
+        self.projected_income.unhappiness += max(0, self.food_demand - self.projected_income.food)
+        self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand)
 
         # If I'm a puppet, give my yields to my parent.
         parent: City | None = self.get_territory_parent(game_state)
@@ -350,7 +361,7 @@ class City(MapObjectSpawner):
 
         self.projected_on_decline_leaderboard = (self.unhappiness + self.projected_income.unhappiness > game_state.unhappiness_threshold)
 
-    def _get_projected_yields_without_focus(self, game_state) -> Yields:
+    def _get_projected_yields_without_focus(self, game_state: 'GameState') -> Yields:
         yields = Yields(food=2, science=self.population)
 
         for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
@@ -370,6 +381,8 @@ class City(MapObjectSpawner):
         if self.civ.has_tenet(TENETS.EL_DORADO, check_complete_quest=True):
             yields.metal += 5 * self.military_slots
             yields.wood += 5 * self.urban_slots
+
+        yields += sum(game_state.a7_tenets_yields_stolen_last_turn.values(), Yields()) * (-1 / self.civ.vitality)
 
         return yields * self.civ.vitality
 
