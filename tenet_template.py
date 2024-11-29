@@ -33,6 +33,9 @@ class TenetTemplate:
         if any([self.a6_score_key, self.a6_score_weights]):
             assert all([self.a6_score_key, self.a6_score_weights]), "a6_score_key and a6_score_weights must all be provided"
 
+    def __repr__(self):
+        return f"<TenetTemplate {self.name}>"
+
     def to_json(self):
         return {
             "name": self.name,

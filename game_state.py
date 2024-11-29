@@ -796,6 +796,8 @@ class GameState:
 
         if move_type == MoveType.TRADE_HUB:
             city_id = move_data['city_id']
+            if civ.city_power < 0:
+                return
             if civ.trade_hub_id == city_id:
                 civ.trade_hub_id = None
             else:

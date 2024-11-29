@@ -463,6 +463,7 @@ class Civ:
                 my_cities = [c for c in self.get_my_cities(game_state) if c.is_territory_capital]
                 if my_cities:
                     target = max(my_cities, key=lambda c: c.population)
+            logger.info(f"  {self.moniker()} choosing trade hub {target.name} based on {self.tenet_at_level(7).name}")
         if target is not None:
             game_state.resolve_move(MoveType.TRADE_HUB, {'city_id': target.id}, civ=self)
 
@@ -615,6 +616,8 @@ class Civ:
             vitality_decay_rate = 1 - (0.9 * (1 - vitality_decay_rate))
         self.vitality *= vitality_decay_rate
         self.update_max_territories(game_state)
+        if self.city_power < 0:
+            self.trade_hub_id = None
 
     def from_json_postprocess(self, game_state: 'GameState') -> None:
         if self.game_player is not None:

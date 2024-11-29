@@ -333,12 +333,11 @@ class City(MapObjectSpawner):
                 max_to_consume = min(max_to_consume, 2 * (self.unhappiness + self.projected_income.unhappiness))
             city_power_to_consume: float = min(max_to_consume, self.civ.city_power)
             self.projected_income.city_power -= city_power_to_consume
-            fraction_consumed = city_power_to_consume / max_to_consume if max_to_consume > 0 else 0
 
             if my_a7_tenet is None:
-                self.projected_income.unhappiness -= 10 * fraction_consumed
+                self.projected_income.unhappiness -= 2 * city_power_to_consume
             else:
-                amount = 3 * fraction_consumed
+                amount = 3
                 type = my_a7_tenet.a7_yield
                 assert type is not None
                 self.projected_income += Yields(**{type: amount * len(game_state.cities_by_id)})
@@ -552,7 +551,7 @@ class City(MapObjectSpawner):
             min_level = 0
         self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level >= min_level and not self.has_building(u)], reverse=True)
         if self.civ.has_tenet(TENETS.GLORIOUS_ORDER) and self.civ.get_advancement_level() >= game_state.advancement_level:
-            self.available_wonders: list[WonderTemplate] = sorted(sum([game_state.available_wonders_by_age[i] for i in range(int(self.civ.get_advancement_level()) + 1)], []))
+            self.available_wonders: list[WonderTemplate] = sorted(sum([game_state.available_wonders_by_age[i] for i in range(min(int(self.civ.get_advancement_level()) + 1, 9))], []))
         else:
             self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders)
         self.available_city_buildings = self.civ.available_city_buildings
