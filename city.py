@@ -335,7 +335,7 @@ class City(MapObjectSpawner):
             self.projected_income.city_power -= city_power_to_consume
 
             if my_a7_tenet is None:
-                self.projected_income.unhappiness -= 2 * city_power_to_consume
+                self.projected_income.unhappiness -= 0.5 * city_power_to_consume
             else:
                 amount = 3
                 type = my_a7_tenet.a7_yield

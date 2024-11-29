@@ -396,14 +396,14 @@ if __name__ == "__main__":
             for key in winner_data_raw:
                 print(f"Processing {key}")
                 for item in list(winner_raw_counts[key].keys()):
-                    if item.split(" ")[0] in ["Might", "Splendor", "Prosperity", "Wisdom"]:
-                        processed_item = item.split(" ")[0]
+                    if key == "score_sources" and item.split(" ")[0] in ["Might", "Splendor", "Prosperity", "Wisdom"]:
+                        processed_item = item.split(" ")[0] + str(CIVS.by_name(" ".join(item.split(" ")[2:])).advancement_level)
                     else:
                         processed_item = item
                     winner_data_raw[key][processed_item] = add_defaultdicts(winner_data_raw[key][processed_item], winner_raw_counts[key][item])
                 for item in list(loser_raw_counts[key].keys()):
-                    if item.split(" ")[0] in ["Might", "Splendor", "Prosperity", "Wisdom"]:
-                        processed_item = item.split(" ")[0]
+                    if key == "score_sources" and item.split(" ")[0] in ["Might", "Splendor", "Prosperity", "Wisdom"]:
+                        processed_item = item.split(" ")[0] + str(CIVS.by_name(" ".join(item.split(" ")[2:])).advancement_level)
                     else:
                         processed_item = item
                     loser_data_raw[key][processed_item] = add_defaultdicts(loser_data_raw[key][processed_item], loser_raw_counts[key][item])
