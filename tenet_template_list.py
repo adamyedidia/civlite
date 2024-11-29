@@ -40,7 +40,7 @@ class TENETS():
     TALES_OF_SCHEHERAZADE = TenetTemplate(
         advancement_level=1,
         name="Scheherazade's Tales",
-        instant_effect=PointsEffect(lambda _c, _g: 5, label="Scheherazade", description="Gain 5 points."),
+        instant_effect=PointsEffect(lambda _c, _g: 6, label="Scheherazade", description="Gain 6 points."),
     )
 
     MAUIS_FISHHOOK = TenetTemplate(
@@ -52,7 +52,7 @@ class TENETS():
     PROMETHEAN_FIRE = TenetTemplate(
         advancement_level=1,
         name="Promethean Fire",
-        instant_effect=UpgradeTerrainEffect(2, TERRAINS.MOUNTAINS, Yields(metal=3, science=3), "Volcano"),
+        instant_effect=UpgradeTerrainEffect(2, TERRAINS.MOUNTAINS, Yields(metal=2, science=3), "Volcano"),
     )
 
     DAVID_VS_GOLIATH = TenetTemplate(
@@ -82,7 +82,7 @@ class TENETS():
     GLORIOUS_ORDER = TenetTemplate(
         advancement_level=2,
         name="Glorious Order",
-        description="You can build wonders from your civ's age when ahead of the global age. Cities in ages behind yours demand 4 more food per turn.",
+        description="You can build wonders from your civ's age when ahead of the global age. Cities in ages behind yours demand 8 more food per turn.",
     )
 
     HOLY_GRAIL = TenetTemplate(
@@ -174,33 +174,33 @@ class TENETS():
     SPLENDOR = TenetTemplate(
         advancement_level=6,
         name="Splendor",
-        description="4x/3x/2x the points from wonder crowns from your first/second/third civilization (whichever is best).",
+        description="Gain 3x/2x/2x the points from wonder crowns from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.WONDER,
-        a6_score_weights=[4, 3, 2],
+        a6_score_weights=[3, 2, 2],
     )
 
     WISDOM = TenetTemplate(
         advancement_level=6,
         name="Wisdom",
-        description="4x/3x/2x the points from Research from your first/second/third civilization (whichever is best).",
+        description="Gain 2x/1x/0.75x the points from Research from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.TECH,
-        a6_score_weights=[4, 3, 2],
+        a6_score_weights=[2, 1.5, 1],
     )
 
     MIGHT = TenetTemplate(
         advancement_level=6,
         name="Might",
-        description="4x/3x/2x the points from unit kills from your first/second/third civilization (whichever is best).",
+        description="Gain 1.5x/1x/0.5x the points from unit kills from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.UNIT_KILL,
-        a6_score_weights=[4, 3, 2],
+        a6_score_weights=[1.5, 1, 0.5],
     )
 
     PROSPERITY = TenetTemplate(
         advancement_level=6,
         name="Prosperity",
-        description="6x/4x/2x the points from development from your first/second/third civilization (whichever is best).",
+        description="4x/3x/2x the points from development from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.DEVELOPMENT,
-        a6_score_weights=[6, 4, 2],
+        a6_score_weights=[4, 3, 2],
     )
 
     SPACE_RACE = TenetTemplate(
@@ -235,21 +235,21 @@ class TENETS():
         advancement_level=8,
         name="First World",
         description="45 vp.",
-        instant_effect=PointsEffect(lambda _c, _g: 45, label="First World", description="Gain 45 vp."),
+        instant_effect=PointsEffect(lambda _c, _g: 30, label="First World", description="Gain 30 vp."),
     )
 
     SECOND_WORLD = TenetTemplate(
         advancement_level=8,
         name="Second World",
         description="30 vp.",
-        instant_effect=PointsEffect(lambda _c, _g: 30, label="Second World", description="Gain 30 vp."),
+        instant_effect=PointsEffect(lambda _c, _g: 20, label="Second World", description="Gain 20 vp."),
     )
 
     THIRD_WORLD = TenetTemplate(
         advancement_level=8,
         name="Third World",
         description="15 vp.",
-        instant_effect=PointsEffect(lambda _c, _g: 15, label="Third World", description="Gain 15 vp."),
+        instant_effect=PointsEffect(lambda _c, _g: 10, label="Third World", description="Gain 10 vp."),
     )
 
     # all & by_name are copy-pasted methods to all template lists.

@@ -394,10 +394,19 @@ if __name__ == "__main__":
             offset = i*games_per_chunk
             winner_raw_counts, loser_raw_counts, local_game_data = pickle.load(open(f"{args.output_dir}/ai_game_cache_{offset}_{offset+games_per_chunk-1}.pkl", "rb"))
             for key in winner_data_raw:
-                for item in winner_raw_counts[key]:
-                    winner_data_raw[key][item] = add_defaultdicts(winner_data_raw[key][item], winner_raw_counts[key][item])
-                for item in loser_raw_counts[key]:
-                    loser_data_raw[key][item] = add_defaultdicts(loser_data_raw[key][item], loser_raw_counts[key][item])
+                print(f"Processing {key}")
+                for item in list(winner_raw_counts[key].keys()):
+                    if item.split(" ")[0] in ["Might", "Splendor", "Prosperity", "Wisdom"]:
+                        processed_item = item.split(" ")[0]
+                    else:
+                        processed_item = item
+                    winner_data_raw[key][processed_item] = add_defaultdicts(winner_data_raw[key][processed_item], winner_raw_counts[key][item])
+                for item in list(loser_raw_counts[key].keys()):
+                    if item.split(" ")[0] in ["Might", "Splendor", "Prosperity", "Wisdom"]:
+                        processed_item = item.split(" ")[0]
+                    else:
+                        processed_item = item
+                    loser_data_raw[key][processed_item] = add_defaultdicts(loser_data_raw[key][processed_item], loser_raw_counts[key][item])
             for key in local_game_data:
                 game_data_raw[key] = add_defaultdicts(game_data_raw[key], local_game_data[key])
         # Convert them from defaultdicts to arrays.
@@ -579,7 +588,7 @@ if __name__ == "__main__":
         plot_rates(winner_data['techs'], loser_data['techs'], sorted_techs, "Tech", cond_prob_range=[0.23, 0.3], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         offset += 1
         sorted_tenets = sorted(TENETS.all(), key=lambda t: (t.advancement_level, t.name))
-        plot_rates(winner_data['tenets'], loser_data['tenets'], sorted_tenets, "Tenet", cond_prob_range=[0.23, 0.3], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
+        plot_rates(winner_data['tenets'], loser_data['tenets'], sorted_tenets, "Tenet", cond_prob_range=[0.15, 0.35], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         offset += 1
         fig.show()
 

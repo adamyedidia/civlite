@@ -167,6 +167,8 @@ class GreatEngineer(GreatPerson):
     def valid_for_city(self, city: City, civ: Civ) -> bool:
         if city.civ != civ:
             return False
+        if not city.is_territory_capital:
+            return False
         if city.has_building(self.unit_template):
             return False
         if city.military_slots <= city.num_buildings_of_type(BuildingType.UNIT):

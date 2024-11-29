@@ -107,10 +107,10 @@ class GamePlayer:
                 assert tenet.a6_score_key is not None and tenet.a6_score_weights is not None
                 key: str = tenet.a6_score_key
                 weights: list[float] = tenet.a6_score_weights
-                best_idx = max(range(len(first_three_civs)), key=lambda i: first_three_civs[i].score_dict.get(key, 0) * (weights[i] - 1))
+                best_idx = max(range(len(first_three_civs)), key=lambda i: first_three_civs[i].score_dict.get(key, 0) * weights[i])
                 self.a6_tenet_info[tenet.name] = {
                     "full_name": f"{tenet.name} of {first_three_civs[best_idx].template.name}",
-                    "score": int(first_three_civs[best_idx].score_dict.get(key, 0) * (weights[best_idx] - 1)),
+                    "score": int(first_three_civs[best_idx].score_dict.get(key, 0) * weights[best_idx]),
                 }
 
     def tenet_quest_display(self) -> dict:

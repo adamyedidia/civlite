@@ -478,7 +478,7 @@ class City(MapObjectSpawner):
                 # This can happen if the game player is in mid decline.
                 continue
             if game_player.has_tenet(TENETS.GLORIOUS_ORDER) and game_player.get_current_civ(game_state).get_advancement_level() > self.civ.get_advancement_level():
-                result += 4
+                result += 8
         parent = self.get_territory_parent(game_state)
         if parent is not None:
             for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
