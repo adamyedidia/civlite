@@ -3931,7 +3931,7 @@ export default function GamePage() {
                         color: 'white',
                         padding: '15px 30px',
                         borderRadius: '5px',
-                        zIndex: 1000,
+                        zIndex: 2000,
                         cursor: 'pointer',
                         textAlign: 'center',
                         maxWidth: '80%'

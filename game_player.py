@@ -57,6 +57,17 @@ class GamePlayer:
                     "message": f'QUEST COMPLETE: {tenet.quest_complete_message}',
                 })
 
+    def get_tenet_target_city(self, game_state):
+        civ = self.get_current_civ(game_state)
+        target = civ.capital_city(game_state)
+        if target is None:
+            my_cities = civ.get_my_cities(game_state)
+            if my_cities:
+                target = max(my_cities, key=lambda c: c.population)
+            else:
+                target = None
+        return target
+
     def select_tenet(self, tenet: TenetTemplate, game_state: 'GameState'):
         if STRICT_MODE:
             assert tenet not in self.tenets
@@ -69,14 +80,7 @@ class GamePlayer:
             self.tenets[tenet]["progress"] = 0
             self.tenets[tenet]["complete"] = False
         if tenet.instant_effect is not None:
-            civ = self.get_current_civ(game_state)
-            target = civ.capital_city(game_state)
-            if target is None:
-                my_cities = civ.get_my_cities(game_state)
-                if my_cities:
-                    target = max(my_cities, key=lambda c: c.population)
-                else:
-                    target = None
+            target = self.get_tenet_target_city(game_state)
             if target is not None:
                 tenet.instant_effect.apply(city=target, game_state=game_state)
         if self.active_tenet_choice_level == 6:

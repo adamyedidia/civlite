@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
 from assign_starting_locations import assign_starting_locations
+from effects_list import PointsEffect
 from move_type import MoveType
 from tenet_template import TenetTemplate
 from tenet_template_list import TENETS
@@ -18,7 +19,7 @@ from game_player import GamePlayer
 from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VITALITY_BOOST, MAX_PLAYERS
 from tech_template import TechTemplate
 from building_template import BuildingTemplate, BuildingType
-from unit_template import UnitTemplate
+from unit_template import UnitTag, UnitTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
 from building_templates_list import BUILDINGS
@@ -397,8 +398,41 @@ class Civ:
             choices: list[TenetTemplate] = [t for t in TENETS.all() if t.advancement_level == self.game_player.active_tenet_choice_level]
             choices = [t for t in choices if game_state.tenets_claimed_by_player_nums[t] == []]
             if choices:
-                choice = random.choice(choices)
-                game_state.resolve_move(MoveType.CHOOSE_TENET, {'tenet_name': choice.name}, civ=self, game_player=self.game_player)
+                if self.game_player.active_tenet_choice_level in (1, 2, 3, 4, 7):
+                    chosen_tenet = random.choice(choices)
+                elif self.game_player.active_tenet_choice_level == 5:
+                    my_units = [u for u in game_state.units if u.civ == self]
+                    scores = {}
+                    if TENETS.DRAGONS in choices:
+                        scores[(TENETS.DRAGONS, UnitTag.RANGED)] = 0
+                    if TENETS.UNICORNS in choices:
+                        scores[(TENETS.UNICORNS, UnitTag.MOUNTED)] = 0
+                    if TENETS.NINJAS in choices:
+                        scores[(TENETS.NINJAS, UnitTag.INFANTRY)] = 0
+                    for unit in my_units:
+                        for (tenet, tag) in scores.keys():
+                            if unit.template.has_tag(tag):
+                                scores[(tenet, tag)] += unit.get_stack_size() * unit.template.metal_cost
+                    if TENETS.GIANTS in choices:
+                        scores[(TENETS.GIANTS, UnitTag.SIEGE)] = 0  # This one is just worse, don't let it accumulate score.
+                    chosen_tenet, _ = max(scores, key=lambda x: scores[x])
+                elif self.game_player.active_tenet_choice_level == 6:
+                    assert self.game_player.a6_tenet_info is not None
+                    a6_tenet_info = self.game_player.a6_tenet_info
+                    chosen_tenet = max(choices, key=lambda t: a6_tenet_info[t.name]["score"])
+                elif self.game_player.active_tenet_choice_level == 8:
+                    chosen_tenet = max(choices, key=lambda t: t.instant_effect.calculate_points(None, None))  # type: ignore
+                else:
+                    raise ValueError(f"Bot choosing tenet for unkown level: {self.game_player.active_tenet_choice_level}")
+                target_city = self.game_player.get_tenet_target_city(game_state)
+                points_from_tenet = lambda t: (
+                    self.game_player.a6_tenet_info[t.name]['score'] if self.game_player is not None and self.game_player.a6_tenet_info is not None and t.name in self.game_player.a6_tenet_info else
+                    t.instant_effect.calculate_points(target_city, game_state) if target_city is not None and isinstance(t.instant_effect, PointsEffect) else
+                    0
+                )
+
+                chosen_tenet = max(choices, key=lambda t: (points_from_tenet(t), random.random()))
+                game_state.resolve_move(MoveType.CHOOSE_TENET, {'tenet_name': chosen_tenet.name}, civ=self, game_player=self.game_player)
 
         my_cities = self.get_my_cities(game_state)
         my_territory_capitals = [city for city in my_cities if city.is_territory_capital]
@@ -411,15 +445,26 @@ class Civ:
             elif largest_puppet.population > smallest_territory_capital.population:
                 game_state.resolve_move(MoveType.MAKE_TERRITORY, {'city_id': largest_puppet.id, 'other_city_id': smallest_territory_capital.id}, civ=self)
         # Choose trade hub:
-        unhappy_cities = [city for city in self.get_my_cities(game_state) if city.unhappiness + city.projected_income["unhappiness"] > 0]
-        def trade_hub_priority(city: 'City'):
-            income = sum(city.projected_income[x] for x in ['wood', 'metal', 'science'])
-            on_leaderboard = city.civ_to_revolt_into is not None
-            unhappiness = city.unhappiness + city.projected_income["unhappiness"]
-            close_to_leaderboard = unhappiness >= game_state.unhappiness_threshold
-            return on_leaderboard, close_to_leaderboard, income
-        if len(unhappy_cities) > 0:
-            game_state.resolve_move(MoveType.TRADE_HUB, {'city_id': max(unhappy_cities, key=trade_hub_priority).id}, civ=self)
+        if self.tenet_at_level(7) is None:
+            unhappy_cities = [city for city in self.get_my_cities(game_state) if city.unhappiness + city.projected_income["unhappiness"] > 0]
+            def trade_hub_priority(city: 'City'):
+                income = sum(city.projected_income[x] for x in ['wood', 'metal', 'science'])
+                on_leaderboard = city.civ_to_revolt_into is not None
+                unhappiness = city.unhappiness + city.projected_income["unhappiness"]
+                close_to_leaderboard = unhappiness >= game_state.unhappiness_threshold
+                return on_leaderboard, close_to_leaderboard, income
+            if len(unhappy_cities) > 0:
+                target = max(unhappy_cities, key=trade_hub_priority)
+            else:
+                target = None
+        else:
+            target = self.capital_city(game_state)
+            if target is None:
+                my_cities = [c for c in self.get_my_cities(game_state) if c.is_territory_capital]
+                if my_cities:
+                    target = max(my_cities, key=lambda c: c.population)
+        if target is not None:
+            game_state.resolve_move(MoveType.TRADE_HUB, {'city_id': target.id}, civ=self)
 
         if WONDERS.UNITED_NATIONS in game_state.built_wonders:
             un_owner_ids: list[str] = [civ_id for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos]
