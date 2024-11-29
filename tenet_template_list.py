@@ -182,9 +182,9 @@ class TENETS():
     WISDOM = TenetTemplate(
         advancement_level=6,
         name="Wisdom",
-        description="Gain 2x/1x/0.75x the points from Research from your first/second/third civilization (whichever is best).",
+        description="Gain 2x/1x/0.5x the points from Research from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.TECH,
-        a6_score_weights=[2, 1, 0.75],
+        a6_score_weights=[2, 1, 0.5],
     )
 
     MIGHT = TenetTemplate(
