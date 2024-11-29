@@ -529,7 +529,7 @@ if __name__ == "__main__":
             return ""
 
 
-        fig = make_subplots(rows=14, cols=2)
+        fig = make_subplots(rows=16, cols=2)
         fig.update_layout(
             height=6000,
             width=1200,

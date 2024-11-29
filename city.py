@@ -1147,11 +1147,9 @@ class City(MapObjectSpawner):
         affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if BASE_WONDER_COST[age] <= self.projected_total_wood}
         if affordable_ages == set():
             return None
-        most_points = max(affordable_ages, key=lambda age: game_state.wonder_vp_chunks(age))
-        if self.civ.game_player is not None:
-            # Live players don't build wonders worth no points.
-            most_points = max(most_points, 1)
-        best_ages = [age for age in affordable_ages if game_state.wonder_vp_chunks(age) == most_points]
+        points_by_age = {age: game_state.wonder_vp_chunks(age) for age in affordable_ages}
+        most_points = max(points_by_age.values())
+        best_ages = [age for age in affordable_ages if points_by_age[age] == most_points]
         affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.advancement_level in best_ages]
         if len(affordable_choices) == 0:
             return None

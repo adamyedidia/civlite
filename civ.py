@@ -463,7 +463,7 @@ class Civ:
                 my_cities = [c for c in self.get_my_cities(game_state) if c.is_territory_capital]
                 if my_cities:
                     target = max(my_cities, key=lambda c: c.population)
-            logger.info(f"  {self.moniker()} choosing trade hub {target.name} based on {self.tenet_at_level(7).name}")
+            logger.info(f"  {self.moniker()} choosing trade hub {target} based on {self.tenet_at_level(7)}")
         if target is not None:
             game_state.resolve_move(MoveType.TRADE_HUB, {'city_id': target.id}, civ=self)
 
