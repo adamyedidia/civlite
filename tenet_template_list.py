@@ -174,9 +174,9 @@ class TENETS():
     SPLENDOR = TenetTemplate(
         advancement_level=6,
         name="Splendor",
-        description="Gain 2x the points from wonder crowns from your first/second/third civilization (whichever is best).",
+        description="Gain 2.5x/2x/1.5x the points from wonder crowns from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.WONDER,
-        a6_score_weights=[2, 2, 2],
+        a6_score_weights=[2.5, 2, 1.5],
     )
 
     WISDOM = TenetTemplate(
