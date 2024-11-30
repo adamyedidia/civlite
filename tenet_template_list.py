@@ -100,7 +100,7 @@ class TENETS():
         name="El Dorado",
         description="-1 max territories. In your territory capitals, +5 metal per military slot and +5 wood per urban slot.",
         quest_description=f"Explore the {EL_DORADO_NUM_HEXES} marked hexes.",
-        quest_complete_message="After a long search we conclude that El Dorado was a myth. But we will not lose heart; if we shall find the City of Gold in the ruined wilderness, we must build the City with our own hands. Look not to the past for El Dorato, look to the future.",
+        quest_complete_message="After a long search we conclude that El Dorado was a myth. But we do not lose heart; the City of Gold always lay not in the ruined wilderness, but in our dreams. And this we will build the City with our own hands. Look not to the past for El Dorato ... look to the future.",
         quest_target=EL_DORADO_NUM_HEXES,
         initialize_data=lambda game_state: {"hexes": el_dorado_generate_hexes(game_state)},
     )
@@ -174,9 +174,9 @@ class TENETS():
     SPLENDOR = TenetTemplate(
         advancement_level=6,
         name="Splendor",
-        description="Gain 3x/2x/2x the points from wonder crowns from your first/second/third civilization (whichever is best).",
+        description="Gain 2x the points from wonder crowns from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.WONDER,
-        a6_score_weights=[3, 2, 2],
+        a6_score_weights=[2, 2, 2],
     )
 
     WISDOM = TenetTemplate(
@@ -234,21 +234,18 @@ class TENETS():
     FIRST_WORLD = TenetTemplate(
         advancement_level=8,
         name="First World",
-        description="45 vp.",
         instant_effect=PointsEffect(lambda _c, _g: 30, label="First World", description="Gain 30 vp."),
     )
 
     SECOND_WORLD = TenetTemplate(
         advancement_level=8,
         name="Second World",
-        description="30 vp.",
         instant_effect=PointsEffect(lambda _c, _g: 20, label="Second World", description="Gain 20 vp."),
     )
 
     THIRD_WORLD = TenetTemplate(
         advancement_level=8,
         name="Third World",
-        description="15 vp.",
         instant_effect=PointsEffect(lambda _c, _g: 10, label="Third World", description="Gain 10 vp."),
     )
 
