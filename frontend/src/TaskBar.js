@@ -45,7 +45,7 @@ export const TaskBar = ({myCiv, myGamePlayer, myCities, myUnits, canFoundCity, s
             {!myCiv?.trade_hub_id && anyUnhappyCities && !a7Tenet && <TaskIcon content={<TradeHubIcon myGamePlayer={myGamePlayer}/>}
                 tooltip={<div>Select trade hub (in city window). Unhappy cities: {unhappyCitiesList}</div>}
             />}
-            {!myCiv.trade_hub_id && a7Tenet && <TaskIcon content={<TradeHubIcon myGamePlayer={myGamePlayer}/>}
+            {!myCiv.trade_hub_id && a7Tenet && myCiv.city_power > 0 && <TaskIcon content={<TradeHubIcon myGamePlayer={myGamePlayer}/>}
                 tooltip="Select trade hub (in city window)."
             />}
             {!myCiv?.target1 && myUnits.length > 0 && <TaskIcon icon={flag1Img} tooltip="Select primary flag" />}

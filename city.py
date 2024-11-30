@@ -328,10 +328,9 @@ class City(MapObjectSpawner):
 
         if self.is_trade_hub():
             my_a7_tenet = self.civ.tenet_at_level(7)
-            max_to_consume = 20 if my_a7_tenet is None else 60
+            city_power_to_consume = 20 if my_a7_tenet is None else 60
             if my_a7_tenet is None:
-                max_to_consume = min(max_to_consume, 2 * (self.unhappiness + self.projected_income.unhappiness))
-            city_power_to_consume: float = min(max_to_consume, self.civ.city_power)
+                city_power_to_consume = min(city_power_to_consume, 2 * (self.unhappiness + self.projected_income.unhappiness))
             self.projected_income.city_power -= city_power_to_consume
 
             if my_a7_tenet is None:
@@ -342,7 +341,6 @@ class City(MapObjectSpawner):
                 assert type is not None
                 self.projected_income += Yields(**{type: amount * len(game_state.cities_by_id)})
                 game_state.a7_tenets_yields_stolen_this_turn[self.civ.id] = Yields(**{type: amount})
-
  
         self.projected_income.unhappiness += max(0, self.food_demand - self.projected_income.food)
         self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand)

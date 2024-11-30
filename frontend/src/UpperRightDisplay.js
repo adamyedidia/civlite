@@ -41,8 +41,8 @@ const NewCityIcon = ({  civTemplate, size, disabled, children, atMaxTerritories}
 
 const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFoundCity, isFoundingCity, disableUI}) => {
     const cityPowerCost = 100; // TODO is this const already defined somewhere?
-    const storedProgress = (civ.city_power % cityPowerCost) / cityPowerCost * 100;
-    const incomeProgress = civ.projected_city_power_income / cityPowerCost * 100;
+    const storedProgress = (Math.max(0, civ.city_power) % cityPowerCost) / cityPowerCost * 100;
+    const incomeProgress = (civ.projected_city_power_income + Math.min(0, civ.city_power)) / cityPowerCost * 100;
     const newCities = Math.max(0, Math.floor(civ.city_power / cityPowerCost));
     const civTemplate = templates.CIVS[civ.name];
     const currentTerritories = myCities.filter(city => !city.territory_parent_id).length;
