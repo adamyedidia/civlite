@@ -21,10 +21,8 @@ const TenetCardSmall = ({ tenet, handleClickTenet, setHoveredTenet, gameState, m
         myGamePlayer.active_tenet_choice_level == tenet.advancement_level ? "active-choice" : "available";
     const extraA6Info = myGamePlayer.a6_tenet_info?.[tenet.name];
     const title = extraA6Info ? extraA6Info.full_name : tenet.name;
-    console.log("extraA6Info", extraA6Info);
-    console.log("title", title);
     return <div className={`tenet-card ${status}`}
-        onClick={() => handleClickTenet(tenet)} onMouseEnter={() => setHoveredTenet(tenet)} onMouseLeave={() => setHoveredTenet(null)}>
+        onClick={status === "active-choice" ? () => handleClickTenet(tenet) : null} onMouseEnter={() => setHoveredTenet(tenet)} onMouseLeave={() => setHoveredTenet(null)}>
         <Typography variant="h6" className="tenet-name"> {title} </Typography>
         {extraA6Info && <Typography variant="body1" style={{textAlign: "center"}}> {extraA6Info.score} vps</Typography>}
     </div>
