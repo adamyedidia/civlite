@@ -118,7 +118,7 @@ class TENETS():
         advancement_level=3,
         name="Yggdrasils Seeds",
         description="New cities you build immediately expand twice and start with 50 food, 50 wood, and 50 metal.",
-        quest_description="Build 3 cities on forests.",
+        quest_description="Build 3 new cities on forests.",
         quest_complete_message="Yggdrasil's seeds have taken root. The world tree will grow and bear fruit for all eternity.",
         quest_target=3,
     )
@@ -217,9 +217,9 @@ class TENETS():
         a7_yield="metal",
     )
 
-    PLACEHOLDER_NAME = TenetTemplate(
+    INTERNATIONAL_COMMERCE = TenetTemplate(
         advancement_level=7,
-        name="[Needs a Name]",
+        name="International Commerce",
         description="Your trade hub now spends 60 city power to steal 3 wood from every other city.",
         a7_yield="wood",
     )

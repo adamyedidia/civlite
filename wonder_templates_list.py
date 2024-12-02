@@ -208,7 +208,7 @@ class WONDERS():
     # 1931
     EMPIRE_STATE_BUILDING = WonderTemplate(
         name="Empire State Building", age=6,
-        on_build=GainSlotsEffect(num=1, type=BuildingType.URBAN, free_building=BUILDINGS.COMMERCIAL_CENTER)
+        on_build=GainSlotsEffect(num=1, type=BuildingType.URBAN, free_building=BUILDINGS.SKYSCRAPER)
     )
 
     # 1886
