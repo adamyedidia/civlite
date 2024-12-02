@@ -5,6 +5,7 @@ from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
 from assign_starting_locations import assign_starting_locations
+from detailed_number import DetailedNumber
 from effects_list import PointsEffect
 from move_type import MoveType
 from tenet_template import TenetTemplate
@@ -58,10 +59,11 @@ class Civ:
         self.target2: Optional['Hex'] = None
         self.target1_coords: Optional[str] = None
         self.target2_coords: Optional[str] = None
-        self.projected_science_income = 0.0
-        self.projected_city_power_income = 0.0
+        self.projected_science_income: DetailedNumber = DetailedNumber()
+        self.projected_city_power_income: DetailedNumber = DetailedNumber()
         self.in_decline = False
         self.trade_hub_id: Optional[str] = None
+        self.trade_hub_city_power_consumption: float = 0.0
         self.great_people_choices: list[GreatPerson] = []
         self._great_people_choices_city_id: Optional[str] = None
         self._great_people_choices_queue: list[tuple[int, str]] = []  # age, city_id
@@ -110,19 +112,27 @@ class Civ:
         self.refresh_queues_cache(game_state)
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
-        self.projected_science_income = 0.0
-        self.projected_city_power_income = BASE_CITY_POWER_INCOME
+        self.projected_science_income = DetailedNumber()
+        self.projected_city_power_income = DetailedNumber({"Base": BASE_CITY_POWER_INCOME})
 
         for city in game_state.cities_by_id.values():
             if city.civ.id == self.id:
-                self.projected_science_income += city.projected_income.science
-                self.projected_city_power_income += city.projected_income.city_power
-        
+                self.projected_science_income.add(city.name, city.projected_income.science)
+                self.projected_city_power_income.add(city.name, city.projected_income.city_power)
+
+        if self.trade_hub_id is not None:
+            # The trade hub has set civ.trade_hub_city_power_consumption in its own update.
+            trade_hub = game_state.cities_by_id[self.trade_hub_id]
+            self.projected_city_power_income.add(f"Trade Hub ({trade_hub.name})", -self.trade_hub_city_power_consumption)
+        else:
+            # There is no trade hub, make sure to clear it.
+            self.trade_hub_city_power_consumption = 0.0
+
         for player in game_state.game_player_by_player_num.values():
             if player.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() > self.get_advancement_level():
-                self.projected_city_power_income -= 10
+                self.projected_city_power_income.add(TENETS.RISE_OF_EQUALITY.name, -10)
             if self.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() < self.get_advancement_level():
-                self.projected_city_power_income += 10
+                self.projected_city_power_income.add(TENETS.RISE_OF_EQUALITY.name, 10)
 
     def has_tech(self, tech: TechTemplate) -> bool:
         return self.techs_status[tech] == TechStatus.RESEARCHED
@@ -255,13 +265,14 @@ class Civ:
             "buildings_in_all_queues": self.buildings_in_all_queues,
             "target1": self.target1.coords if self.target1 else None,
             "target2": self.target2.coords if self.target2 else None,
-            "projected_science_income": self.projected_science_income,
-            "projected_city_power_income": self.projected_city_power_income,
+            "projected_science_income": self.projected_science_income.to_json(),
+            "projected_city_power_income": self.projected_city_power_income.to_json(),
             "in_decline": self.in_decline,
             "advancement_level": self.get_advancement_level(),
             "next_age_progress": self.next_age_progress(),
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
+            "trade_hub_city_power_consumption": self.trade_hub_city_power_consumption,
             "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],
             "great_people_choices_queue": [(age, city_id) for age, city_id in self._great_people_choices_queue],
             "great_people_choices_city_id": self._great_people_choices_city_id,
@@ -312,7 +323,7 @@ class Civ:
             return None
 
         # Don't decline within 2 turns of finishing renaissance
-        if self.projected_science_income > 0 and self.techs_status[TECHS.RENAISSANCE] == TechStatus.RESEARCHING and (self.renaissance_cost() - self.science) / self.projected_science_income <= 2:
+        if self.projected_science_income.value > 0 and self.techs_status[TECHS.RENAISSANCE] == TechStatus.RESEARCHING and (self.renaissance_cost() - self.science) / self.projected_science_income.value <= 2:
             logger.info(f"{self.moniker()} deciding not to decline because I'm almost done with a renaissance.")
 
         # Don't decline if I have above average army size.
@@ -582,8 +593,8 @@ class Civ:
         self.get_new_tech_choices()
 
     def roll_turn_pre_harvest(self, game_state: 'GameState') -> None:
-        self.city_power += self.projected_city_power_income
-        self.science += self.projected_science_income
+        self.city_power += self.projected_city_power_income.value
+        self.science += self.projected_science_income.value
 
         if self.has_tenet(TENETS.PROMISE_OF_FREEDOM):
             my_age = self.get_advancement_level()
@@ -712,10 +723,11 @@ class Civ:
         civ.buildings_in_all_queues = json["buildings_in_all_queues"]
         civ.target1_coords = json["target1"]
         civ.target2_coords = json["target2"]
-        civ.projected_science_income = json["projected_science_income"]
-        civ.projected_city_power_income = json["projected_city_power_income"]
+        civ.projected_science_income = DetailedNumber.from_json(json["projected_science_income"])
+        civ.projected_city_power_income = DetailedNumber.from_json(json["projected_city_power_income"])
         civ.in_decline = json["in_decline"]
         civ.trade_hub_id = json.get("trade_hub_id")
+        civ.trade_hub_city_power_consumption = json.get("trade_hub_city_power_consumption", 0.0)
         civ.great_people_choices = [GreatPerson.from_json(great_person_json) for great_person_json in json.get("great_people_choices", [])]
         civ._great_people_choices_queue = [(age, city_id) for age, city_id in json.get("great_people_choices_queue", [])]
         civ._great_people_choices_city_id = json.get("great_people_choices_city_id")

@@ -17,6 +17,7 @@ import { TextOnIcon } from './TextOnIcon.js';
 import { IconUnitDisplay } from './UnitDisplay.js';
 import { YieldsDisplay } from './BuildingDisplay.js';
 import { WithTooltip } from './WithTooltip.js';
+import { DetailedNumberTooltipContent } from './DetailedNumber.js';
 
 const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
     const bignumCharLen = bignum.length;
@@ -42,21 +43,14 @@ const NewCityIcon = ({  civTemplate, size, disabled, children, atMaxTerritories}
 const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFoundCity, isFoundingCity, disableUI}) => {
     const cityPowerCost = 100; // TODO is this const already defined somewhere?
     const storedProgress = (Math.max(0, civ.city_power) % cityPowerCost) / cityPowerCost * 100;
-    const incomeProgress = (civ.projected_city_power_income + Math.min(0, civ.city_power)) / cityPowerCost * 100;
+    const incomeProgress = (civ.projected_city_power_income.value + Math.min(0, civ.city_power)) / cityPowerCost * 100;
     const newCities = Math.max(0, Math.floor(civ.city_power / cityPowerCost));
     const civTemplate = templates.CIVS[civ.name];
     const currentTerritories = myCities.filter(city => !city.territory_parent_id).length;
     const atMaxTerritories = currentTerritories === civ.max_territories;
-    const iconTooltip = <table><tbody>
-        <tr><td> +10 </td><td> base </td></tr>
-        {myCities?.map((city, index) => {
-            const amount = Math.floor(city.projected_income['city_power']);
-            return amount !== 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
-        })}
-    </tbody></table>
     
-    return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}
-        iconTooltip={iconTooltip}
+    return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income.value)}`}
+        iconTooltip={<DetailedNumberTooltipContent detailedNumber={civ.projected_city_power_income} />}
     >
         <div className='city-power-top-row'>
         <WithTooltip tooltip={newCities === 0  ?  "Gather City Power to build new cities" :
@@ -355,13 +349,8 @@ const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTec
     const tech = templates.TECHS[civ.researching_tech_name];
     const techCost = tech?.name  === "Renaissance" ? civ.renaissance_cost : tech?.cost;
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
-    const incomeProgress = tech ? civ.projected_science_income / techCost * 100 : 0;
-    const iconTooltip = <table><tbody>
-        {myCities?.map((city, index) => (
-            <tr key={index}><td> +{Math.floor(city.projected_income.science)} </td><td> from {city.name} </td></tr>
-        ))}
-    </tbody></table>
-    return <CivDetailPanel title='science' icon={scienceImg} iconTooltip={iconTooltip} bignum={`+${Math.floor(civ.projected_science_income)}`}>
+    const incomeProgress = tech ? civ.projected_science_income.value / techCost * 100 : 0;
+    return <CivDetailPanel title='science' icon={scienceImg} iconTooltip={<DetailedNumberTooltipContent detailedNumber={civ.projected_science_income}/>} bignum={`+${Math.floor(civ.projected_science_income.value)}`}>
         <h2 className="tech-name" 
             onMouseEnter={tech ? () => setHoveredTech(templates.TECHS[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}  

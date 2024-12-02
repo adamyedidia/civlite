@@ -19,6 +19,7 @@ import { TextOnIcon } from './TextOnIcon.js';
 import ProgressBar from './ProgressBar.js';
 import { WithTooltip } from './WithTooltip.js';
 import TradeHubIcon from './TradeHubIcon.js';
+import { DetailedNumberTooltipContent } from './DetailedNumber.js';
 
 const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) => {
     if (myCiv === null) {return}
@@ -164,18 +165,14 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100));
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay);
 
-    const foodDemanded = selectedCity.food_demand;
+    const foodDemanded = selectedCity.food_demand.value;
     const incomeExceedsDemand = projectedIncome['food'] >= foodDemanded;
     const happinessIcon = (incomeExceedsDemand && selectedCity.unhappiness === 0) ? happyImg : (!incomeExceedsDemand && selectedCity.unhappiness === 0) ? neutralImg : sadImg;
     const unhappinessBarsMaxWidth = 180;
     const unhappinessBarsWidthPerUnit = Math.min(10, unhappinessBarsMaxWidth/foodDemanded, unhappinessBarsMaxWidth/projectedIncome['food']);
-    const numPuppets = Object.keys(selectedCity?.projected_income_puppets?.["wood"] || {}).length;
-    const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> : <><p>Food Demand {foodDemanded}:</p> <ul> 
-        <li>{(gameState.turn_num - selectedCity.founded_turn)} from age (1/turn since founding turn {selectedCity.founded_turn})</li> 
-        {numPuppets > 0 ? <li>-{2 * numPuppets} from puppets (-2/puppet) </li> : ""}
-        {selectedCity.food_demand_reduction_recent_owner_change > 0 ? <li>-{selectedCity.food_demand_reduction_recent_owner_change} from recent owner change</li> : ""}
-        <li>Possibly other effects from buildings in this or other cities.</li>
-        </ul> </>
+    const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> : 
+        <DetailedNumberTooltipContent detailedNumber={selectedCity.food_demand} titleHeader={`Food Demand ${foodDemanded}`}/>
+    ;
 
 
 

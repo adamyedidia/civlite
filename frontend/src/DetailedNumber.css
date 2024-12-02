@@ -1,0 +1,15 @@
+.detailed-number-tooltip ul {
+    padding-inline-start: 0;
+}
+
+.detailed-number-tooltip li {
+    list-style-type: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    gap: 0.5em;
+}
+
+.detailed-number-tooltip-value {
+    width: 3em;
+}
