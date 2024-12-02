@@ -19,3 +19,13 @@
     top: 0;
     z-index: 2;
 }
+
+.detailed-number-vitality {
+    padding-top: 5px;
+    border-top: 1px dashed white;
+}
+
+.detailed-number-post-vitality {
+    padding-top: 5px;
+    border-top: 1px dashed white;
+}

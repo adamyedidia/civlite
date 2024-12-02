@@ -83,15 +83,19 @@ class Building:
             return []
         return [ability for ability in self._template.abilities if ability.name == ability_name]
 
-    def calculate_yields(self, city: 'City', game_state: 'GameState') -> Yields:
-        if self.ruined:
-            return Yields()
+    def calculate_yields_previtality(self, city: 'City') -> Yields | None:
         if isinstance(self._template, BuildingTemplate) and self._template.calculate_yields is not None:
             return self._template.calculate_yields.calculate(city)
+        else:
+            return None
+    
+    def calculate_yields_postvitality(self, city) -> Yields | None:
+        if self.ruined:
+            return Yields()
         if isinstance(self._template, WonderTemplate) and self._template.calculate_yields is not None:
-            # Ignores vitality
-            return self._template.calculate_yields.calculate(city) * (1 / city.civ.vitality)
-        return Yields()
+            return self._template.calculate_yields.calculate(city)
+        else:
+            return None
 
     def to_json(self) -> dict:
         return {

@@ -26,7 +26,7 @@ from civ_templates_list import CIVS
 from utils import deterministic_hash, generate_unique_id
 import random
 from city_names import CITY_NAMES_BY_CIV
-from yields import Yields
+from yields import DetailedYields, Yields
 from logging_setup import logger
 
 if TYPE_CHECKING:
@@ -105,7 +105,7 @@ class City(MapObjectSpawner):
         self._territory_parent_coords: Optional[str] = None
         self.available_units: list[UnitTemplate] = []
         self.projected_income = Yields()
-        self.projected_income_base = Yields()  # income without focus
+        self.projected_income_base = DetailedYields()  # income without focus
         self.projected_income_focus = Yields()  # income from focus
         self.projected_income_puppets: dict[str, dict[str, tuple[float, int]]] = {'wood': {}, 'metal': {}} # (amount, distance)
         self.projected_on_decline_leaderboard: bool = False
@@ -316,7 +316,7 @@ class City(MapObjectSpawner):
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.revolting_to_rebels_this_turn:
-            self.projected_income_base = Yields(food=0, metal=0, wood=0, science=0)
+            self.projected_income_base = DetailedYields()
             self.projected_income_focus = Yields(food=0, metal=0, wood=0, science=0)
             self.food_demand = DetailedNumber()
             self.projected_income_puppets = {resource: {} for resource in self.projected_income_puppets}
@@ -325,7 +325,7 @@ class City(MapObjectSpawner):
             self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
             self.food_demand = self._calculate_food_demand(game_state)
 
-        self.projected_income = self.projected_income_base + {self.focus: self.projected_income_focus[self.focus]}
+        self.projected_income = self.projected_income_base.value + {self.focus: self.projected_income_focus[self.focus]}
         self.projected_income.unhappiness += max(0, self.food_demand.value - self.projected_income.food)
         self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand.value)
 
@@ -357,30 +357,45 @@ class City(MapObjectSpawner):
 
         self.projected_on_decline_leaderboard = (self.unhappiness + self.projected_income.unhappiness > game_state.unhappiness_threshold)
 
-    def _get_projected_yields_without_focus(self, game_state: 'GameState') -> Yields:
-        yields = Yields(food=2, science=self.population)
+    def _get_projected_yields_without_focus(self, game_state: 'GameState') -> DetailedYields:
+        yields = DetailedYields()
+        yields.add_yields("Base", {"food": 2})
+        yields.add_yields("Population", {"science": self.population})
 
-        for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
-            yields += hex.yields
+        terrain_yields: Yields = sum([hex.yields for hex in self.hex.get_neighbors(game_state.hexes, include_self=True)], Yields())
+        yields.add_yields("Terrain", terrain_yields)
 
-        for bldg in self.buildings:
-            yields += bldg.calculate_yields(self, game_state)
+        bldg_yields = [bldg.calculate_yields_previtality(self) for bldg in self.buildings if bldg.type]
+        bldg_yields = [y for y in bldg_yields if y is not None]
+        total_bldg_yields = sum(bldg_yields, Yields())
+        yields.add_yields("Buildings", total_bldg_yields)
         
-        yields.food += self.rural_slots - self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=False)
-        yields.metal += (self.military_slots - self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False)) * 2
-        yields.science += (self.urban_slots - self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=False)) * 2
+        yields.add_yields("Empty Slots", Yields(
+            food=self.rural_slots - self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=False),
+            metal=(self.military_slots - self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False)) * 2,
+            science=(self.urban_slots - self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=False)) * 2,
+        ))
 
         if self.civ.has_ability("IncreaseCapitalYields") and self.capital:
             resource, amount = self.civ.numbers_of_ability("IncreaseCapitalYields")
-            yields += {resource: amount}
+            yields[resource].add(self.civ.template.name, amount)
 
         if self.civ.has_tenet(TENETS.EL_DORADO, check_complete_quest=True):
-            yields.metal += 5 * self.military_slots
-            yields.wood += 5 * self.urban_slots
+            yields.add_yields(TENETS.EL_DORADO.name, Yields(
+                metal=5 * self.military_slots,
+                wood=5 * self.urban_slots,
+            ))
 
-        yields += sum(game_state.a7_tenets_yields_stolen_last_turn.values(), Yields()) * (-1 / self.civ.vitality)
+        yields.set_multiplier(self.civ.vitality)
 
-        return yields * self.civ.vitality
+        bldg_yields = [bldg.calculate_yields_postvitality(self) for bldg in self.buildings if bldg.type]
+        bldg_yields = [y for y in bldg_yields if y is not None]
+        total_bldg_yields = sum(bldg_yields, Yields())
+        yields.add_yields("Wonders", total_bldg_yields)
+
+        yields.add_yields("Enemy a7 tenets", sum(game_state.a7_tenets_yields_stolen_last_turn.values(), Yields()))
+
+        return yields
 
     def _get_projected_yields_from_focus(self, game_state) -> Yields:
         yields = Yields(metal=1, wood=1, science=1, food=1) * self.population
@@ -1300,7 +1315,7 @@ class City(MapObjectSpawner):
         economic_buildings: list[BuildingTemplate] = [b for b in self.available_city_buildings if b.name not in self.civ.buildings_in_all_queues]
         military_buildings: list[UnitTemplate] = [u for u in self.available_unit_buildings if u.movement > 0 and u.name not in self.civ.buildings_in_all_queues]
 
-        lotsa_wood: bool = self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2
+        lotsa_wood: bool = self.projected_income_base.value.wood > self.projected_income_base.value.metal * 2
         if len(military_buildings) > 0:
             # Choose buildings first by effective advancement level, then randomly
             best_military_building = max(military_buildings, key=lambda building: (
@@ -1474,7 +1489,7 @@ class City(MapObjectSpawner):
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
         city.focus = json["focus"]
         city.projected_income = Yields(**json["projected_income"])
-        city.projected_income_base = Yields(**json["projected_income_base"])
+        city.projected_income_base = DetailedYields.from_json(json["projected_income_base"])
         city.projected_income_focus = Yields(**json["projected_income_focus"])
         city.projected_on_decline_leaderboard = json["projected_on_decline_leaderboard"]
         city.projected_build_queue_depth = json["projected_build_queue_depth"]

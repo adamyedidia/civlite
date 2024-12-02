@@ -6,6 +6,7 @@ import workerImg from "./images/worker.png";
 
 import { WithTooltip } from './WithTooltip';
 import { TextOnIcon } from './TextOnIcon';
+import { DetailedNumberTooltipContent } from './DetailedNumber';
 
 const toFixedRndDown = (value, digits) => {
     const result = Math.floor(value * Math.pow(10, digits)) / Math.pow(10, digits);
@@ -64,7 +65,7 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
     const projected_income_total = selectedCity[`projected_income`][title];
     const projected_income_base = selectedCity['projected_income_base'][title];
     const projected_income_focus = selectedCity['projected_income_focus'][title];
-    const projected_total = (hideStored ? 0 : storedAmount) + (noFocus ? projected_income_base : projected_income_total);
+    const projected_total = (hideStored ? 0 : storedAmount) + (noFocus ? projected_income_base.value : projected_income_total);
     const projected_total_rounded = Math.floor(projected_total);
     const projected_total_display = `${hideStored ? "+" : ""}${projected_total_rounded}`;
 
@@ -77,6 +78,14 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
     const hasPuppets = projectedIncomePuppets && Object.keys(projectedIncomePuppets).length > 0;
     const projectedIncomePuppetsTotal = hasPuppets ? Object.values(projectedIncomePuppets).reduce((total, puppetIncomeAndDistance) => total + puppetIncomeAndDistance[0], 0) : null;
     const projectedIncomePuppetsTooltip = hasPuppets ? <PuppetIncomeTooltip title={title} projectedIncomePuppets={projectedIncomePuppets} projectedIncomePuppetsTotal={projectedIncomePuppetsTotal} /> : null;
+
+    const incomeTooltip = <div>
+        <div>{toFixedRndDown(projected_income_base.value, 2)} {title} produced this turn.</div>
+        <DetailedNumberTooltipContent detailedNumber={projected_income_base.pre_mult}/>
+        <div className='detailed-number-vitality'>x {toFixedRndDown(projected_income_base.multiplier, 2)} vitality</div>
+        {projected_income_base.post_mult.value ? <div className='detailed-number-post-vitality'><DetailedNumberTooltipContent detailedNumber={projected_income_base.post_mult}/></div> : ""}
+    </div>
+
     return (
         <div className={`city-detail-panel ${title}-area`}>
             <div className="panel-header">
@@ -91,7 +100,7 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
                     =
                     <TextOnIcon image={crateImg} style={storedStyle} tooltip={hideStored ? null : `${toFixedRndDown(storedAmount, 2)} ${title} stored from last turn.`}> {roundValue(storedAmount)} </TextOnIcon>
                     <div>+</div>
-                    <TextOnIcon image={hexesImg} tooltip={`${toFixedRndDown(projected_income_base, 2)} ${title} produced this turn.`}> {roundValue(projected_income_base)} </TextOnIcon>
+                    <TextOnIcon image={hexesImg} tooltip={incomeTooltip}> {roundValue(projected_income_base.value)} </TextOnIcon>
                     {!noFocus && (
                         <>
                             +

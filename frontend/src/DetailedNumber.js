@@ -7,7 +7,7 @@ const displayValue = (value) => {
 }
 
 export const DetailedNumberTooltipContent = ({ detailedNumber, titleHeader }) => {
-    const liFormatedData = Object.entries(detailedNumber.data).map(([key, value]) => 
+    const liFormatedData = Object.entries(detailedNumber.data).sort((keyval1, keyval2) => keyval2[1] - keyval1[1]).map(([key, value]) => 
         <li key={key}>
             <div className="detailed-number-tooltip-value">{displayValue(value)}</div>
             <div className="detailed-number-tooltip-key">{key}</div>
