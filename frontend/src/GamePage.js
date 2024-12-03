@@ -471,14 +471,14 @@ export default function GamePage() {
     }, [currentAnnouncement]);
 
     const getMyInfo = (gameState) => {
-        const gamePlayer = gameState?.game_player_by_player_num?.[playerNum];
-        const myCivId = gamePlayer?.civ_id;
+        const myGamePlayer = gameState?.game_player_by_player_num?.[playerNum];
+        const myCivId = myGamePlayer?.civ_id;
         const myCiv = gameState?.civs_by_id?.[myCivId];
-        return {gamePlayer, myCivId, myCiv};
+        return {myGamePlayer, myCivId, myCiv};
     }
     const mainGameState = declineOptionsView ? nonDeclineViewGameState : gameState;
     const info = getMyInfo(mainGameState);
-    const myGamePlayer = info.gamePlayer;
+    const myGamePlayer = info.myGamePlayer;
     const myCivId = info.myCivId;
     const myCiv = info.myCiv;
 
@@ -2742,9 +2742,10 @@ export default function GamePage() {
         const finalGameState = animationFinalStateRef.current;
         setGameState(finalGameState);
         refreshSelectedCity(finalGameState);
-        const { myCiv } = getMyInfo(finalGameState);
+        const { myCiv, myGamePlayer } = getMyInfo(finalGameState);
         sciencePopupIfNeeded(myCiv);
         greatPersonPopupIfNeeded(myCiv);
+        ideologyPopupIfNeeded(myGamePlayer);
     }
 
     const playFinalMovie = async () => {
@@ -2816,6 +2817,12 @@ export default function GamePage() {
     const sciencePopupIfNeeded = (civ) => {
         if (civ?.researching_tech_name === null && !gameState.game_over) {
             setTechChoiceDialogOpen(true);
+        }
+    }
+
+    const ideologyPopupIfNeeded = (myGamePlayer) => {
+        if (myGamePlayer.active_tenet_choice_level) {
+            setIdeologyTreeOpen(true);
         }
     }
 
@@ -3686,8 +3693,9 @@ export default function GamePage() {
                     triggerAnimations(data.game_state);
                 } else {
                     setGameState(data.game_state);
-                    const { myCiv } = getMyInfo(data.game_state);
+                    const { myCiv, myGamePlayer } = getMyInfo(data.game_state);
                     sciencePopupIfNeeded(myCiv);
+                    ideologyPopupIfNeeded(myGamePlayer);
                 }
                 refreshAnnouncements(data.game_state);
             })
