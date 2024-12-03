@@ -365,7 +365,7 @@ class City(MapObjectSpawner):
         terrain_yields: Yields = sum([hex.yields for hex in self.hex.get_neighbors(game_state.hexes, include_self=True)], Yields())
         yields.add_yields("Terrain", terrain_yields)
 
-        bldg_yields = [bldg.calculate_yields_previtality(self) for bldg in self.buildings if bldg.type]
+        bldg_yields = [bldg.calculate_yields_previtality(self) for bldg in self.buildings]
         bldg_yields = [y for y in bldg_yields if y is not None]
         total_bldg_yields = sum(bldg_yields, Yields())
         yields.add_yields("Buildings", total_bldg_yields)
@@ -388,7 +388,7 @@ class City(MapObjectSpawner):
 
         yields.set_multiplier(self.civ.vitality)
 
-        bldg_yields = [bldg.calculate_yields_postvitality(self) for bldg in self.buildings if bldg.type]
+        bldg_yields = [bldg.calculate_yields_postvitality(self) for bldg in self.buildings]
         bldg_yields = [y for y in bldg_yields if y is not None]
         total_bldg_yields = sum(bldg_yields, Yields())
         yields.add_yields("Wonders", total_bldg_yields)
@@ -491,7 +491,7 @@ class City(MapObjectSpawner):
                 # This can happen if the game player is in mid decline.
                 continue
             if game_player.has_tenet(TENETS.GLORIOUS_ORDER) and game_player.get_current_civ(game_state).get_advancement_level() > self.civ.get_advancement_level():
-                result.add(TENETS.GLORIOUS_ORDER.name, 8)
+                result.add(f"{TENETS.GLORIOUS_ORDER.name} ({game_player.username})", 8)
         parent = self.get_territory_parent(game_state)
         if parent is not None:
             for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
@@ -622,7 +622,7 @@ class City(MapObjectSpawner):
                 desc.other_strings.append(f"-{ability.numbers[0]:.0%}")
                 ratio = ability.numbers[0]
                 effective_income_multiplier = 1 / ratio
-                effective_income_bonus = self.projected_income_base['food'] * (effective_income_multiplier - 1)
+                effective_income_bonus = self.projected_income_base.food.value * (effective_income_multiplier - 1)
                 previtality_effective_income_bonus = effective_income_bonus * (1 / self.civ.vitality)
                 desc.pseudoyields_for_ai_yesvitality += Yields(food=previtality_effective_income_bonus, city_power=-previtality_effective_income_bonus)
 

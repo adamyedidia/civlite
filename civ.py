@@ -130,7 +130,7 @@ class Civ:
 
         for player in game_state.game_player_by_player_num.values():
             if player.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() > self.get_advancement_level():
-                self.projected_city_power_income.add(TENETS.RISE_OF_EQUALITY.name, -10)
+                self.projected_city_power_income.add(f"{TENETS.RISE_OF_EQUALITY.name} ({player.username})", -10)
             if self.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() < self.get_advancement_level():
                 self.projected_city_power_income.add(TENETS.RISE_OF_EQUALITY.name, 10)
 
