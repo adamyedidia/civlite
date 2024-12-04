@@ -120,7 +120,7 @@ class Civ:
                 self.projected_science_income.add(city.name, city.projected_income.science)
                 self.projected_city_power_income.add(city.name, city.projected_income.city_power)
 
-        if self.trade_hub_id is not None:
+        if self.trade_hub_id is not None and self.trade_hub_id in game_state.cities_by_id:
             # The trade hub has set civ.trade_hub_city_power_consumption in its own update.
             trade_hub = game_state.cities_by_id[self.trade_hub_id]
             self.projected_city_power_income.add(f"Trade Hub ({trade_hub.name})", -self.trade_hub_city_power_consumption)
