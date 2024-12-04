@@ -218,9 +218,9 @@ class TENETS():
         a7_yield="metal",
     )
 
-    INTERNATIONAL_COMMERCE = TenetTemplate(
+    TRADE_WARS = TenetTemplate(
         advancement_level=7,
-        name="International Commerce",
+        name="Trade Wars",
         description="Your trade hub now spends 60 city power to steal 3 wood from every other city.",
         a7_yield="wood",
     )
@@ -228,7 +228,7 @@ class TENETS():
     POPULATION_BOOM = TenetTemplate(
         advancement_level=7,
         name="Population Boom",
-        description="Your trade hub now spends 60 city power to gain 3 food from every other city.",
+        description="Your trade hub now spends 60 city power to steal 3 food from every other city.",
         a7_yield="food",
     )
 
