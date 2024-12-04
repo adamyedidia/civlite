@@ -3,10 +3,11 @@ from effect import CityTargetEffect
 
 if TYPE_CHECKING:
     from game_state import GameState
+    from game_player import GamePlayer
 
 
 class TenetTemplate:
-    def __init__(self, name, advancement_level, initialize_data: Callable[['GameState'], dict] | None=None, description: str | None=None, 
+    def __init__(self, name, advancement_level, initialize_data: Callable[['GamePlayer', 'GameState'], dict] | None=None, description: str | None=None, 
                  instant_effect: CityTargetEffect | None=None, 
                  quest_description: str | None=None, quest_target: int = 0, quest_complete_message: str | None=None, 
                  a6_score_key: str | None=None, a6_score_weights: list[float] | None=None,

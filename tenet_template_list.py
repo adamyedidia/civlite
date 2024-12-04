@@ -89,10 +89,10 @@ class TENETS():
         advancement_level=3,
         name="Holy Grail",
         description="When choosing Great People, you can select two of the choices.",
-        quest_description="Kill 20 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 unhappiness and this counts as 3 kills.",
+        quest_description="Kill 30 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 unhappiness and this counts as 3 kills.",
         quest_complete_message="We may never find the goblet of the Lord. But the deeds of our crusades shall echo through the ages, and the heros of our people will remember the call.",
-        quest_target=20,
-        initialize_data=lambda game_state: {"holy_city_id": random.choice(list(game_state.cities_by_id.keys()))},
+        quest_target=30,
+        initialize_data=lambda game_player, game_state: {"holy_city_id": random.choice([c for c in game_state.cities_by_id.values() if c.civ != game_player.get_current_civ(game_state)]).id},
     )
 
     EL_DORADO = TenetTemplate(
@@ -102,7 +102,7 @@ class TENETS():
         quest_description=f"Explore the {EL_DORADO_NUM_HEXES} marked hexes.",
         quest_complete_message="After a long search we conclude that El Dorado was a myth. But we do not lose heart; the City of Gold always lay not in the ruined wilderness, but in our dreams. And this we will build the City with our own hands. Look not to the past for El Dorato ... look to the future.",
         quest_target=EL_DORADO_NUM_HEXES,
-        initialize_data=lambda game_state: {"hexes": el_dorado_generate_hexes(game_state)},
+        initialize_data=lambda game_player, game_state: {"hexes": el_dorado_generate_hexes(game_state)},
     )
 
     FOUNTAIN_OF_YOUTH = TenetTemplate(
