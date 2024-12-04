@@ -485,7 +485,7 @@ class City(MapObjectSpawner):
         for ability, building in self.civ.passive_building_abilities_of_name('DecreaseFoodDemand', game_state):
             result.add(building.building_name, -ability.numbers[1])
         for ability, building in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
-            result.add(building.building_name, -ability.numbers[0] -ability.numbers[1])
+            result.add(building.building_name, -ability.numbers[0] + ability.numbers[1])
         for game_player in game_state.game_player_by_player_num.values():
             if game_player.civ_id is None:
                 # This can happen if the game player is in mid decline.
@@ -1107,6 +1107,8 @@ class City(MapObjectSpawner):
         self.hex.city = None
         game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex))
 
+        if self.is_trade_hub():
+            self.civ.trade_hub_id = None
         del game_state.cities_by_id[self.id]
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
