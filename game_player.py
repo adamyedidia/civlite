@@ -54,6 +54,7 @@ class GamePlayer:
                     "turn_num": game_state.turn_num,
                     "type": "quest_complete",
                     "civ_id": self.civ_id,
+                    "player_num": self.player_num,
                     "message": f'QUEST COMPLETE: {tenet.quest_complete_message}',
                 })
 
@@ -73,7 +74,7 @@ class GamePlayer:
             assert tenet not in self.tenets
             assert game_state.tenets_claimed_by_player_nums[tenet] == []
         if tenet.initialize_data is not None:
-            self.tenets[tenet] = tenet.initialize_data(game_state)
+            self.tenets[tenet] = tenet.initialize_data(self, game_state)
         else:
             self.tenets[tenet] = {}
         if tenet.quest_target > 0:
