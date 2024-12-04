@@ -4,6 +4,7 @@ import './IdeologyTree.css';
 import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from "@mui/material";
 import ideologyImg from "./images/ideology.png";
 import { romanNumeral } from "./romanNumeral";
+import { IDEOLOGY_LEVEL_STRINGS } from "./ideologyLevelStrings";
 
 export const TenetDisplay = ({ tenet }) => {
     return <div className="tenet-hover-card">
@@ -27,19 +28,6 @@ const TenetCardSmall = ({ tenet, handleClickTenet, setHoveredTenet, gameState, m
         {extraA6Info && <Typography variant="body1" style={{textAlign: "center"}}> {extraA6Info.score} vps</Typography>}
     </div>
 }
-
-const IDEOLOGY_LEVEL_STRINGS = [
-    {},
-    {"question": "What are our oldest legends?", "header": "Legend"},
-    {"question": "Where will we lead the world?", "header": "Aspiration"},
-    {"question": "What do we seek?", "header": "Quest"},
-    {"question": "How do we build a better world?", "header": "Path"},
-    {"question": "What fantasies inspire our children?", "header": "Tales"},
-    {"question": "What stories do we remember?", "header": "History"},
-    {"question": "How do we prove our worth?", "header": "Cold War"},
-    {"question": "How does the world see us?", "header": "Identity"},
-    {"question": "", "header": ""},
-]
 
 const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTenet, setHoveredTenet}) => {
     const myTenet = tenets.find(tenet => myGamePlayer.tenets[tenet.name] !== undefined);

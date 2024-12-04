@@ -11,9 +11,10 @@ import score_strings
 
 if TYPE_CHECKING:
     from game_state import GameState
+    from game_player import GamePlayer
 
 EL_DORADO_NUM_HEXES = 7
-def el_dorado_generate_hexes(game_state: 'GameState') -> list[str]:
+def el_dorado_generate_hexes(game_player: 'GamePlayer', game_state: 'GameState') -> list[str]:
     hexes = list(game_state.hexes.values())
     region_centers = random.sample(hexes, 2)
     i = 0
@@ -31,7 +32,7 @@ def el_dorado_generate_hexes(game_state: 'GameState') -> list[str]:
         d = 2
         while len(options) < num_in_center:
             nearby_hexes = center.get_hexes_within_range_expensive(game_state.hexes, d, exclude_ocean=True)
-            options = [h.coords for h in nearby_hexes if h.city is None]
+            options = [h.coords for h in nearby_hexes if h.city is None and not any(u.civ.id == game_player.civ_id for u in h.units)]
             d += 1
         result.extend(random.sample(options, num_in_center))
     return result
@@ -102,7 +103,7 @@ class TENETS():
         quest_description=f"Explore the {EL_DORADO_NUM_HEXES} marked hexes.",
         quest_complete_message="After a long search we conclude that El Dorado was a myth. But we do not lose heart; the City of Gold always lay not in the ruined wilderness, but in our dreams. And this we will build the City with our own hands. Look not to the past for El Dorato ... look to the future.",
         quest_target=EL_DORADO_NUM_HEXES,
-        initialize_data=lambda game_player, game_state: {"hexes": el_dorado_generate_hexes(game_state)},
+        initialize_data=lambda game_player, game_state: {"hexes": el_dorado_generate_hexes(game_player, game_state)},
     )
 
     FOUNTAIN_OF_YOUTH = TenetTemplate(

@@ -3,6 +3,8 @@ import './UpperRightDisplay.css';
 import { Grid, Table, TableBody, TableRow, TableCell, TableContainer, MenuItem, FormControl, InputLabel, Select, Tooltip } from '@mui/material';
 import { romanNumeral } from "./romanNumeral.js";
 import scienceImg from './images/science.png';
+import metalImg from './images/metal.png';
+import woodImg from './images/wood.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';
 import sadImg from './images/sadface.png';
@@ -11,6 +13,7 @@ import workerImg from './images/worker.png';
 import wonderImg from './images/wonders.png';
 import ideologyImg from './images/ideology.png';
 import fireImg from './images/fire.svg';
+import greatPersonImg from './images/greatperson.png';
 import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
 import { TextOnIcon } from './TextOnIcon.js';
@@ -18,6 +21,8 @@ import { IconUnitDisplay } from './UnitDisplay.js';
 import { YieldsDisplay } from './BuildingDisplay.js';
 import { WithTooltip } from './WithTooltip.js';
 import { DetailedNumberTooltipContent } from './DetailedNumber.js';
+import TradeHubIcon from './TradeHubIcon.js';
+import { IDEOLOGY_LEVEL_STRINGS } from "./ideologyLevelStrings";
 
 const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
     const bignumCharLen = bignum.length;
@@ -385,6 +390,23 @@ const IdeologyLevelDisplay = ({lvl, tenets, myPlayerNum, myCiv, templates, setHo
     </div>
 }
 
+const TenetDisplay = ({myTenets, level, setHoveredTenet, className, headerStyle, children}) => {
+    const myTenet = myTenets[level];
+    const content = <div 
+        className={`tenet ${className} ${myTenet ? 'active' : 'inactive'}`} 
+        onMouseEnter={myTenet ? () => setHoveredTenet(myTenets[level]) : null} 
+        onMouseLeave={myTenet ? () => setHoveredTenet(null) : null}>
+            <div className="tenet-header" style={myTenet && headerStyle}>{IDEOLOGY_LEVEL_STRINGS[level].header}</div>
+            {myTenet ? children : null}
+        </div>
+    if (!myTenet) {
+        return <Tooltip title={`We will choose our ${IDEOLOGY_LEVEL_STRINGS[level].header} in age ${level}.`}>
+            {content}
+        </Tooltip>
+    }
+    return content;
+}
+
 const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeologyTreeOpen, setHoveredTenet}) => {
     const levelMarkers = gameState?.advancement_level_tenets_display
     let levelsToDisplay = [...new Set(levelMarkers.map(marker => marker.advancement_level))];
@@ -393,29 +415,90 @@ const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeology
     }
     levelsToDisplay.sort((a, b) => b - a);
     const numTenets = Object.keys(myGamePlayer.tenets).length;
+
+    const myTenetTemplates = Object.keys(myGamePlayer.tenets).map(tenet => templates.TENETS[tenet]);
+    myTenetTemplates.sort((a, b) => a.advancement_level - b.advancement_level);
+    // Now they are zero-indexed; push a blank one on the front so the indexing is level
+    myTenetTemplates.unshift({});
+    
+    const myA4TenetName = myTenetTemplates[4]?.name;
+    const myA5TenetName = myTenetTemplates[5]?.name;
+    const a5TenetIcon = myA5TenetName === 'Dragons' ? '/images/archer.svg' : myA5TenetName === 'Giants' ? '/images/cannon.svg' : myA5TenetName === 'Unicorns' ? '/images/horseman.svg' : myA5TenetName === 'Ninjas' ? '/images/swordsman.svg' : null;
+
     return <CivDetailPanel title='ideology' icon={ideologyImg} iconTooltip="Ideology" bignum="">
         <Button variant="contained" color="primary" onClick={() => setIdeologyTreeOpen(true)}>
             Ideologies
         </Button>
         <div className='ideology-columns'>
-            {numTenets > 1 && <div className="ideology-column">
-                <div className="ideology-column-title">Ideals</div>
-                <div className="level-markers">
-                    {levelsToDisplay.map((lvl, index) => {
-                        const tenets = levelMarkers.filter(marker => marker.advancement_level === lvl);
-                        return <IdeologyLevelDisplay key={index} lvl={lvl} tenets={tenets} myPlayerNum={myGamePlayer?.player_num} myCiv={myCiv} templates={templates} setHoveredTenet={setHoveredTenet}/>
-                    })}
-                </div>
-            </div>}
-            {myGamePlayer.tenet_quest?.name && <div className="ideology-column">
-                <div className="ideology-column-title">Quest for {myGamePlayer.tenet_quest.name}</div>
-                {myGamePlayer.tenet_quest.progress < myGamePlayer.tenet_quest.target ?
-                    <div className="quest-progress">{myGamePlayer.tenet_quest.progress}/{myGamePlayer.tenet_quest.target}</div>
-                    :
-                    <div className="quest-complete">COMPLETE</div>
-                }
-            </div>}
+            <div className="ideology-column" style={{width: '45%'}}>
+                <TenetDisplay myTenets={myTenetTemplates} level={2} setHoveredTenet={setHoveredTenet}>
+                    <Tooltip title="The ages and Aspiration of each player are shown here. Players ahead of you are gaining their Aspiration effect against you.">
+                        <div className="level-markers">
+                            {levelsToDisplay.map((lvl, index) => {
+                                const tenets = levelMarkers.filter(marker => marker.advancement_level === lvl);
+                                return <IdeologyLevelDisplay key={index} lvl={lvl} tenets={tenets} myPlayerNum={myGamePlayer?.player_num} myCiv={myCiv} templates={templates} setHoveredTenet={setHoveredTenet}/>
+                            })}
+                        </div>
+                    </Tooltip>
+                </TenetDisplay>
+            </div>
+            <div className="ideology-column" style={{width: '55%'}}>
+                <TenetDisplay myTenets={myTenetTemplates} level={3} setHoveredTenet={setHoveredTenet} className={myGamePlayer.tenet_quest.progress >= myGamePlayer.tenet_quest.target ? "one-row-tenet" : ""}>
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                        {myGamePlayer.tenet_quest.progress < myGamePlayer.tenet_quest.target ?
+                            <>
+                                <div>{myGamePlayer.tenet_quest.name}</div>
+                                <div className="quest-progress">{myGamePlayer.tenet_quest.progress}/{myGamePlayer.tenet_quest.target}</div>
+                            </>
+                            :
+                            <div className="quest-complete">
+                                {myGamePlayer.tenet_quest.name == "Holy Grail" ? <>
+                                    <img src={greatPersonImg} alt="holy grail" height="20px"/>
+                                    x2
+                                </> : myGamePlayer.tenet_quest.name == "El Dorado" ? <>
+                                    <div style={{width: '32px', height: '24px', background: 'linear-gradient(to right, #bbbbbb 50%, #e08b5e 50%)', border: '2px solid black', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'}}>
+                                        <img src={metalImg} alt="metal" height="8px"/>
+                                        <img src={woodImg} alt="science" height="10px"/>
+                                    </div>                                    
+                                </> : myGamePlayer.tenet_quest.name == "Yggdrasils Seeds" ? <>
+                                    <div style={{width: '24px', height: '12px', backgroundColor: 'grey', border: '2px solid black', fontSize: '10px', textAlign: 'center'}}>
+                                        ++
+                                    </div>
+                                </> : myGamePlayer.tenet_quest.name == "Fountain of Youth" ? <>
+                                    <TextOnIcon image={vitalityImg} alt="fountain of youth" style={{width: '20px', height: '20px'}} offset="-5px">
+                                        +
+                                    </TextOnIcon>
+                                </> : "ERROR"
+                                }
+                            </div>
+                        }
+                    </div>
+                </TenetDisplay>
+                <TenetDisplay myTenets={myTenetTemplates} level={4} setHoveredTenet={setHoveredTenet} className="one-row-tenet">
+                    <img src={vpImg} alt="vp" height="20px"/>
+                    /
+                    {myA4TenetName == "Honor" ? 
+                    <div style={{
+                        width: '0',
+                        height: '0',
+                        borderLeft: '10px solid transparent',
+                        borderRight: '10px solid transparent',
+                        borderBottom: '20px solid #ac3737',
+                        display: 'inline-block'
+                    }}/>
+                    : <img src={myA4TenetName == "Faith" ? wonderImg : myA4TenetName == "Rationalism" ? scienceImg : myA4TenetName == "Community" ? cityImg : "ERROR"} alt={myA4TenetName} height="20px"/>
+                    }
+                </TenetDisplay>
+                <TenetDisplay myTenets={myTenetTemplates} level={5} setHoveredTenet={setHoveredTenet} className="one-row-tenet">
+                        <img src={cityImg} alt="city" height="20px"/>
+                        /
+                        <img src={a5TenetIcon} alt={myA5TenetName} height="20px"/>
+                </TenetDisplay>
+            </div>
         </div>
+        <TenetDisplay myTenets={myTenetTemplates} level={7} setHoveredTenet={setHoveredTenet} className="one-row-tenet" headerStyle={{width: '80px'}}>
+            <TradeHubIcon myGamePlayer={myGamePlayer} style={{width: '25px', height: '25px', borderRadius: '50%', backgroundColor: '#dddddd', padding: '3px'}}/>
+        </TenetDisplay>
     </CivDetailPanel>
 }
 const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disableUI, centerMap, declineOptionsView,

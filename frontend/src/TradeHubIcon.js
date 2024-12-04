@@ -10,7 +10,7 @@ const TradeHubIcon = ({ myGamePlayer, style, className }) => {
     const overlay = a7Tenet === 'science' ? scienceImg : a7Tenet === 'food' ? foodImg : a7Tenet === 'metal' ? metalImg : a7Tenet === 'wood' ? woodImg : tradeHubImg;
     return (
         <div style={{ position: 'relative', width: 'fit-content', ...style }}  className={className}>
-            <img src={tradeHubImg} alt="Trade Hub"/>
+            <img src={tradeHubImg} alt="Trade Hub" style={{width: '100%'}}/>
             <img 
                 src={overlay} 
                 alt="Overlay" 

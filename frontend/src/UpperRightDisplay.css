@@ -5,6 +5,8 @@
     padding: 10px;
     z-index: 1000; /* Ensure it's above other elements */
     flex-direction: column;
+    overflow-y: auto;
+    max-height: calc(100vh - 400px);
     /* Add other styles as needed */
 }
 
@@ -390,7 +392,34 @@ h2.tech-name {
     flex-direction: column;
     align-items: center;
     gap: 5px;
-    width: 45%;
+}
+
+.ideology-area .tenet {
+    background-color: #d3cb2c;
+    padding: 5px;
+    border-radius: 5px;
+    width: 90%;
+}
+
+.ideology-area .tenet.inactive {
+    opacity: 0.5;
+}
+
+.ideology-area .one-row-tenet {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    gap: 5px;
+}
+
+.ideology-area .tenet-header {
+    font-weight: bold;
+    width: 50px;
+}
+
+.ideology-area .tenet.inactive .tenet-header {
+    text-align: center;
+    width: 100%;
 }
 
 /*
