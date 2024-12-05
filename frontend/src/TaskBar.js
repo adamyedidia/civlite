@@ -1,7 +1,7 @@
 import React from 'react';
 import './TaskBar.css';
 
-import { WithTooltip } from './WithTooltip';
+import { Tooltip } from '@mui/material';
 import TradeHubIcon from './TradeHubIcon';
 
 import cityImg from './images/city.png';
@@ -16,9 +16,9 @@ const flag2Img = `${process.env.PUBLIC_URL}/images/purple_flag.svg`;
 
 const TaskIcon = ({icon, content, onClick, tooltip, nobounce, iconOpacity}) => {
     return <div className={`task-icon ${onClick ? 'clickable' : ''} ${nobounce ? '' : 'bounce'}`} onClick={onClick} style={{opacity: iconOpacity}}>
-        <WithTooltip tooltip={tooltip}>
+        <Tooltip title={tooltip}>
             {icon ? <img src={icon} style={{opacity: iconOpacity}} /> : content}
-        </WithTooltip>
+        </Tooltip>
     </div>
 }
 

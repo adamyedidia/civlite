@@ -1,6 +1,6 @@
 import React from 'react';
 import './TextOnIcon.css';
-import { WithTooltip } from './WithTooltip';
+import { Tooltip } from '@mui/material';
 
 
 export const TextOnIcon = ({ image, style, children, tooltip, offset }) => {
@@ -15,9 +15,9 @@ export const TextOnIcon = ({ image, style, children, tooltip, offset }) => {
     </div>;
 
     if (tooltip) {
-        content = <WithTooltip tooltip={tooltip}>
+        content = <Tooltip title={tooltip}>
             {content}
-        </WithTooltip>;
+        </Tooltip>;
     }
 
     return content;

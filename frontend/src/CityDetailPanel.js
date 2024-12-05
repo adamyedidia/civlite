@@ -4,7 +4,7 @@ import crateImg from './images/crate.png';
 import hexesImg from './images/hexes.png';
 import workerImg from "./images/worker.png";
 
-import { WithTooltip } from './WithTooltip';
+import { Tooltip } from '@mui/material';
 import { TextOnIcon } from './TextOnIcon';
 import { DetailedNumberTooltipContent } from './DetailedNumber';
 
@@ -114,11 +114,11 @@ export const CityDetailPanel = ({ title, icon, hideStored, noFocus, selectedCity
             <div className={children || hasPuppets ? "panel-content" : ""}>
                 {hasPuppets && (<div className="puppet-income-container panel-banner">
                     <div>+</div>
-                    <WithTooltip tooltip={projectedIncomePuppetsTooltip} alignBottom={true}> 
+                    <Tooltip title={projectedIncomePuppetsTooltip} alignBottom={true}> 
                         <div className="puppet-income">
                             {roundValue(projectedIncomePuppetsTotal)} 
                         </div>
-                    </WithTooltip>
+                    </Tooltip>
                 </div>)}
                 {children}
             </div>

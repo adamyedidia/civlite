@@ -6,7 +6,8 @@ const theme = createTheme({
     MuiTooltip: {
       styleOverrides: {
         tooltip: {
-          fontSize: '20px', // Example: Set the font size
+          fontSize: '16px', // Example: Set the font size
+          backgroundColor: 'black',
         },
       },
     },
