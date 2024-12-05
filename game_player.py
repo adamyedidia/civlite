@@ -96,7 +96,7 @@ class GamePlayer:
     def update_active_tenet_choice_level(self, game_state: 'GameState'):
         civ_level = self.get_current_civ(game_state).get_advancement_level()
         tenet_level = len(self.tenets)
-        if tenet_level < civ_level:
+        if tenet_level < civ_level and len(tenets_by_level[tenet_level + 1]) > 0:
             self.active_tenet_choice_level = tenet_level + 1
         else:
             self.active_tenet_choice_level = None
