@@ -263,8 +263,7 @@ class Unit(MapObject):
                 for ability, _ in from_civ.passive_building_abilities_of_name('CityPowerPerKill', game_state):
                     from_civ.city_power += ability.numbers[0]
 
-                if from_unit \
-                    and ((from_civ.has_tenet(TENETS.NINJAS) and from_unit.template.has_tag(UnitTag.INFANTRY)) or (from_civ.has_tenet(TENETS.DRAGONS) and from_unit.template.has_tag(UnitTag.MOUNTED)) or (from_civ.has_tenet(TENETS.GIANTS) and from_unit.template.has_tag(UnitTag.SIEGE)) or (from_civ.has_tenet(TENETS.UNICORNS) and from_unit.template.has_tag(UnitTag.MOUNTED))):
+                if from_unit and (from_civ_a5_tenet := from_civ.tenet_at_level(5)) and from_civ_a5_tenet.a5_unit_types and any(from_unit.template.has_tag(tag) for tag in from_civ_a5_tenet.a5_unit_types):
                     from_civ.city_power += 10
 
                 if from_civ.game_player is not None \

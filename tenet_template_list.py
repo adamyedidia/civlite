@@ -5,6 +5,7 @@ from effects_list import BuildUnitsEffect, GainSlotsEffect, PointsEffect, Upgrad
 from settings import WONDER_VPS
 from tenet_template import TenetTemplate
 from terrain_templates_list import TERRAINS
+from unit_template import UnitTag
 from unit_templates_list import UNITS
 from yields import Yields
 import score_strings
@@ -151,25 +152,25 @@ class TENETS():
     DRAGONS = TenetTemplate(
         advancement_level=5,
         name="Dragons",
-        description="+10 city power for each kill by a ranged unit.",
+        a5_unit_types=[UnitTag.RANGED],
     )
 
     UNICORNS = TenetTemplate(
         advancement_level=5,
         name="Unicorns",
-        description="+10 city power for each kill by a mounted unit.",
+        a5_unit_types=[UnitTag.MOUNTED],
     )
 
     GIANTS = TenetTemplate(
         advancement_level=5,
         name="Giants",
-        description="+10 city power for each kill by a seige unit.",
+        a5_unit_types=[UnitTag.SIEGE, UnitTag.DEFENSIVE],
     )
 
     NINJAS = TenetTemplate(
         advancement_level=5,
         name="Ninjas",
-        description="+10 city power for each kill by an infantry unit.",
+        a5_unit_types=[UnitTag.INFANTRY],
     )
 
     SPLENDOR = TenetTemplate(

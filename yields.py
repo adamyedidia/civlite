@@ -98,11 +98,12 @@ class DetailedYields:
         self.metal = DetailedNumberWithMultiplier()
         self.wood = DetailedNumberWithMultiplier()
         self.science = DetailedNumberWithMultiplier()
+        self.unhappiness = 0  # Almost no sources of this, but we made Conscription Post so we have to support it.
 
     def add_yields(self, name: str, yields: Yields | dict) -> None:
         if isinstance(yields, Yields):
-            assert yields.unhappiness == 0
             assert yields.city_power == 0
+            self.unhappiness += yields.unhappiness
         keys = tuple(yields.keys()) if isinstance(yields, dict) else DetailedYields.SUPPORTED_KEYS
         if isinstance(yields, dict):
             assert all(k in DetailedYields.SUPPORTED_KEYS for k in keys)
@@ -125,6 +126,7 @@ class DetailedYields:
             metal=self.metal.value,
             wood=self.wood.value,
             science=self.science.value,
+            unhappiness=self.unhappiness,
         )
 
     def to_json(self) -> dict:
@@ -133,6 +135,7 @@ class DetailedYields:
             "wood": self.wood.to_json(),
             "metal": self.metal.to_json(),
             "science": self.science.to_json(),
+            "unhappiness": self.unhappiness,
         }
     
     @staticmethod
@@ -142,6 +145,7 @@ class DetailedYields:
         dy.wood = DetailedNumberWithMultiplier.from_json(json["wood"])
         dy.metal = DetailedNumberWithMultiplier.from_json(json["metal"])
         dy.science = DetailedNumberWithMultiplier.from_json(json["science"])
+        dy.unhappiness = json["unhappiness"]
         return dy
 
 

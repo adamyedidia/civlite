@@ -498,8 +498,8 @@ class City(MapObjectSpawner):
                 result.add(f"{TENETS.GLORIOUS_ORDER.name} ({game_player.username})", 8)
         parent = self.get_territory_parent(game_state)
         if parent is not None:
-            for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
-                result -= ability.numbers[0]
+            for ability, building in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
+                result.add(building.building_name, -ability.numbers[0])
 
         if self.civ.has_tenet(TENETS.HOLY_GRAIL) and self.civ.game_player and self.id == self.civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]:
             result.add("Holy Grail", 30)

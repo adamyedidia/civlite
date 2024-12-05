@@ -413,20 +413,13 @@ class Civ:
                     chosen_tenet = random.choice(choices)
                 elif self.game_player.active_tenet_choice_level == 5:
                     my_units = [u for u in game_state.units if u.civ == self]
-                    scores = {}
-                    if TENETS.DRAGONS in choices:
-                        scores[(TENETS.DRAGONS, UnitTag.RANGED)] = 0
-                    if TENETS.UNICORNS in choices:
-                        scores[(TENETS.UNICORNS, UnitTag.MOUNTED)] = 0
-                    if TENETS.NINJAS in choices:
-                        scores[(TENETS.NINJAS, UnitTag.INFANTRY)] = 0
+                    scores = {tenet: 0 for tenet in choices}
                     for unit in my_units:
-                        for (tenet, tag) in scores.keys():
-                            if unit.template.has_tag(tag):
-                                scores[(tenet, tag)] += unit.get_stack_size() * unit.template.metal_cost
-                    if TENETS.GIANTS in choices:
-                        scores[(TENETS.GIANTS, UnitTag.SIEGE)] = 0  # This one is just worse, don't let it accumulate score.
-                    chosen_tenet, _ = max(scores, key=lambda x: scores[x])
+                        for tenet in scores.keys():
+                            if tenet.a5_unit_types is None: continue
+                            if any(unit.template.has_tag(tag) for tag in tenet.a5_unit_types):
+                                scores[tenet] += unit.get_stack_size() * unit.template.metal_cost
+                    chosen_tenet = max(scores, key=lambda x: scores[x])
                 elif self.game_player.active_tenet_choice_level == 6:
                     assert self.game_player.a6_tenet_info is not None
                     a6_tenet_info = self.game_player.a6_tenet_info
