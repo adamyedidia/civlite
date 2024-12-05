@@ -19,7 +19,6 @@ import { Button } from '@mui/material';
 import { TextOnIcon } from './TextOnIcon.js';
 import { IconUnitDisplay } from './UnitDisplay.js';
 import { YieldsDisplay } from './BuildingDisplay.js';
-import { WithTooltip } from './WithTooltip.js';
 import { DetailedNumberTooltipContent } from './DetailedNumber.js';
 import TradeHubIcon from './TradeHubIcon.js';
 import { IDEOLOGY_LEVEL_STRINGS } from "./ideologyLevelStrings";
@@ -28,12 +27,12 @@ const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
     const bignumCharLen = bignum.length;
     return (
         <div className={`civ-detail-panel ${title}-area`}>
-            <WithTooltip tooltip={iconTooltip} alignBottom={title === 'science'}>
+            <Tooltip title={iconTooltip}>
                 <div className="icon">
                     <img src={icon} alt=""></img>
                     <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>
                 </div>
-            </WithTooltip>
+            </Tooltip>
             <div className="panel-content">
                 {children}
             </div>
@@ -58,7 +57,7 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
         iconTooltip={<DetailedNumberTooltipContent detailedNumber={civ.projected_city_power_income} />}
     >
         <div className='city-power-top-row'>
-        <WithTooltip tooltip={newCities === 0  ?  "Gather City Power to build new cities" :
+        <Tooltip title={newCities === 0  ?  "Gather City Power to build new cities" :
                 newCities > 0 && !canFoundCity ? "No Valid City Sites" :
                 newCities > 0 && canFoundCity && !isFoundingCity ? "Click to found city" :
                 newCities > 0 && canFoundCity && isFoundingCity ? "Click to cancel found city" : null}>
@@ -71,15 +70,15 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
                 </div>
             ))}
         </div>
-        </WithTooltip>
-        <WithTooltip tooltip="Current / max territories">
+        </Tooltip>
+        <Tooltip title="Current / max territories">
             <div className='city-power-territories' style={{
                 backgroundColor: civTemplate.primary_color,
                 borderColor: civTemplate.secondary_color,
             }}>
                 {currentTerritories}/{civ.max_territories}
             </div>
-        </WithTooltip>
+        </Tooltip>
         </div>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={`${Math.floor(civ.city_power % cityPowerCost)} / ${cityPowerCost}`}/>
     </CivDetailPanel>
@@ -167,9 +166,9 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
                                 backgroundColor: templates.CIVS[myCiv.name]?.primary_color, 
                                 borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
                         >
-                <WithTooltip tooltip="Your city">
+                <Tooltip title="Your city">
                     !!
-                </WithTooltip>
+                </Tooltip>
             </div>}
         </div>
         <div className="revolt-cities-detail-container">
@@ -223,11 +222,11 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
             </Tooltip>
         </div>
     let content = <>
-        {25 < distanceFromWin && distanceFromWin < 50 && <WithTooltip tooltip="Another player is within 50 points of winning. Declining may let them win.">
+        {25 < distanceFromWin && distanceFromWin < 50 && <Tooltip title="Another player is within 50 points of winning. Declining may let them win.">
             <div className="distance-from-win">
                 GAME WILL END SOON
             </div>
-        </WithTooltip>}
+        </Tooltip>}
         {turnNum > 1 && <Button className="toggle-decline-view" 
             onClick={() => setDeclineOptionsView(!declineOptionsView)}
             variant="contained" 
@@ -284,14 +283,14 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
         </div>
     </>
     if (0 < distanceFromWin && distanceFromWin <= 25 && !declineOptionsView) {
-        content = <WithTooltip tooltip="Another player is within 25 points of winning. Declining now would let them win instantly.">
+        content = <Tooltip title="Another player is within 25 points of winning. Declining now would let them win instantly.">
         <div className="distance-from-win">
             <div>GAME WILL END SOON</div>
             <div className="distance-from-win-warning">
                 DECLINE IMPOSSIBLE
             </div>
         </div>
-        </WithTooltip>
+        </Tooltip>
     }
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(myCiv.vitality * 100)}%`}>
         {content}
