@@ -174,6 +174,8 @@ class City(MapObjectSpawner):
             self.make_territory_capital(game_state)
         else:
             # Pick the closest one to be my parent.
+            if len(choices) == 0:
+                raise ValueError(f"No choices for territory parent for {self.name}.")
             choice: City = min(choices, key=lambda c: (self.hex.distance_to(c.hex), c.capital, -c.population, c.id))
             self._remove_income_from_parent(game_state)
             self._territory_parent_id = choice.id
