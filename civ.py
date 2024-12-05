@@ -401,7 +401,7 @@ class Civ:
         return score
 
     def bot_move(self, game_state: 'GameState') -> None:
-        if  len(self.great_people_choices) > 0:
+        while len(self.great_people_choices) > 0:
             choice: GreatPerson = max(self.great_people_choices, key=lambda g: (isinstance(g, GreatGeneral), random.random()))
             game_state.resolve_move(MoveType.SELECT_GREAT_PERSON, {'great_person_name': choice.name}, civ=self)
 
@@ -684,7 +684,9 @@ class Civ:
                 self._great_people_choices_city_id = None
                 self.game_player.tenets[TENETS.HOLY_GRAIL]["second_great_person_choice"] = False
             else:
-                self.great_people_choices.remove(great_person)
+                self.great_people_choices = [person for person in self.great_people_choices if person != great_person and person.valid_for_city(city, civ=self)]
+                if len(self.great_people_choices) == 0:
+                    raise ValueError(f"No valid great people choices left for {self.moniker()} after selecting {great_person.name}.")
                 self.game_player.tenets[TENETS.HOLY_GRAIL]["second_great_person_choice"] = True
         else:
             self.great_people_choices = []
