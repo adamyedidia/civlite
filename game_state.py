@@ -388,6 +388,7 @@ class GameState:
             city.grow(self)
             city.wood += 50
             city.metal += 50
+            city.civ.science += 50
             city.develop(BuildingType.RURAL, self, free=True)
             city.develop(BuildingType.RURAL, self, free=True)
 

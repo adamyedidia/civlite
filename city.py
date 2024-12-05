@@ -340,7 +340,9 @@ class City(MapObjectSpawner):
                 amount = 3
                 type = my_a7_tenet.a7_yield
                 assert type is not None
-                self.projected_income += Yields(**{type: amount * len(game_state.cities_by_id)})
+                yields = Yields(**{type: amount * len(game_state.cities_by_id)})
+                self.projected_income += yields
+                self.projected_income_base.add_yields("Trade Hub", yields)
                 game_state.a7_tenets_yields_stolen_this_turn[self.civ.id] = Yields(**{type: amount})
             self.civ.trade_hub_city_power_consumption = city_power_to_consume
 
@@ -393,7 +395,7 @@ class City(MapObjectSpawner):
         total_bldg_yields = sum(bldg_yields, Yields())
         yields.add_yields("Wonders", total_bldg_yields)
 
-        yields.add_yields("Enemy a7 tenets", sum(game_state.a7_tenets_yields_stolen_last_turn.values(), Yields()))
+        yields.add_yields("Age VII Trade Hubs", sum(game_state.a7_tenets_yields_stolen_last_turn.values(), Yields()) * -1)
 
         return yields
 
@@ -453,7 +455,6 @@ class City(MapObjectSpawner):
 
         if self.civ.has_tenet(TENETS.HOLY_GRAIL) and self.civ.game_player and self.id == self.civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]:
             self.civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL, game_state, 3)
-            self.unhappiness += 30
 
     def update_seen_by_players(self, game_state: 'GameState') -> None:
         for civ in game_state.civs_by_id.values():
@@ -496,6 +497,9 @@ class City(MapObjectSpawner):
         if parent is not None:
             for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
                 result -= ability.numbers[0]
+
+        if self.civ.has_tenet(TENETS.HOLY_GRAIL) and self.civ.game_player and self.id == self.civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]:
+            result.add("Holy Grail", 30)
 
         if include_recent_owner_change:
             result.add("Recent conquest", -self.food_demand_reduction_recent_owner_change)

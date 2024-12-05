@@ -114,14 +114,7 @@ const IdeologyTreeDialog = ({open, onClose, handleClickTenet, setHoveredTenet, t
                         }}/>
             </DialogTitle>
             <DialogContent className="tenet-dialog-content">
-                {tenetLevelBox(1)}
-                {tenetLevelBox(2)}
-                {tenetLevelBox(3)}
-                {tenetLevelBox(4)}
-                {tenetLevelBox(5)}
-                {tenetLevelBox(6)}
-                {tenetLevelBox(7)}
-                {tenetLevelBox(8)}
+                {Object.keys(advancementLevels).map(level => tenetLevelBox(parseInt(level)))}
             </DialogContent>
         </Dialog>
     )

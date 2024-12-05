@@ -90,7 +90,7 @@ class TENETS():
         advancement_level=3,
         name="Holy Grail",
         description="When choosing Great People, you can select two of the choices.",
-        quest_description="Kill 30 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 unhappiness and this counts as 3 kills.",
+        quest_description="Kill 30 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 food demand per turn and this counts as 3 kills.",
         quest_complete_message="We may never find the goblet of the Lord. But the deeds of our crusades shall echo through the ages, and the heros of our people will remember the call.",
         quest_target=30,
         initialize_data=lambda game_player, game_state: {"holy_city_id": random.choice([c for c in game_state.cities_by_id.values() if c.civ != game_player.get_current_civ(game_state)]).id},
@@ -118,7 +118,7 @@ class TENETS():
     YGGDRASILS_SEEDS = TenetTemplate(
         advancement_level=3,
         name="Yggdrasils Seeds",
-        description="New cities you build immediately expand twice and start with 50 food, 50 wood, and 50 metal.",
+        description="New cities you build immediately expand twice and start with 50 food, 50 wood, 50 metal, and 50 science.",
         quest_description="Build 3 new cities on forests.",
         quest_complete_message="Yggdrasil's seeds have taken root. The world tree will grow and bear fruit for all eternity.",
         quest_target=3,
@@ -230,24 +230,6 @@ class TENETS():
         name="Population Boom",
         description="Your trade hub now spends 60 city power to steal 3 food from every other city.",
         a7_yield="food",
-    )
-
-    FIRST_WORLD = TenetTemplate(
-        advancement_level=8,
-        name="First World",
-        instant_effect=PointsEffect(lambda _c, _g: 30, label="First World", description="Gain 30 vp."),
-    )
-
-    SECOND_WORLD = TenetTemplate(
-        advancement_level=8,
-        name="Second World",
-        instant_effect=PointsEffect(lambda _c, _g: 20, label="Second World", description="Gain 20 vp."),
-    )
-
-    THIRD_WORLD = TenetTemplate(
-        advancement_level=8,
-        name="Third World",
-        instant_effect=PointsEffect(lambda _c, _g: 10, label="Third World", description="Gain 10 vp."),
     )
 
     # all & by_name are copy-pasted methods to all template lists.
