@@ -13,13 +13,13 @@ import ideologyImg from './images/ideology.png';
 // For images in the public/images directory, use the public URL path
 const flag1Img = `${process.env.PUBLIC_URL}/images/flag.svg`;
 const flag2Img = `${process.env.PUBLIC_URL}/images/purple_flag.svg`;
-
 const TaskIcon = ({icon, content, onClick, tooltip, nobounce, iconOpacity}) => {
-    return <div className={`task-icon ${onClick ? 'clickable' : ''} ${nobounce ? '' : 'bounce'}`} onClick={onClick} style={{opacity: iconOpacity}}>
-        <Tooltip title={tooltip}>
+    console.log(tooltip)
+    return <Tooltip title={tooltip}>
+        <div className={`task-icon ${onClick ? 'clickable' : ''} ${nobounce ? '' : 'bounce'}`} onClick={onClick} style={{opacity: iconOpacity}}>
             {icon ? <img src={icon} style={{opacity: iconOpacity}} /> : content}
-        </Tooltip>
-    </div>
+        </div>
+    </Tooltip>
 }
 
 
