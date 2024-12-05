@@ -55,7 +55,7 @@ class GamePlayer:
                     "type": "quest_complete",
                     "civ_id": self.civ_id,
                     "player_num": self.player_num,
-                    "message": f'QUEST COMPLETE: {tenet.quest_complete_message}',
+                    "message_for_civ": f'QUEST COMPLETE: {tenet.quest_complete_message}',
                 })
 
     def get_tenet_target_city(self, game_state):
