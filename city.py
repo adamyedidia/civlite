@@ -395,7 +395,10 @@ class City(MapObjectSpawner):
         total_bldg_yields = sum(bldg_yields, Yields())
         yields.add_yields("Wonders", total_bldg_yields)
 
-        yields.add_yields("Age VII Trade Hubs", sum(game_state.a7_tenets_yields_stolen_last_turn.values(), Yields()) * -1)
+        for civ_id, stolen_yields in game_state.a7_tenets_yields_stolen_last_turn.items():
+            game_player = game_state.civs_by_id[civ_id].game_player
+            username = "ours" if game_player == self.civ.game_player else game_player.username if game_player else "Unknown"
+            yields.add_yields(f"Trade Hub ({username})", stolen_yields * -1)
 
         return yields
 
