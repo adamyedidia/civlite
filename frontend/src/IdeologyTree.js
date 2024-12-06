@@ -33,6 +33,7 @@ const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTene
     const myTenet = tenets.find(tenet => myGamePlayer.tenets[tenet.name] !== undefined);
     const future = myTenet === undefined && level > myGamePlayer.active_tenet_choice_level;
     const status = future ? "future" : level == myGamePlayer.active_tenet_choice_level ? "active-choice" : "";
+    const sortedTenets = tenets.sort((a, b) => a.sort_order.localeCompare(b.sort_order));
     return <div className={`tenet-level-box ${status}`}>
         <div className="tenet-level-box-header">
             {romanNumeral(level)}. {IDEOLOGY_LEVEL_STRINGS[level].header}
@@ -46,7 +47,7 @@ const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTene
                 {IDEOLOGY_LEVEL_STRINGS[level].question}
             </Typography>
             <div className="tenet-choices-list">
-                {tenets.map((tenet, index) => 
+                {sortedTenets.map((tenet, index) => 
                     <TenetCardSmall tenet={tenet} key={index} handleClickTenet={handleClickTenet} setHoveredTenet={setHoveredTenet} gameState={gameState} myGamePlayer={myGamePlayer}/>
                 )}
             </div>

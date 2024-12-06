@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 class TenetTemplate:
-    def __init__(self, name, advancement_level, initialize_data: Callable[['GamePlayer', 'GameState'], dict] | None=None, description: str | None=None, 
+    def __init__(self, name, advancement_level, sort_order: str = "", initialize_data: Callable[['GamePlayer', 'GameState'], dict] | None=None, description: str | None=None, 
                  instant_effect: CityTargetEffect | None=None, 
                  quest_description: str | None=None, quest_target: int = 0, quest_complete_message: str | None=None, 
                  a5_unit_types: list[UnitTag] | None=None,
@@ -24,6 +24,7 @@ class TenetTemplate:
         else:
             raise ValueError("Either description, instant_effect, or a5_unit_types must be provided.")
         self.advancement_level = advancement_level
+        self.sort_order = sort_order
         self.quest_description = quest_description
         self.instant_effect = instant_effect
         self.initialize_data = initialize_data
@@ -47,5 +48,6 @@ class TenetTemplate:
             "name": self.name,
             "description": self.description,
             "quest_description": self.quest_description,
-            "advancement_level": self.advancement_level
+            "advancement_level": self.advancement_level,
+            "sort_order": self.sort_order,
         }

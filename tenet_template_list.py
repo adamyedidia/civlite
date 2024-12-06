@@ -38,53 +38,66 @@ def el_dorado_generate_hexes(game_player: 'GamePlayer', game_state: 'GameState')
         result.extend(random.sample(options, num_in_center))
     return result
 
+ORDER_FOOD = "food"
+ORDER_WOOD = "wood"
+ORDER_METAL = "metal"
+ORDER_SCIENCE = "science"
+
 class TENETS():
     TALES_OF_SCHEHERAZADE = TenetTemplate(
         advancement_level=1,
         name="Scheherazade's Tales",
         instant_effect=PointsEffect(lambda _c, _g: 6, label="Scheherazade", description="Gain 6 points."),
+        sort_order=ORDER_WOOD,
     )
 
     MAUIS_FISHHOOK = TenetTemplate(
         advancement_level=1,
         name="Mauis Fishhook",
-        instant_effect=GainSlotsEffect(2, BuildingType.RURAL)
+        instant_effect=GainSlotsEffect(2, BuildingType.RURAL),
+        sort_order=ORDER_FOOD,
     )
 
     PROMETHEAN_FIRE = TenetTemplate(
         advancement_level=1,
         name="Promethean Fire",
         instant_effect=UpgradeTerrainEffect(2, TERRAINS.MOUNTAINS, Yields(metal=2, science=3), "Volcano"),
+        sort_order=ORDER_SCIENCE,
     )
 
     DAVID_VS_GOLIATH = TenetTemplate(
         advancement_level=1,
         name="David vs Goliath",
-        instant_effect=BuildUnitsEffect(UNITS.SLINGER, num=1, extra_str=2)
+        instant_effect=BuildUnitsEffect(UNITS.SLINGER, num=1, extra_str=2),
+        sort_order=ORDER_METAL,
     )
 
     RISE_OF_EQUALITY = TenetTemplate(
         advancement_level=2,
         name="Rise of Equality",
-        description="Steal 10 city_power income from all players in an age earlier than you."
+        description="Steal 10 city_power income from all players in an age earlier than you.",
+        sort_order=ORDER_FOOD,
     )
 
     PROMISE_OF_FREEDOM = TenetTemplate(
         advancement_level=2,
         name="Promise of Freedom",
-        description="Each turn all players in an age earlier than you lose 1 vp; if your age is ahead of the game age, gain 1 vp."
+        description="Each turn all players in an age earlier than you lose 1 vp; if your age is ahead of the game age, gain 1 vp.",
+        sort_order=ORDER_SCIENCE,
     )
 
     HYMN_OF_UNITY = TenetTemplate(
         advancement_level=2,
         name="Hymn of Unity",
         description="Instantly capture cities that are in an earlier age than yours without siege.",
+        sort_order=ORDER_METAL,
     )
 
     GLORIOUS_ORDER = TenetTemplate(
         advancement_level=2,
         name="Glorious Order",
         description="You can build wonders from your civ's age when ahead of the global age. Cities in ages behind yours demand 8 more food per turn.",
+        sort_order=ORDER_WOOD,
     )
 
     HOLY_GRAIL = TenetTemplate(
@@ -129,24 +142,28 @@ class TENETS():
         advancement_level=4,
         name="Faith",
         description="Gain double vps for wonder crowns.",
+        sort_order=ORDER_WOOD,
     )
 
     RATIONALISM = TenetTemplate(
         advancement_level=4,
         name="Rationalism",
         description="Upon completing a tech, gain extra vps for its level above III.",
+        sort_order=ORDER_SCIENCE,
     )
 
     HONOR = TenetTemplate(
         advancement_level=4,
         name="Honor",
         description="Gain double vps for fighting barbarian units and camps.",
+        sort_order=ORDER_METAL,
     )
 
     COMMUNITY = TenetTemplate(
         advancement_level=4,
         name="Community",
         description="Gain double vps for developing in your cities.",
+        sort_order=ORDER_FOOD,
     )
 
     DRAGONS = TenetTemplate(
@@ -179,6 +196,7 @@ class TENETS():
         description="Gain 2.5x/2x/1.5x the points from wonder crowns from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.WONDER,
         a6_score_weights=[2.5, 2, 1.5],
+        sort_order=ORDER_WOOD,
     )
 
     WISDOM = TenetTemplate(
@@ -187,6 +205,7 @@ class TENETS():
         description="Gain 2x/1x/0.5x the points from Research from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.TECH,
         a6_score_weights=[2, 1, 0.5],
+        sort_order=ORDER_SCIENCE,
     )
 
     MIGHT = TenetTemplate(
@@ -195,6 +214,7 @@ class TENETS():
         description="Gain 1.5x/1x/0.5x the points from unit kills from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.UNIT_KILL,
         a6_score_weights=[1.5, 1, 0.5],
+        sort_order=ORDER_METAL,
     )
 
     PROSPERITY = TenetTemplate(
@@ -203,6 +223,7 @@ class TENETS():
         description="4x/3x/2x the points from development from your first/second/third civilization (whichever is best).",
         a6_score_key=score_strings.DEVELOPMENT,
         a6_score_weights=[4, 3, 2],
+        sort_order=ORDER_FOOD,
     )
 
     SPACE_RACE = TenetTemplate(
@@ -210,6 +231,7 @@ class TENETS():
         name="Space Race",
         description="Your trade hub now spends 60 city power to steal 3 science from every other city.",
         a7_yield="science",
+        sort_order=ORDER_SCIENCE,
     )
 
     IRON_CURTAIN = TenetTemplate(
@@ -217,6 +239,7 @@ class TENETS():
         name="Iron Curtain",
         description="Your trade hub now spends 60 city power to steal 3 metal from every other city.",
         a7_yield="metal",
+        sort_order=ORDER_METAL,
     )
 
     TRADE_WARS = TenetTemplate(
@@ -224,6 +247,7 @@ class TENETS():
         name="Trade Wars",
         description="Your trade hub now spends 60 city power to steal 3 wood from every other city.",
         a7_yield="wood",
+        sort_order=ORDER_WOOD,
     )
 
     POPULATION_BOOM = TenetTemplate(
@@ -231,6 +255,7 @@ class TENETS():
         name="Population Boom",
         description="Your trade hub now spends 60 city power to steal 3 food from every other city.",
         a7_yield="food",
+        sort_order=ORDER_FOOD,
     )
 
     # all & by_name are copy-pasted methods to all template lists.
