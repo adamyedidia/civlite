@@ -1372,6 +1372,7 @@ class City(MapObjectSpawner):
                 "military": self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) >= self.military_slots,
             },
             "capital": self.capital,
+            "player_capital": self.civ.game_player is not None and self.capital,
             "available_units": [u.name for u in self.available_units],
             "projected_income": self.projected_income.to_json(),
             "projected_income_base": self.projected_income_base.to_json(),

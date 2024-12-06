@@ -2991,25 +2991,30 @@ export default function GamePage() {
         }
     }
 
-    const cityBoxCanvas = {'width': 8, 'height': 4};
+    const cityBoxCanvas = {'width': 8, 'height': 6};
 
-    const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppet, friendly, cityName, onMouseEnter, onClick, children}) => {
+    const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppet, friendly, cityName, onMouseEnter, onClick, capital, children}) => {
         const cityBoxPanelBottomY = cityBoxCanvas.height / 2 + cityBoxPanel.height / 2
-        return <svg width={cityBoxCanvas.width} height={cityBoxCanvas.height} viewBox={`0 0 ${cityBoxCanvas.width} ${cityBoxCanvas.height}`} x={-cityBoxCanvas.width / 2} y={-3.5} onMouseEnter={onMouseEnter} onClick={onClick} style={{...(friendly ? {cursor : 'pointer'} : {})}}>
+        return <svg width={cityBoxCanvas.width} height={cityBoxCanvas.height} viewBox={`0 0 ${cityBoxCanvas.width} ${cityBoxCanvas.height}`} x={-cityBoxCanvas.width / 2} y={-1.5 - cityBoxCanvas.height / 2} onMouseEnter={onMouseEnter} onClick={onClick} style={{...(friendly ? {cursor : 'pointer'} : {})}}>
             {/* Background rectangle */}
+            {capital && <>
+                <rect width={cityBoxPanel.width / 4} height={cityBoxPanel.height} x={(cityBoxCanvas.width - cityBoxPanel.width) / 2} y={(cityBoxCanvas.height - cityBoxPanel.height) / 2 - 3/4 * cityBoxPanel.height} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.2}/>
+                <rect width={cityBoxPanel.width / 4} height={cityBoxPanel.height} x={(cityBoxCanvas.width - cityBoxPanel.width) / 2 + 3/4 * cityBoxPanel.width} y={(cityBoxCanvas.height - cityBoxPanel.height) / 2 - 3/4 * cityBoxPanel.height} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.2}/>
+                <circle cx={cityBoxCanvas.width / 2} cy={cityBoxCanvas.height / 2 - cityBoxPanel.height / 2} r={cityBoxPanel.width / 4} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.2}/>
+            </>}
             <rect width={cityBoxPanel.width} height={cityBoxPanel.height} x={(cityBoxCanvas.width - cityBoxPanel.width) / 2} y={(cityBoxCanvas.height - cityBoxPanel.height) / 2} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.2} {...(puppet ? {rx: "1", ry: "1"} : {})}/>
             {/* Pointer triangle. make the fill and the stroke separately so the fill can cover the border of the main box without the stroke looking dumb */}
             <path d={`M3.3,${cityBoxPanelBottomY-0.12} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY-0.12}`} style={{opacity: 1.0, fill: primaryColor, stroke: "none", strokeWidth: 0.2}} />
             <path d={`M3.3,${cityBoxPanelBottomY} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY}`} style={{strokeOpacity: 1.0, stroke: secondaryColor, strokeWidth: 0.2}} />
-            <text x="50%" y="2.3" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
+            <text x="50%" y={0.3 + cityBoxCanvas.height / 2} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
                 {cityName}
             </text>
             {children}
         </svg>
     }
 
-    const FogCity = ({ cityName }) => {
-        return <CityRectangle cityBoxPanel={{width: 6, height: 2}} primaryColor="#bbbbbb" secondaryColor="#888888" puppet={false} cityName={cityName}>
+    const FogCity = ({ cityName, capital }) => {
+        return <CityRectangle cityBoxPanel={{width: 6, height: 2}} primaryColor="#bbbbbb" secondaryColor="#888888" puppet={false} cityName={cityName} capital={capital}>
             <rect width={cityBoxCanvas.width} height={cityBoxCanvas.height} fill="none" stroke="none" />
         </CityRectangle>
     }
@@ -3060,10 +3065,10 @@ export default function GamePage() {
                         <image href="/images/fire.svg" x="0" y="0" height="6" width="6" />
                     </svg>
                 }
-                <CityRectangle cityBoxPanel={cityBoxPanel} primaryColor={primaryColor} secondaryColor={secondaryColor} puppet={puppet} cityName={city.name} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} friendly={friendly}>
+                <CityRectangle cityBoxPanel={cityBoxPanel} primaryColor={primaryColor} secondaryColor={secondaryColor} puppet={puppet} cityName={city.name} capital={city.player_capital} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} friendly={friendly}>
                     {/* Population */}
                     <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={secondaryColor} strokeWidth="0.1"/>
-                    <image opacity={.7} href={workerIcon} x="3.5" y="0.4" height="1" width="1" />
+                    <image opacity={.7} href={workerIcon} x="3.5" y="1.4" height="1" width="1" />
                     <text x="50%" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
                         {city.population}
                     </text>              
@@ -3079,7 +3084,7 @@ export default function GamePage() {
 
                             {/* Metal */}
                             <circle cx="6.3" cy={cityCirclesY} r={cityCircleRadius} fill={colors.metal} stroke={secondaryColor} strokeWidth="0.1"/>
-                            <image href={unitImage} x={5.8} y={0.45} height="1" width="1" />
+                            <image href={unitImage} x={5.8} y={1.45} height="1" width="1" />
                             <text x="6.3" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
                                 {unitText}
                             </text>    
@@ -3354,6 +3359,7 @@ export default function GamePage() {
                                     />}
                                     {hex.fog_city_name && <FogCity 
                                         cityName={hex.fog_city_name}  
+                                        capital={hex.fog_city_player_capital}
                                     />}
                                     {hex.camp && <Camp
                                         camp={hex.camp}

@@ -157,6 +157,7 @@ class Hex:
         elif self.city is not None and any([civ.game_player is not None and civ.game_player.player_num in self.city.seen_by_players for civ in from_civ_perspectives]):
             result.update({
                 "fog_city_name": self.city.name,
+                "fog_city_player_capital": self.city.capital and self.city.civ.game_player is not None,
             })
         return result
     
