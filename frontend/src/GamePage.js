@@ -2964,6 +2964,7 @@ export default function GamePage() {
                     move_type: 'choose_decline_option',
                 },
             }
+            handleClickUnendTurn();
             fetch(playerApiUrl, {
                 method: 'POST',
                 headers: {
