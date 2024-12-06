@@ -3114,7 +3114,7 @@ export default function GamePage() {
                         <>
                             {/* Wood */}
                             <circle cx="1.7" cy={cityCirclesY} r={cityCircleRadius} fill={colors.wood} stroke={secondaryColor} strokeWidth="0.1"/>
-                            <image href={buildingImage} x={1.2} y={0.45} height="1" width="1" />
+                            <image href={buildingImage} x={1.2} y={1.45} height="1" width="1" />
                             <text x="1.7" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
                                 {buildingText}
                             </text>    
