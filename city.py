@@ -1023,6 +1023,16 @@ class City(MapObjectSpawner):
         """Barbarians replace the city with a camp."""
 
         old_civ = self.civ
+
+        if len(self.available_units) > 0:
+            best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level, random.random()))
+        else:
+            best_unit = random.choice([u for u in UNITS.all() if not u.has_tag(UnitTag.WONDROUS) and u.advancement_level == max(0, game_state.advancement_level - 1)])
+
+        # Also build a handful of units out of the ruins of the city
+        for u in self.available_units:
+            self.build_unit(game_state, u, override_civ=game_state.barbarians)
+
         # Call change_owner to do the cleanup on the previous civ ownership
         self.change_owner(game_state.barbarians, game_state)
 
@@ -1034,16 +1044,8 @@ class City(MapObjectSpawner):
         if old_civ._great_people_choices_city_id == self.id:
             old_civ._great_people_choices_city_id = None
             old_civ.great_people_choices = []
-        if len(self.available_units) > 0:
-            best_unit: UnitTemplate = max(self.available_units, key=lambda x: (x.advancement_level, random.random()))
-        else:
-            best_unit = random.choice([u for u in UNITS.all() if not u.has_tag(UnitTag.WONDROUS) and u.advancement_level == max(0, game_state.advancement_level - 1)])
 
         assert self.hex.city is not None
-
-        # Also build a handful of units out of the ruins of the city
-        for u in self.available_units:
-            self.hex.city.build_unit(game_state, u)
 
         self.hex.city = None
         game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex))
