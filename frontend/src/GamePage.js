@@ -3538,7 +3538,7 @@ export default function GamePage() {
                                 </Typography>
                                 <Tooltip title={<>
                                     <p>{`Global Age ${romanNumeral(gameState.advancement_level)}: ${Math.round(gameState.advancement_level_progress * 100)}% progress to age ${romanNumeral(gameState.advancement_level + 1)}`}</p>
-                                    <p>{`Our Age ${romanNumeral(myCiv.advancement_level)}: ${myCiv.next_age_progress.partial} / ${myCiv.next_age_progress.needed} tech-levels for age ${romanNumeral(myCiv.advancement_level + 1)}`}</p>
+                                    <p>{myCiv && `Our Age ${romanNumeral(myCiv.advancement_level)}: ${myCiv.next_age_progress.partial} / ${myCiv.next_age_progress.needed} tech-levels for age ${romanNumeral(myCiv.advancement_level + 1)}`}</p>
                                 </>}>
                                 <div className='advancement-level-card'>
                                     <div className='advancement-level-progress-bar' style={{width: `${gameState.advancement_level_progress * 100}%`}}/>
@@ -3547,13 +3547,13 @@ export default function GamePage() {
                                     </Typography>
                                     <span className='advancement-level-progress-bar-label'>🌍</span>
                                 </div>
-                                <div className='advancement-level-card'>
+                                {myCiv && <div className='advancement-level-card'>
                                     <div className='advancement-level-progress-bar' style={{width: `${myCiv.next_age_progress.partial / myCiv.next_age_progress.needed * 100}%`}}/>
                                     <Typography variant="h5" style={{zIndex: 1}}>
                                         Age {romanNumeral(myCiv.advancement_level)}
                                     </Typography>
                                     <span className='advancement-level-progress-bar-label'>🚩</span>
-                                </div>
+                                </div>}
                                 </Tooltip>
                             </div>
                         </>}
