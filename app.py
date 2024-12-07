@@ -17,6 +17,7 @@ from game_player import GamePlayer
 from game_state import GameState, make_game_statistics_plots
 from new_game_state import new_game_state
 from player import Player
+from tenet_template_list import TENETS
 from utils import dream_key, dream_key_from_civ_perspectives, generate_unique_id, moves_processing_key
 
 
@@ -789,6 +790,7 @@ def get_all_templates(sess):
         'TECHS': {tech.name: tech.to_json() for tech in TECHS.all()},
         'BUILDINGS': {building_template.name: building_template.to_json() for building_template in BUILDINGS.all()},
         'WONDERS': {wonder_template.name: wonder_template.to_json() for wonder_template in WONDERS.all()},
+        'TENETS': {tenet_template.name: tenet_template.to_json() for tenet_template in TENETS.all()}
     })
 
 @socketio.on('connect')

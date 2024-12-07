@@ -1,5 +1,7 @@
 import math
 from typing import TYPE_CHECKING, Generator, Literal, Optional, Union
+from detailed_number import DetailedNumber
+import score_strings
 from building import Building, QueueEntry
 from building_template import BuildingTemplate, BuildingType
 from building_templates_list import BUILDINGS
@@ -11,6 +13,7 @@ from map_object_spawner import MapObjectSpawner
 from move_type import MoveType
 from region import Region
 from settings import BASE_WONDER_COST, GOD_MODE
+from tenet_template_list import TENETS
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
 from settings import AI, ADDITIONAL_PER_POP_FOOD_COST, BASE_FOOD_COST_OF_POP, CITY_CAPTURE_REWARD, DEVELOP_VPS, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE, FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY, FRESH_CITY_VITALITY_PER_TURN, REVOLT_VITALITY_PER_TURN, REVOLT_VITALITY_PER_UNHAPPINESS, STRICT_MODE, VITALITY_DECAY_RATE, UNIT_BUILDING_BONUSES, MAX_SLOTS, DEVELOP_COST, MAX_SLOTS_OF_TYPE
@@ -23,7 +26,7 @@ from civ_templates_list import CIVS
 from utils import deterministic_hash, generate_unique_id
 import random
 from city_names import CITY_NAMES_BY_CIV
-from yields import Yields
+from yields import DetailedYields, Yields
 from logging_setup import logger
 
 if TYPE_CHECKING:
@@ -32,9 +35,6 @@ if TYPE_CHECKING:
     from ability import Ability
 
 TRADE_HUB_CITY_POWER_PER_TURN = 20
-
-_DEVELOPMENT_VPS_STR = f"Development ({DEVELOP_VPS} each)"
-
 
 class BuildingDescription:
     def __init__(self):
@@ -84,7 +84,7 @@ class City(MapObjectSpawner):
         self.food = 0.0
         self.metal = 0.0
         self.wood = 0.0
-        self.food_demand = 0
+        self.food_demand: DetailedNumber = DetailedNumber()
         self.food_demand_reduction_recent_owner_change: int = 0
         self.focus: str = 'food'
         self.rural_slots = 1
@@ -105,7 +105,7 @@ class City(MapObjectSpawner):
         self._territory_parent_coords: Optional[str] = None
         self.available_units: list[UnitTemplate] = []
         self.projected_income = Yields()
-        self.projected_income_base = Yields()  # income without focus
+        self.projected_income_base = DetailedYields()  # income without focus
         self.projected_income_focus = Yields()  # income from focus
         self.projected_income_puppets: dict[str, dict[str, tuple[float, int]]] = {'wood': {}, 'metal': {}} # (amount, distance)
         self.projected_on_decline_leaderboard: bool = False
@@ -174,6 +174,8 @@ class City(MapObjectSpawner):
             self.make_territory_capital(game_state)
         else:
             # Pick the closest one to be my parent.
+            if len(choices) == 0:
+                raise ValueError(f"No choices for territory parent for {self.name}.")
             choice: City = min(choices, key=lambda c: (self.hex.distance_to(c.hex), c.capital, -c.population, c.id))
             self._remove_income_from_parent(game_state)
             self._territory_parent_id = choice.id
@@ -183,6 +185,19 @@ class City(MapObjectSpawner):
 
             if adopt_focus:
                 self.focus = choice.focus
+
+            # Take all the wood and metal over.
+            new_parent = self.get_territory_parent(game_state)
+            assert new_parent is not None
+            distance = self.hex.distance_to(new_parent.hex)
+            penalty = new_parent.puppet_distance_penalty(distance)
+            new_parent.wood += self.wood * penalty
+            self.wood = 0
+            for bldg in new_parent.unit_buildings:
+                new_parent.metal += bldg.metal * penalty
+                bldg.metal = 0
+            new_parent.metal += self.metal * penalty
+            self.metal = 0
 
     @property
     def is_territory_capital(self) -> bool:
@@ -303,27 +318,35 @@ class City(MapObjectSpawner):
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         if self.revolting_to_rebels_this_turn:
-            self.projected_income_base = Yields(food=0, metal=0, wood=0, science=0)
+            self.projected_income_base = DetailedYields()
             self.projected_income_focus = Yields(food=0, metal=0, wood=0, science=0)
-            self.food_demand = 0
+            self.food_demand = DetailedNumber()
             self.projected_income_puppets = {resource: {} for resource in self.projected_income_puppets}
         else:
             self.projected_income_base = self._get_projected_yields_without_focus(game_state)
             self.projected_income_focus = self._get_projected_yields_from_focus(game_state)
-            self.food_demand: float = self._calculate_food_demand(game_state)
+            self.food_demand = self._calculate_food_demand(game_state)
 
-        self.projected_income = self.projected_income_base + {self.focus: self.projected_income_focus[self.focus]}
- 
-        self.projected_income.unhappiness = max(0, self.food_demand - self.projected_income.food)
-        self.projected_income.city_power = max(0, self.projected_income.food - self.food_demand)
+        self.projected_income = self.projected_income_base.value + {self.focus: self.projected_income_focus[self.focus]}
+        self.projected_income.unhappiness += max(0, self.food_demand.value - self.projected_income.food)
+        self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand.value)
 
         if self.is_trade_hub():
-            city_power_to_consume: float = min(
-                TRADE_HUB_CITY_POWER_PER_TURN, 
-                self.civ.city_power, 
-                2 * (self.unhappiness + self.projected_income.unhappiness))
-            self.projected_income.unhappiness -= 0.5 * city_power_to_consume
-            self.projected_income.city_power -= city_power_to_consume
+            my_a7_tenet = self.civ.tenet_at_level(7)
+
+            if my_a7_tenet is None:
+                city_power_to_consume = min(20, 2 * (self.unhappiness + self.projected_income.unhappiness))
+                self.projected_income.unhappiness -= 0.5 * city_power_to_consume
+            else:
+                city_power_to_consume = 60
+                amount = 3
+                type = my_a7_tenet.a7_yield
+                assert type is not None
+                yields = Yields(**{type: amount * len(game_state.cities_by_id)})
+                self.projected_income += yields
+                self.projected_income_base.add_yields("Trade Hub", yields)
+                game_state.a7_tenets_yields_stolen_this_turn[self.civ.id] = Yields(**{type: amount})
+            self.civ.trade_hub_city_power_consumption = city_power_to_consume
 
         # If I'm a puppet, give my yields to my parent.
         parent: City | None = self.get_territory_parent(game_state)
@@ -338,24 +361,48 @@ class City(MapObjectSpawner):
 
         self.projected_on_decline_leaderboard = (self.unhappiness + self.projected_income.unhappiness > game_state.unhappiness_threshold)
 
-    def _get_projected_yields_without_focus(self, game_state) -> Yields:
-        yields = Yields(food=2, science=self.population)
+    def _get_projected_yields_without_focus(self, game_state: 'GameState') -> DetailedYields:
+        yields = DetailedYields()
+        yields.add_yields("Base", {"food": 2})
+        yields.add_yields("Population", {"science": self.population})
 
-        for hex in self.hex.get_neighbors(game_state.hexes, include_self=True):
-            yields += hex.yields
+        terrain_yields: Yields = sum([hex.yields for hex in self.hex.get_neighbors(game_state.hexes, include_self=True)], Yields())
+        yields.add_yields("Terrain", terrain_yields)
 
-        for bldg in self.buildings:
-            yields += bldg.calculate_yields(self, game_state)
+        bldg_yields = [bldg.calculate_yields_previtality(self) for bldg in self.buildings]
+        bldg_yields = [y for y in bldg_yields if y is not None]
+        total_bldg_yields = sum(bldg_yields, Yields())
+        yields.add_yields("Buildings", total_bldg_yields)
         
-        yields.food += self.rural_slots - self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=False)
-        yields.metal += (self.military_slots - self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False)) * 2
-        yields.science += (self.urban_slots - self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=False)) * 2
+        yields.add_yields("Empty Slots", Yields(
+            food=self.rural_slots - self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=False),
+            metal=(self.military_slots - self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False)) * 2,
+            science=(self.urban_slots - self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=False)) * 2,
+        ))
 
         if self.civ.has_ability("IncreaseCapitalYields") and self.capital:
             resource, amount = self.civ.numbers_of_ability("IncreaseCapitalYields")
-            yields += {resource: amount}
+            yields[resource].add(self.civ.template.name, amount)
 
-        return yields * self.civ.vitality
+        if self.civ.has_tenet(TENETS.EL_DORADO, check_complete_quest=True):
+            yields.add_yields(TENETS.EL_DORADO.name, Yields(
+                metal=5 * self.military_slots,
+                wood=5 * self.urban_slots,
+            ))
+
+        yields.set_multiplier(self.civ.vitality)
+
+        bldg_yields = [bldg.calculate_yields_postvitality(self) for bldg in self.buildings]
+        bldg_yields = [y for y in bldg_yields if y is not None]
+        total_bldg_yields = sum(bldg_yields, Yields())
+        yields.add_yields("Wonders", total_bldg_yields)
+
+        for civ_id, stolen_yields in game_state.a7_tenets_yields_stolen_last_turn.items():
+            game_player = game_state.civs_by_id[civ_id].game_player
+            username = "ours" if game_player == self.civ.game_player else game_player.username if game_player else "Unknown"
+            yields.add_yields(f"Trade Hub ({username})", stolen_yields * -1)
+
+        return yields
 
     def _get_projected_yields_from_focus(self, game_state) -> Yields:
         yields = Yields(metal=1, wood=1, science=1, food=1) * self.population
@@ -411,6 +458,9 @@ class City(MapObjectSpawner):
 
         self.handle_unhappiness(game_state)
 
+        if self.civ.has_tenet(TENETS.HOLY_GRAIL) and self.civ.game_player and self.id == self.civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]:
+            self.civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL, game_state, 5)
+
     def update_seen_by_players(self, game_state: 'GameState') -> None:
         for civ in game_state.civs_by_id.values():
             if civ.game_player is not None:
@@ -428,27 +478,38 @@ class City(MapObjectSpawner):
         assert self.founded_turn is not None, "Can't get age of a fake city."
         return game_state.turn_num - self.founded_turn
 
-    def _calculate_food_demand(self, game_state: 'GameState', include_recent_owner_change: bool = True) -> float:
-        if self.founded_turn is None: return 0  # Not sure why we're even calculating this.
+    def _calculate_food_demand(self, game_state: 'GameState', include_recent_owner_change: bool = True) -> DetailedNumber:
+        if self.founded_turn is None: return DetailedNumber()  # Not sure why we're even calculating this.
         if self.capital: 
-            return 0
-        result: float = 1.0 * self.age(game_state)
+            return DetailedNumber()
+        result = DetailedNumber()
+        result.add("Age", 1.0 * self.age(game_state))
 
         if self.is_territory_capital:
-            result -= 2 * len(self.get_puppets(game_state))
+            result.add("Puppets", -2 * len(self.get_puppets(game_state)))
 
-        for ability, _ in self.civ.passive_building_abilities_of_name('DecreaseFoodDemand', game_state):
-            result -= ability.numbers[1]
-        for ability, _ in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
-            result -= ability.numbers[0] + ability.numbers[1]
+        for ability, building in self.civ.passive_building_abilities_of_name('DecreaseFoodDemand', game_state):
+            result.add(building.building_name, -ability.numbers[1])
+        for ability, building in self.passive_building_abilities_of_name('DecreaseFoodDemand'):
+            result.add(building.building_name, -ability.numbers[0] + ability.numbers[1])
+        for game_player in game_state.game_player_by_player_num.values():
+            if game_player.civ_id is None:
+                # This can happen if the game player is in mid decline.
+                continue
+            if game_player.has_tenet(TENETS.GLORIOUS_ORDER) and game_player.get_current_civ(game_state).get_advancement_level() > self.civ.get_advancement_level():
+                result.add(f"{TENETS.GLORIOUS_ORDER.name} ({game_player.username})", 8)
         parent = self.get_territory_parent(game_state)
         if parent is not None:
-            for ability, _ in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
-                result -= ability.numbers[0]
+            for ability, building in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
+                result.add(building.building_name, -ability.numbers[0])
+
+        if self.civ.has_tenet(TENETS.HOLY_GRAIL) and self.civ.game_player and self.id == self.civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]:
+            result.add("Holy Grail", 30)
 
         if include_recent_owner_change:
-            result -= self.food_demand_reduction_recent_owner_change
-        result = max(result, 0)
+            result.add("Recent conquest", -self.food_demand_reduction_recent_owner_change)
+        if result.value < 0:
+            result.add("Min zero", -result.value)
         return result
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:
@@ -512,7 +573,10 @@ class City(MapObjectSpawner):
             # Can always replace defensive units.
             min_level = 0
         self.available_unit_buildings: list[UnitTemplate] = sorted([u for u in self.civ.available_unit_buildings if u.advancement_level >= min_level and not self.has_building(u)], reverse=True)
-        self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders)
+        if self.civ.has_tenet(TENETS.GLORIOUS_ORDER) and self.civ.get_advancement_level() >= game_state.advancement_level:
+            self.available_wonders: list[WonderTemplate] = sorted(sum([game_state.available_wonders_by_age[i] for i in range(min(int(self.civ.get_advancement_level()) + 1, 9))], []))
+        else:
+            self.available_wonders: list[WonderTemplate] = sorted(game_state.available_wonders)
         self.available_city_buildings = self.civ.available_city_buildings
 
         self._update_city_building_descriptions(game_state)
@@ -567,12 +631,12 @@ class City(MapObjectSpawner):
                 desc.other_strings.append(f"-{ability.numbers[0]:.0%}")
                 ratio = ability.numbers[0]
                 effective_income_multiplier = 1 / ratio
-                effective_income_bonus = self.projected_income_base['food'] * (effective_income_multiplier - 1)
+                effective_income_bonus = self.projected_income_base.food.value * (effective_income_multiplier - 1)
                 previtality_effective_income_bonus = effective_income_bonus * (1 / self.civ.vitality)
                 desc.pseudoyields_for_ai_yesvitality += Yields(food=previtality_effective_income_bonus, city_power=-previtality_effective_income_bonus)
 
             if ability.name == "DecreaseFoodDemand":
-                resting_food_demand: float = self._calculate_food_demand(game_state, include_recent_owner_change=False)
+                resting_food_demand: float = self._calculate_food_demand(game_state, include_recent_owner_change=False).value
                 food_demand_reduced: float = min(ability.numbers[0], resting_food_demand)
                 unhappiness_saved: float = max(0, min(food_demand_reduced, resting_food_demand - self.projected_income.food))
                 city_power_gained: float = food_demand_reduced - unhappiness_saved
@@ -585,7 +649,7 @@ class City(MapObjectSpawner):
 
             if ability.name == "DecreaseFoodDemandPuppets":
                 for puppet in self.get_puppets(game_state):
-                    resting_food_demand: float = puppet._calculate_food_demand(game_state, include_recent_owner_change=False)
+                    resting_food_demand: float = puppet._calculate_food_demand(game_state, include_recent_owner_change=False).value
                     food_demand_reduced: float = min(ability.numbers[0], resting_food_demand)
                     unhappiness_saved: float = max(0, min(food_demand_reduced, resting_food_demand - puppet.projected_income.food))
                     city_power_gained: float = food_demand_reduced - unhappiness_saved
@@ -733,7 +797,7 @@ class City(MapObjectSpawner):
             best_hex = min(free_neighbors, key=lambda h: (h.distance_to(self.get_closest_target() or spawn_hex), random.random()))
             if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ:
                 # Kick out the unit that's there to build defensive units.
-                spawn_hex.units[0].take_one_step_to_hex(best_hex)
+                spawn_hex.units[0].take_one_step_to_hex(best_hex, game_state)
                 return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
             else:
                 return civ.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
@@ -901,7 +965,9 @@ class City(MapObjectSpawner):
         if not free:
             self.civ.city_power -= self.develop_cost(type)
             self.develops_this_civ[type] += 1
-        self.civ.gain_vps(DEVELOP_VPS, _DEVELOPMENT_VPS_STR)    
+        self.civ.gain_vps(DEVELOP_VPS, score_strings.DEVELOPMENT)  
+        if self.civ.has_tenet(TENETS.COMMUNITY):
+            self.civ.gain_vps(DEVELOP_VPS, "Community")
         if self.civ.has_ability("OnDevelop"):
             civ_type, effect = self.civ.numbers_of_ability("OnDevelop")
             if civ_type == type:
@@ -1000,7 +1066,6 @@ class City(MapObjectSpawner):
 
         # Fix territory parent lines
         self.orphan_territory_children(game_state)
-        self.set_territory_parent_if_needed(game_state, adopt_focus=True)
 
         # Reset various properties
         self.under_siege_by_civ = None
@@ -1015,6 +1080,7 @@ class City(MapObjectSpawner):
         self.metal = 0
         for bldg in self.unit_buildings:
             bldg.metal = 0
+        self.set_territory_parent_if_needed(game_state, adopt_focus=True)
 
         # Update available stuff
         self.midturn_update(game_state)
@@ -1050,6 +1116,8 @@ class City(MapObjectSpawner):
         self.hex.city = None
         game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex))
 
+        if self.is_trade_hub():
+            self.civ.trade_hub_id = None
         del game_state.cities_by_id[self.id]
 
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
@@ -1104,11 +1172,9 @@ class City(MapObjectSpawner):
         affordable_ages: set[int] = {age for age in game_state.wonders_by_age.keys() if BASE_WONDER_COST[age] <= self.projected_total_wood}
         if affordable_ages == set():
             return None
-        most_points = max(affordable_ages, key=lambda age: game_state.wonder_vp_chunks(age))
-        if self.civ.game_player is not None:
-            # Live players don't build wonders worth no points.
-            most_points = max(most_points, 1)
-        best_ages = [age for age in affordable_ages if game_state.wonder_vp_chunks(age) == most_points]
+        points_by_age = {age: game_state.wonder_vp_chunks(age) for age in affordable_ages}
+        most_points = max(points_by_age.values())
+        best_ages = [age for age in affordable_ages if points_by_age[age] == most_points]
         affordable_choices: list[WonderTemplate] = [choice for choice in choices if choice.advancement_level in best_ages]
         if len(affordable_choices) == 0:
             return None
@@ -1260,7 +1326,7 @@ class City(MapObjectSpawner):
         economic_buildings: list[BuildingTemplate] = [b for b in self.available_city_buildings if b.name not in self.civ.buildings_in_all_queues]
         military_buildings: list[UnitTemplate] = [u for u in self.available_unit_buildings if u.movement > 0 and u.name not in self.civ.buildings_in_all_queues]
 
-        lotsa_wood: bool = self.projected_income_base['wood'] > self.projected_income_base['metal'] * 2
+        lotsa_wood: bool = self.projected_income_base.value.wood > self.projected_income_base.value.metal * 2
         if len(military_buildings) > 0:
             # Choose buildings first by effective advancement level, then randomly
             best_military_building = max(military_buildings, key=lambda building: (
@@ -1395,7 +1461,7 @@ class City(MapObjectSpawner):
             "unhappiness": self.unhappiness,
             "civ_to_revolt_into": self.civ_to_revolt_into.name if self.civ_to_revolt_into else None,
             "is_decline_view_option": self.is_decline_view_option,
-            "food_demand": self.food_demand,
+            "food_demand": self.food_demand.to_json(),
             "food_demand_reduction_recent_owner_change": self.food_demand_reduction_recent_owner_change,
             "revolt_unit_count": self.revolt_unit_count,
             "founded_turn": self.founded_turn,
@@ -1434,7 +1500,7 @@ class City(MapObjectSpawner):
         city.available_units = [UNITS.by_name(unit) for unit in json["available_units"]]
         city.focus = json["focus"]
         city.projected_income = Yields(**json["projected_income"])
-        city.projected_income_base = Yields(**json["projected_income_base"])
+        city.projected_income_base = DetailedYields.from_json(json["projected_income_base"])
         city.projected_income_focus = Yields(**json["projected_income_focus"])
         city.projected_on_decline_leaderboard = json["projected_on_decline_leaderboard"]
         city.projected_build_queue_depth = json["projected_build_queue_depth"]
@@ -1448,6 +1514,7 @@ class City(MapObjectSpawner):
         city._territory_parent_id = json["territory_parent_id"]
         city._territory_parent_coords = json["territory_parent_coords"]
         city.founded_turn = json["founded_turn"]
+        city.food_demand = DetailedNumber.from_json(json["food_demand"])
         city.food_demand_reduction_recent_owner_change = json["food_demand_reduction_recent_owner_change"]
         city.seen_by_players = set(json["seen_by_players"])
         city.last_owner_civ_id = json["last_owner_civ_id"]

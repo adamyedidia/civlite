@@ -3,29 +3,36 @@ import './UpperRightDisplay.css';
 import { Grid, Table, TableBody, TableRow, TableCell, TableContainer, MenuItem, FormControl, InputLabel, Select, Tooltip } from '@mui/material';
 import { romanNumeral } from "./romanNumeral.js";
 import scienceImg from './images/science.png';
+import metalImg from './images/metal.png';
+import woodImg from './images/wood.png';
 import vitalityImg from './images/heart.png';
 import vpImg from './images/crown.png';
 import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import workerImg from './images/worker.png';
 import wonderImg from './images/wonders.png';
+import ideologyImg from './images/ideology.png';
+import fireImg from './images/fire.svg';
+import greatPersonImg from './images/greatperson.png';
 import ProgressBar from './ProgressBar';
 import { Button } from '@mui/material';
 import { TextOnIcon } from './TextOnIcon.js';
 import { IconUnitDisplay } from './UnitDisplay.js';
 import { YieldsDisplay } from './BuildingDisplay.js';
-import { WithTooltip } from './WithTooltip.js';
+import { DetailedNumberTooltipContent } from './DetailedNumber.js';
+import TradeHubIcon from './TradeHubIcon.js';
+import { IDEOLOGY_LEVEL_STRINGS } from "./ideologyLevelStrings";
 
 const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
     const bignumCharLen = bignum.length;
     return (
         <div className={`civ-detail-panel ${title}-area`}>
-            <WithTooltip tooltip={iconTooltip} alignBottom={title === 'science'}>
+            <Tooltip title={iconTooltip}>
                 <div className="icon">
                     <img src={icon} alt=""></img>
                     <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>
                 </div>
-            </WithTooltip>
+            </Tooltip>
             <div className="panel-content">
                 {children}
             </div>
@@ -39,25 +46,18 @@ const NewCityIcon = ({  civTemplate, size, disabled, children, atMaxTerritories}
 
 const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFoundCity, isFoundingCity, disableUI}) => {
     const cityPowerCost = 100; // TODO is this const already defined somewhere?
-    const storedProgress = (civ.city_power % cityPowerCost) / cityPowerCost * 100;
-    const incomeProgress = civ.projected_city_power_income / cityPowerCost * 100;
+    const storedProgress = (Math.max(0, civ.city_power) % cityPowerCost) / cityPowerCost * 100;
+    const incomeProgress = (civ.projected_city_power_income.value + Math.min(0, civ.city_power)) / cityPowerCost * 100;
     const newCities = Math.max(0, Math.floor(civ.city_power / cityPowerCost));
     const civTemplate = templates.CIVS[civ.name];
     const currentTerritories = myCities.filter(city => !city.territory_parent_id).length;
     const atMaxTerritories = currentTerritories === civ.max_territories;
-    const iconTooltip = <table><tbody>
-        <tr><td> +10 </td><td> base </td></tr>
-        {myCities?.map((city, index) => {
-            const amount = Math.floor(city.projected_income['city_power']);
-            return amount !== 0 && <tr key={index}><td> +{amount} </td><td> from {city.name} </td></tr>
-        })}
-    </tbody></table>
     
-    return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income)}`}
-        iconTooltip={iconTooltip}
+    return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income.value)}`}
+        iconTooltip={<DetailedNumberTooltipContent detailedNumber={civ.projected_city_power_income} />}
     >
         <div className='city-power-top-row'>
-        <WithTooltip tooltip={newCities === 0  ?  "Gather City Power to build new cities" :
+        <Tooltip title={newCities === 0  ?  "Gather City Power to build new cities" :
                 newCities > 0 && !canFoundCity ? "No Valid City Sites" :
                 newCities > 0 && canFoundCity && !isFoundingCity ? "Click to found city" :
                 newCities > 0 && canFoundCity && isFoundingCity ? "Click to cancel found city" : null}>
@@ -70,15 +70,15 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
                 </div>
             ))}
         </div>
-        </WithTooltip>
-        <WithTooltip tooltip="Current / max territories">
+        </Tooltip>
+        <Tooltip title="Current / max territories">
             <div className='city-power-territories' style={{
                 backgroundColor: civTemplate.primary_color,
                 borderColor: civTemplate.secondary_color,
             }}>
                 {currentTerritories}/{civ.max_territories}
             </div>
-        </WithTooltip>
+        </Tooltip>
         </div>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={`${Math.floor(civ.city_power % cityPowerCost)} / ${cityPowerCost}`}/>
     </CivDetailPanel>
@@ -166,9 +166,9 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
                                 backgroundColor: templates.CIVS[myCiv.name]?.primary_color, 
                                 borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
                         >
-                <WithTooltip tooltip="Your city">
+                <Tooltip title="Your city">
                     !!
-                </WithTooltip>
+                </Tooltip>
             </div>}
         </div>
         <div className="revolt-cities-detail-container">
@@ -222,11 +222,11 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
             </Tooltip>
         </div>
     let content = <>
-        {25 < distanceFromWin && distanceFromWin < 50 && <WithTooltip tooltip="Another player is within 50 points of winning. Declining may let them win.">
+        {25 < distanceFromWin && distanceFromWin < 50 && <Tooltip title="Another player is within 50 points of winning. Declining may let them win.">
             <div className="distance-from-win">
                 GAME WILL END SOON
             </div>
-        </WithTooltip>}
+        </Tooltip>}
         {turnNum > 1 && <Button className="toggle-decline-view" 
             onClick={() => setDeclineOptionsView(!declineOptionsView)}
             variant="contained" 
@@ -283,14 +283,14 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
         </div>
     </>
     if (0 < distanceFromWin && distanceFromWin <= 25 && !declineOptionsView) {
-        content = <WithTooltip tooltip="Another player is within 25 points of winning. Declining now would let them win instantly.">
+        content = <Tooltip title="Another player is within 25 points of winning. Declining now would let them win instantly.">
         <div className="distance-from-win">
             <div>GAME WILL END SOON</div>
             <div className="distance-from-win-warning">
                 DECLINE IMPOSSIBLE
             </div>
         </div>
-        </WithTooltip>
+        </Tooltip>
     }
     return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(myCiv.vitality * 100)}%`}>
         {content}
@@ -353,13 +353,8 @@ const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTec
     const tech = templates.TECHS[civ.researching_tech_name];
     const techCost = tech?.name  === "Renaissance" ? civ.renaissance_cost : tech?.cost;
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
-    const incomeProgress = tech ? civ.projected_science_income / techCost * 100 : 0;
-    const iconTooltip = <table><tbody>
-        {myCities?.map((city, index) => (
-            <tr key={index}><td> +{Math.floor(city.projected_income.science)} </td><td> from {city.name} </td></tr>
-        ))}
-    </tbody></table>
-    return <CivDetailPanel title='science' icon={scienceImg} iconTooltip={iconTooltip} bignum={`+${Math.floor(civ.projected_science_income)}`}>
+    const incomeProgress = tech ? civ.projected_science_income.value / techCost * 100 : 0;
+    return <CivDetailPanel title='science' icon={scienceImg} iconTooltip={<DetailedNumberTooltipContent detailedNumber={civ.projected_science_income}/>} bignum={`+${Math.floor(civ.projected_science_income.value)}`}>
         <h2 className="tech-name" 
             onMouseEnter={tech ? () => setHoveredTech(templates.TECHS[tech.name]) : () => {}}
             onMouseLeave={() => setHoveredTech(null)}  
@@ -376,9 +371,138 @@ const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTec
     </CivDetailPanel>
 }
 
+const A2TenetIcon = ({tenetName}) => {
+    const img = tenetName === "Rise of Equality" ? cityImg : tenetName === "Promise of Freedom" ? vpImg : tenetName === "Glorious Order" ? sadImg : tenetName === "Hymn of Unity" ? fireImg : "";
+    return <img src={img} alt={tenetName} height="20px"/>
+}
+
+const IdeologyLevelDisplay = ({lvl, tenets, myPlayerNum, myCiv, templates, setHoveredTenet}) => {
+    const opponentTenets = tenets.filter(tenet => tenet.player_num !== myPlayerNum);
+    return <div className={`level ${lvl > myCiv.advancement_level ? 'active' : ''}`}>
+        <div style={{width: "30px"}}>{romanNumeral(lvl)}</div>
+        {myCiv.advancement_level === lvl && <span>★</span>}
+        {opponentTenets.map((tenet, index) => (
+            <div key={index} className={`tenet-marker ${lvl <= myCiv.advancement_level ? 'inactive' : 'active'}`} onMouseEnter={() => setHoveredTenet(templates.TENETS[tenet.tenet])} onMouseLeave={() => setHoveredTenet(null)}>
+                <A2TenetIcon tenetName={tenet.tenet}/>
+            </div>
+        ))}
+    </div>
+}
+
+const TenetDisplay = ({myTenets, level, setHoveredTenet, className, headerStyle, children}) => {
+    const myTenet = myTenets[level];
+    const content = <div 
+        className={`tenet ${className} ${myTenet ? 'active' : 'inactive'}`} 
+        onMouseEnter={myTenet ? () => setHoveredTenet(myTenets[level]) : null} 
+        onMouseLeave={myTenet ? () => setHoveredTenet(null) : null}>
+            <div className="tenet-header" style={myTenet && headerStyle}>{IDEOLOGY_LEVEL_STRINGS[level].header}</div>
+            {myTenet ? children : null}
+        </div>
+    if (!myTenet) {
+        return <Tooltip title={`We will choose our ${IDEOLOGY_LEVEL_STRINGS[level].header} in age ${level}.`}>
+            {content}
+        </Tooltip>
+    }
+    return content;
+}
+
+const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeologyTreeOpen, setHoveredTenet}) => {
+    const levelMarkers = gameState?.advancement_level_tenets_display
+    let levelsToDisplay = [...new Set(levelMarkers.map(marker => marker.advancement_level))];
+    if (!levelsToDisplay.includes(myCiv.advancement_level)) {
+        levelsToDisplay.push(myCiv.advancement_level);
+    }
+    levelsToDisplay.sort((a, b) => b - a);
+    const numTenets = Object.keys(myGamePlayer.tenets).length;
+
+    const myTenetTemplates = Object.keys(myGamePlayer.tenets).map(tenet => templates.TENETS[tenet]);
+    myTenetTemplates.sort((a, b) => a.advancement_level - b.advancement_level);
+    // Now they are zero-indexed; push a blank one on the front so the indexing is level
+    myTenetTemplates.unshift({});
+    
+    const myA4TenetName = myTenetTemplates[4]?.name;
+    const myA5TenetName = myTenetTemplates[5]?.name;
+    const a5TenetIcon = myA5TenetName === 'Dragons' ? '/images/archer.svg' : myA5TenetName === 'Giants' ? '/images/cannon.svg' : myA5TenetName === 'Unicorns' ? '/images/horseman.svg' : myA5TenetName === 'Ninjas' ? '/images/swordsman.svg' : null;
+
+    return <CivDetailPanel title='ideology' icon={ideologyImg} iconTooltip="Ideology" bignum="">
+        <Button variant="contained" color="primary" onClick={() => setIdeologyTreeOpen(true)}>
+            Ideologies
+        </Button>
+        <div className='ideology-columns'>
+            <div className="ideology-column" style={{width: '45%'}}>
+                <TenetDisplay myTenets={myTenetTemplates} level={2} setHoveredTenet={setHoveredTenet}>
+                    <Tooltip title="The ages and Aspiration of each player are shown here. Players ahead of you are gaining their Aspiration effect against you.">
+                        <div className="level-markers">
+                            {levelsToDisplay.map((lvl, index) => {
+                                const tenets = levelMarkers.filter(marker => marker.advancement_level === lvl);
+                                return <IdeologyLevelDisplay key={index} lvl={lvl} tenets={tenets} myPlayerNum={myGamePlayer?.player_num} myCiv={myCiv} templates={templates} setHoveredTenet={setHoveredTenet}/>
+                            })}
+                        </div>
+                    </Tooltip>
+                </TenetDisplay>
+            </div>
+            <div className="ideology-column" style={{width: '55%'}}>
+                <TenetDisplay myTenets={myTenetTemplates} level={3} setHoveredTenet={setHoveredTenet} className={myGamePlayer.tenet_quest.progress >= myGamePlayer.tenet_quest.target ? "one-row-tenet" : ""}>
+                    <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between'}}>
+                        {myGamePlayer.tenet_quest.progress < myGamePlayer.tenet_quest.target ?
+                            <>
+                                <div>{myGamePlayer.tenet_quest.name}</div>
+                                <div className="quest-progress">{myGamePlayer.tenet_quest.progress}/{myGamePlayer.tenet_quest.target}</div>
+                            </>
+                            :
+                            <div className="quest-complete">
+                                {myGamePlayer.tenet_quest.name == "Holy Grail" ? <>
+                                    <img src={greatPersonImg} alt="holy grail" height="20px"/>
+                                    x2
+                                </> : myGamePlayer.tenet_quest.name == "El Dorado" ? <>
+                                    <div style={{width: '32px', height: '24px', background: 'linear-gradient(to right, #bbbbbb 50%, #e08b5e 50%)', border: '2px solid black', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'}}>
+                                        <img src={metalImg} alt="metal" height="8px"/>
+                                        <img src={woodImg} alt="science" height="10px"/>
+                                    </div>                                    
+                                </> : myGamePlayer.tenet_quest.name == "Yggdrasils Seeds" ? <>
+                                    <div style={{width: '24px', height: '12px', backgroundColor: 'grey', border: '2px solid black', fontSize: '10px', textAlign: 'center'}}>
+                                        ++
+                                    </div>
+                                </> : myGamePlayer.tenet_quest.name == "Fountain of Youth" ? <>
+                                    <TextOnIcon image={vitalityImg} alt="fountain of youth" style={{width: '20px', height: '20px'}} offset="-5px">
+                                        +
+                                    </TextOnIcon>
+                                </> : "ERROR"
+                                }
+                            </div>
+                        }
+                    </div>
+                </TenetDisplay>
+                <TenetDisplay myTenets={myTenetTemplates} level={4} setHoveredTenet={setHoveredTenet} className="one-row-tenet">
+                    <img src={vpImg} alt="vp" height="20px"/>
+                    /
+                    {myA4TenetName == "Honor" ? 
+                    <div style={{
+                        width: '0',
+                        height: '0',
+                        borderLeft: '10px solid transparent',
+                        borderRight: '10px solid transparent',
+                        borderBottom: '20px solid #ac3737',
+                        display: 'inline-block'
+                    }}/>
+                    : <img src={myA4TenetName == "Faith" ? wonderImg : myA4TenetName == "Rationalism" ? scienceImg : myA4TenetName == "Community" ? cityImg : "ERROR"} alt={myA4TenetName} height="20px"/>
+                    }
+                </TenetDisplay>
+                <TenetDisplay myTenets={myTenetTemplates} level={5} setHoveredTenet={setHoveredTenet} className="one-row-tenet">
+                        <img src={cityImg} alt="city" height="20px"/>
+                        /
+                        <img src={a5TenetIcon} alt={myA5TenetName} height="20px"/>
+                </TenetDisplay>
+            </div>
+        </div>
+        <TenetDisplay myTenets={myTenetTemplates} level={7} setHoveredTenet={setHoveredTenet} className="one-row-tenet" headerStyle={{width: '80px'}}>
+            <TradeHubIcon myGamePlayer={myGamePlayer} style={{width: '25px', height: '25px', borderRadius: '50%', backgroundColor: '#dddddd', padding: '3px'}}/>
+        </TenetDisplay>
+    </CivDetailPanel>
+}
 const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disableUI, centerMap, declineOptionsView,
     templates,
-    setConfirmEnterDecline, setTechChoiceDialogOpen, setHoveredUnit, setHoveredBuilding, setHoveredTech, 
+    setConfirmEnterDecline, setTechChoiceDialogOpen, setIdeologyTreeOpen, setHoveredUnit, setHoveredBuilding, setHoveredTech, setHoveredTenet,
     toggleFoundingCity, myCiv, myGamePlayer, myCities, setTechListDialogOpen, 
     turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, setHoveredWonder, civsById, declineViewCivsById}) => {
     return (
@@ -393,6 +517,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
                 declineViewGameState={declineViewGameState} mainGameState={mainGameState} templates={templates}
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
                 declineViewCivsById={declineViewCivsById}/>}
+            {myCiv && <IdeologyDisplay myCiv={myCiv} myGamePlayer={myGamePlayer} gameState={mainGameState} templates={templates} setIdeologyTreeOpen={() => {setIdeologyTreeOpen(true); setDeclineOptionsView(false);}} setHoveredTenet={setHoveredTenet}/>}
             {myGamePlayer?.score > 0 && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={mainGameState.game_end_score} gameState={mainGameState}/>}
         </div>
     );

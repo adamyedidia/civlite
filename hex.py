@@ -113,9 +113,9 @@ class Hex:
         if range >= 3:
             yield from self.get_distance_3_hexes(hexes)
     
-    def get_hexes_within_range_expensive(self, hexes: dict[str, "Hex"], range: int) -> Generator["Hex", None, None]:
+    def get_hexes_within_range_expensive(self, hexes: dict[str, "Hex"], range: int, exclude_ocean=True) -> Generator["Hex", None, None]:
         for hex in hexes.values():
-            if hex.distance_to(self) <= range:
+            if hex.distance_to(self) <= range and not (exclude_ocean and hex.terrain == TERRAINS.OCEAN):
                 yield hex
 
     def is_occupied(self, unit_type: str, civ: Civ, allow_enemy_city=True) -> bool:

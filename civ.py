@@ -5,7 +5,11 @@ from typing import TYPE_CHECKING, Any, Generator, Literal, Optional, Dict
 from collections import defaultdict
 from TechStatus import TechStatus
 from assign_starting_locations import assign_starting_locations
+from detailed_number import DetailedNumber
+from effects_list import PointsEffect
 from move_type import MoveType
+from tenet_template import TenetTemplate
+from tenet_template_list import TENETS
 from unit import Unit
 from settings import AGE_THRESHOLDS, GOD_MODE
 from wonder_templates_list import WONDERS
@@ -16,11 +20,12 @@ from game_player import GamePlayer
 from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VITALITY_BOOST, MAX_PLAYERS
 from tech_template import TechTemplate
 from building_template import BuildingTemplate, BuildingType
-from unit_template import UnitTemplate
+from unit_template import UnitTag, UnitTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
 from building_templates_list import BUILDINGS
 from tech_templates_list import TECHS
+import score_strings
 
 import random
 from logging_setup import logger
@@ -54,10 +59,11 @@ class Civ:
         self.target2: Optional['Hex'] = None
         self.target1_coords: Optional[str] = None
         self.target2_coords: Optional[str] = None
-        self.projected_science_income = 0.0
-        self.projected_city_power_income = 0.0
+        self.projected_science_income: DetailedNumber = DetailedNumber()
+        self.projected_city_power_income: DetailedNumber = DetailedNumber()
         self.in_decline = False
         self.trade_hub_id: Optional[str] = None
+        self.trade_hub_city_power_consumption: float = 0.0
         self.great_people_choices: list[GreatPerson] = []
         self._great_people_choices_city_id: Optional[str] = None
         self._great_people_choices_queue: list[tuple[int, str]] = []  # age, city_id
@@ -106,16 +112,38 @@ class Civ:
         self.refresh_queues_cache(game_state)
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
-        self.projected_science_income = 0.0
-        self.projected_city_power_income = BASE_CITY_POWER_INCOME
+        self.projected_science_income = DetailedNumber()
+        self.projected_city_power_income = DetailedNumber({"Base": BASE_CITY_POWER_INCOME})
 
         for city in game_state.cities_by_id.values():
             if city.civ.id == self.id:
-                self.projected_science_income += city.projected_income.science
-                self.projected_city_power_income += city.projected_income.city_power
+                self.projected_science_income.add(city.name, city.projected_income.science)
+                self.projected_city_power_income.add(city.name, city.projected_income.city_power)
+
+        if self.trade_hub_id is not None and self.trade_hub_id in game_state.cities_by_id:
+            # The trade hub has set civ.trade_hub_city_power_consumption in its own update.
+            trade_hub = game_state.cities_by_id[self.trade_hub_id]
+            self.projected_city_power_income.add(f"Trade Hub ({trade_hub.name})", -self.trade_hub_city_power_consumption)
+        else:
+            # There is no trade hub, make sure to clear it.
+            self.trade_hub_city_power_consumption = 0.0
+
+        for player in game_state.game_player_by_player_num.values():
+            if player.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() > self.get_advancement_level():
+                self.projected_city_power_income.add(f"{TENETS.RISE_OF_EQUALITY.name} ({player.username})", -10)
+            if self.has_tenet(TENETS.RISE_OF_EQUALITY) and player.get_current_civ(game_state).get_advancement_level() < self.get_advancement_level():
+                self.projected_city_power_income.add(TENETS.RISE_OF_EQUALITY.name, 10)
 
     def has_tech(self, tech: TechTemplate) -> bool:
         return self.techs_status[tech] == TechStatus.RESEARCHED
+
+    def has_tenet(self, tenet: TenetTemplate, check_complete_quest: bool = False) -> bool:
+        return self.game_player is not None and self.game_player.has_tenet(tenet, check_complete_quest)
+    
+    def tenet_at_level(self, level: int) -> TenetTemplate | None:
+        if self.game_player is None:
+            return None
+        return self.game_player.tenet_at_level(level)
 
     @property
     def researching_tech(self) -> TechTemplate | None:
@@ -212,6 +240,8 @@ class Civ:
     def update_max_territories(self, game_state: 'GameState'):
         base: int = 3
         bonuses: int = len([ability for ability, _ in self.passive_building_abilities_of_name('ExtraTerritory', game_state)])
+        if self.has_tenet(TENETS.EL_DORADO, check_complete_quest=True):
+            bonuses -= 1
         self.max_territories = base + bonuses
 
     def _available_techs(self) -> list[TechTemplate]:
@@ -235,13 +265,14 @@ class Civ:
             "buildings_in_all_queues": self.buildings_in_all_queues,
             "target1": self.target1.coords if self.target1 else None,
             "target2": self.target2.coords if self.target2 else None,
-            "projected_science_income": self.projected_science_income,
-            "projected_city_power_income": self.projected_city_power_income,
+            "projected_science_income": self.projected_science_income.to_json(),
+            "projected_city_power_income": self.projected_city_power_income.to_json(),
             "in_decline": self.in_decline,
             "advancement_level": self.get_advancement_level(),
             "next_age_progress": self.next_age_progress(),
             "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
+            "trade_hub_city_power_consumption": self.trade_hub_city_power_consumption,
             "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],
             "great_people_choices_queue": [(age, city_id) for age, city_id in self._great_people_choices_queue],
             "great_people_choices_city_id": self._great_people_choices_city_id,
@@ -250,6 +281,7 @@ class Civ:
             "score_dict": self.score_dict,
             "unique_units_built": self.unique_units_built,
             "renaissances": self.renaissances,
+            "has_tenet_choice": self.game_player is not None and self.game_player.active_tenet_choice_level is not None,
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -291,7 +323,7 @@ class Civ:
             return None
 
         # Don't decline within 2 turns of finishing renaissance
-        if self.projected_science_income > 0 and self.techs_status[TECHS.RENAISSANCE] == TechStatus.RESEARCHING and (self.renaissance_cost() - self.science) / self.projected_science_income <= 2:
+        if self.projected_science_income.value > 0 and self.techs_status[TECHS.RENAISSANCE] == TechStatus.RESEARCHING and (self.renaissance_cost() - self.science) / self.projected_science_income.value <= 2:
             logger.info(f"{self.moniker()} deciding not to decline because I'm almost done with a renaissance.")
 
         # Don't decline if I have above average army size.
@@ -369,9 +401,42 @@ class Civ:
         return score
 
     def bot_move(self, game_state: 'GameState') -> None:
-        if  len(self.great_people_choices) > 0:
+        while len(self.great_people_choices) > 0:
             choice: GreatPerson = max(self.great_people_choices, key=lambda g: (isinstance(g, GreatGeneral), random.random()))
             game_state.resolve_move(MoveType.SELECT_GREAT_PERSON, {'great_person_name': choice.name}, civ=self)
+
+        if self.game_player is not None and self.game_player.active_tenet_choice_level is not None:
+            choices: list[TenetTemplate] = [t for t in TENETS.all() if t.advancement_level == self.game_player.active_tenet_choice_level]
+            choices = [t for t in choices if game_state.tenets_claimed_by_player_nums[t] == []]
+            if choices:
+                if self.game_player.active_tenet_choice_level in (1, 2, 3, 4, 7):
+                    chosen_tenet = random.choice(choices)
+                elif self.game_player.active_tenet_choice_level == 5:
+                    my_units = [u for u in game_state.units if u.civ == self]
+                    scores = {tenet: 0 for tenet in choices}
+                    for unit in my_units:
+                        for tenet in scores.keys():
+                            if tenet.a5_unit_types is None: continue
+                            if any(unit.template.has_tag(tag) for tag in tenet.a5_unit_types):
+                                scores[tenet] += unit.get_stack_size() * unit.template.metal_cost
+                    chosen_tenet = max(scores, key=lambda x: scores[x])
+                elif self.game_player.active_tenet_choice_level == 6:
+                    assert self.game_player.a6_tenet_info is not None
+                    a6_tenet_info = self.game_player.a6_tenet_info
+                    chosen_tenet = max(choices, key=lambda t: a6_tenet_info[t.name]["score"])
+                elif self.game_player.active_tenet_choice_level == 8:
+                    chosen_tenet = max(choices, key=lambda t: t.instant_effect.calculate_points(None, None))  # type: ignore
+                else:
+                    raise ValueError(f"Bot choosing tenet for unkown level: {self.game_player.active_tenet_choice_level}")
+                target_city = self.game_player.get_tenet_target_city(game_state)
+                points_from_tenet = lambda t: (
+                    self.game_player.a6_tenet_info[t.name]['score'] if self.game_player is not None and self.game_player.a6_tenet_info is not None and t.name in self.game_player.a6_tenet_info else
+                    t.instant_effect.calculate_points(target_city, game_state) if target_city is not None and isinstance(t.instant_effect, PointsEffect) else
+                    0
+                )
+
+                chosen_tenet = max(choices, key=lambda t: (points_from_tenet(t), random.random()))
+                game_state.resolve_move(MoveType.CHOOSE_TENET, {'tenet_name': chosen_tenet.name}, civ=self, game_player=self.game_player)
 
         my_cities = self.get_my_cities(game_state)
         my_territory_capitals = [city for city in my_cities if city.is_territory_capital]
@@ -384,15 +449,27 @@ class Civ:
             elif largest_puppet.population > smallest_territory_capital.population:
                 game_state.resolve_move(MoveType.MAKE_TERRITORY, {'city_id': largest_puppet.id, 'other_city_id': smallest_territory_capital.id}, civ=self)
         # Choose trade hub:
-        unhappy_cities = [city for city in self.get_my_cities(game_state) if city.unhappiness + city.projected_income["unhappiness"] > 0]
-        def trade_hub_priority(city: 'City'):
-            income = sum(city.projected_income[x] for x in ['wood', 'metal', 'science'])
-            on_leaderboard = city.civ_to_revolt_into is not None
-            unhappiness = city.unhappiness + city.projected_income["unhappiness"]
-            close_to_leaderboard = unhappiness >= game_state.unhappiness_threshold
-            return on_leaderboard, close_to_leaderboard, income
-        if len(unhappy_cities) > 0:
-            game_state.resolve_move(MoveType.TRADE_HUB, {'city_id': max(unhappy_cities, key=trade_hub_priority).id}, civ=self)
+        if self.tenet_at_level(7) is None:
+            unhappy_cities = [city for city in self.get_my_cities(game_state) if city.unhappiness + city.projected_income["unhappiness"] > 0]
+            def trade_hub_priority(city: 'City'):
+                income = sum(city.projected_income[x] for x in ['wood', 'metal', 'science'])
+                on_leaderboard = city.civ_to_revolt_into is not None
+                unhappiness = city.unhappiness + city.projected_income["unhappiness"]
+                close_to_leaderboard = unhappiness >= game_state.unhappiness_threshold
+                return on_leaderboard, close_to_leaderboard, income
+            if len(unhappy_cities) > 0:
+                target = max(unhappy_cities, key=trade_hub_priority)
+            else:
+                target = None
+        else:
+            target = self.capital_city(game_state)
+            if target is None:
+                my_cities = [c for c in self.get_my_cities(game_state) if c.is_territory_capital]
+                if my_cities:
+                    target = max(my_cities, key=lambda c: c.population)
+            logger.info(f"  {self.moniker()} choosing trade hub {target} based on {self.tenet_at_level(7)}")
+        if target is not None:
+            game_state.resolve_move(MoveType.TRADE_HUB, {'city_id': target.id}, civ=self)
 
         if WONDERS.UNITED_NATIONS in game_state.built_wonders:
             un_owner_ids: list[str] = [civ_id for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos]
@@ -468,7 +545,9 @@ class Civ:
         self.fill_out_available_buildings(game_state)
 
         if tech != TECHS.RENAISSANCE:
-            self.gain_vps(TECH_VP_REWARD * tech.advancement_level, f"Research ({TECH_VP_REWARD}/tech level)")
+            self.gain_vps(TECH_VP_REWARD * tech.advancement_level, score_strings.TECH)
+            if self.has_tenet(TENETS.RATIONALISM):
+                self.gain_vps(max(0, tech.advancement_level - 3), f"Rationalism")
 
             for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
                 amount = ability.numbers[0] * tech.advancement_level
@@ -506,9 +585,17 @@ class Civ:
 
         self.get_new_tech_choices()
 
-    def roll_turn_pre_harvest(self) -> None:
-        self.city_power += self.projected_city_power_income
-        self.science += self.projected_science_income
+    def roll_turn_pre_harvest(self, game_state: 'GameState') -> None:
+        self.city_power += self.projected_city_power_income.value
+        self.science += self.projected_science_income.value
+
+        if self.has_tenet(TENETS.PROMISE_OF_FREEDOM):
+            my_age = self.get_advancement_level()
+            for civ in game_state.civs_by_id.values():
+                if civ.get_advancement_level() < my_age:
+                    civ.gain_vps(-1, "Promise of Freedom")
+            if my_age > game_state.advancement_level:
+                self.gain_vps(1, "Promise of Freedom")
 
     def roll_turn_post_harvest(self, sess, game_state: 'GameState') -> None:
         self.fill_out_available_buildings(game_state)
@@ -524,8 +611,17 @@ class Civ:
                     "tech": researching_tech.name,
                 }, self)
 
-        self.vitality *= VITALITY_DECAY_RATE        
+        if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) and self.vitality < 0.7:
+            assert self.game_player is not None  # guaranteed by has_tenet
+            self.game_player.increment_tenet_progress(TENETS.FOUNTAIN_OF_YOUTH, game_state)
+
+        vitality_decay_rate = VITALITY_DECAY_RATE
+        if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH, check_complete_quest=True):
+            vitality_decay_rate = 1 - (0.9 * (1 - vitality_decay_rate))
+        self.vitality *= vitality_decay_rate
         self.update_max_territories(game_state)
+        if self.city_power < 0:
+            self.trade_hub_id = None
 
     def from_json_postprocess(self, game_state: 'GameState') -> None:
         if self.game_player is not None:
@@ -544,6 +640,9 @@ class Civ:
             return lst[0]
         else:
             return None
+        
+    def largest_city(self, game_state: 'GameState') -> 'City | None':
+        return max(game_state.cities_by_id.values(), key=lambda c: c.population, default=None)
 
     def get_great_person(self, age: int, city: 'City', game_state: 'GameState'):
         self._great_people_choices_queue.append((age, city.id))
@@ -578,8 +677,20 @@ class Civ:
         game_state.add_announcement(f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory.")
         game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "decline", self.game_player.player_num if self.game_player else None, f" {great_person.name} will lead {self.moniker()} to glory.")
         game_state.add_to_message_of_existing_parsed_announcement(game_state.turn_num, "revolt", self.game_player.player_num if self.game_player else None, f" The {self.moniker()} are led by a charismatic and unscrupulous individual known to us only as \"{great_person.name}\".")
-        self.great_people_choices = []
-        self._great_people_choices_city_id = None
+        if self.has_tenet(TENETS.HOLY_GRAIL, check_complete_quest=True):
+            assert self.game_player is not None
+            if self.game_player.tenets[TENETS.HOLY_GRAIL].get("second_great_person_choice", False):
+                self.great_people_choices = []
+                self._great_people_choices_city_id = None
+                self.game_player.tenets[TENETS.HOLY_GRAIL]["second_great_person_choice"] = False
+            else:
+                self.great_people_choices = [person for person in self.great_people_choices if person != great_person and person.valid_for_city(city, civ=self)]
+                if len(self.great_people_choices) == 0:
+                    raise ValueError(f"No valid great people choices left for {self.moniker()} after selecting {great_person.name}.")
+                self.game_player.tenets[TENETS.HOLY_GRAIL]["second_great_person_choice"] = True
+        else:
+            self.great_people_choices = []
+            self._great_people_choices_city_id = None
         self._pop_great_people_choices_queue_if_needed(game_state)
 
     def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: 'UnitTemplate', hex: 'Hex', bonus_strength: int=0, stack_size=1) -> 'Unit | None':
@@ -607,10 +718,11 @@ class Civ:
         civ.buildings_in_all_queues = json["buildings_in_all_queues"]
         civ.target1_coords = json["target1"]
         civ.target2_coords = json["target2"]
-        civ.projected_science_income = json["projected_science_income"]
-        civ.projected_city_power_income = json["projected_city_power_income"]
+        civ.projected_science_income = DetailedNumber.from_json(json["projected_science_income"])
+        civ.projected_city_power_income = DetailedNumber.from_json(json["projected_city_power_income"])
         civ.in_decline = json["in_decline"]
         civ.trade_hub_id = json.get("trade_hub_id")
+        civ.trade_hub_city_power_consumption = json.get("trade_hub_city_power_consumption", 0.0)
         civ.great_people_choices = [GreatPerson.from_json(great_person_json) for great_person_json in json.get("great_people_choices", [])]
         civ._great_people_choices_queue = [(age, city_id) for age, city_id in json.get("great_people_choices_queue", [])]
         civ._great_people_choices_city_id = json.get("great_people_choices_city_id")

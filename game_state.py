@@ -2,6 +2,7 @@ import math
 from typing import Any, Generator, Optional
 from animation_frame import AnimationFrame
 from building import QueueEntry
+from building_template import BuildingType
 from camp import Camp
 from collections import defaultdict
 from city import City, get_city_name_for_civ
@@ -12,6 +13,9 @@ from map_object import MapObject
 from move_type import MoveType
 from region import Region
 from settings import GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
+from tenet_template import TenetTemplate
+from tenet_template_list import TENETS, tenets_by_level
+from terrain_template import TerrainTemplate
 from terrain_templates_list import TERRAINS
 from unit_building import UnitBuilding
 from wonder_templates_list import WONDERS
@@ -28,6 +32,7 @@ from unit import Unit
 import random
 from unit_templates_list import UNITS
 from utils import dream_key, staged_moves_key, deterministic_hash
+import score_strings
 
 from sqlalchemy import and_, func
 
@@ -35,6 +40,7 @@ from animation_frame import AnimationFrame
 
 from collections import defaultdict
 from logging_setup import logger
+from yields import Yields
 
 
 
@@ -260,7 +266,7 @@ class GameState:
         self.built_wonders: dict[WonderTemplate, WonderBuiltInfo] = {}
         self.num_wonders_built_by_age: dict[int, int] = {age: 0 for age in range(0, 10)}
         self.wonder_vp_chunks_left_by_age: dict[int, int] = {}
-        self.available_wonders: list[WonderTemplate] = []
+        self.available_wonders_by_age: dict[int, list[WonderTemplate]] = {}
         self.one_per_civs_built_by_civ_id: dict[str, dict[str, str]] = {}  # civ_id: {building_name: city_id}
         self.special_mode_by_player_num: dict[int, Optional[str]] = {}
         self.advancement_level = 0
@@ -273,6 +279,9 @@ class GameState:
         self.previous_unhappiness_threshold: float = MIN_UNHAPPINESS_THRESHOLD
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
         self.no_db = False  # For headless games in scripts
+        self.tenets_claimed_by_player_nums: dict[TenetTemplate, list[int]] = {t: [] for t in TENETS.all()}
+        self.a7_tenets_yields_stolen_last_turn: dict[str, Yields] = {}
+        self.a7_tenets_yields_stolen_this_turn: dict[str, Yields] = {}
 
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
@@ -369,10 +378,22 @@ class GameState:
         civ.city_power -= 100
         city = self.new_city(civ, hex, city_id)
         self.register_city(city)
-        city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
 
         civ.gain_vps(2, "Founded Cities (2/city)")
-    
+        if civ.has_tenet(TENETS.YGGDRASILS_SEEDS) and hex.terrain == TERRAINS.FOREST:
+            assert civ.game_player is not None  # guaranteed by has_tenet
+            civ.game_player.increment_tenet_progress(TENETS.YGGDRASILS_SEEDS, self)
+        if civ.has_tenet(TENETS.YGGDRASILS_SEEDS, check_complete_quest=True):
+            city.food += 50
+            city.grow(self)
+            city.wood += 50
+            city.metal += 50
+            city.civ.science += 50
+            city.develop(BuildingType.RURAL, self, free=True)
+            city.develop(BuildingType.RURAL, self, free=True)
+
+        city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
+
         self.refresh_foundability_by_civ()
         return city
 
@@ -677,6 +698,12 @@ class GameState:
             tech = TECHS.by_name(tech_name)
             civ.select_tech(tech)
 
+        if move_type == MoveType.CHOOSE_TENET:
+            tenet_name = move_data['tenet_name']
+            tenet = TENETS.by_name(tenet_name)
+            assert game_player is not None
+            game_player.select_tenet(tenet, self)
+
         if move_type == MoveType.CHOOSE_BUILDING:
             building_name = move_data['building_name']
             city_id = move_data['city_id']
@@ -757,30 +784,22 @@ class GameState:
             instead_of_city_id: str = move_data['other_city_id']
             if instead_of_city_id is not None:
                 instead_of_city: City = self.cities_by_id[instead_of_city_id]
-                instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False, force=True)
-                # I think this force=True can conceivably crash if I somehow control no other territory capitals,
-                # Which in theory can happen if people declined into all of my territory capitals on the same turn.
-                instead_of_city.orphan_territory_children(self, make_new_territory=False)
-                # Transfer the expansion costs.
-                city.develops_this_civ = instead_of_city.develops_this_civ
-                instead_of_city.develops_this_civ = {key: 0 for key in instead_of_city.develops_this_civ}
-
-                # Take all the wood and metal over.
-                new_parent = instead_of_city.get_territory_parent(self)
-                assert new_parent is not None
-                new_parent.wood += instead_of_city.wood
-                instead_of_city.wood = 0
-                for bldg in new_parent.unit_buildings:
-                    new_parent.metal += bldg.metal
-                    bldg.metal = 0
-                new_parent.metal += instead_of_city.metal
-                instead_of_city.metal = 0
+                if instead_of_city.civ == city.civ:
+                    instead_of_city.set_territory_parent_if_needed(self, adopt_focus=False, force=True)
+                    # I think this force=True can conceivably crash if I somehow control no other territory capitals,
+                    # Which in theory can happen if people declined into all of my territory capitals on the same turn.
+                    instead_of_city.orphan_territory_children(self, make_new_territory=False)
+                    # Transfer the expansion costs.
+                    city.develops_this_civ = instead_of_city.develops_this_civ
+                    instead_of_city.develops_this_civ = {key: 0 for key in instead_of_city.develops_this_civ}
             if previous_parent is not None and previous_parent.id != instead_of_city_id:
                 previous_parent.orphan_territory_children(self, make_new_territory=False)
 
 
         if move_type == MoveType.TRADE_HUB:
             city_id = move_data['city_id']
+            if civ.city_power < 0:
+                return
             if civ.trade_hub_id == city_id:
                 civ.trade_hub_id = None
             else:
@@ -853,6 +872,31 @@ class GameState:
         for obj in self.all_map_objects():
             obj.update_nearby_hexes_hostile_foundability(self.hexes)
 
+    def refresh_tenets_claimed_by_player_nums(self):
+        self.tenets_claimed_by_player_nums = {t: [] for t in TENETS.all()}
+        for player_num, player in self.game_player_by_player_num.items():
+            for tenet in player.tenets:
+                self.tenets_claimed_by_player_nums[tenet].append(player_num)
+        for player in self.game_player_by_player_num.values():
+            player.update_active_tenet_choice_level(self)
+
+    def duplicate_tenets_claimable(self, level: int) -> bool:
+        all_tenets = tenets_by_level[level]
+        unclaimed_tenets = [t for t in all_tenets if self.tenets_claimed_by_player_nums[t] == []]
+        num_players_need_tenet = len([p for p in self.game_player_by_player_num.values() if len(p.tenets) < level])
+        return len(unclaimed_tenets) < num_players_need_tenet
+
+    def advancement_level_tenets_display(self):
+        data = []
+        for player in self.game_player_by_player_num.values():
+            a2_tenets = [t for t in player.tenets if t.advancement_level == 2]
+            for tenet in a2_tenets:
+                data.append({
+                    "player_num": player.player_num,
+                    "advancement_level": player.get_current_civ(self).get_advancement_level(),
+                    "tenet": tenet.name,
+                })
+        return data
 
     def load_and_update_from_player_moves(self, moves_by_player_num: dict[int, list]) -> None:
         # Defaults to being permissive; city_ids that exist will cause it to be the case that
@@ -977,7 +1021,7 @@ class GameState:
         for city in cities_copy:
             city.roll_turn_pre_harvest(self)
         for civ in self.civs_by_id.values():
-            civ.roll_turn_pre_harvest()
+            civ.roll_turn_pre_harvest(self)
         for city in cities_copy:
             city.roll_turn_post_harvest(sess, self)
 
@@ -994,6 +1038,10 @@ class GameState:
         for game_player in self.game_player_by_player_num.values():
             game_player.decline_this_turn = False
             game_player.failed_to_decline_this_turn = False
+            self.refresh_tenets_claimed_by_player_nums()
+            game_player.check_quest_complete(self)
+        self.a7_tenets_yields_stolen_last_turn = self.a7_tenets_yields_stolen_this_turn
+        self.a7_tenets_yields_stolen_this_turn = {}
 
         self.sync_advancement_level()
 
@@ -1132,11 +1180,13 @@ class GameState:
             self.built_wonders[wonder] = WonderBuiltInfo(self.turn_num)
         self.built_wonders[wonder].infos.append((city.id, civ.id))
         vp_chunks = self.wonder_vp_chunks(wonder.advancement_level)
-        civ.gain_vps(vp_chunks * WONDER_VPS, "Wonders")
+        civ.gain_vps(vp_chunks * WONDER_VPS, score_strings.WONDER)
         self.wonder_vp_chunks_left_by_age[wonder.advancement_level] -= vp_chunks
         
         if civ.has_ability('ExtraVpsPerWonder'):
             civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerWonder')[0], civ.template.name)
+        if civ.has_tenet(TENETS.FAITH):
+            civ.gain_vps(vp_chunks * WONDER_VPS, "Faith")
 
         self.add_announcement(f'<civ id={civ.id}>{civ.moniker()}</civ> built the <wonder name={wonder.name}>{wonder.name}<wonder>!')
         self.add_parsed_announcement({
@@ -1200,8 +1250,8 @@ class GameState:
         if not no_commit:
             sess.commit()
 
-    def wonder_buildable(self, wonder) -> bool:
-        if wonder.advancement_level > self.advancement_level:
+    def wonder_buildable(self, wonder, exclude_by_age: bool = True) -> bool:
+        if exclude_by_age and wonder.advancement_level > self.advancement_level:
             # Can't build it yet
             return False
         if wonder in self.built_wonders:
@@ -1213,7 +1263,11 @@ class GameState:
     def _refresh_available_wonders(self) -> None:
         # This only gets called after the game has fully rolled, so it wont' prevent the 2nd player building the wonder in the same turn
         # To make ties be generous.
-        self.available_wonders = [wonder for wonders in self.wonders_by_age.values() for wonder in wonders if self.wonder_buildable(wonder)]
+        self.available_wonders_by_age = {age: [wonder for wonder in wonders if self.wonder_buildable(wonder, exclude_by_age=False)] for age, wonders in self.wonders_by_age.items()}
+
+    @property
+    def available_wonders(self) -> list[WonderTemplate]:
+        return [wonder for age, wonders in self.available_wonders_by_age.items() for wonder in wonders if age <= self.advancement_level]
 
     def get_civ_by_name(self, civ_name: str) -> Civ:
         for civ in self.civs_by_id.values():
@@ -1224,10 +1278,30 @@ class GameState:
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         if self.game_over:
             from_civ_perspectives = None
+        hexes = {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()}
+        for civ in from_civ_perspectives or []:
+            if civ.game_player is None:
+                continue
+            game_player = civ.game_player
+            quest_tenets = [t for t in game_player.tenets if t.quest_target > 0]
+            if len(quest_tenets) == 0:
+                continue
+            quest_tenet = quest_tenets[0]
+            if game_player.has_tenet(quest_tenet, check_complete_quest=True):
+                continue
+            quest_data = game_player.tenets[quest_tenet]
+            # At this point game_player has quest_tenet as an open quest with quest_data.
+            if quest_tenet == TENETS.EL_DORADO:
+                for coords in quest_data['hexes']:
+                    hexes[coords]['quest'] = "El Dorado"
+            if quest_tenet == TENETS.HOLY_GRAIL:
+                holy_city = self.cities_by_id.get(quest_data['holy_city_id'])
+                if holy_city is not None:
+                    hexes[holy_city.hex.coords]['quest'] = "Holy Grail"
 
         return {
             "game_id": self.game_id,
-            "hexes": {key: hex.to_json(from_civ_perspectives=from_civ_perspectives) for key, hex in self.hexes.items()},
+            "hexes": hexes,
             "civs_by_id": {civ_id: civ.to_json() for civ_id, civ in self.civs_by_id.items()},
             "cities_by_id": {city_id: city.to_json() for city_id, city in self.cities_by_id.items()},
             "game_player_by_player_num": {player_num: game_player.to_json() for player_num, game_player in self.game_player_by_player_num.items()},
@@ -1235,6 +1309,7 @@ class GameState:
             "wonders_by_age": {age: [wonder.name for wonder in wonders] for age, wonders in self.wonders_by_age.items()},
             "built_wonders": {wonder.name: built_wonder.to_json() for wonder, built_wonder in self.built_wonders.items()},
             "available_wonders": [w.name for w in self.available_wonders],
+            "available_wonders_by_age": {age: [w.name for w in wonders] for age, wonders in self.available_wonders_by_age.items()},
             "one_per_civs_built_by_civ_id": {civ_id: {building_name: city_id for building_name, city_id in v.items()} for civ_id, v in self.one_per_civs_built_by_civ_id.items()},
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
@@ -1250,7 +1325,12 @@ class GameState:
             "civ_ids_with_game_player_at_turn_start": self.civ_ids_with_game_player_at_turn_start,
             "num_wonders_built_by_age": self.num_wonders_built_by_age,
             "wonder_vp_chunks_left_by_age": self.wonder_vp_chunks_left_by_age,
-            "vp_chunks_total_per_age": len(self.game_player_by_player_num)
+            "vp_chunks_total_per_age": len(self.game_player_by_player_num),
+            "tenets_claimed_by_player_nums": {t.name: value for t, value in self.tenets_claimed_by_player_nums.items()},
+            "duplicate_tenets_claimable": {level: self.duplicate_tenets_claimable(level) for level in tenets_by_level.keys()},
+            "advancement_level_tenets_display": self.advancement_level_tenets_display(),
+            "a7_tenets_yields_stolen_last_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_last_turn.items()},
+            "a7_tenets_yields_stolen_this_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_this_turn.items()},
         }
 
     @staticmethod
@@ -1270,7 +1350,7 @@ class GameState:
         game_state.built_wonders = {WONDERS.by_name(wonder_name): WonderBuiltInfo.from_json(wonder_json) for wonder_name, wonder_json in json["built_wonders"].items()}
         game_state.num_wonders_built_by_age = {int(age): cost for age, cost in json["num_wonders_built_by_age"].items()}
         game_state.wonder_vp_chunks_left_by_age = {int(age): chunks for age, chunks in json["wonder_vp_chunks_left_by_age"].items()}
-        game_state.available_wonders = [WONDERS.by_name(wonder_name) for wonder_name in json["available_wonders"]]
+        game_state.available_wonders_by_age = {int(age): [WONDERS.by_name(wonder_name) for wonder_name in wonder_names] for age, wonder_names in json["available_wonders_by_age"].items()}
         game_state.one_per_civs_built_by_civ_id = {civ_id: {building_name: city_id for building_name, city_id in v.items()} for civ_id, v in json["one_per_civs_built_by_civ_id"].items()}
         game_state.special_mode_by_player_num = {int(k): v for k, v in json["special_mode_by_player_num"].items()}
         game_state.fresh_cities_for_decline = {coords: City.from_json(city_json) for coords, city_json in json["fresh_cities_for_decline"].items()}
@@ -1279,6 +1359,9 @@ class GameState:
         game_state.parsed_announcements = [parsed_announcement.copy() for parsed_announcement in json["parsed_announcements"]]
         game_state.unhappiness_threshold = float(json["unhappiness_threshold"])
         game_state.previous_unhappiness_threshold = float(json["previous_unhappiness_threshold"])
+        game_state.tenets_claimed_by_player_nums = {TENETS.by_name(name): value for name, value in json["tenets_claimed_by_player_nums"].items()}
+        game_state.a7_tenets_yields_stolen_last_turn = {civ_id: Yields.from_json(yields_json) for civ_id, yields_json in json["a7_tenets_yields_stolen_last_turn"].items()}
+        game_state.a7_tenets_yields_stolen_this_turn = {civ_id: Yields.from_json(yields_json) for civ_id, yields_json in json["a7_tenets_yields_stolen_this_turn"].items()}
 
         for civ in game_state.civs_by_id.values():
             civ.from_json_postprocess(game_state)

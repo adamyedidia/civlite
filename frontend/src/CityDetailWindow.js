@@ -13,12 +13,13 @@ import neutralImg from './images/neutralface.png';
 import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import declineImg from './images/phoenix.png';
-import tradeHubImg from './images/tradehub.png';
 import workerImg from './images/worker.png';
 import { CityDetailPanel } from './CityDetailPanel.js';
 import { TextOnIcon } from './TextOnIcon.js';
 import ProgressBar from './ProgressBar.js';
-import { WithTooltip } from './WithTooltip.js';
+import { Tooltip } from '@mui/material';
+import TradeHubIcon from './TradeHubIcon.js';
+import { DetailedNumberTooltipContent } from './DetailedNumber.js';
 
 const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) => {
     if (myCiv === null) {return}
@@ -31,7 +32,7 @@ const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) =
     }
 
     return <div className='make-territory-area'>
-        <WithTooltip tooltip={`Make this city a territory instead of a puppet. ${territoryReplacementCity ? `${territoryReplacementCity.name} will send its stores of wood & metal to its new parent.` : ""}`}>
+        <Tooltip title={`Make this city a territory instead of a puppet. ${territoryReplacementCity ? `${territoryReplacementCity.name} will send its stores of wood & metal to its new parent.` : ""}`}>
         <Button
             variant="contained"
             style = {{
@@ -44,11 +45,11 @@ const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) =
             <span>Make Territory
             {territoryReplacementCity && ` instead of ${territoryReplacementCity.name}`}</span>
         </Button>
-        </WithTooltip>
+        </Tooltip>
     </div>
 }
 
-const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
+const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTerritoryCapitals, declinePreviewMode, puppet, playerNum, playerApiUrl, setGameState, refreshSelectedCity,
     selectedCity,
     unitTemplatesByBuildingName, templates,
     setHoveredUnit, setHoveredBuilding, setHoveredWonder, setSelectedCity, centerMap
@@ -164,18 +165,14 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
     const foodProgressStoredDisplay = Math.min(100, Math.floor(foodProgressStored * 100));
     const foodProgressProducedDisplay = Math.floor(Math.min(100, (foodProgressStored + foodProgressProduced) * 100) - foodProgressStoredDisplay);
 
-    const foodDemanded = selectedCity.food_demand;
+    const foodDemanded = selectedCity.food_demand.value;
     const incomeExceedsDemand = projectedIncome['food'] >= foodDemanded;
     const happinessIcon = (incomeExceedsDemand && selectedCity.unhappiness === 0) ? happyImg : (!incomeExceedsDemand && selectedCity.unhappiness === 0) ? neutralImg : sadImg;
     const unhappinessBarsMaxWidth = 180;
     const unhappinessBarsWidthPerUnit = Math.min(10, unhappinessBarsMaxWidth/foodDemanded, unhappinessBarsMaxWidth/projectedIncome['food']);
-    const numPuppets = Object.keys(selectedCity?.projected_income_puppets?.["wood"] || {}).length;
-    const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> : <><p>Food Demand {foodDemanded}:</p> <ul> 
-        <li>{(gameState.turn_num - selectedCity.founded_turn)} from age (1/turn since founding turn {selectedCity.founded_turn})</li> 
-        {numPuppets > 0 ? <li>-{2 * numPuppets} from puppets (-2/puppet) </li> : ""}
-        {selectedCity.food_demand_reduction_recent_owner_change > 0 ? <li>-{selectedCity.food_demand_reduction_recent_owner_change} from recent owner change</li> : ""}
-        <li>Possibly other effects from buildings in this or other cities.</li>
-        </ul> </>
+    const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> : 
+        <DetailedNumberTooltipContent detailedNumber={selectedCity.food_demand} titleHeader={`Food Demand ${foodDemanded}`}/>
+    ;
 
 
 
@@ -337,39 +334,37 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                         <div className="unhappiness-area-top-row">
                             <div className="unhappiness-current">
                                 <img src={happinessIcon} alt="" height="30px"/>
-                                <WithTooltip tooltip={`${selectedCity.unhappiness.toFixed(2)} unhappiness`}><>
+                                <Tooltip title={`${selectedCity.unhappiness.toFixed(2)} unhappiness`}>
                                 <span className="unhappiness-value">{Math.ceil(selectedCity.unhappiness)}</span>
-                                </></WithTooltip>
+                                </Tooltip>
                                 <div style={{visibility: selectedCity.civ_to_revolt_into ? "visible" : "hidden"}}>
-                                <WithTooltip tooltip="This city is a revolt option for other players!">
+                                <Tooltip title="This city is a revolt option for other players!">
                                     <img src={declineImg} alt="" height="30px"/>
-                                </WithTooltip>
+                                </Tooltip>
                                 </div>
                             </div>
-                            <WithTooltip tooltip={selectedCity.is_trade_hub ? 
+                            <Tooltip title={selectedCity.is_trade_hub ? 
                                 `Trade hub consumes 20 city power to remove 10 unhappiness per turn (if above 10). Click to cancel.` : 
                                 `Make this city your trade hub (20 city power -> 10 unhappiness)`}>
                             <div className="trade-hub"
                                 onClick = {handleClickTradeHub}>
-                                    <img 
-                                    src={tradeHubImg}
-                                    alt=""
+                                    <TradeHubIcon myGamePlayer={myGamePlayer}
                                     className={selectedCity.is_trade_hub ? "active" : "not-active"}
                                     />
                             </div>
-                            </WithTooltip>
+                            </Tooltip>
                         </div>
                         <div className="unhappiness-income-area">
-                            <WithTooltip tooltip={projectedIncome['food'] >= foodDemanded ? 
+                            <Tooltip title={projectedIncome['food'] >= foodDemanded ? 
                                 `income exceeds demand; city produces city power ${projectedIncome['city_power'].toFixed(2)}` : 
                                 `demand exceds income; city is gaining unhappiness ${projectedIncome['unhappiness'].toFixed(2)}`}
                             >
                                 <div className="unhappiness-income-value">
-                                    +{projectedIncome['city_power'] > 0 ? Math.floor(projectedIncome['city_power']) : Math.floor(projectedIncome['unhappiness'])}
-                                    <img src={projectedIncome['city_power'] > 0 ? cityImg : sadImg}  alt="" height="30px"/>
+                                    +{projectedIncome['city_power'] !== 0 ? Math.floor(projectedIncome['city_power']) : Math.floor(projectedIncome['unhappiness'])}
+                                    <img src={projectedIncome['city_power'] !== 0 ? cityImg : sadImg}  alt="" height="30px"/>
                                 </div>
-                            </WithTooltip>
-                            <WithTooltip tooltip={foodDemandTooltip}>
+                            </Tooltip>
+                            <Tooltip title={foodDemandTooltip}>
                             <table className="unhappiness-bars"><tbody>
                                 <tr>
                                     <td className="label">
@@ -396,7 +391,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myTerritoryCapitals
                                     </td>
                                 </tr>
                             </tbody></table>
-                            </WithTooltip>
+                            </Tooltip>
                         </div>
                     </div>}
                 </CityDetailPanel>

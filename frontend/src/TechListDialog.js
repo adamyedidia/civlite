@@ -15,7 +15,6 @@ const TechColumn = ({children}) => {
 const TechLevelBox = ({level, techs, myCiv, gameState, templates, setHoveredTech, handleClickTech}) => {
     const levelRomanNumeral = romanNumeral(level);
 
-    // Need to keep this in sync with python code. Might be better to pass it down.
     const nextAgeProgress = myCiv.next_age_progress;
     const unlockedLevel = myCiv.advancement_level;
     const researchingTechName = myCiv.researching_tech_name;

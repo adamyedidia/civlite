@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING
 from civ_templates_list import CIVS
 from map_object_spawner import MapObjectSpawner
 from settings import CAMP_CLEAR_CITY_POWER_REWARD, CAMP_CLEAR_VP_REWARD, STRICT_MODE
+from tenet_template_list import TENETS
 
 from unit_template import UnitTemplate
 from unit_templates_list import UNITS
@@ -78,6 +79,8 @@ class Camp(MapObjectSpawner):
     def capture(self, sess, civ: Civ, game_state: 'GameState') -> None:
         civ.city_power += CAMP_CLEAR_CITY_POWER_REWARD
         civ.gain_vps(CAMP_CLEAR_VP_REWARD, f"Clearing Camps ({CAMP_CLEAR_VP_REWARD}/camp)")
+        if civ.has_tenet(TENETS.HONOR):
+            civ.gain_vps(CAMP_CLEAR_VP_REWARD, f"Honor")
 
         game_state.add_animation_frame(sess, {
             "type": "CampClear",

@@ -117,6 +117,7 @@ body {
   align-items: center;
   justify-content: center;
   width: 150px;
+  position: relative;
 }
 
 .advancement-level-progress-bar {
@@ -124,6 +125,14 @@ body {
   background-color: #ddd;
   position: absolute;
   left: 0;
+}
+
+.advancement-level-progress-bar-label {
+  position: absolute;
+  top: 0;
+  left: 5px;
+  height: 100%;
+  align-content: center;
 }
 
 .flag-arrows-container {

@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Callable, Literal
 from TechStatus import TechStatus
 from building_template import BuildingTemplate, BuildingType
 from settings import STRICT_MODE, VITALITY_DECAY_RATE
+from terrain_template import TerrainTemplate
 from terrain_templates_list import TERRAINS
 from unit_templates_list import UNITS
 from effect import CityTargetEffect
@@ -12,6 +13,8 @@ from logging_setup import logger
 
 
 import inflect
+
+from yields import Yields
 p = inflect.engine()
 
 if TYPE_CHECKING:
@@ -62,8 +65,7 @@ class BuildBuildingEffect(CityTargetEffect):
         return f"Build a free {self.building_template.name}."
 
     def apply(self, city: 'City', game_state: 'GameState'):
-        if not city.has_building(self.building_template):
-            city.build_building(building=self.building_template, game_state=game_state, free=True)
+        city.build_building(building=self.building_template, game_state=game_state, free=True)
 
 class FreeRandomTechEffect(CityTargetEffect):
     def __init__(self, age, number=1) -> None:
@@ -374,3 +376,33 @@ class GreatLighthouseEffect(CityTargetEffect):
         vitality_decay_reduction = 1 - 0.05 * num_ocean_neighbors
         new_vitality_decay_rate = 1 - (1 - VITALITY_DECAY_RATE) * vitality_decay_reduction
         city.civ.vitality *= new_vitality_decay_rate / VITALITY_DECAY_RATE
+
+class UpgradeTerrainEffect(CityTargetEffect):
+    def __init__(self, num: int, terrain: TerrainTemplate, override_yields: Yields, override_name: str | None = None) -> None:
+        self.num = num
+        self.terrain = terrain
+        self.total_yields = override_yields or terrain.yields
+        self.display_name = override_name or terrain.name
+
+    @property
+    def description(self) -> str:
+        return f"Upgrade {self.num} adjacent tiles to {self.display_name} (yields {self.total_yields.pretty_print()})"
+    
+    def apply(self, city: 'City', game_state: 'GameState'):
+        neighbors = list(city.hex.get_neighbors(game_state.hexes, include_self=False))
+        neighbors.sort(key=lambda h: (h.yields.total(), random.random()))
+        for hex in neighbors[:self.num]:
+            old_terrain_type = hex.terrain
+            hex.terrain = self.terrain
+            hex.yields = self.total_yields
+            for possible_city in hex.get_neighbors(game_state.hexes, include_self=False):
+                if possible_city.city is not None:
+                    if possible_city.city.terrains_dict[old_terrain_type] == 1:
+                        del possible_city.city.terrains_dict[old_terrain_type]
+                    else:
+                        possible_city.city.terrains_dict[old_terrain_type] -= 1
+                    if self.terrain in possible_city.city.terrains_dict:
+                        possible_city.city.terrains_dict[self.terrain] += 1
+                    else:
+                        possible_city.city.terrains_dict[self.terrain] = 1
+

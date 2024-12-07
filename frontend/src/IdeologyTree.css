@@ -1,0 +1,123 @@
+.tenet-hover-card {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    border-radius: 5px;
+    background-color: #d3cb2c;
+    cursor: default;
+    width: 500px;
+}
+
+.tenet-quest-description {
+    border-bottom: 1px dashed #0008;
+}
+
+.tenet-card {
+    padding: 2px 5px;
+    border-radius: 20px;
+    margin: 2px 0;
+    border: 1px solid black;
+    cursor: default;
+    width: 200px;
+    position: relative;
+}
+
+.tenet-card.available {
+    background-color: #f5f2c2;
+}
+
+.tenet-card.unavailable {
+    background-color: #f5f2c2;
+    opacity: 0.5;
+}
+
+.tenet-card.active-choice {
+    background-color: #fdf898;
+    cursor: pointer;
+    animation: pulse 1s infinite;
+}
+
+.tenet-card.active-choice:hover {
+    transform: scale(1.1);
+    background-color: rgb(250, 248, 206);
+    animation: none;
+}
+
+.tenet-card-duplicate-claimable-indicator {
+    position: absolute;
+    top: -20px;
+    right: 0;
+}
+
+.tenet-card .tenet-name {
+    text-align: center;
+}
+
+.tenet-level-box {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 2px dashed #d3cb2c;
+    padding-top: 10px;
+    width: 100%;
+}
+
+.tenet-level-box.future {
+    opacity: 0.5;
+}
+
+.tenet-level-box.active-choice {
+    background-color: #fdda13;
+}
+
+.tenet-level-box-header {
+    width: 10%;
+    text-align: left;
+}
+
+.ideology-question {
+    text-align: center;
+}
+
+.tenet-level-box-content {
+    width: 90%;
+}
+
+.tenet-choices-list {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.chosen-tenet-level-box {
+    width: 100%;
+    background-color: #fbf24f;
+    border-radius: 10px;
+    border: 1px solid #d3cb2c;
+    padding: 2px 10px;
+}
+
+.tenet-dialog-content {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 1000px;
+}
+
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}

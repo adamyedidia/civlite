@@ -6,6 +6,7 @@ from building_template import BuildingTemplate
 from building_templates_list import BUILDINGS
 from civ_templates_list import CIVS
 from effects_list import GainResourceEffect
+from game_player import GamePlayer
 
 from game_state import GameState
 from great_person import GreatEngineer, GreatGeneral, GreatMerchant, GreatPerson, GreatScientist, _target_value_by_age, great_people_by_age
@@ -18,6 +19,7 @@ import time
 import numpy as np
 from numpy.typing import NDArray
 from tech_templates_list import TECHS
+from tenet_template_list import TENETS, tenets_by_level
 from unit_template import UnitTag
 
 import plotly.graph_objects as go
@@ -67,7 +69,26 @@ def ai_game_count_units(id, num_players) -> tuple[dict[str, list[list[dict[Any, 
                     researching_tech_turns[civ.game_player.player_num][civ.researching_tech.name] += 1
     final_state: GameState = GameState.from_json(data[-1])
     final_scores: dict[int, int] = {i: player.score for i, player in final_state.game_player_by_player_num.items()}
-    score_sources = [player.score_dict for player in final_state.game_player_by_player_num.values()]
+    sorted_game_players: list[GamePlayer] = sorted(final_state.game_player_by_player_num.values(), key=lambda p: p.player_num)
+    score_sources = [player.score_dict for player in sorted_game_players]
+    tenets = [{t.name: int(t in game_player.tenets) for t in TENETS.all()} for game_player in sorted_game_players]
+    for i, game_player in enumerate(sorted_game_players):
+        if (t := game_player.tenet_at_level(3)) is not None:
+            complete = game_player.tenets[t]["complete"]
+            tenets[i][t.name + " Complete"] = int(complete)
+            tenets[i][t.name + " Incomplete"] = int(not complete)
+        if (t := game_player.tenet_at_level(6)) is not None:
+            for j in range(3):
+                tenets[i][t.name + f" {j}"] = 0
+            score_key: str = [k for k in game_player.score_dict.keys() if k.startswith(t.name)][0]
+            score_civ_name = score_key.split(" ", 2)[-1]
+            player_civ_names = [final_state.civs_by_id[id].template.name for id in game_player.all_civ_ids]
+            score_civ_idx = player_civ_names.index(score_civ_name)
+            tenets[i][t.name + f" {score_civ_idx}"] += 1
+            score_sources[i][t.name + f" {score_civ_idx}"] = game_player.score_dict[score_key]
+            del score_sources[i][score_key]
+
+
     winner = max(range(num_players), key=lambda i: final_scores[i])
     winner_units = unit_counts.pop(winner)
     winner_wonders = wonders.pop(winner)
@@ -75,6 +96,7 @@ def ai_game_count_units(id, num_players) -> tuple[dict[str, list[list[dict[Any, 
     winner_civ_turn_counts = civ_turn_counts.pop(winner)
     winner_score_sources = score_sources.pop(winner)
     winner_researching_tech_turns = researching_tech_turns.pop(winner)
+    winner_tenets = tenets.pop(winner)
 
     # get great people from announcements
     # Announcements look like: f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory."
@@ -95,6 +117,7 @@ def ai_game_count_units(id, num_players) -> tuple[dict[str, list[list[dict[Any, 
         'civs': [[winner_civ_turn_counts], civ_turn_counts],
         'score_sources': [[winner_score_sources], score_sources],
         'techs': [[winner_researching_tech_turns], researching_tech_turns],
+        "tenets": [[winner_tenets], tenets],
     }, {
         'turns': final_state.turn_num,
         'age': final_state.advancement_level,
@@ -128,6 +151,24 @@ def process_game(i: int) -> tuple[dict[str, list[list[dict[Any, int]]]], dict[st
 def blank_defaultdict():
     return defaultdict(int)
 
+class DummyThingWithName:
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return self.name
+
+def augmented_tenets_list() -> list[DummyThingWithName]:
+    l = list([(t.name, t.advancement_level) for t in TENETS.all()])
+    for tenet in tenets_by_level[3]:
+        for state in [" Complete", " Incomplete"]:
+            l.append((tenet.name + state, 3))
+    for tenet in tenets_by_level[6]:
+        for index in range(3):
+            l.append((tenet.name + f" {index}", 6))
+    l.sort(key=lambda x: (x[1], x[0]))
+    return [DummyThingWithName(x[0]) for x in l]
+
 def accumulate_unit_info(num_games, cache_file, offset=0, max_workers=10):
     winner_data = {
         'units': {unit.name: defaultdict(int) for unit in UNITS.all()},
@@ -136,7 +177,8 @@ def accumulate_unit_info(num_games, cache_file, offset=0, max_workers=10):
         'great_people': {person.name: defaultdict(int) for i in range(10) for person in great_people_by_age(i)},
         'civs': {civ.name: defaultdict(int) for civ in CIVS.all()},
         'score_sources': defaultdict(blank_defaultdict),
-        'techs': {tech.name: defaultdict(int) for tech in TECHS.all()}
+        'techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
+        'tenets': {tenet.name: defaultdict(int) for tenet in augmented_tenets_list()},
     }
     loser_data = {
         'units': {unit.name: defaultdict(int) for unit in UNITS.all()},
@@ -145,7 +187,8 @@ def accumulate_unit_info(num_games, cache_file, offset=0, max_workers=10):
         'great_people': {person.name: defaultdict(int) for i in range(10) for person in great_people_by_age(i)},
         'civs': {civ.name: defaultdict(int) for civ in CIVS.all()},
         'score_sources': defaultdict(blank_defaultdict),
-        'techs': {tech.name: defaultdict(int) for tech in TECHS.all()}
+        'techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
+        'tenets': {tenet.name: defaultdict(int) for tenet in augmented_tenets_list()},
     }
     game_data = {
         'turns': defaultdict(int),
@@ -366,6 +409,7 @@ if __name__ == "__main__":
             'civs': {civ.name: defaultdict(int) for civ in CIVS.all()},
             'score_sources': defaultdict(blank_defaultdict),
             'techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
+            'tenets': {tenet.name: defaultdict(int) for tenet in augmented_tenets_list()},
         }
         loser_data_raw = {
             'units': {unit.name: defaultdict(int) for unit in UNITS.all()},
@@ -375,6 +419,7 @@ if __name__ == "__main__":
             'civs': {civ.name: defaultdict(int) for civ in CIVS.all()},
             'score_sources': defaultdict(blank_defaultdict),
             'techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
+            'tenets': {tenet.name: defaultdict(int) for tenet in augmented_tenets_list()},
         }
         game_data_raw = {
             'turns': defaultdict(int),
@@ -384,9 +429,10 @@ if __name__ == "__main__":
             offset = i*games_per_chunk
             winner_raw_counts, loser_raw_counts, local_game_data = pickle.load(open(f"{args.output_dir}/ai_game_cache_{offset}_{offset+games_per_chunk-1}.pkl", "rb"))
             for key in winner_data_raw:
-                for item in winner_raw_counts[key]:
+                print(f"Processing {key}")
+                for item in list(winner_raw_counts[key].keys()):
                     winner_data_raw[key][item] = add_defaultdicts(winner_data_raw[key][item], winner_raw_counts[key][item])
-                for item in loser_raw_counts[key]:
+                for item in list(loser_raw_counts[key].keys()):
                     loser_data_raw[key][item] = add_defaultdicts(loser_data_raw[key][item], loser_raw_counts[key][item])
             for key in local_game_data:
                 game_data_raw[key] = add_defaultdicts(game_data_raw[key], local_game_data[key])
@@ -402,8 +448,8 @@ if __name__ == "__main__":
                 if item not in loser_data_raw[key]:
                     continue
                 print(f"   => {item}")
-                winner_data[key][item] = np.array([winner_data_raw[key][item][i] for i in range(max(winner_data_raw[key][item].keys())+1)])
-                loser_data[key][item] = np.array([loser_data_raw[key][item][i] for i in range(max(loser_data_raw[key][item].keys())+1)])
+                winner_data[key][item] = np.array([winner_data_raw[key][item][i] for i in range(max(winner_data_raw[key][item].keys(), default=0)+1)])
+                loser_data[key][item] = np.array([loser_data_raw[key][item][i] for i in range(max(loser_data_raw[key][item].keys(), default=0)+1)])
         for key in game_data_raw:
             game_data[key] = np.array([game_data_raw[key][i] for i in range(max(game_data_raw[key].keys())+1)])
 
@@ -519,7 +565,7 @@ if __name__ == "__main__":
             return ""
 
 
-        fig = make_subplots(rows=14, cols=2)
+        fig = make_subplots(rows=16, cols=2)
         fig.update_layout(
             height=6000,
             width=1200,
@@ -567,6 +613,10 @@ if __name__ == "__main__":
         offset += 1
         sorted_techs = sorted(TECHS.all(), key=lambda t: (t.advancement_level, t.cost, t.name))
         plot_rates(winner_data['techs'], loser_data['techs'], sorted_techs, "Tech", cond_prob_range=[0.23, 0.3], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
+        offset += 1
+        sorted_tenets = augmented_tenets_list()
+        plot_rates(winner_data['tenets'], loser_data['tenets'], sorted_tenets, "Tenet", cond_prob_range=[0.15, 0.35], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
+        offset += 1
         fig.show()
 
         fig = make_subplots(rows=22, cols=2)

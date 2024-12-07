@@ -3,6 +3,7 @@ from enum import Enum
 class MoveType(Enum):
     CHOOSE_STARTING_CITY = "choose_starting_city"
     CHOOSE_TECH = "choose_tech"
+    CHOOSE_TENET = "choose_tenet"
     CHOOSE_BUILDING = "choose_building"
     CANCEL_BUILDING = "cancel_building"
     SELECT_INFINITE_QUEUE = "select_infinite_queue"

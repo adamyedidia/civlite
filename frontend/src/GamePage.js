@@ -29,6 +29,7 @@ import CityDetailWindow from './CityDetailWindow';
 import UpperRightDisplay from './UpperRightDisplay';
 import LowerRightDisplay from './LowerRightDisplay.js';
 import TechListDialog from './TechListDialog';
+import IdeologyTreeDialog, { TenetDisplay } from './IdeologyTree.js'
 import TaskBar from './TaskBar';
 import GreatPerson from './GreatPerson';
 import { romanNumeral } from "./romanNumeral.js";
@@ -53,11 +54,11 @@ import enemyWonderSound from './sounds/enemy_wonder_sound.mp3';
 import SettingsDialog from './SettingsDialog';
 import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
+import ideologyImg from "./images/ideology.png";
 import vitalityImg from './images/heart.png';
 import declineImg from './images/phoenix.png';
 import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
-import { WithTooltip } from './WithTooltip.js';
 
 import { Card, CardContent } from '@mui/material';
 
@@ -401,6 +402,7 @@ export default function GamePage() {
     const [hoveredBuilding, setHoveredBuilding] = useState(null);
     const [hoveredTech, setHoveredTech] = useState(null);
     const [hoveredWonder, setHoveredWonder] = useState(null);
+    const [hoveredTenet, setHoveredTenet] = useState(null);
 
     const [hoveredCity, setHoveredCity] = useState(null);
 
@@ -422,6 +424,7 @@ export default function GamePage() {
     const [nonDeclineViewGameState, setNonDeclineViewGameState] = useState(null);  // My real game state, for if I cancel decline view
 
     const [techListDialogOpen, setTechListDialogOpen] = useState(false);
+    const [ideologyTreeOpen, setIdeologyTreeOpen] = useState(false);
 
     const [gameConstants, setGameConstants] = useState(null);
 
@@ -467,14 +470,14 @@ export default function GamePage() {
     }, [currentAnnouncement]);
 
     const getMyInfo = (gameState) => {
-        const gamePlayer = gameState?.game_player_by_player_num?.[playerNum];
-        const myCivId = gamePlayer?.civ_id;
+        const myGamePlayer = gameState?.game_player_by_player_num?.[playerNum];
+        const myCivId = myGamePlayer?.civ_id;
         const myCiv = gameState?.civs_by_id?.[myCivId];
-        return {gamePlayer, myCivId, myCiv};
+        return {myGamePlayer, myCivId, myCiv};
     }
     const mainGameState = declineOptionsView ? nonDeclineViewGameState : gameState;
     const info = getMyInfo(mainGameState);
-    const myGamePlayer = info.gamePlayer;
+    const myGamePlayer = info.myGamePlayer;
     const myCivId = info.myCivId;
     const myCiv = info.myCiv;
 
@@ -661,6 +664,7 @@ export default function GamePage() {
                 setHoveredTech(null);
                 setHoveredUnit(null);
                 setHoveredWonder(null);
+                setHoveredTenet(null);
             }
         };
     
@@ -2448,6 +2452,7 @@ export default function GamePage() {
             setHoveredUnit(null);
             setHoveredTech(null);
             setHoveredWonder(null);
+            setHoveredTenet(null);
         }
     }, [hoveredBuilding])
 
@@ -2456,6 +2461,7 @@ export default function GamePage() {
             setHoveredBuilding(null);
             setHoveredTech(null);
             setHoveredWonder(null);
+            setHoveredTenet(null);
         }
     }, [hoveredUnit])
 
@@ -2464,6 +2470,7 @@ export default function GamePage() {
             setHoveredBuilding(null);
             setHoveredUnit(null);
             setHoveredWonder(null);
+            setHoveredTenet(null);
         }
     }, [hoveredTech])
 
@@ -2472,8 +2479,18 @@ export default function GamePage() {
             setHoveredBuilding(null);
             setHoveredUnit(null);
             setHoveredTech(null);
+            setHoveredTenet(null);
         }
     }, [hoveredWonder])
+
+    useEffect(() => {
+        if (!!hoveredTenet) {
+            setHoveredBuilding(null);
+            setHoveredUnit(null);
+            setHoveredTech(null);
+            setHoveredWonder(null);
+        }
+    }, [hoveredTenet])
 
     const toggleFoundingCity = () => {
         setFoundingCity(!foundingCity);
@@ -2498,6 +2515,7 @@ export default function GamePage() {
             setGameState(declineViewGameState);
             setTechChoiceDialogOpen(false);
             setGreatPersonChoiceDialogOpen(false);
+            setIdeologyTreeOpen(false);
         } else {
             // If we are toggling back from the decline view
             setGameState(nonDeclineViewGameState);
@@ -2564,6 +2582,17 @@ export default function GamePage() {
         }
 
         submitPlayerInput(playerInput).then(() => setTechChoiceDialogOpen(false));
+    }
+
+    const handleClickTenet = (tenet) => {
+        if (engineState !== EngineStates.PLAYING) {return;}
+
+        const playerInput = {
+            'tenet_name': tenet.name,
+            'move_type': 'choose_tenet',
+        }
+
+        submitPlayerInput(playerInput);  
     }
    
     useEffect(() => {
@@ -2712,9 +2741,10 @@ export default function GamePage() {
         const finalGameState = animationFinalStateRef.current;
         setGameState(finalGameState);
         refreshSelectedCity(finalGameState);
-        const { myCiv } = getMyInfo(finalGameState);
+        const { myCiv, myGamePlayer } = getMyInfo(finalGameState);
         sciencePopupIfNeeded(myCiv);
         greatPersonPopupIfNeeded(myCiv);
+        ideologyPopupIfNeeded(myGamePlayer);
     }
 
     const playFinalMovie = async () => {
@@ -2786,6 +2816,12 @@ export default function GamePage() {
     const sciencePopupIfNeeded = (civ) => {
         if (civ?.researching_tech_name === null && !gameState.game_over) {
             setTechChoiceDialogOpen(true);
+        }
+    }
+
+    const ideologyPopupIfNeeded = (myGamePlayer) => {
+        if (myGamePlayer.active_tenet_choice_level) {
+            setIdeologyTreeOpen(true);
         }
     }
 
@@ -2981,6 +3017,7 @@ export default function GamePage() {
                         refreshSelectedCity(data.game_state);
                         setDeclineOptionsView(false);
                         setTechListDialogOpen(true);
+                        setIdeologyTreeOpen(false);
                     } else if (data.game_state && !success) {
                         setDeclineFailedDialogOpen(true);
                     } else {
@@ -3077,7 +3114,7 @@ export default function GamePage() {
                         <>
                             {/* Wood */}
                             <circle cx="1.7" cy={cityCirclesY} r={cityCircleRadius} fill={colors.wood} stroke={secondaryColor} strokeWidth="0.1"/>
-                            <image href={buildingImage} x={1.2} y={0.45} height="1" width="1" />
+                            <image href={buildingImage} x={1.2} y={1.45} height="1" width="1" />
                             <text x="1.7" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
                                 {buildingText}
                             </text>    
@@ -3098,7 +3135,6 @@ export default function GamePage() {
                     {myCiv && !everControlled && 
                         <image href={vpImage} x={5.75} y={1.1} height="1" />
                     }
-                    
                 </CityRectangle>
                 {declineOptionsView && city.is_decline_view_option && <>
                     <image href={vitalityImg} x="-1.8" y="-1" height="3.6" width="3.6" />
@@ -3178,6 +3214,15 @@ export default function GamePage() {
             </svg>
         );
     };
+
+    const ElDoradoMarker = () => {
+        return (
+            <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={-1.5}>
+                <line x1="0" y1="0" x2="3" y2="3" stroke="#FFD700" strokeWidth="0.4"/>
+                <line x1="3" y1="0" x2="0" y2="3" stroke="#FFD700" strokeWidth="0.4"/>
+            </svg>
+        );
+    }
 
     function greyOutHexColor(hexColor, targetGrey = '#777777') {
         // Convert hex to RGB
@@ -3361,6 +3406,10 @@ export default function GamePage() {
                                         cityName={hex.fog_city_name}  
                                         capital={hex.fog_city_player_capital}
                                     />}
+                                    {hex.quest === 'Holy Grail' && <>
+                                        <line x1="-0.5" y1="-2" x2="0.5" y2="-2" stroke="yellow" strokeWidth="0.2"/>
+                                        <line x1="0" y1="-2.5" x2="0" y2="-0.5" stroke="yellow" strokeWidth="0.2"/>
+                                    </>}
                                     {hex.camp && <Camp
                                         camp={hex.camp}
                                         isUnitInHex={hex?.units?.length > 0}
@@ -3371,6 +3420,7 @@ export default function GamePage() {
                                     />}
                                     {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
                                     {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
+                                    {hex.quest === 'El Dorado' && <ElDoradoMarker/>}
                                 </Hexagon>
                             );
                         })}
@@ -3421,7 +3471,9 @@ export default function GamePage() {
                         setHoveredTech={setHoveredTech}
                         setHoveredCiv={setHoveredCiv}
                         setHoveredWonder={setHoveredWonder}
+                        setHoveredTenet={setHoveredTenet}
                         setTechChoiceDialogOpen={setTechChoiceDialogOpen}
+                        setIdeologyTreeOpen={setIdeologyTreeOpen}
                         toggleFoundingCity={toggleFoundingCity}
                         canFoundCity={canFoundCity}
                         isFoundingCity={foundingCity}
@@ -3444,6 +3496,7 @@ export default function GamePage() {
                     />}
                     {selectedCity && <CityDetailWindow 
                         gameState={gameState}
+                        myGamePlayer={myGamePlayer}
                         myTerritoryCapitals={myTerritoryCapitals}
                         myCivTemplate={templates.CIVS[selectedCity.civ?.name || civsById?.[selectedCity.civ_id]?.name]}
                         myCiv={myCiv}
@@ -3462,7 +3515,7 @@ export default function GamePage() {
                         setSelectedCity={setSelectedCity}
                         centerMap={centerMap}
                         />}
-                    <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 1000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center'}}>                             
+                    <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 2000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center'}}>                             
                         {hoveredBuilding && (
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
                         )}
@@ -3475,20 +3528,35 @@ export default function GamePage() {
                         {hoveredTech && (
                             <TechDisplay tech={hoveredTech} civ={myCiv} templates={templates}  unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
                         )}
-                        {!hoveredBuilding && !hoveredUnit && !hoveredTech && !hoveredWonder && <div className='turn-num-card'>
-                            <Typography variant="h4">
-                                Turn {gameState?.turn_num}
-                            </Typography>
-                            <WithTooltip tooltip={`${Math.round(gameState.advancement_level_progress * 100)}% progress to age ${gameState.advancement_level + 1}`}>
-                            <div className='advancement-level-card'>
-                                <div className='advancement-level-progress-bar' style={{width: `${gameState.advancement_level_progress * 100}%`}}/>
-                                <Typography variant="h5" style={{zIndex: 1}}>
-                                    Age {romanNumeral(gameState.advancement_level)}
+                        {hoveredTenet && (
+                            <TenetDisplay tenet={hoveredTenet} templates={templates} />
+                        )}
+                        {!hoveredBuilding && !hoveredUnit && !hoveredTech && !hoveredWonder && !hoveredTenet && <>
+                            <div className='turn-num-card'>
+                                <Typography variant="h4">
+                                    Turn {gameState?.turn_num}
                                 </Typography>
+                                <Tooltip title={<>
+                                    <p>{`Global Age ${romanNumeral(gameState.advancement_level)}: ${Math.round(gameState.advancement_level_progress * 100)}% progress to age ${romanNumeral(gameState.advancement_level + 1)}`}</p>
+                                    <p>{`Our Age ${romanNumeral(myCiv.advancement_level)}: ${myCiv.next_age_progress.partial} / ${myCiv.next_age_progress.needed} tech-levels for age ${romanNumeral(myCiv.advancement_level + 1)}`}</p>
+                                </>}>
+                                <div className='advancement-level-card'>
+                                    <div className='advancement-level-progress-bar' style={{width: `${gameState.advancement_level_progress * 100}%`}}/>
+                                    <Typography variant="h5" style={{zIndex: 1}}>
+                                        Age {romanNumeral(gameState.advancement_level)}
+                                    </Typography>
+                                    <span className='advancement-level-progress-bar-label'>🌍</span>
+                                </div>
+                                <div className='advancement-level-card'>
+                                    <div className='advancement-level-progress-bar' style={{width: `${myCiv.next_age_progress.partial / myCiv.next_age_progress.needed * 100}%`}}/>
+                                    <Typography variant="h5" style={{zIndex: 1}}>
+                                        Age {romanNumeral(myCiv.advancement_level)}
+                                    </Typography>
+                                    <span className='advancement-level-progress-bar-label'>🚩</span>
+                                </div>
+                                </Tooltip>
                             </div>
-                            </WithTooltip>
-                            </div>
-                        }
+                        </>}
                     </div>
                     {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons} civsById={civsById}/>}
                     {<div style={{
@@ -3529,10 +3597,11 @@ export default function GamePage() {
                         </Button>}
                         {engineState === EngineStates.PLAYING && !declineOptionsView && myCiv &&
                             <TaskBar 
-                                myCiv={myCiv} myCities={myCities} myUnits={myUnits} 
+                                myCiv={myCiv} myGamePlayer={myGamePlayer} myCities={myCities} myUnits={myUnits} 
                                 canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} 
                                 setTechChoiceDialogOpen={setTechChoiceDialogOpen} techChoiceDialogOpen={techChoiceDialogOpen}
                                 setGreatPersonChoiceDialogOpen={setGreatPersonChoiceDialogOpen} greatPersonChoiceDialogOpen={greatPersonChoiceDialogOpen}
+                                setIdeologyTreeOpen={setIdeologyTreeOpen} ideologyTreeOpen={ideologyTreeOpen}
                             />
                         }
 
@@ -3547,6 +3616,15 @@ export default function GamePage() {
                     templates={templates}
                     myCiv={myCiv}
                     gameState={gameState}
+                />}
+                {ideologyTreeOpen && <IdeologyTreeDialog
+                    open={ideologyTreeOpen}
+                    onClose={() => {setHoveredTech(null); setIdeologyTreeOpen(false)}}
+                    templates={templates}
+                    handleClickTenet={handleClickTenet}
+                    setHoveredTenet={setHoveredTenet}
+                    gameState={gameState}
+                    myGamePlayer={myGamePlayer}
                 />}
                 {greatPersonChoiceDialogOpen && <GreatPersonChoiceDialog
                     open={greatPersonChoiceDialogOpen}
@@ -3625,8 +3703,9 @@ export default function GamePage() {
                     triggerAnimations(data.game_state);
                 } else {
                     setGameState(data.game_state);
-                    const { myCiv } = getMyInfo(data.game_state);
+                    const { myCiv, myGamePlayer } = getMyInfo(data.game_state);
                     sciencePopupIfNeeded(myCiv);
+                    ideologyPopupIfNeeded(myGamePlayer);
                 }
                 refreshAnnouncements(data.game_state);
             })
@@ -3870,7 +3949,7 @@ export default function GamePage() {
                         color: 'white',
                         padding: '15px 30px',
                         borderRadius: '5px',
-                        zIndex: 1000,
+                        zIndex: 2000,
                         cursor: 'pointer',
                         textAlign: 'center',
                         maxWidth: '80%'

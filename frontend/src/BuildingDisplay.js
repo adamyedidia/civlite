@@ -7,10 +7,10 @@ import scienceImg from './images/science.png';
 import metalImg from './images/metal.png';
 import cityImg from './images/city.png';
 import crownImg from './images/crown.png';
-import { WithTooltip } from './WithTooltip';
 import { IconUnitDisplay } from './UnitDisplay';
 import { ShrinkFontText } from './ShrinkFontText';
 import { romanNumeral } from "./romanNumeral";
+import { Tooltip } from '@mui/material';
 
 const SingleYieldDisplay = ({ yield_value, img }) => {
     const rounded_val = Number.isInteger(yield_value) ? yield_value : yield_value.toFixed(0);
@@ -77,14 +77,14 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, clickable,
             style={style}
         >
             <span className="building-name">
-                <WithTooltip alignBottom={true} tooltip={payoffTime ? <><div>With vitality decay, a {buildingName} will take {payoffTime} turns to pay back building cost.</div> <div>Assumes resources equally valuable & building income doesn't change.</div></> : null}>
+                <Tooltip title={payoffTime ? <><div>With vitality decay, a {buildingName} will take {payoffTime} turns to pay back building cost.</div> <div>Assumes resources equally valuable & building income doesn't change.</div></> : null}>
                 {romanNumeral(bldg_level)}. {building?.building_name || building?.name}
                 {descriptionObj ? <span> ({descriptionObj}) </span>: ""}
                 {payoffTime && displayYields ? <span> ({payoffTime}⏱) </span> : ""}
                 {crowns > 0 && <div style={{display: 'inline-block', marginLeft: '8px'}}><div style={{display: 'flex', gap: '4px'}}>
                     {[...Array(crowns)].map((_, index) =>  <img key={index} index={index} src={crownImg} alt="" width="16" height="16"/>)}
                 </div></div>}
-                </WithTooltip>
+                </Tooltip>
             </span>
             {!hideCost && <span className="building-cost">{cost} <img src={woodImg} alt="" width="16" height="16" /></span>}
         </div>
@@ -139,7 +139,7 @@ export const ExpandButton = ({ cantExpandReason, handleClickDevelop, expandCost 
         </div>
     );
     if (cantExpandReason) {
-        content = <WithTooltip tooltip={cantExpandReason}>{content}</WithTooltip>
+        content = <Tooltip title={cantExpandReason}>{content}</Tooltip>
     }
     return content
 };
@@ -152,7 +152,7 @@ const DevelopButton = ({ cantDevelopReason, handleClickDevelop, developCost, hid
         </>
     );
     if (cantDevelopReason) {
-        content = <WithTooltip tooltip={cantDevelopReason}>{content}</WithTooltip>
+        content = <Tooltip title={cantDevelopReason}>{content}</Tooltip>
     }
     return         <div className={`develop-btn ${type} ${cantDevelopReason ? 'disabled' : 'enabled'} ${hidden ? 'hidden' : ''}`}
     onClick={() => handleClickDevelop(type)}>

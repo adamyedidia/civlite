@@ -1,6 +1,8 @@
 import abc
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
+
+from detailed_number import DetailedNumber, DetailedNumberWithMultiplier
 
 
 if TYPE_CHECKING:
@@ -88,6 +90,64 @@ class Yields:
     
     def __repr__(self) -> str:
         return f"<Yields {self.to_json()}>"
+
+class DetailedYields:
+    SUPPORTED_KEYS = ("food", "metal", "wood", "science")
+    def __init__(self) -> None:
+        self.food = DetailedNumberWithMultiplier()
+        self.metal = DetailedNumberWithMultiplier()
+        self.wood = DetailedNumberWithMultiplier()
+        self.science = DetailedNumberWithMultiplier()
+        self.unhappiness = 0  # Almost no sources of this, but we made Conscription Post so we have to support it.
+
+    def add_yields(self, name: str, yields: Yields | dict) -> None:
+        if isinstance(yields, Yields):
+            assert yields.city_power == 0
+            self.unhappiness += yields.unhappiness
+        keys = tuple(yields.keys()) if isinstance(yields, dict) else DetailedYields.SUPPORTED_KEYS
+        if isinstance(yields, dict):
+            assert all(k in DetailedYields.SUPPORTED_KEYS for k in keys)
+        for key in keys:
+            self[key].add(name, yields[key])
+
+    def __getitem__(self, item: Literal["food", "metal", "wood", "science"]) -> DetailedNumber:
+        return getattr(self, item)
+        
+    def set_multiplier(self, multiplier: int | float) -> None:
+        self.food.set_multiplier(multiplier)
+        self.wood.set_multiplier(multiplier)
+        self.metal.set_multiplier(multiplier)
+        self.science.set_multiplier(multiplier)
+    
+    @property
+    def value(self) -> Yields:
+        return Yields(
+            food=self.food.value,
+            metal=self.metal.value,
+            wood=self.wood.value,
+            science=self.science.value,
+            unhappiness=self.unhappiness,
+        )
+
+    def to_json(self) -> dict:
+        return {
+            "food": self.food.to_json(),
+            "wood": self.wood.to_json(),
+            "metal": self.metal.to_json(),
+            "science": self.science.to_json(),
+            "unhappiness": self.unhappiness,
+        }
+    
+    @staticmethod
+    def from_json(json: dict) -> "DetailedYields":
+        dy = DetailedYields()
+        dy.food = DetailedNumberWithMultiplier.from_json(json["food"])
+        dy.wood = DetailedNumberWithMultiplier.from_json(json["wood"])
+        dy.metal = DetailedNumberWithMultiplier.from_json(json["metal"])
+        dy.science = DetailedNumberWithMultiplier.from_json(json["science"])
+        dy.unhappiness = json["unhappiness"]
+        return dy
+
 
 class YieldsCalculation(abc.ABC):
     @abc.abstractmethod

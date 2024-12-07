@@ -5,6 +5,8 @@
     padding: 10px;
     z-index: 1000; /* Ensure it's above other elements */
     flex-direction: column;
+    overflow-y: auto;
+    max-height: calc(100vh - 400px);
     /* Add other styles as needed */
 }
 
@@ -339,6 +341,85 @@ h2.tech-name {
 }
 .slot.urban {
     background-color: #e08b5e;
+}
+
+/*
+==========================================
+============== IDEOLOGY AREA =============
+==========================================
+*/
+
+.ideology-area .panel-content{
+    border-color: #d3cb2c;
+    background-color: #f5f2c2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;   
+}
+
+.ideology-area .level-markers {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+}
+
+.ideology-area .level {
+    display: flex;
+    align-items: flex-start;
+    justify-content: left;
+    gap: 5px;
+    width: 100%;
+    border-top: 2px solid #00000033;
+    padding-top: 5px;
+}
+
+.ideology-area .level .tenet-marker.inactive {
+    opacity: 0.3;
+}
+
+.ideology-area .ideology-columns {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.ideology-area .ideology-columns .ideology-column {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.ideology-area .tenet {
+    background-color: #d3cb2c;
+    padding: 5px;
+    border-radius: 5px;
+    width: 90%;
+}
+
+.ideology-area .tenet.inactive {
+    opacity: 0.5;
+}
+
+.ideology-area .one-row-tenet {
+    display: flex;
+    align-items: center;
+    justify-content: left;
+    gap: 5px;
+}
+
+.ideology-area .tenet-header {
+    font-weight: bold;
+    width: 50px;
+}
+
+.ideology-area .tenet.inactive .tenet-header {
+    text-align: center;
+    width: 100%;
 }
 
 /*

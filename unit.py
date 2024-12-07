@@ -1,13 +1,16 @@
 from math import ceil
 import random
 from typing import TYPE_CHECKING, Generator, Optional
+from civ_templates_list import CIVS
 from map_object import MapObject
+from tenet_template_list import TENETS
 from wonder_templates_list import WONDERS
 from settings import UNIT_KILL_REWARD, DAMAGE_DOUBLE_EXPONENT, DAMAGE_EQUAL_STR
 from unit_template import UnitTemplate, UnitTag
 from unit_templates_list import UNITS
 from utils import generate_unique_id
 from logging_setup import logger
+import score_strings
 
 
 if TYPE_CHECKING:
@@ -240,7 +243,10 @@ class Unit(MapObject):
 
         if from_civ is not None:
             for _ in range(original_stack_size - final_stack_size):
-                from_civ.gain_vps(UNIT_KILL_REWARD, f"Unit Kill ({UNIT_KILL_REWARD}/unit)")
+                from_civ.gain_vps(UNIT_KILL_REWARD, score_strings.UNIT_KILL)
+
+                if from_civ is not None and from_civ.has_tenet(TENETS.HONOR) and self.civ.template == CIVS.BARBARIAN:
+                    from_civ.gain_vps(UNIT_KILL_REWARD, f"Honor")
 
                 if from_civ.has_ability('ExtraVpsPerUnitKilled') and from_unit is not None:
                     tag, amount = from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')
@@ -256,6 +262,15 @@ class Unit(MapObject):
 
                 for ability, _ in from_civ.passive_building_abilities_of_name('CityPowerPerKill', game_state):
                     from_civ.city_power += ability.numbers[0]
+
+                if from_unit and (from_civ_a5_tenet := from_civ.tenet_at_level(5)) and from_civ_a5_tenet.a5_unit_types and any(from_unit.template.has_tag(tag) for tag in from_civ_a5_tenet.a5_unit_types):
+                    from_civ.city_power += 10
+
+                if from_civ.game_player is not None \
+                    and from_civ.has_tenet(TENETS.HOLY_GRAIL) \
+                    and (holy_city := game_state.cities_by_id.get(from_civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"])) is not None \
+                    and holy_city.civ == self.civ:
+                    from_civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL, game_state)
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
         self_hex_coords = self.hex.coords
@@ -375,15 +390,21 @@ class Unit(MapObject):
                 best_hex = neighboring_hex
                 best_distance = neighboring_hex_sensitive_distance_to_target if sensitive else neighboring_hex_distance_to_target
         if best_hex is not None:
-            self.take_one_step_to_hex(best_hex)
+            self.take_one_step_to_hex(best_hex, game_state)
             coord_strs.append(best_hex.coords)
             return True
         return False
 
-    def take_one_step_to_hex(self, hex: 'Hex') -> None:
+    def take_one_step_to_hex(self, hex: 'Hex', game_state: 'GameState') -> None:
         self.hex.remove_unit(self)
         self.update_hex(hex)
         hex.units.append(self)
+
+        if self.civ.has_tenet(TENETS.EL_DORADO):
+            assert self.civ.game_player is not None  # guaranteed by has_tenet
+            if hex.coords in self.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"]:
+                self.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"].remove(hex.coords)
+                self.civ.game_player.increment_tenet_progress(TENETS.EL_DORADO, game_state)
 
     def turn_end(self, game_state: 'GameState') -> None:
         self.has_moved = False

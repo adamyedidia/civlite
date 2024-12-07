@@ -186,8 +186,8 @@ class BUILDINGS():
         calculate_yields=YieldsPerPopulation(Yields(wood=1, metal=1)),
         prereq=TECHS.INDUSTRIALIZATION,
     )
-    COMMERCIAL_CENTER = BuildingTemplate(
-        name="Commercial Center",
+    SKYSCRAPER = BuildingTemplate(
+        name="Skyscraper",
         type=BuildingType.URBAN,
         cost=75,
         calculate_yields=YieldsPerPopulation(Yields(wood=1, science=1)),
