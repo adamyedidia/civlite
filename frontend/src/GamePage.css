@@ -127,6 +127,14 @@ body {
   left: 0;
 }
 
+.advancement-level-progress-bar-label {
+  position: absolute;
+  top: 0;
+  left: 5px;
+  height: 100%;
+  align-content: center;
+}
+
 .flag-arrows-container {
   position: absolute;
   top:0;
