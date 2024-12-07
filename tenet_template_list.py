@@ -89,14 +89,14 @@ class TENETS():
     HYMN_OF_UNITY = TenetTemplate(
         advancement_level=2,
         name="Hymn of Unity",
-        description="Instantly capture cities that are in an earlier age than yours without siege.",
+        description="Instantly capture cities from civs that are in an earlier age than yours without siege.",
         sort_order=ORDER_METAL,
     )
 
     GLORIOUS_ORDER = TenetTemplate(
         advancement_level=2,
         name="Glorious Order",
-        description="You can build wonders from your civ's age when ahead of the global age. Cities in ages behind yours demand 8 more food per turn.",
+        description="You can build wonders from your civ's age when ahead of the global age. Cities of civs in ages behind yours demand 8 more food per turn.",
         sort_order=ORDER_WOOD,
     )
 
@@ -104,7 +104,7 @@ class TENETS():
         advancement_level=3,
         name="Holy Grail",
         description="When choosing Great People, you can select two of the choices.",
-        quest_description="Kill 30 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 food demand per turn and this counts as 3 kills.",
+        quest_description="Kill 30 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 food demand per turn and this counts as 5 kills.",
         quest_complete_message="We may never find the goblet of the Lord. But the deeds of our crusades shall echo through the ages, and the heros of our people will remember the call.",
         quest_target=30,
         initialize_data=lambda game_player, game_state: {"holy_city_id": random.choice([c for c in game_state.cities_by_id.values() if c.civ != game_player.get_current_civ(game_state)]).id},
@@ -193,7 +193,7 @@ class TENETS():
     SPLENDOR = TenetTemplate(
         advancement_level=6,
         name="Splendor",
-        description="Gain 2.5x/2x/1.5x the points from wonder crowns from your first/second/third civilization (whichever is best).",
+        description="Gain more points from wonder crowns based on a previous civ: 2.5x your first civ, 2x your second, or 1.5x your third (whichever is best).",
         a6_score_key=score_strings.WONDER,
         a6_score_weights=[2.5, 2, 1.5],
         sort_order=ORDER_WOOD,
@@ -202,7 +202,7 @@ class TENETS():
     WISDOM = TenetTemplate(
         advancement_level=6,
         name="Wisdom",
-        description="Gain 2x/1x/0.5x the points from Research from your first/second/third civilization (whichever is best).",
+        description="Gain more points from research based on a previous civ: 2x your first civ, 1x your second, or 0.5x your third (whichever is best).",
         a6_score_key=score_strings.TECH,
         a6_score_weights=[2, 1, 0.5],
         sort_order=ORDER_SCIENCE,
@@ -211,7 +211,7 @@ class TENETS():
     MIGHT = TenetTemplate(
         advancement_level=6,
         name="Might",
-        description="Gain 1.5x/1x/0.5x the points from unit kills from your first/second/third civilization (whichever is best).",
+        description="Gain more points from unit kills based on a previous civ: 1.5x your first civ, 1x your second, or 0.5x your third (whichever is best).",
         a6_score_key=score_strings.UNIT_KILL,
         a6_score_weights=[1.5, 1, 0.5],
         sort_order=ORDER_METAL,
@@ -220,7 +220,7 @@ class TENETS():
     PROSPERITY = TenetTemplate(
         advancement_level=6,
         name="Prosperity",
-        description="4x/3x/2x the points from development from your first/second/third civilization (whichever is best).",
+        description="Gain more points from decvelopment based on a previous civ: 4x your first civ, 3x your second, or 2x your third (whichever is best).",
         a6_score_key=score_strings.DEVELOPMENT,
         a6_score_weights=[4, 3, 2],
         sort_order=ORDER_FOOD,

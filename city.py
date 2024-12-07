@@ -459,7 +459,7 @@ class City(MapObjectSpawner):
         self.handle_unhappiness(game_state)
 
         if self.civ.has_tenet(TENETS.HOLY_GRAIL) and self.civ.game_player and self.id == self.civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]:
-            self.civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL, game_state, 3)
+            self.civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL, game_state, 5)
 
     def update_seen_by_players(self, game_state: 'GameState') -> None:
         for civ in game_state.civs_by_id.values():
