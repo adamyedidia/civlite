@@ -648,6 +648,16 @@ class Civ:
         self._great_people_choices_queue.append((age, city.id))
         self._pop_great_people_choices_queue_if_needed(game_state)
 
+    def _sample_great_people(self, valid_great_people: list[GreatPerson]):
+        for _ in range(5):
+            random.shuffle(valid_great_people)
+            choices = valid_great_people[:3]
+            # try to avoid all the same type
+            if len({gp.__class__ for gp in choices}) == 1:
+                continue
+            return choices
+        return valid_great_people[:3]
+
     def _pop_great_people_choices_queue_if_needed(self, game_state):
         if len(self.great_people_choices) == 0 and len(self._great_people_choices_queue) > 0:
             age, city_id = self._great_people_choices_queue.pop(0)
@@ -655,14 +665,14 @@ class Civ:
             age = min(age, 9)  # There aren't any great people for age 10.
             all_great_people = great_people_by_age(age)
             valid_great_people = [great_person for great_person in all_great_people if great_person.valid_for_city(city, civ=self)]
-            random.shuffle(valid_great_people)
-            self.great_people_choices = valid_great_people[:3]
-            if len(self.great_people_choices) == 0:
+            if len(valid_great_people) == 0:
                 str = f"Civ {self.moniker()} earned a great person, but no valid options. Age: {age}, city: {city.name}"
                 if STRICT_MODE:
                     raise ValueError(str)
                 else:
                     logger.warning(str)
+                    return []
+            self.great_people_choices = self._sample_great_people(valid_great_people)
             self._great_people_choices_city_id = city_id
             logger.info(f"Civ {self.moniker()} earned a great person. Chose {self.great_people_choices} from valid options: {valid_great_people}")
 
