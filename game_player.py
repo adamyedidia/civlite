@@ -70,9 +70,12 @@ class GamePlayer:
         return target
 
     def select_tenet(self, tenet: TenetTemplate, game_state: 'GameState'):
+        prior_claimants = len(game_state.tenets_claimed_by_player_nums[tenet])
         if STRICT_MODE:
             assert tenet not in self.tenets
-            assert game_state.tenets_claimed_by_player_nums[tenet] == []
+            assert prior_claimants == 0 or (prior_claimants == 1 and game_state.duplicate_tenets_claimable(tenet.advancement_level))
+        if prior_claimants > 0:
+            self.get_current_civ(game_state).gain_vps(-5, "Copycat tenet")
         if tenet.initialize_data is not None:
             self.tenets[tenet] = tenet.initialize_data(self, game_state)
         else:

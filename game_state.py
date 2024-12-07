@@ -14,7 +14,7 @@ from move_type import MoveType
 from region import Region
 from settings import GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
 from tenet_template import TenetTemplate
-from tenet_template_list import TENETS
+from tenet_template_list import TENETS, tenets_by_level
 from terrain_template import TerrainTemplate
 from terrain_templates_list import TERRAINS
 from unit_building import UnitBuilding
@@ -279,7 +279,7 @@ class GameState:
         self.previous_unhappiness_threshold: float = MIN_UNHAPPINESS_THRESHOLD
         self.civ_ids_with_game_player_at_turn_start: list[str] = []
         self.no_db = False  # For headless games in scripts
-        self.tenets_claimed_by_player_nums = {t: [] for t in TENETS.all()}
+        self.tenets_claimed_by_player_nums: dict[TenetTemplate, list[int]] = {t: [] for t in TENETS.all()}
         self.a7_tenets_yields_stolen_last_turn: dict[str, Yields] = {}
         self.a7_tenets_yields_stolen_this_turn: dict[str, Yields] = {}
 
@@ -880,6 +880,12 @@ class GameState:
         for player in self.game_player_by_player_num.values():
             player.update_active_tenet_choice_level(self)
 
+    def duplicate_tenets_claimable(self, level: int) -> bool:
+        all_tenets = tenets_by_level[level]
+        unclaimed_tenets = [t for t in all_tenets if self.tenets_claimed_by_player_nums[t] == []]
+        num_players_need_tenet = len([p for p in self.game_player_by_player_num.values() if len(p.tenets) < level])
+        return len(unclaimed_tenets) < num_players_need_tenet
+
     def advancement_level_tenets_display(self):
         data = []
         for player in self.game_player_by_player_num.values():
@@ -1321,6 +1327,7 @@ class GameState:
             "wonder_vp_chunks_left_by_age": self.wonder_vp_chunks_left_by_age,
             "vp_chunks_total_per_age": len(self.game_player_by_player_num),
             "tenets_claimed_by_player_nums": {t.name: value for t, value in self.tenets_claimed_by_player_nums.items()},
+            "duplicate_tenets_claimable": {level: self.duplicate_tenets_claimable(level) for level in tenets_by_level.keys()},
             "advancement_level_tenets_display": self.advancement_level_tenets_display(),
             "a7_tenets_yields_stolen_last_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_last_turn.items()},
             "a7_tenets_yields_stolen_this_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_this_turn.items()},

@@ -1,10 +1,12 @@
 import React from "react";
 import './IdeologyTree.css';
 
-import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from "@mui/material";
+import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Tooltip } from "@mui/material";
 import ideologyImg from "./images/ideology.png";
 import { romanNumeral } from "./romanNumeral";
 import { IDEOLOGY_LEVEL_STRINGS } from "./ideologyLevelStrings";
+import { TextOnIcon } from "./TextOnIcon";
+import vpImg from "./images/crown.png";
 
 export const TenetDisplay = ({ tenet }) => {
     return <div className="tenet-hover-card">
@@ -18,12 +20,22 @@ export const TenetDisplay = ({ tenet }) => {
 
 const TenetCardSmall = ({ tenet, handleClickTenet, setHoveredTenet, gameState, myGamePlayer }) => {
     const claimedByPlayers = gameState.tenets_claimed_by_player_nums[tenet.name]
-    const status = claimedByPlayers.length > 0 ? "unavailable" : 
-        myGamePlayer.active_tenet_choice_level == tenet.advancement_level ? "active-choice" : "available";
+    const duplicateClaimable = gameState.duplicate_tenets_claimable[tenet.advancement_level] && claimedByPlayers.length === 1
+    const status = (
+        claimedByPlayers.length >= 2 ? "unavailable" :
+        (claimedByPlayers.length == 1 && !duplicateClaimable) ? "unavailable" :
+        myGamePlayer.active_tenet_choice_level == tenet.advancement_level ? "active-choice" : 
+        "available"
+    );
     const extraA6Info = myGamePlayer.a6_tenet_info?.[tenet.name];
     const title = extraA6Info ? extraA6Info.full_name : tenet.name;
     return <div className={`tenet-card ${status}`}
         onClick={status === "active-choice" ? () => handleClickTenet(tenet) : null} onMouseEnter={() => setHoveredTenet(tenet)} onMouseLeave={() => setHoveredTenet(null)}>
+        {duplicateClaimable && <Tooltip title="This tenet has already been claimed. You can still claim it because of the player count, but claiming it will cost 5 VP.">
+            <div className="tenet-card-duplicate-claimable-indicator">
+                <TextOnIcon image={vpImg} style={{height: "30px", width: "30px"}} offset={10}>-5</TextOnIcon>
+            </div>
+        </Tooltip>}
         <Typography variant="h6" className="tenet-name"> {title} </Typography>
         {extraA6Info && <Typography variant="body1" style={{textAlign: "center"}}> {extraA6Info.score} vps</Typography>}
     </div>

@@ -19,6 +19,7 @@
     border: 1px solid black;
     cursor: default;
     width: 200px;
+    position: relative;
 }
 
 .tenet-card.available {
@@ -40,6 +41,12 @@
     transform: scale(1.1);
     background-color: rgb(250, 248, 206);
     animation: none;
+}
+
+.tenet-card-duplicate-claimable-indicator {
+    position: absolute;
+    top: -20px;
+    right: 0;
 }
 
 .tenet-card .tenet-name {
