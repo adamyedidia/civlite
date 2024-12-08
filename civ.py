@@ -9,7 +9,7 @@ from detailed_number import DetailedNumber
 from effects_list import PointsEffect
 from move_type import MoveType
 from tenet_template import TenetTemplate
-from tenet_template_list import TENETS
+from tenet_template_list import TENETS, tenets_by_level
 from unit import Unit
 from settings import AGE_THRESHOLDS, GOD_MODE
 from wonder_templates_list import WONDERS
@@ -406,7 +406,7 @@ class Civ:
             game_state.resolve_move(MoveType.SELECT_GREAT_PERSON, {'great_person_name': choice.name}, civ=self)
 
         if self.game_player is not None and self.game_player.active_tenet_choice_level is not None:
-            choices: list[TenetTemplate] = [t for t in TENETS.all() if t.advancement_level == self.game_player.active_tenet_choice_level]
+            choices: list[TenetTemplate] = tenets_by_level[self.game_player.active_tenet_choice_level]
             choices = [t for t in choices if game_state.tenets_claimed_by_player_nums[t] == []]
             if choices:
                 if self.game_player.active_tenet_choice_level in (1, 2, 3, 4, 7):
@@ -424,10 +424,8 @@ class Civ:
                     assert self.game_player.a6_tenet_info is not None
                     a6_tenet_info = self.game_player.a6_tenet_info
                     chosen_tenet = max(choices, key=lambda t: a6_tenet_info[t.name]["score"])
-                elif self.game_player.active_tenet_choice_level == 8:
-                    chosen_tenet = max(choices, key=lambda t: t.instant_effect.calculate_points(None, None))  # type: ignore
                 else:
-                    raise ValueError(f"Bot choosing tenet for unkown level: {self.game_player.active_tenet_choice_level}")
+                    raise ValueError(f"Bot choosing tenet for unknown level: {self.game_player.active_tenet_choice_level}")
                 target_city = self.game_player.get_tenet_target_city(game_state)
                 points_from_tenet = lambda t: (
                     self.game_player.a6_tenet_info[t.name]['score'] if self.game_player is not None and self.game_player.a6_tenet_info is not None and t.name in self.game_player.a6_tenet_info else
