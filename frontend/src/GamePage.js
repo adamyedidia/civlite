@@ -54,13 +54,10 @@ import enemyWonderSound from './sounds/enemy_wonder_sound.mp3';
 import SettingsDialog from './SettingsDialog';
 import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
-import ideologyImg from "./images/ideology.png";
 import vitalityImg from './images/heart.png';
 import declineImg from './images/phoenix.png';
 import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
-
-import { Card, CardContent } from '@mui/material';
 
 const difficultyLevels = {
     'Debug': 20,

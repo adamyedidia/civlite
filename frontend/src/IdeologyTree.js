@@ -23,8 +23,8 @@ const TenetCardSmall = ({ tenet, handleClickTenet, setHoveredTenet, gameState, m
     const duplicateClaimable = gameState.duplicate_tenets_claimable[tenet.advancement_level] && claimedByPlayers.length === 1
     const status = (
         claimedByPlayers.length >= 2 ? "unavailable" :
-        (claimedByPlayers.length == 1 && !duplicateClaimable) ? "unavailable" :
-        myGamePlayer.active_tenet_choice_level == tenet.advancement_level ? "active-choice" : 
+        (claimedByPlayers.length === 1 && !duplicateClaimable) ? "unavailable" :
+        myGamePlayer.active_tenet_choice_level === tenet.advancement_level ? "active-choice" : 
         "available"
     );
     const extraA6Info = myGamePlayer.a6_tenet_info?.[tenet.name];
@@ -44,7 +44,7 @@ const TenetCardSmall = ({ tenet, handleClickTenet, setHoveredTenet, gameState, m
 const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTenet, setHoveredTenet}) => {
     const myTenet = tenets.find(tenet => myGamePlayer.tenets[tenet.name] !== undefined);
     const future = myTenet === undefined && level > myGamePlayer.active_tenet_choice_level;
-    const status = future ? "future" : level == myGamePlayer.active_tenet_choice_level ? "active-choice" : "";
+    const status = future ? "future" : level === myGamePlayer.active_tenet_choice_level ? "active-choice" : "";
     const sortedTenets = tenets.sort((a, b) => a.sort_order.localeCompare(b.sort_order));
     return <div className={`tenet-level-box ${status}`}>
         <div className="tenet-level-box-header">
