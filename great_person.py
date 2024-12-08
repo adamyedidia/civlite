@@ -145,7 +145,7 @@ class GreatScientist(GreatPerson):
             city.build_unit(game_state, self.defense_unit, override_civ=civ, stack_size=self.defense_unit_count)
 
     def valid_for_city(self, city: City, civ: Civ) -> bool:
-        return civ.techs_status[self.tech_template] in (TechStatus.AVAILABLE, TechStatus.UNAVAILABLE)
+        return civ.techs_status[self.tech_template] in (TechStatus.AVAILABLE, TechStatus.UNAVAILABLE, TechStatus.DISCARDED)
 
 class GreatEngineer(GreatPerson):
     def __init__(self, name, advancement_level: int, unit_template: UnitTemplate, extra_wood: float):
