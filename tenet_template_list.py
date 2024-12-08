@@ -220,7 +220,7 @@ class TENETS():
     PROSPERITY = TenetTemplate(
         advancement_level=6,
         name="Prosperity",
-        description="Gain more points from decvelopment based on a previous civ: 4x your first civ, 3x your second, or 2x your third (whichever is best).",
+        description="Gain more points from development based on a previous civ: 4x your first civ, 3x your second, or 2x your third (whichever is best).",
         a6_score_key=score_strings.DEVELOPMENT,
         a6_score_weights=[4, 3, 2],
         sort_order=ORDER_FOOD,
