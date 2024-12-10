@@ -4,6 +4,7 @@ from enum import Enum
 from abilities_list import BUILDING_ABILITIES
 from ability import Ability
 from effect import CityTargetEffect
+from settings import RESOURCE_DEVALUATION
 from tech_template import TechTemplate
 from yields import YieldsCalculation
 
@@ -26,7 +27,7 @@ class BuildingTemplate:
     ):
         self.name = name
         self.type = type
-        self.cost = cost
+        self.cost = cost * RESOURCE_DEVALUATION[prereq.advancement_level] if prereq else cost
         self.on_build: list[CityTargetEffect] = on_build if isinstance(on_build, list) else [on_build]
         self.per_turn: list[CityTargetEffect] = per_turn if isinstance(per_turn, list) else [per_turn]
         self.abilities: list[Ability] = [BUILDING_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
