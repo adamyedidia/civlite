@@ -202,9 +202,9 @@ class TENETS():
     WISDOM = TenetTemplate(
         advancement_level=6,
         name="Wisdom",
-        description="Gain more points from research based on a previous civ: 4x your first civ, 2x your second, or 1x your third (whichever is best).",
+        description="Gain more points from research based on a previous civ: 2x your first civ, 1x your second, or 0.5x your third (whichever is best).",
         a6_score_key=score_strings.TECH,
-        a6_score_weights=[4, 2, 1],
+        a6_score_weights=[2, 1, 0.5],
         sort_order=ORDER_SCIENCE,
     )
 
