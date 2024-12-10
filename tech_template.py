@@ -1,4 +1,5 @@
 from typing import List, TYPE_CHECKING
+from settings import RESOURCE_DEVALUATION
 
 from utils import deterministic_hash
 if TYPE_CHECKING:
@@ -8,7 +9,7 @@ if TYPE_CHECKING:
 class TechTemplate:
     def __init__(self, name: str, cost: int, advancement_level: int, text: str = ""):
         self.name = name
-        self.cost = cost
+        self.cost = cost * RESOURCE_DEVALUATION.get(advancement_level, 1)
         self.advancement_level = advancement_level
         self.unlocks_units: list['UnitTemplate'] = []
         self.unlocks_buildings: list['BuildingTemplate'] = []

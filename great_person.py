@@ -6,6 +6,7 @@ import inflect
 from typing import TYPE_CHECKING, Optional
 from TechStatus import TechStatus
 from building_template import BuildingType
+from settings import RESOURCE_DEVALUATION
 
 from tech_templates_list import TECHS
 from tech_template import TechTemplate
@@ -193,7 +194,7 @@ def _target_value_by_age(age: int) -> int:
         8: 900,
         9: 1500,
         10: 2500,
-    }[age]
+    }[age] * RESOURCE_DEVALUATION[age]
 
 merchant_names = {
     "metal": ["Beowulf", "Darius I", "Colaeus", "Ned Stark", "Catherine de Medici", "Benjamin Franklin", "Otto von Bismark", "Franklin Delano Roosevelt", "Mao Zedong", "Nick Fury"],

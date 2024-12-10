@@ -1,5 +1,6 @@
 from typing import Generator
 from building_template import BuildingTemplate, BuildingType
+from settings import RESOURCE_DEVALUATION
 from terrain_templates_list import TERRAINS
 from effects_list import BuildEeachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, ResetHappinessThisCityEffect
 from tech_templates_list import TECHS
@@ -231,7 +232,7 @@ class BUILDINGS():
         name="Construction Depot",
         type=BuildingType.RURAL,
         cost=5,
-        on_build=GainResourceEffect("wood", 100),
+        on_build=GainResourceEffect("wood", 100 * RESOURCE_DEVALUATION[5]),
         prereq=TECHS.DYNAMITE,
     )
     SHOPPING_MALL = BuildingTemplate(
