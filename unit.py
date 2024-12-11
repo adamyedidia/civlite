@@ -246,7 +246,7 @@ class Unit(MapObject):
                 from_civ.gain_vps(UNIT_KILL_REWARD, score_strings.UNIT_KILL)
 
                 if from_civ is not None and from_civ.has_tenet(TENETS.HONOR) and self.civ.template == CIVS.BARBARIAN:
-                    from_civ.gain_vps(UNIT_KILL_REWARD, f"Honor")
+                    from_civ.gain_vps(UNIT_KILL_REWARD * 2, f"Honor")
 
                 if from_civ.has_ability('ExtraVpsPerUnitKilled') and from_unit is not None:
                     tag, amount = from_civ.numbers_of_ability('ExtraVpsPerUnitKilled')
