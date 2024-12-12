@@ -81,7 +81,7 @@ class Camp(MapObjectSpawner):
         civ.city_power += CAMP_CLEAR_CITY_POWER_REWARD
         civ.gain_vps(CAMP_CLEAR_VP_REWARD, f"Clearing Camps ({CAMP_CLEAR_VP_REWARD}/camp)")
         if civ.has_tenet(TENETS.HONOR):
-            civ.gain_vps(CAMP_CLEAR_VP_REWARD * 2, f"Honor")
+            civ.gain_vps(CAMP_CLEAR_VP_REWARD, f"Honor")
 
         game_state.add_animation_frame(sess, {
             "type": "CampClear",

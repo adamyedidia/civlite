@@ -1093,15 +1093,17 @@ class GameState:
         
         self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
 
-    def decline_view_visible_hexes(self) -> set[Hex]:
+    def decline_view_visible_hexes(self, include_decline_cities: bool) -> set[Hex]:
         decline_view_visible_hexes: set[Hex] = set()
         for city in list(self.fresh_cities_for_decline.values()) + [city for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]:
             for hex in city.hex.get_hexes_within_range(self.hexes, 2):
+                if hex == city.hex and not include_decline_cities:
+                    continue
                 decline_view_visible_hexes.add(hex)
         return decline_view_visible_hexes
 
     def update_fog_camps(self):
-        decline_view_visible_hexes = self.decline_view_visible_hexes()
+        decline_view_visible_hexes = self.decline_view_visible_hexes(include_decline_cities=False)
         game_player_civs = {player_num: game_player.get_current_civ(self) for player_num, game_player in self.game_player_by_player_num.items()}
 
         for hex in self.hexes.values():
@@ -1135,7 +1137,7 @@ class GameState:
                 city.civ_to_revolt_into = None
 
         # Update fog to include anything visible in the fog via the decline view.
-        for hex in self.decline_view_visible_hexes():
+        for hex in self.decline_view_visible_hexes(include_decline_cities=True):
             if hex.city is not None:
                 for game_player in self.game_player_by_player_num.values():
                     game_player.add_fog_city(hex.city)
