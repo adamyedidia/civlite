@@ -1,3 +1,4 @@
+from camp import Camp
 from civ import create_starting_civ_options_for_players
 from game_player import GamePlayer
 from game_state import GameState
@@ -35,8 +36,7 @@ def new_game_state(game_id: str, game_players: list[GamePlayer]):
     for player_num, civ_options_tups in starting_civ_options_for_players.items():
         game_player = game_state.game_player_by_player_num[player_num]
         if game_player.is_bot:
-            civ_option_tup = civ_options_tups[0]
-            civ, starting_location = civ_option_tup
+            civ, starting_location = civ_options_tups[0]
             starting_city = game_state.new_city(civ, starting_location)
             game_state.register_city(starting_city)
             starting_city.capitalize(game_state)
@@ -46,6 +46,8 @@ def new_game_state(game_id: str, game_players: list[GamePlayer]):
             starting_civs_for_players[player_num] = [civ]
             game_player.civ_id = civ.id
             game_player.all_civ_ids.append(civ.id)
+            for _, location in civ_options_tups[1:]:
+                game_state.register_camp(Camp(game_state.barbarians, advancement_level=0, hex=location, turn_spawned=1))
 
         else:
             starting_civs_for_players[player_num] = []
