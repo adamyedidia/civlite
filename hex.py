@@ -118,23 +118,28 @@ class Hex:
             if hex.distance_to(self) <= range and not (exclude_ocean and hex.terrain == TERRAINS.OCEAN):
                 yield hex
 
-    def is_occupied(self, unit_type: str, civ: Civ, allow_enemy_city=True) -> bool:
+    def is_occupied(self, civ: Civ, allow_enemy_city=True, allow_allied_unit=False, allow_enemy_unit=False) -> bool:
         """
-        Is this hex occupied by a unit of this type or by an enemy of this civ?
+        Is this hex occupied by an enemy of this civ?
         """
-        if any(unit.template.type == unit_type or unit.civ.template.name != civ.template.name for unit in self.units):
+        units_allied = [unit.civ.template.name == civ.template.name for unit in self.units]
+        # Occupied if any enemy unit and not allowed
+        if not allow_enemy_unit and any(not x for x in units_allied):
             return True
+        # Occupied if any allied unit and not allowed.
+        if not allow_allied_unit and any(units_allied):
+            return True
+        # Occupied if any enemy city and not allowed.
         if not allow_enemy_city and self.city and self.city.civ != civ:
             return True
         if not allow_enemy_city and self.camp and self.camp.civ != civ:
             return True
         return False
 
-    def is_threatened_city(self, game_state):
+    def is_threatened(self, game_state, defending_civ: 'Civ'):
         """ Is there an enemy unit adjacent? """
-        if not self.city: return False
         for hex in self.get_neighbors(game_state.hexes):
-            if hex.units and hex.units[0].civ != self.city.civ:
+            if hex.units and hex.units[0].civ != defending_civ:
                 return True
         return False
 
@@ -154,10 +159,9 @@ class Hex:
                 "visibility_by_civ": self.visibility_by_civ,
                 "is_foundable_by_civ": self.is_foundable_by_civ,
             })
-        elif self.city is not None and any([civ.game_player is not None and civ.game_player.player_num in self.city.seen_by_players for civ in from_civ_perspectives]):
+        if self.city is not None and self.city.capital and self.city.civ.game_player is not None:
             result.update({
-                "fog_city_name": self.city.name,
-                "fog_city_player_capital": self.city.capital and self.city.civ.game_player is not None,
+                "fog_city_player_capital": True,
             })
         return result
     

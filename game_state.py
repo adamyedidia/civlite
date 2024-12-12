@@ -12,7 +12,7 @@ from civ_templates_list import CIVS, find_civ_pool
 from map_object import MapObject
 from move_type import MoveType
 from region import Region
-from settings import AGE_THRESHOLDS, GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
+from settings import CAMPS_PER_TURN_PER_PLAYER, AGE_THRESHOLDS, GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
 from tenet_template import TenetTemplate
 from tenet_template_list import TENETS, tenets_by_level
 from terrain_template import TerrainTemplate
@@ -565,7 +565,8 @@ class GameState:
             logger.info(f"Declining to fresh city at {coords}")
             city = self.fresh_cities_for_decline[coords]
             self.register_city(city)
-            city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
+            for game_player in self.game_player_by_player_num.values():
+                game_player.add_fog_city(city)
         assert hex.city is not None, "Failed to register city!"
         hex.city.capitalize(self)
         hex.city.civ_to_revolt_into = None
@@ -598,9 +599,11 @@ class GameState:
                     unit.update_civ(new_civ)
                     stack_size: int = unit.get_stack_size()
                     unit_count += stack_size
-        for neighbor_hex in hex.get_neighbors(self.hexes, include_self=True):
+        if hex.camp is not None:
+            self.unregister_camp(hex.camp)
+        for neighbor_hex in hex.get_neighbors(self.hexes, include_self=False):
             if neighbor_hex.camp is not None:
-                self.unregister_camp(neighbor_hex.camp)
+                neighbor_hex.camp.update_civ(new_civ)
         hex.city.revolt_unit_count = unit_count
 
         return hex.city
@@ -622,7 +625,8 @@ class GameState:
                         city.capitalize(self)
 
                     else:
-                        self.register_camp(Camp(self.barbarians, hex=city.hex))
+                        self.register_camp(Camp(self.barbarians, hex=city.hex, turn_spawned=0))
+                        game_player.fog_camp_coords_with_turn[city.hex.coords] = self.turn_num
 
                         city.hex.city = None
                         self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
@@ -1026,6 +1030,11 @@ class GameState:
                 unit.merge_into_neighboring_unit(sess, self)
 
         logger.info("Acting cities & civs")
+
+        # Spawn new camps
+        if random.random() < CAMPS_PER_TURN_PER_PLAYER * len(self.game_player_by_player_num):
+            self.spawn_fresh_camp()
+
         cities_copy = list(self.cities_by_id.values())
         random.shuffle(cities_copy)
 
@@ -1074,6 +1083,7 @@ class GameState:
                 break
 
         self.handle_decline_options()
+        self.update_fog_camps()
         for city in self.fresh_cities_for_decline.values():
             city.roll_turn_post_harvest(sess, self, fake=True)
         for city in self.cities_by_id.values():
@@ -1082,6 +1092,27 @@ class GameState:
         self.midturn_update()
         
         self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
+
+    def decline_view_visible_hexes(self, include_decline_cities: bool) -> set[Hex]:
+        decline_view_visible_hexes: set[Hex] = set()
+        for city in list(self.fresh_cities_for_decline.values()) + [city for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]:
+            for hex in city.hex.get_hexes_within_range(self.hexes, 2):
+                if hex == city.hex and not include_decline_cities:
+                    continue
+                decline_view_visible_hexes.add(hex)
+        return decline_view_visible_hexes
+
+    def update_fog_camps(self):
+        decline_view_visible_hexes = self.decline_view_visible_hexes(include_decline_cities=False)
+        game_player_civs = {player_num: game_player.get_current_civ(self) for player_num, game_player in self.game_player_by_player_num.items()}
+
+        for hex in self.hexes.values():
+            visible_players = list(game_player_civs.keys()) if hex in decline_view_visible_hexes else [i for i, civ in game_player_civs.items() if hex.visible_to_civ(civ)]
+            for player_num in visible_players:
+                if hex.camp:
+                    self.game_player_by_player_num[player_num].fog_camp_coords_with_turn[hex.coords] = self.turn_num
+                elif hex.coords in self.game_player_by_player_num[player_num].fog_camp_coords_with_turn:
+                    del self.game_player_by_player_num[player_num].fog_camp_coords_with_turn[hex.coords]
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
@@ -1105,11 +1136,11 @@ class GameState:
             if id not in revolt_ids:
                 city.civ_to_revolt_into = None
 
-        # Update seen_by_players to include anything visible in the fog via the decline view.
-        for city in list(self.fresh_cities_for_decline.values()) + [city for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]:
-            for neighbor in city.hex.get_hexes_within_range(self.hexes, 2):
-                if neighbor.city is not None:
-                    neighbor.city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
+        # Update fog to include anything visible in the fog via the decline view.
+        for hex in self.decline_view_visible_hexes(include_decline_cities=True):
+            if hex.city is not None:
+                for game_player in self.game_player_by_player_num.values():
+                    game_player.add_fog_city(hex.city)
 
     def sample_new_civs(self, n, region: Region | None = None) -> list[CivTemplate]:
         advancement_level_to_use = max(self.advancement_level, 1)
@@ -1126,21 +1157,27 @@ class GameState:
         logger.info(f"Sampling new civs ({n}). {advancement_level_to_use=}; \n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
         return result
     
-    def retire_fresh_city_option(self, coords):
-        logger.info(f"retiring option at {coords}")
-        self.fresh_cities_for_decline.pop(coords)
+    def spawn_fresh_camp(self):
+        valid_hexes: set[str] = set([c for c, h in self.hexes.items() if h.camp is None and h.terrain != TERRAINS.OCEAN and not h.is_occupied(self.barbarians, allow_enemy_city=False, allow_allied_unit=True, allow_enemy_unit=False)])
+        for city in self.cities_by_id.values():
+            for hex in city.hex.get_hexes_within_range(self.hexes, 2):
+                valid_hexes.discard(hex.coords)
+        if len(valid_hexes) == 0:
+            return
+        coords = random.choice(sorted(valid_hexes))
         camp_level: int = max(0, self.advancement_level - 2)
         logger.info(f"Making camp at {coords} at level {camp_level}")
-        self.register_camp(Camp(self.barbarians, advancement_level=camp_level, hex=self.hexes[coords]))
+        self.register_camp(Camp(self.barbarians, advancement_level=camp_level, hex=self.hexes[coords], turn_spawned=self.turn_num))
 
     def populate_fresh_cities_for_decline(self) -> None:
         self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()
                                              if is_valid_decline_location(self.hexes[coords], self.hexes, [self.hexes[other_coords] for other_coords in self.fresh_cities_for_decline if other_coords != coords])}
         new_locations_needed = max(2 - len(self.fresh_cities_for_decline), 0)
-        if new_locations_needed == 0 and random.random() < 0.2 * len(self.game_player_by_player_num):  # Make one new camp per player per 5 turns.
+        if new_locations_needed == 0 and random.random() < 0.5:
             # randomly retire one of them
             coords: str = random.choice(list(self.fresh_cities_for_decline.keys()))
-            self.retire_fresh_city_option(coords)
+            logger.info(f"retiring option at {coords}")
+            self.fresh_cities_for_decline.pop(coords)
             new_locations_needed += 1
         logger.info(f"Generating {new_locations_needed} fresh cities for decline.")
         new_hexes = generate_decline_locations(self, new_locations_needed, [self.hexes[coord] for coord in self.fresh_cities_for_decline])

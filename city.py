@@ -114,7 +114,6 @@ class City(MapObjectSpawner):
         self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
         self.develops_this_civ: dict[BuildingType, int] = {d: 0 for d in BuildingType}
-        self.seen_by_players: set[int] = set()
         self.already_harvested_this_turn: bool = False
         self.last_owner_civ_id: Optional[str] = None
 
@@ -465,7 +464,7 @@ class City(MapObjectSpawner):
         for civ in game_state.civs_by_id.values():
             if civ.game_player is not None:
                 if self.hex.visible_to_civ(civ):
-                    self.seen_by_players.add(civ.game_player.player_num)
+                    civ.game_player.add_fog_city(self)
 
     def roll_wonders(self, game_state: 'GameState') -> None:
         for bldg in self.buildings:
@@ -782,14 +781,14 @@ class City(MapObjectSpawner):
                 visible_hexes = [h for h in game_state.hexes.values() if h.visible_to_civ(civ)]
                 spawn_hex = min(visible_hexes, key=lambda h: civ.target1.distance_to(h))  # type: ignore
 
-        if not spawn_hex.is_occupied(unit.type, civ, allow_enemy_city=False):
+        if not spawn_hex.is_occupied(civ, allow_enemy_city=False):
             return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
         if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ and spawn_hex.units[0].template == unit and spawn_hex.units[0].strength == unit.strength + bonus_strength:
             # Defensive units build in city center no matter what.
             self.reinforce_unit(spawn_hex.units[0], stack_size=stack_size)
             return spawn_hex.units[0]
 
-        free_neighbors = [h for h in spawn_hex.get_neighbors(game_state.hexes, exclude_ocean=True) if not h.is_occupied(unit.type, civ, allow_enemy_city=False)]
+        free_neighbors = [h for h in spawn_hex.get_neighbors(game_state.hexes, exclude_ocean=True) if not h.is_occupied(civ, allow_enemy_city=False)]
         if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ != civ:
             # Never build two stacks of immobile units next to each other.
             free_neighbors = [h for h in free_neighbors if not any(u.template.has_tag(UnitTag.DEFENSIVE) for n in h.get_neighbors(game_state.hexes, include_self=False) for u in n.units)]
@@ -1114,7 +1113,11 @@ class City(MapObjectSpawner):
         assert self.hex.city is not None
 
         self.hex.city = None
-        game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex))
+        game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex, turn_spawned=game_state.turn_num))
+        for player in game_state.game_player_by_player_num.values():
+            player.fog_camp_coords_with_turn[self.hex.coords] = game_state.turn_num
+            if self.hex.coords in player.fog_cities:
+                del player.fog_cities[self.hex.coords]
 
         if self.is_trade_hub():
             self.civ.trade_hub_id = None
@@ -1243,7 +1246,7 @@ class City(MapObjectSpawner):
         return None
 
     def is_threatened_city(self, game_state: 'GameState') -> bool:
-        return self.hex.is_threatened_city(game_state)
+        return self.hex.is_threatened(game_state, self.civ)
 
     def bot_single_move(self, game_state: 'GameState', move_type: MoveType, move_data: dict, abbreviated_midturn_update: bool = False) -> None:
         """
@@ -1465,7 +1468,6 @@ class City(MapObjectSpawner):
             "food_demand_reduction_recent_owner_change": self.food_demand_reduction_recent_owner_change,
             "revolt_unit_count": self.revolt_unit_count,
             "founded_turn": self.founded_turn,
-            "seen_by_players": list(self.seen_by_players),
             "revolting_to_rebels_this_turn": self.revolting_to_rebels_this_turn,
 
             "is_trade_hub": self.is_trade_hub(),
@@ -1516,7 +1518,6 @@ class City(MapObjectSpawner):
         city.founded_turn = json["founded_turn"]
         city.food_demand = DetailedNumber.from_json(json["food_demand"])
         city.food_demand_reduction_recent_owner_change = json["food_demand_reduction_recent_owner_change"]
-        city.seen_by_players = set(json["seen_by_players"])
         city.last_owner_civ_id = json["last_owner_civ_id"]
 
         return city

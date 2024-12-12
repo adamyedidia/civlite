@@ -25,6 +25,8 @@ class GamePlayer:
         self.tenets: dict[TenetTemplate, dict] = {}
         self.active_tenet_choice_level: Optional[int] = None
         self.a6_tenet_info: Optional[dict] = None
+        self.fog_cities: dict[str, dict] = {}
+        self.fog_camp_coords_with_turn: dict[str, int] = {}
 
     @property
     def score(self) -> int:
@@ -127,6 +129,12 @@ class GamePlayer:
             "target": quest_tenet.quest_target,
             "complete": self.tenets[quest_tenet]["complete"],
         }
+    
+    def add_fog_city(self, city):
+        self.fog_cities[city.hex.coords] = {
+            "name": city.name,
+            "capital": city.capital and city.civ.game_player is not None,
+        }
 
     def to_json(self) -> dict:
         a7_tenet = self.tenet_at_level(7)
@@ -141,6 +149,8 @@ class GamePlayer:
             "failed_to_decline_this_turn": self.failed_to_decline_this_turn,
             "all_civ_ids": self.all_civ_ids,
             "vitality_multiplier": self.vitality_multiplier,
+            "fog_cities": self.fog_cities,
+            "fog_camp_coords_with_turn": self.fog_camp_coords_with_turn,
             "tenets": {t.name: info for t, info in self.tenets.items()},
             "active_tenet_choice_level": self.active_tenet_choice_level,
             "tenet_quest": self.tenet_quest_display(),
@@ -161,6 +171,8 @@ class GamePlayer:
         game_player.decline_this_turn = json["decline_this_turn"]
         game_player.failed_to_decline_this_turn = json["failed_to_decline_this_turn"]
         game_player.all_civ_ids = json["all_civ_ids"]
+        game_player.fog_cities = json["fog_cities"]
+        game_player.fog_camp_coords_with_turn = json["fog_camp_coords_with_turn"]
         game_player.tenets = {TENETS.by_name(name): info for name, info in json["tenets"].items()}
         game_player.active_tenet_choice_level = json["active_tenet_choice_level"]
         game_player.a6_tenet_info = json["a6_tenet_info"]

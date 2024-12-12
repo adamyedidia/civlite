@@ -6,7 +6,6 @@ class UNITS():
     WARRIOR = UnitTemplate(
         name="Warrior",
         building_name="Warrior Hut",
-        type="military",
         metal_cost=8,
         wood_cost=0,
         strength=1,
@@ -22,7 +21,6 @@ class UNITS():
     SLINGER = UnitTemplate(
         name="Slinger",
         building_name="Pebble Pile",
-        type="military",
         metal_cost=4,
         wood_cost=10,
         strength=1,
@@ -35,7 +33,6 @@ class UNITS():
     ARCHER = UnitTemplate(
         name="Archer",
         building_name="Bowyer",
-        type="military",
         metal_cost=8,
         wood_cost=10,
         strength=2,
@@ -54,7 +51,6 @@ class UNITS():
     SPEARMAN = UnitTemplate(
         name="Spearman",
         building_name="Spear Lodge",
-        type="military",
         metal_cost=7,
         wood_cost=5,
         strength=2,
@@ -76,7 +72,6 @@ class UNITS():
     CHARIOT = UnitTemplate(
         name="Chariot",
         building_name="Wheelwright",
-        type="military",
         metal_cost=12,
         wood_cost=15,
         strength=3,
@@ -98,7 +93,6 @@ class UNITS():
     GARRISON = UnitTemplate(
         name="Garrison",
         building_name="Walls",
-        type="military",
         metal_cost=8,
         wood_cost=5,
         strength=4,
@@ -117,7 +111,6 @@ class UNITS():
     CATAPULT = UnitTemplate(
         name="Catapult",
         building_name="Siege Workshop",
-        type="military",
         metal_cost=12,
         wood_cost=15,
         strength=3,
@@ -139,7 +132,6 @@ class UNITS():
     HORSEMAN = UnitTemplate(
         name="Horseman",
         building_name="Stable",
-        type="military",
         metal_cost=15,
         wood_cost=15,
         strength=4,
@@ -161,7 +153,6 @@ class UNITS():
     HORSE_ARCHER = UnitTemplate(
         name="Horse Archer",
         building_name="Ranged Stable",
-        type="military",
         metal_cost=15,
         wood_cost=25,
         strength=3,
@@ -183,7 +174,6 @@ class UNITS():
     SWORDSMAN = UnitTemplate(
         name="Swordsman",
         building_name="Smithy",
-        type="military",
         metal_cost=15,
         wood_cost=15,
         strength=5,
@@ -202,7 +192,6 @@ class UNITS():
     PIKEMAN = UnitTemplate(
         name="Pikeman",
         building_name="Pikesmith",
-        type="military",
         metal_cost=12,
         wood_cost=30,
         strength=4,
@@ -224,7 +213,6 @@ class UNITS():
     CROSSBOWMAN = UnitTemplate(
         name="Crossbowman",
         building_name="Crossbow Range",
-        type="military",
         metal_cost=15,
         wood_cost=20,
         strength=5,
@@ -243,7 +231,6 @@ class UNITS():
     KNIGHT = UnitTemplate(
         name="Knight",
         building_name="Tournament Grounds",
-        type="military",
         metal_cost=30,
         wood_cost=10,
         strength=12,
@@ -265,7 +252,6 @@ class UNITS():
     TREBUCHET = UnitTemplate(
         name="Trebuchet",
         building_name="Adv. Siege Workshop",
-        type="military",
         metal_cost=20,
         wood_cost=25,
         strength=5,
@@ -287,7 +273,6 @@ class UNITS():
     MUSKETMAN = UnitTemplate(
         name="Musketman",
         building_name="Gunsmith",
-        type="military",
         metal_cost=15,
         wood_cost=25,
         strength=8,
@@ -306,7 +291,6 @@ class UNITS():
     CANNON = UnitTemplate(
         name="Cannon",
         building_name="Foundry",
-        type="military",
         metal_cost=35,
         wood_cost=30,
         strength=10,
@@ -328,7 +312,6 @@ class UNITS():
     MILITIA = UnitTemplate(
         name="Militia",
         building_name="Castle",
-        type="military",
         metal_cost=15,
         wood_cost=6,
         strength=10,
@@ -347,7 +330,6 @@ class UNITS():
     CAVALRY = UnitTemplate(
         name="Cavalry",
         building_name="Adv. Stable",
-        type="military",
         metal_cost=40,
         wood_cost=20,
         strength=15,
@@ -369,7 +351,6 @@ class UNITS():
     RIFLEMAN = UnitTemplate(
         name="Rifleman",
         building_name="Rifle Range",
-        type="military",
         metal_cost=15,
         wood_cost=40,
         strength=10,
@@ -388,7 +369,6 @@ class UNITS():
     GATLING_GUN = UnitTemplate(
         name="Gatling Gun",
         building_name="Machine Shop",
-        type="military",
         metal_cost=50,
         wood_cost=30,
         strength=15,
@@ -410,7 +390,6 @@ class UNITS():
     RAMPARTS = UnitTemplate(
         name="Ramparts",
         building_name="Bastion",
-        type="military",
         metal_cost=30,
         wood_cost=10,
         strength=30,
@@ -425,7 +404,6 @@ class UNITS():
     ARTILLERY = UnitTemplate(
         name="Artillery",
         building_name="Adv. Foundry",
-        type="military",
         metal_cost=60,
         wood_cost=30,
         strength=20,
@@ -447,7 +425,6 @@ class UNITS():
     INFANTRY = UnitTemplate(
         name="Infantry",
         building_name="Barracks",
-        type="military",
         metal_cost=30,
         wood_cost=60,
         strength=18,
@@ -466,7 +443,6 @@ class UNITS():
     TANK = UnitTemplate(
         name="Tank",
         building_name="Tank Factory",
-        type="military",
         metal_cost=75,
         wood_cost=45,
         strength=40,
@@ -485,7 +461,6 @@ class UNITS():
     MACHINE_GUN = UnitTemplate(
         name="Machine Gun",
         building_name="Adv. Machine Shop",
-        type="military",
         metal_cost=50,
         wood_cost=50,
         strength=20,
@@ -507,7 +482,6 @@ class UNITS():
     ROCKET_LAUNCHER = UnitTemplate(
         name="Rocket Launcher",
         building_name="Rocket Factory",
-        type="military",
         metal_cost=80,
         wood_cost=60,
         strength=40,
@@ -529,7 +503,6 @@ class UNITS():
     BAZOOKA = UnitTemplate(
         name="Bazooka",
         building_name="Armory",
-        type="military",
         metal_cost=50,
         wood_cost=50,
         strength=20,
@@ -551,7 +524,6 @@ class UNITS():
     GIANT_DEATH_ROBOT = UnitTemplate(
         name="Giant Death Robot",
         building_name="GDR Factory",
-        type="military",
         metal_cost=100,
         wood_cost=100,
         strength=100,
@@ -572,7 +544,6 @@ class UNITS():
     NANOSWARM = UnitTemplate(
         name="Nanoswarm",
         building_name="Nanofactory",
-        type="military",
         metal_cost=60,
         wood_cost=20,
         strength=40,
@@ -593,7 +564,6 @@ class UNITS():
 
     ZEUS = UnitTemplate(
         name="Zeus",
-        type="military",
         metal_cost=40,
         strength=8,
         movement=1,
@@ -608,7 +578,6 @@ class UNITS():
 
     COLOSSUS = UnitTemplate(
         name="Colossus",
-        type="military",
         metal_cost=50,
         strength=32,
         movement=0,
@@ -623,7 +592,6 @@ class UNITS():
 
     SIR_LANCELOT = UnitTemplate(
         name="Sir Lancelot",
-        type="military",
         metal_cost=80,
         strength=16,
         movement=3,
@@ -641,7 +609,6 @@ class UNITS():
 
     ARCHANGEL = UnitTemplate(
         name="Archangel",
-        type="military",
         metal_cost=60,
         strength=20,
         movement=2,
@@ -659,7 +626,6 @@ class UNITS():
 
     ATOMIC_BOMB = UnitTemplate(
         name="Atomic Bomb",
-        type="military",
         metal_cost=100,
         strength=100,
         movement=1,
@@ -679,7 +645,6 @@ class UNITS():
 
     IRONMAN = UnitTemplate(
         name="Ironman",
-        type="military",
         metal_cost=300,
         strength=150,
         movement=2,

@@ -18,7 +18,7 @@ class UnitTag(Enum):
     WONDROUS = "wondrous"  # Built from a wonder; Lose 5 hp per turn
 
 class UnitTemplate:
-    def __init__(self, name: str, building_name: str | None, metal_cost: int, wood_cost: int, strength: int, tags: list[UnitTag], movement: int, range: int, abilities: list[dict[str, Union[str, list]]], type: str, prereq: Optional[TechTemplate], great_people_names: dict[str, str] = {}) -> None:
+    def __init__(self, name: str, building_name: str | None, metal_cost: int, wood_cost: int, strength: int, tags: list[UnitTag], movement: int, range: int, abilities: list[dict[str, Union[str, list]]], prereq: Optional[TechTemplate], great_people_names: dict[str, str] = {}) -> None:
         self.name = name
         self.building_name: str = building_name or ""
         self.buildable: bool = building_name is not None
@@ -30,7 +30,6 @@ class UnitTemplate:
         self.range = range
         # TODO clean this up, define the Abilities directly.
         self.abilities: list[Ability] = [UNIT_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
-        self.type = type
         self.prereq: TechTemplate | None = prereq
         if prereq:
             prereq.unlocks_units.append(self)
@@ -93,7 +92,6 @@ class UnitTemplate:
             "movement": self.movement,
             "range": self.range,
             "abilities": [ability.to_json() for ability in self.abilities],
-            "type": self.type,
             "prereq": self.prereq.name if self.prereq else None,
             "advancement_level": self.advancement_level,
         }

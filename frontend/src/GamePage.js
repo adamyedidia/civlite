@@ -79,6 +79,10 @@ const coordsToObject = (coords) => {
     return {q: q, r: r, s: s};
 }
 
+const coordsString = (hex) => {
+    return `${hex.q},${hex.r},${hex.s}`;
+}
+
 const MIN_ANIMATION_DELAY = 100;
 const MAX_ANIMATION_DELAY = 300;
 
@@ -3148,12 +3152,22 @@ export default function GamePage() {
         );
     };
 
+    const CampTriangle = ({ primaryColor, isUnitInHex }) => {
+        return  <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5}>
+            <polygon points="1.5,0 3,3 0,3" fill={primaryColor} />
+        </svg>
+    }
+
+    const FogCamp = ({ coords, seenThisTurn }) => {
+        const primaryColor = seenThisTurn ? "#855" : "#a99";
+        return <CampTriangle primaryColor={primaryColor} isUnitInHex={false} />
+    }
+
     const Camp = ({ camp, isUnitInHex }) => {
         const civ = gameState.civs_by_id[camp.civ_id];
         const template = templates.CIVS[civ.name]
 
         const primaryColor = template.primary_color;
-        const secondaryColor = template.secondary_color;
     
         return (
             <>
@@ -3161,9 +3175,7 @@ export default function GamePage() {
                         <image href="/images/fire.svg" x="0" y="0" height="5" width="5" />
                     </svg>
                 }
-                <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5} onMouseEnter={() => handleMouseOverCity(camp)}>
-                    <polygon points="1.5,0 3,3 0,3" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
-                </svg>
+                <CampTriangle primaryColor={primaryColor} isUnitInHex={isUnitInHex} />
             </>
         );
     };
@@ -3399,9 +3411,13 @@ export default function GamePage() {
                                         everControlled={hex?.city?.ever_controlled_by_civ_ids[myCivId]}
                                         myGamePlayer={myGamePlayer}
                                     />}
-                                    {hex.fog_city_name && <FogCity 
-                                        cityName={hex.fog_city_name}  
-                                        capital={hex.fog_city_player_capital}
+                                    {!(hex.yields && totalHexYields(hex.yields) > 0) && myGamePlayer?.fog_cities[coordsString(hex)] && <FogCity 
+                                        cityName={myGamePlayer?.fog_cities[coordsString(hex)].name}  
+                                        capital={myGamePlayer?.fog_cities[coordsString(hex)].capital}
+                                    />}
+                                    {!(hex.yields && totalHexYields(hex.yields) > 0) && myGamePlayer?.fog_camp_coords_with_turn[coordsString(hex)] && <FogCamp
+                                        coords={coordsString(hex)}
+                                        seenThisTurn={myGamePlayer.fog_camp_coords_with_turn[coordsString(hex)] === gameState.turn_num}  
                                     />}
                                     {hex.quest === 'Holy Grail' && <>
                                         <line x1="-0.5" y1="-2" x2="0.5" y2="-2" stroke="yellow" strokeWidth="0.2"/>
