@@ -46,7 +46,7 @@ class Camp(MapObjectSpawner):
     def build_unit(self, game_state: 'GameState', unit: UnitTemplate) -> bool:
         self.target = game_state.pick_random_hex()
 
-        if not self.hex.is_occupied(unit.type, self.civ):
+        if not self.hex.is_occupied(self.civ, allow_enemy_city=False):
             self.civ.spawn_unit_on_hex(game_state, unit, self.hex)
             return True
 
@@ -54,7 +54,7 @@ class Camp(MapObjectSpawner):
         best_hex_distance_from_target = 10000
 
         for hex in self.hex.get_neighbors(game_state.hexes, exclude_ocean=True):
-            if not hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
+            if not hex.is_occupied(self.civ, allow_enemy_city=False):
                 distance_from_target = hex.distance_to(self.target or self.hex)
                 if distance_from_target < best_hex_distance_from_target:
                     best_hex = hex
@@ -62,7 +62,7 @@ class Camp(MapObjectSpawner):
 
         if best_hex is None:
             for hex in self.hex.get_distance_2_hexes(game_state.hexes, exclude_ocean=True):
-                if not hex.is_occupied(unit.type, self.civ, allow_enemy_city=False):
+                if not hex.is_occupied(self.civ, allow_enemy_city=False):
                     distance_from_target = hex.distance_to(self.target or self.hex)
                     if distance_from_target < best_hex_distance_from_target:
                         best_hex = hex

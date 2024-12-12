@@ -315,7 +315,7 @@ class GreatWallEffect(CityTargetEffect):
                         if min(n.distance_to(c.hex) for c in my_cities) <= 1:
                             border_hexes.add(n)
         # Remove any that still contain a unit
-        border_hexes = {hex for hex in border_hexes if not hex.is_occupied(UNITS.GARRISON.type, city.civ)}
+        border_hexes = {hex for hex in border_hexes if not hex.is_occupied(city.civ, allow_enemy_city=False, allow_allied_unit=False, allow_enemy_unit=False)}
         built_hexes = set()
         for _ in range(self.num_garrisons):
             if len(border_hexes) > 0:

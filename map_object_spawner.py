@@ -26,7 +26,7 @@ class MapObjectSpawner(MapObject):
 
     def get_siege_state(self, game_state: 'GameState') -> 'Civ | None':
         for unit in self.hex.units:
-            if unit.civ.id != self.civ.id and unit.template.type == 'military':
+            if unit.civ.id != self.civ.id:
                 return unit.civ
         return None
 

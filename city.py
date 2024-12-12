@@ -781,14 +781,14 @@ class City(MapObjectSpawner):
                 visible_hexes = [h for h in game_state.hexes.values() if h.visible_to_civ(civ)]
                 spawn_hex = min(visible_hexes, key=lambda h: civ.target1.distance_to(h))  # type: ignore
 
-        if not spawn_hex.is_occupied(unit.type, civ, allow_enemy_city=False):
+        if not spawn_hex.is_occupied(civ, allow_enemy_city=False):
             return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
         if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ and spawn_hex.units[0].template == unit and spawn_hex.units[0].strength == unit.strength + bonus_strength:
             # Defensive units build in city center no matter what.
             self.reinforce_unit(spawn_hex.units[0], stack_size=stack_size)
             return spawn_hex.units[0]
 
-        free_neighbors = [h for h in spawn_hex.get_neighbors(game_state.hexes, exclude_ocean=True) if not h.is_occupied(unit.type, civ, allow_enemy_city=False)]
+        free_neighbors = [h for h in spawn_hex.get_neighbors(game_state.hexes, exclude_ocean=True) if not h.is_occupied(civ, allow_enemy_city=False)]
         if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ != civ:
             # Never build two stacks of immobile units next to each other.
             free_neighbors = [h for h in free_neighbors if not any(u.template.has_tag(UnitTag.DEFENSIVE) for n in h.get_neighbors(game_state.hexes, include_self=False) for u in n.units)]

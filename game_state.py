@@ -1156,7 +1156,7 @@ class GameState:
         return result
     
     def spawn_fresh_camp(self):
-        valid_hexes: set[str] = set([c for c, h in self.hexes.items() if h.camp is None and h.terrain != TERRAINS.OCEAN])
+        valid_hexes: set[str] = set([c for c, h in self.hexes.items() if h.camp is None and h.terrain != TERRAINS.OCEAN and not h.is_occupied(self.barbarians, allow_enemy_city=False, allow_allied_unit=True, allow_enemy_unit=False)])
         for city in self.cities_by_id.values():
             for hex in city.hex.get_hexes_within_range(self.hexes, 2):
                 valid_hexes.discard(hex.coords)

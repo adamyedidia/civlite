@@ -154,18 +154,14 @@ class Unit(MapObject):
                 self.fight(sess, game_state, best_target)
                 self.attacks_used += 1
 
-    def target_score(self, target: 'Unit') -> tuple[float, float, float, float, float]:
+    def target_score(self, target: 'Unit') -> tuple[float, float, float, float]:
         """
         Ranking function for which target to attack
         """
-        type_scores = {
-            'military': 2,
-            'support': 1,
-        }
         seiging_my_city: bool = (target.hex.city is not None and target.hex.city.civ == self.civ and len(target.hex.units) > 0 and target.hex.units[0].civ != self.civ)
         closest_target: 'Hex' = self.destination or self.hex
         is_vandetta_civ: bool = target.civ.id == self.civ.vandetta_civ_id
-        return seiging_my_city, is_vandetta_civ, -closest_target.distance_to(target.hex), type_scores[target.template.type], -target.strength
+        return seiging_my_city, is_vandetta_civ, -closest_target.distance_to(target.hex), -target.strength
 
     def valid_attack(self, target: 'Unit') -> bool:
         visible: bool = target.hex.visible_to_civ(self.civ)
@@ -401,7 +397,7 @@ class Unit(MapObject):
                 # If it's the first try at moving, use < to prefer staying still (maybe a better spot will open up)
                 is_better_distance = neighboring_hex_distance_to_target < best_distance
 
-            if is_better_distance and not neighboring_hex.is_occupied(self.template.type, self.civ):
+            if is_better_distance and not neighboring_hex.is_occupied(self.civ, allow_enemy_city=True):
                 best_hex = neighboring_hex
                 best_distance = neighboring_hex_sensitive_distance_to_target if sensitive else neighboring_hex_distance_to_target
         if best_hex is not None:

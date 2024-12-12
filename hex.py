@@ -118,12 +118,18 @@ class Hex:
             if hex.distance_to(self) <= range and not (exclude_ocean and hex.terrain == TERRAINS.OCEAN):
                 yield hex
 
-    def is_occupied(self, unit_type: str, civ: Civ, allow_enemy_city=True) -> bool:
+    def is_occupied(self, civ: Civ, allow_enemy_city=True, allow_allied_unit=False, allow_enemy_unit=False) -> bool:
         """
-        Is this hex occupied by a unit of this type or by an enemy of this civ?
+        Is this hex occupied by an enemy of this civ?
         """
-        if any(unit.template.type == unit_type or unit.civ.template.name != civ.template.name for unit in self.units):
+        units_allied = [unit.civ.template.name == civ.template.name for unit in self.units]
+        # Occupied if any enemy unit and not allowed
+        if not allow_enemy_unit and any(not x for x in units_allied):
             return True
+        # Occupied if any allied unit and not allowed.
+        if not allow_allied_unit and any(units_allied):
+            return True
+        # Occupied if any enemy city and not allowed.
         if not allow_enemy_city and self.city and self.city.civ != civ:
             return True
         if not allow_enemy_city and self.camp and self.camp.civ != civ:
