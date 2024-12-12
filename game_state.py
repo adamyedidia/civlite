@@ -565,7 +565,8 @@ class GameState:
             logger.info(f"Declining to fresh city at {coords}")
             city = self.fresh_cities_for_decline[coords]
             self.register_city(city)
-            city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
+            for game_player in self.game_player_by_player_num.values():
+                game_player.add_fog_city(city)
         assert hex.city is not None, "Failed to register city!"
         hex.city.capitalize(self)
         hex.city.civ_to_revolt_into = None
@@ -598,9 +599,8 @@ class GameState:
                     unit.update_civ(new_civ)
                     stack_size: int = unit.get_stack_size()
                     unit_count += stack_size
-        for neighbor_hex in hex.get_neighbors(self.hexes, include_self=True):
-            if neighbor_hex.camp is not None:
-                self.unregister_camp(neighbor_hex.camp)
+        if hex.camp is not None:
+            self.unregister_camp(hex.camp)
         hex.city.revolt_unit_count = unit_count
 
         return hex.city
@@ -623,6 +623,7 @@ class GameState:
 
                     else:
                         self.register_camp(Camp(self.barbarians, hex=city.hex))
+                        game_player.fog_camp_coords_with_turn[city.hex.coords] = self.turn_num
 
                         city.hex.city = None
                         self.cities_by_id = {c_id: c for c_id, c in self.cities_by_id.items() if city.id != c.id}
@@ -1074,6 +1075,7 @@ class GameState:
                 break
 
         self.handle_decline_options()
+        self.update_fog_camps()
         for city in self.fresh_cities_for_decline.values():
             city.roll_turn_post_harvest(sess, self, fake=True)
         for city in self.cities_by_id.values():
@@ -1082,6 +1084,25 @@ class GameState:
         self.midturn_update()
         
         self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
+
+    def decline_view_visible_hexes(self) -> set[Hex]:
+        decline_view_visible_hexes: set[Hex] = set()
+        for city in list(self.fresh_cities_for_decline.values()) + [city for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]:
+            for hex in city.hex.get_hexes_within_range(self.hexes, 2):
+                decline_view_visible_hexes.add(hex)
+        return decline_view_visible_hexes
+
+    def update_fog_camps(self):
+        decline_view_visible_hexes = self.decline_view_visible_hexes()
+        game_player_civs = {player_num: game_player.get_current_civ(self) for player_num, game_player in self.game_player_by_player_num.items()}
+
+        for hex in self.hexes.values():
+            visible_players = list(game_player_civs.keys()) if hex in decline_view_visible_hexes else [i for i, civ in game_player_civs.items() if hex.visible_to_civ(civ)]
+            for player_num in visible_players:
+                if hex.camp:
+                    self.game_player_by_player_num[player_num].fog_camp_coords_with_turn[hex.coords] = self.turn_num
+                elif hex.coords in self.game_player_by_player_num[player_num].fog_camp_coords_with_turn:
+                    del self.game_player_by_player_num[player_num].fog_camp_coords_with_turn[hex.coords]
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
@@ -1105,11 +1126,11 @@ class GameState:
             if id not in revolt_ids:
                 city.civ_to_revolt_into = None
 
-        # Update seen_by_players to include anything visible in the fog via the decline view.
-        for city in list(self.fresh_cities_for_decline.values()) + [city for city in self.cities_by_id.values() if city.civ_to_revolt_into is not None]:
-            for neighbor in city.hex.get_hexes_within_range(self.hexes, 2):
-                if neighbor.city is not None:
-                    neighbor.city.seen_by_players = {p for p in self.game_player_by_player_num.keys()}
+        # Update fog to include anything visible in the fog via the decline view.
+        for hex in self.decline_view_visible_hexes():
+            if hex.city is not None:
+                for game_player in self.game_player_by_player_num.values():
+                    game_player.add_fog_city(hex.city)
 
     def sample_new_civs(self, n, region: Region | None = None) -> list[CivTemplate]:
         advancement_level_to_use = max(self.advancement_level, 1)
@@ -1132,6 +1153,8 @@ class GameState:
         camp_level: int = max(0, self.advancement_level - 2)
         logger.info(f"Making camp at {coords} at level {camp_level}")
         self.register_camp(Camp(self.barbarians, advancement_level=camp_level, hex=self.hexes[coords]))
+        for game_player in self.game_player_by_player_num.values():
+            game_player.fog_camp_coords_with_turn[coords] = self.turn_num
 
     def populate_fresh_cities_for_decline(self) -> None:
         self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()

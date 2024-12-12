@@ -154,10 +154,9 @@ class Hex:
                 "visibility_by_civ": self.visibility_by_civ,
                 "is_foundable_by_civ": self.is_foundable_by_civ,
             })
-        elif self.city is not None and any([civ.game_player is not None and civ.game_player.player_num in self.city.seen_by_players for civ in from_civ_perspectives]):
+        if self.city is not None and self.city.capital and self.city.civ.game_player is not None:
             result.update({
-                "fog_city_name": self.city.name,
-                "fog_city_player_capital": self.city.capital and self.city.civ.game_player is not None,
+                "fog_city_player_capital": True,
             })
         return result
     

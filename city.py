@@ -114,7 +114,6 @@ class City(MapObjectSpawner):
         self.terrains_dict: dict[TerrainTemplate, int] = {}
         self.founded_turn: int | None = None
         self.develops_this_civ: dict[BuildingType, int] = {d: 0 for d in BuildingType}
-        self.seen_by_players: set[int] = set()
         self.already_harvested_this_turn: bool = False
         self.last_owner_civ_id: Optional[str] = None
 
@@ -465,7 +464,7 @@ class City(MapObjectSpawner):
         for civ in game_state.civs_by_id.values():
             if civ.game_player is not None:
                 if self.hex.visible_to_civ(civ):
-                    self.seen_by_players.add(civ.game_player.player_num)
+                    civ.game_player.add_fog_city(self)
 
     def roll_wonders(self, game_state: 'GameState') -> None:
         for bldg in self.buildings:
@@ -1115,6 +1114,10 @@ class City(MapObjectSpawner):
 
         self.hex.city = None
         game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex))
+        for player in game_state.game_player_by_player_num.values():
+            player.fog_camp_coords_with_turn[self.hex.coords] = game_state.turn_num
+            if self.hex.coords in player.fog_cities:
+                del player.fog_cities[self.hex.coords]
 
         if self.is_trade_hub():
             self.civ.trade_hub_id = None
@@ -1465,7 +1468,6 @@ class City(MapObjectSpawner):
             "food_demand_reduction_recent_owner_change": self.food_demand_reduction_recent_owner_change,
             "revolt_unit_count": self.revolt_unit_count,
             "founded_turn": self.founded_turn,
-            "seen_by_players": list(self.seen_by_players),
             "revolting_to_rebels_this_turn": self.revolting_to_rebels_this_turn,
 
             "is_trade_hub": self.is_trade_hub(),
@@ -1516,7 +1518,6 @@ class City(MapObjectSpawner):
         city.founded_turn = json["founded_turn"]
         city.food_demand = DetailedNumber.from_json(json["food_demand"])
         city.food_demand_reduction_recent_owner_change = json["food_demand_reduction_recent_owner_change"]
-        city.seen_by_players = set(json["seen_by_players"])
         city.last_owner_civ_id = json["last_owner_civ_id"]
 
         return city
