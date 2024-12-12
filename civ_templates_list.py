@@ -842,7 +842,7 @@ class CIVS():
         region=Region.MIDDLE_EAST,
     )
     VIJAYANAGARA = CivTemplate(
-        # 1336
+        # 1336 -- huge cities that grew very fast, fought with giant hordes of relatively low-tech infantry.
         name="Vijayanagara",
         abilities=[{
             "name": "OnDevelop",
@@ -855,7 +855,7 @@ class CIVS():
         region=Region.SOUTH_ASIA,
     )
     BAHMANI = CivTemplate(
-        # 1347
+        # 1347 -- very into knights ("Lords of the Horse"), early adopter of cannons.
         name="Bahmani",
         abilities=[{
             "name": "OnDevelop",
@@ -1564,7 +1564,7 @@ CHECK_ORDERS = [
     [CIVS.JOMON, CIVS.JAPAN],
     [CIVS.JOSEON, CIVS.KOREA],
     [CIVS.IROQUOIS, CIVS.UNITED_STATES],
-    [CIVS.INDUS, CIVS.MAURYA, CIVS.GUPTA, CIVS.DELHI, CIVS.MUGHALS, CIVS.INDIA],
+    [CIVS.INDUS, CIVS.MAURYA, CIVS.GUPTA, CIVS.DELHI, {CIVS.BAHMANI, CIVS.VIJAYANAGARA}, CIVS.MUGHALS, CIVS.INDIA],
     [CIVS.BABYLON, CIVS.PERSIA, CIVS.TIMURIDS],
 ]
 

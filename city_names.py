@@ -67,7 +67,7 @@ thrace_cities = [
     "Halicarnassus", "Caria", "Pergamum", "Sardis", "Halicarnassus"
 ]
 olmec_cities = [
-    "San Lorenzo", "La Venta", "Tres Zapotes", "Laguna de los Cerros", "El Manatí",
+    "San Lorenzo", "La Venta", "Tres Zapotes", "El Manatí",
     "Las Limas", "Potrero Nuevo", "Arroyo Sonso", "Chalcatzingo", "El Azuzul"
 ]
 zhou_cities = [
@@ -84,11 +84,11 @@ pama_nguyan_cities = [
 ]
 assyrian_cities = [
     "Nineveh", "Assur", "Nimrud", "Khorsabad", "Arbela",
-    "Dur-Sharrukin", "Kar-Tukulti-Ninurta", "Tarbisu", "Nisibis", "Harran"
+    "Dur-Sharrukin", "Tarbisu", "Nisibis", "Harran"
 ]
 caralan_cities = [
     "Caral", "Aspero", "Huaca Prieta", "Bandurria",
-    "Pacopampa", "Sechín Alto", "Kotosh", "Garagay", "Huaycán de Cieneguilla"
+    "Pacopampa", "Sechín Alto", "Kotosh", "Garagay"
 ]
 troy_cities = [
     "Troy", "Wilusa", "Gergis", "Dardanos", "Lampsakos",
@@ -96,14 +96,14 @@ troy_cities = [
 ]
 elamite_cities = [
     "Susa", "Anshan", "Dur-Untash", "Haft Tappeh", "Chogha Zanbil",
-    "Madaktu", "Shahr-e Sukhteh", "Al Untash-Napirisha", "Kabnak", "Simashki"
+    "Madaktu", "Shahr-e Sukhteh", "Kabnak", "Simashki"
 ]
 teotihuacan_cities = [
     "Teotihuacan", "Atetelco", "Tepantitla", "Tetitla", "Zacuala",
     "Yayahuala", "San Juan River", "Oztoyahualco", "La Ventilla", "Xalla"
 ]
 scythian_cities = [
-    "Neapolis Scythica", "Gelonus", "Kamenskoye", "Scythian Neapolis", "Kerkinitis",
+    "Kermenchik", "Gelonus", "Kamenskoye", "Kerkinitis",
     "Chertomlyk", "Aul Kizil-Koba", "Tyragetae", "Kolokolova", "Panticapaeum"
 ]
 maya_cities = [
@@ -163,7 +163,7 @@ carthaginian_cities = [
     "Leptis Magna", "Gades", "Lixus", "Cirta", "Iol"
 ]
 gothic_cities = [
-    "Hispania Gothorum", "Tolosa",
+    "Tolosa",
     "Ravenna", "Aquileia", "Narbo", "Verona", "Pavia", "Gotland"
 ]
 frankish_cities = [
@@ -172,7 +172,7 @@ frankish_cities = [
 ]
 celtic_cities = [
     "Eburacum", "Lugdunum", "Camulodunum", "Gergovia", "Bibracte",
-    "Dunadd", "Isca Dumnoniorum", "Verlamion", "Noviodunum", "Alesia"
+    "Dunadd", "Verlamion", "Noviodunum", "Alesia"
 ]
 joseon_cities = [
     "Hanyang", "Pyongyang", "Gaesong", "Seoul", "Busan",
@@ -239,7 +239,7 @@ majapahit_cities = [
 ]
 khmer_cities = [
     "Angkor", "Koh Ker", "Banteay Srei", "Preah Vihear", "Sambor Prei Kuk",
-    "Wat Phu", "Beng Mealea", "Lolei", "Phimai", "Preah Khan Kompong Svay"
+    "Wat Phu", "Beng Mealea", "Lolei", "Phimai"
 ]
 seljuk_cities = [
     "Nicaea", "Konya", "Sivas", "Antalya", "Erbil",
@@ -286,8 +286,8 @@ maurya_cities = [
     "Mathura", "Kaushambi", "Magadha", "Girivraja", "Vaishali"
 ]
 chola_cities = [
-    "Thanjavur", "Gangaikonda Cholapuram", "Kanchipuram", "Madurai", "Tiruchirappalli",
-    "Uraiyur", "Arikamedu", "Nagapattinam", "Palaiyaarai", "Vijayalaya Cholapuram"
+    "Thanjavur", "Kanchipuram", "Madurai", "Tiruchirappalli",
+    "Uraiyur", "Arikamedu", "Nagapattinam", "Palaiyaarai"
 ]
 ming_cities = [
     "Beijing", "Nanjing", "Xi'an", "Hangzhou", "Guangzhou",
@@ -298,11 +298,11 @@ qin_cities = [
     "Tongwancheng", "Yangzhai", "Qiachuan", "Chang'an", "Handan"
 ]
 burgundy_cities = [
-    "Dijon", "Beaune", "Chalon-sur-Saône", "Auxerre", "Mâcon",
+    "Dijon", "Beaune", "Auxerre", "Mâcon",
     "Nevers", "Autun", "Langres", "Avallon", "Cluny"
 ]
 bohemian_cities = [
-    "Prague", "Brno", "Kutná Hora", "Olomouc", "České Budějovice",
+    "Prague", "Brno", "Kutná Hora", "Olomouc",
     "Plzeň", "Liberec", "Hradec Králové", "Ostrava", "Pardubice"
 ]
 english_cities = [
@@ -358,7 +358,7 @@ swedish_cities = [
     "Örebro", "Linköping", "Helsingborg", "Jönköping", "Norrköping"
 ]
 russian_cities = [
-    "Moscow", "Saint Petersburg", "Novgorod", "Kazan", "Nizhny Novgorod",
+    "Moscow", "St Petersburg", "Novgorod", "Kazan", "Nizhny Novgorod",
     "Yekaterinburg", "Samara", "Omsk", "Chelyabinsk", "Rostov-on-Don"
 ]
 arabian_cities = [
@@ -371,7 +371,7 @@ portuguese_cities = [
 ]
 spanish_cities = [
     "Madrid", "Barcelona", "Seville", "Valencia", "Granada",
-    "Córdoba", "Toledo", "Salamanca", "Zaragoza", "Santiago de Compostela"
+    "Córdoba", "Toledo", "Salamanca", "Zaragoza",
 ]
 french_cities = [
     "Paris", "Marseille", "Lyon", "Toulouse", "Nice",
@@ -454,7 +454,7 @@ australian_cities = [
     "Adelaide", "Hobart", "Darwin", "Gold Coast", "Newcastle"
 ]
 vietnamese_cities = [
-    "Hanoi", "Ho Chi Minh City", "Da Nang", "Hue", "Nha Trang",
+    "Hanoi", "Ho Chi Minh", "Da Nang", "Hue", "Nha Trang",
     "Can Tho", "Hai Phong", "Da Lat", "Vinh", "Phan Thiet"
 ]
 indian_cities = [
@@ -498,7 +498,7 @@ celestial_empire_cities = [
     "Singapore", "Dubai", "Mumbai", "Delhi", "Bangalore",
 ]
 the_machine_intelligence_cities = [
-    "Central Node", "The Cloud", "Data Haven", "Circuit City", "Mainframe Metropolis", "Silicon Sanctuary",
+    "Central Node", "The Cloud", "Data Haven", "Circuit City",
     "Binary Borough", "Processor Port", "Pixel Point", "Algorithm Abbey"
 ]
 
@@ -640,3 +640,6 @@ CITY_NAMES_BY_CIV = {
     "A5 Blank": [f"A5 Blank {i}" for i in range(1, 19)],
     "A7 Blank": [f"A7 Blank {i}" for i in range(1, 19)],
 }
+
+TOO_LONG_CITY_NAMES = {name for names in CITY_NAMES_BY_CIV.values() for name in names if len(name) > 15}
+assert len(TOO_LONG_CITY_NAMES) == 0, f"Too long city names: {TOO_LONG_CITY_NAMES}"
