@@ -2,7 +2,7 @@ from typing import Union, Optional
 
 from ability import Ability
 from abilities_list import UNIT_ABILITIES
-from settings import RESOURCE_DEVALUATION
+from settings import DEVALUE
 from tech_templates_list import TECHS
 from tech_template import TechTemplate
 from enum import Enum
@@ -23,8 +23,8 @@ class UnitTemplate:
         self.name = name
         self.building_name: str = building_name or ""
         self.buildable: bool = building_name is not None
-        self.metal_cost = metal_cost * (RESOURCE_DEVALUATION[prereq.advancement_level] if prereq else 1)
-        self.wood_cost = wood_cost * (RESOURCE_DEVALUATION[prereq.advancement_level] if prereq else 1)
+        self.metal_cost = DEVALUE(metal_cost, prereq.advancement_level) if prereq else metal_cost
+        self.wood_cost = DEVALUE(wood_cost, prereq.advancement_level) if prereq else wood_cost
         self.strength = strength
         self.tags = tags
         self.movement = movement
