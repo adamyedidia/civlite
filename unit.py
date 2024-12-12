@@ -327,7 +327,7 @@ class Unit(MapObject):
             return None
 
         # Don't abandon threatened cities
-        if self.hex.is_threatened_city(game_state):
+        if (self.hex.city or self.hex.camp) and self.hex.is_threatened(game_state, self.civ):
             return None
 
         neighbors = list(self.hex.get_neighbors(game_state.hexes))
@@ -341,7 +341,12 @@ class Unit(MapObject):
 
         # Move into adjacent friendly empty threatened cities
         for neighboring_hex in neighbors:
-            if neighboring_hex.city and neighboring_hex.is_threatened_city(game_state) and neighboring_hex.city.civ == self.civ and len(neighboring_hex.units) == 0:
+            if neighboring_hex.city and neighboring_hex.is_threatened(game_state, self.civ) and neighboring_hex.city.civ == self.civ and len(neighboring_hex.units) == 0:
+                return neighboring_hex
+
+        # ... and camps
+        for neighboring_hex in neighbors:
+            if neighboring_hex.camp and neighboring_hex.is_threatened(game_state, self.civ) and neighboring_hex.camp.civ == self.civ and len(neighboring_hex.units) == 0:
                 return neighboring_hex
 
         # Attack neighboring friendly cities under seige
@@ -349,9 +354,19 @@ class Unit(MapObject):
             if (neighboring_hex.city and neighboring_hex.city.civ == self.civ and neighboring_hex.units and neighboring_hex.units[0].civ != self.civ):
                 return neighboring_hex
 
+        # ... and camps
+        for neighboring_hex in neighbors:
+            if (neighboring_hex.camp and neighboring_hex.camp.civ == self.civ and neighboring_hex.units and neighboring_hex.units[0].civ != self.civ):
+                return neighboring_hex
+
         # Attack neighboring empty cities
         for neighboring_hex in neighbors:
             if neighboring_hex.city and neighboring_hex.city.civ != self.civ and len(neighboring_hex.units) == 0:
+                return neighboring_hex
+            
+        # ... and camps
+        for neighboring_hex in neighbors:
+            if neighboring_hex.camp and neighboring_hex.camp.civ != self.civ and len(neighboring_hex.units) == 0:
                 return neighboring_hex
 
         # Attack neighboring camps

@@ -1246,7 +1246,7 @@ class City(MapObjectSpawner):
         return None
 
     def is_threatened_city(self, game_state: 'GameState') -> bool:
-        return self.hex.is_threatened_city(game_state)
+        return self.hex.is_threatened(game_state, self.civ)
 
     def bot_single_move(self, game_state: 'GameState', move_type: MoveType, move_data: dict, abbreviated_midturn_update: bool = False) -> None:
         """

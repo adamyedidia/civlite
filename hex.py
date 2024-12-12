@@ -130,11 +130,10 @@ class Hex:
             return True
         return False
 
-    def is_threatened_city(self, game_state):
+    def is_threatened(self, game_state, defending_civ: 'Civ'):
         """ Is there an enemy unit adjacent? """
-        if not self.city: return False
         for hex in self.get_neighbors(game_state.hexes):
-            if hex.units and hex.units[0].civ != self.city.civ:
+            if hex.units and hex.units[0].civ != defending_civ:
                 return True
         return False
 
