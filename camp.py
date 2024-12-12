@@ -10,7 +10,7 @@ from map_object_spawner import MapObjectSpawner
 from settings import CAMP_CLEAR_CITY_POWER_REWARD, CAMP_CLEAR_VP_REWARD, STRICT_MODE
 from tenet_template_list import TENETS
 
-from unit_template import UnitTemplate
+from unit_template import UnitTag, UnitTemplate
 from unit_templates_list import UNITS
 from utils import generate_unique_id
 
@@ -50,28 +50,25 @@ class Camp(MapObjectSpawner):
             self.civ.spawn_unit_on_hex(game_state, unit, self.hex, stack_size=stack_size)
             return True
 
-        best_hex = None
-        best_hex_distance_from_target = 10000
+        free_neighbors = [h for h in self.hex.get_neighbors(game_state.hexes, exclude_ocean=True) if not h.is_occupied(self.civ, allow_enemy_city=False)]
+        if self.unit.has_tag(UnitTag.DEFENSIVE):
+            free_neighbors = [h for h in free_neighbors if not any(n.units and n.units[0].civ == self.civ and n.units[0].template == self.unit for n in h.get_neighbors(game_state.hexes))]
+        if len(free_neighbors) > 0:
+            best_hex = random.choice(free_neighbors)
+            self.civ.spawn_unit_on_hex(game_state, unit, best_hex, stack_size=stack_size)
+            return True
 
+        if self.hex.units and self.hex.units[0].civ == self.civ and self.hex.units[0].template == self.unit:
+            self.hex.units[0].health += 100 * stack_size
+            return True
+        
         for hex in self.hex.get_neighbors(game_state.hexes, exclude_ocean=True):
-            if not hex.is_occupied(self.civ, allow_enemy_city=False):
-                distance_from_target = hex.distance_to(self.target or self.hex)
-                if distance_from_target < best_hex_distance_from_target:
-                    best_hex = hex
-                    best_hex_distance_from_target = distance_from_target
+            if hex.units and hex.units[0].civ == self.civ and hex.units[0].template == self.unit:
+                hex.units[0].health += 100 * stack_size
+                return True
+            
+        return False
 
-        if best_hex is None:
-            for hex in self.hex.get_distance_2_hexes(game_state.hexes, exclude_ocean=True):
-                if not hex.is_occupied(self.civ, allow_enemy_city=False):
-                    distance_from_target = hex.distance_to(self.target or self.hex)
-                    if distance_from_target < best_hex_distance_from_target:
-                        best_hex = hex
-                        best_hex_distance_from_target = distance_from_target            
-
-        if best_hex is None:
-            return False
-        self.civ.spawn_unit_on_hex(game_state, unit, best_hex, stack_size=stack_size)
-        return True
 
     @property
     def no_cities_adjacent_range(self) -> int:

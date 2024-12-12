@@ -155,7 +155,7 @@ class TENETS():
     HONOR = TenetTemplate(
         advancement_level=4,
         name="Honor",
-        description="Gain double vps for fighting barbarian units and camps.",
+        description="Gain double vps for clearing camps and fighting barbarian units.",
         sort_order=ORDER_METAL,
     )
 
