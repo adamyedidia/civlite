@@ -12,7 +12,7 @@ from civ_templates_list import CIVS, find_civ_pool
 from map_object import MapObject
 from move_type import MoveType
 from region import Region
-from settings import GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
+from settings import AGE_THRESHOLDS, GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
 from tenet_template import TenetTemplate
 from tenet_template_list import TENETS, tenets_by_level
 from terrain_template import TerrainTemplate
@@ -419,7 +419,6 @@ class GameState:
         # Make this function deterministic across staging and rolling
         random.seed(deterministic_hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
         chosen_techs: set[TechTemplate] = set()
-        chosen_techs_by_advancement = defaultdict(int)
 
         # Calculate mean tech amount at each level
         civs_to_compare_to: list[Civ] = [civ for civ in self.civs_by_id.values() if civ.id in self.civ_ids_with_game_player_at_turn_start and civ != city.civ]
@@ -434,24 +433,39 @@ class GameState:
             lvl = tech.advancement_level
             tech_counts_by_adv_level[lvl][tech] = num
 
+        # We want the civ to start out at the start of the current game age.
+        target_total_levels_left = AGE_THRESHOLDS[self.advancement_level]
         excess_techs = 0
         for level in sorted(list(tech_counts_by_adv_level.keys()), reverse=True):
             tech_counts: dict[TechTemplate, int] = tech_counts_by_adv_level[level]
             total = sum(tech_counts.values())
-            target_num = total / len(civs_to_compare_to) - excess_techs
-            logger.info(f"Level {level}; excess {excess_techs}; target: {target_num}")
-            if chosen_techs_by_advancement[level] > target_num:
-                excess_techs = chosen_techs_by_advancement[level] - target_num
+            target_num = min(total / len(civs_to_compare_to) - excess_techs, target_total_levels_left / level)
+            if target_num == 0.0:
                 continue
-            else:
-                num_needed = target_num - chosen_techs_by_advancement[level]
-                available = [tech for tech in tech_counts_by_adv_level[level] if tech not in chosen_techs]
-                available.sort(key=lambda tech: (tech_counts_by_adv_level[level][tech], random.random()), reverse=True)
-                choose = available[:math.floor(num_needed)]
-                logger.info(f"  chose: {choose}")
-                for tech in choose:
+            logger.info(f"Level {level}; excess {excess_techs}; target: {target_num}")
+
+            available = [tech for tech in tech_counts_by_adv_level[level] if tech not in chosen_techs]
+            available.sort(key=lambda tech: (tech_counts_by_adv_level[level][tech], random.random()), reverse=True)
+            choose = available[:math.floor(target_num)]
+            logger.info(f"  chose: {choose}")
+            for tech in choose:
+                chosen_techs.add(tech)
+                target_total_levels_left -= tech.advancement_level
+            excess_techs = len(choose) - target_num
+            assert target_total_levels_left >= 0
+
+        if target_total_levels_left > 0:
+            logger.info(f"  Still need {target_total_levels_left} levels")
+            options = [tech for tech in TECHS.all() if tech.advancement_level <= self.advancement_level and tech not in chosen_techs]
+            options.sort(key=lambda tech: (tech_counts_by_adv_level[tech.advancement_level][tech], random.random()), reverse=True)
+            for tech in options:
+                if tech.advancement_level <= target_total_levels_left:
                     chosen_techs.add(tech)
-                excess_techs = len(choose) - num_needed
+                    target_total_levels_left -= tech.advancement_level
+        if target_total_levels_left > 0:
+            if STRICT_MODE:
+                raise Exception(f"Could not find enough techs for new civ {city.name} at {self.turn_num}")
+            logger.warning(f"Could not find enough techs for new civ {city.name} at {self.turn_num}")
 
         return chosen_techs
         
