@@ -4,7 +4,7 @@ import os
 # Do we crash judiciously on any inconsistency? (Good for debugging, bad for prod.)
 STRICT_MODE = False
 
-RESOURCE_DEVALUATION = {
+_RESOURCE_DEVALUATION = {
     0: 1,
     1: 1,
     2: 0.85,
@@ -16,6 +16,8 @@ RESOURCE_DEVALUATION = {
     8: 0.62,
     9: 0.6,
 }
+def DEVALUE(amnt, age):
+    return int(amnt * _RESOURCE_DEVALUATION.get(age, 1))
 
 CITY_CAPTURE_REWARD = 5
 UNIT_KILL_REWARD = 1
@@ -93,7 +95,7 @@ BASE_WONDER_COST = {
     8: 600,
     9: 1000,
 }
-BASE_WONDER_COST = {age: cost * RESOURCE_DEVALUATION[age] for age, cost in BASE_WONDER_COST.items()}
+BASE_WONDER_COST = {age: DEVALUE(cost, age) for age, cost in BASE_WONDER_COST.items()}
 
 WONDER_COUNT_FOR_PLAYER_NUM = {
     1: 2,
