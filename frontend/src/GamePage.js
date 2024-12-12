@@ -3152,16 +3152,15 @@ export default function GamePage() {
         );
     };
 
-    const CampTriangle = ({ primaryColor, secondaryColor, isUnitInHex }) => {
+    const CampTriangle = ({ primaryColor, isUnitInHex }) => {
         return  <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={isUnitInHex ? -2.5 : -1.5}>
-            <polygon points="1.5,0 3,3 0,3" fill={primaryColor} stroke={secondaryColor} strokeWidth={0.5} />
+            <polygon points="1.5,0 3,3 0,3" fill={primaryColor} />
         </svg>
     }
 
     const FogCamp = ({ coords, seenThisTurn }) => {
         const primaryColor = seenThisTurn ? "#855" : "#a99";
-        const secondaryColor = seenThisTurn ? "#855" : "#a99";
-        return <CampTriangle primaryColor={primaryColor} secondaryColor={secondaryColor} isUnitInHex={false} />
+        return <CampTriangle primaryColor={primaryColor} isUnitInHex={false} />
     }
 
     const Camp = ({ camp, isUnitInHex }) => {
@@ -3169,7 +3168,6 @@ export default function GamePage() {
         const template = templates.CIVS[civ.name]
 
         const primaryColor = template.primary_color;
-        const secondaryColor = template.secondary_color;
     
         return (
             <>
@@ -3177,7 +3175,7 @@ export default function GamePage() {
                         <image href="/images/fire.svg" x="0" y="0" height="5" width="5" />
                     </svg>
                 }
-                <CampTriangle primaryColor={primaryColor} secondaryColor={secondaryColor} isUnitInHex={isUnitInHex} />
+                <CampTriangle primaryColor={primaryColor} isUnitInHex={isUnitInHex} />
             </>
         );
     };
