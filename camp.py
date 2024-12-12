@@ -43,11 +43,11 @@ class Camp(MapObjectSpawner):
     def __repr__(self):
         return f"Camp(id={self.id}, hex={self.hex.coords if self._hex else None})"
 
-    def build_unit(self, game_state: 'GameState', unit: UnitTemplate) -> bool:
+    def build_unit(self, game_state: 'GameState', unit: UnitTemplate, stack_size: int = 1) -> bool:
         self.target = game_state.pick_random_hex()
 
         if not self.hex.is_occupied(self.civ, allow_enemy_city=False):
-            self.civ.spawn_unit_on_hex(game_state, unit, self.hex)
+            self.civ.spawn_unit_on_hex(game_state, unit, self.hex, stack_size=stack_size)
             return True
 
         best_hex = None
@@ -70,7 +70,7 @@ class Camp(MapObjectSpawner):
 
         if best_hex is None:
             return False
-        self.civ.spawn_unit_on_hex(game_state, unit, best_hex)
+        self.civ.spawn_unit_on_hex(game_state, unit, best_hex, stack_size=stack_size)
         return True
 
     @property
@@ -94,6 +94,11 @@ class Camp(MapObjectSpawner):
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.handle_siege(sess, game_state)
+        if self.unit.advancement_level < game_state.advancement_level - 3 and random.random() < 0.2 and self.under_siege_by_civ is None:
+            # This camp is too old. It makes a last hurrah and then dies.
+            self.build_unit(game_state, self.unit, stack_size=3)
+            game_state.unregister_camp(self)
+
         # Game players that own camps through great bath get double production.
         produce_unit = (game_state.turn_num % 2 == self.turn_spawned % 2) or (not self.civ.template == CIVS.BARBARIAN)
         if produce_unit:
