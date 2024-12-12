@@ -1113,7 +1113,7 @@ class City(MapObjectSpawner):
         assert self.hex.city is not None
 
         self.hex.city = None
-        game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex))
+        game_state.register_camp(Camp(game_state.barbarians, unit=best_unit, hex=self.hex, turn_spawned=game_state.turn_num))
         for player in game_state.game_player_by_player_num.values():
             player.fog_camp_coords_with_turn[self.hex.coords] = game_state.turn_num
             if self.hex.coords in player.fog_cities:

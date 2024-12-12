@@ -12,7 +12,7 @@ from civ_templates_list import CIVS, find_civ_pool
 from map_object import MapObject
 from move_type import MoveType
 from region import Region
-from settings import AGE_THRESHOLDS, GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
+from settings import CAMPS_PER_TURN_PER_PLAYER, AGE_THRESHOLDS, GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
 from tenet_template import TenetTemplate
 from tenet_template_list import TENETS, tenets_by_level
 from terrain_template import TerrainTemplate
@@ -601,6 +601,9 @@ class GameState:
                     unit_count += stack_size
         if hex.camp is not None:
             self.unregister_camp(hex.camp)
+        for neighbor_hex in hex.get_neighbors(self.hexes, include_self=False):
+            if neighbor_hex.camp is not None:
+                neighbor_hex.camp.update_civ(new_civ)
         hex.city.revolt_unit_count = unit_count
 
         return hex.city
@@ -622,7 +625,7 @@ class GameState:
                         city.capitalize(self)
 
                     else:
-                        self.register_camp(Camp(self.barbarians, hex=city.hex))
+                        self.register_camp(Camp(self.barbarians, hex=city.hex, turn_spawned=0))
                         game_player.fog_camp_coords_with_turn[city.hex.coords] = self.turn_num
 
                         city.hex.city = None
@@ -1027,6 +1030,11 @@ class GameState:
                 unit.merge_into_neighboring_unit(sess, self)
 
         logger.info("Acting cities & civs")
+
+        # Spawn new camps
+        if random.random() < CAMPS_PER_TURN_PER_PLAYER * len(self.game_player_by_player_num):
+            self.spawn_fresh_camp()
+
         cities_copy = list(self.cities_by_id.values())
         random.shuffle(cities_copy)
 
@@ -1147,23 +1155,27 @@ class GameState:
         logger.info(f"Sampling new civs ({n}). {advancement_level_to_use=}; \n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
         return result
     
-    def retire_fresh_city_option(self, coords):
-        logger.info(f"retiring option at {coords}")
-        self.fresh_cities_for_decline.pop(coords)
+    def spawn_fresh_camp(self):
+        valid_hexes: set[str] = set([c for c, h in self.hexes.items() if h.camp is None and h.terrain != TERRAINS.OCEAN])
+        for city in self.cities_by_id.values():
+            for hex in city.hex.get_hexes_within_range(self.hexes, 2):
+                valid_hexes.discard(hex.coords)
+        if len(valid_hexes) == 0:
+            return
+        coords = random.choice(sorted(valid_hexes))
         camp_level: int = max(0, self.advancement_level - 2)
         logger.info(f"Making camp at {coords} at level {camp_level}")
-        self.register_camp(Camp(self.barbarians, advancement_level=camp_level, hex=self.hexes[coords]))
-        for game_player in self.game_player_by_player_num.values():
-            game_player.fog_camp_coords_with_turn[coords] = self.turn_num
+        self.register_camp(Camp(self.barbarians, advancement_level=camp_level, hex=self.hexes[coords], turn_spawned=self.turn_num))
 
     def populate_fresh_cities_for_decline(self) -> None:
         self.fresh_cities_for_decline = {coords: city for coords, city in self.fresh_cities_for_decline.items()
                                              if is_valid_decline_location(self.hexes[coords], self.hexes, [self.hexes[other_coords] for other_coords in self.fresh_cities_for_decline if other_coords != coords])}
         new_locations_needed = max(2 - len(self.fresh_cities_for_decline), 0)
-        if new_locations_needed == 0 and random.random() < 0.2 * len(self.game_player_by_player_num):  # Make one new camp per player per 5 turns.
+        if new_locations_needed == 0 and random.random() < 0.5:
             # randomly retire one of them
             coords: str = random.choice(list(self.fresh_cities_for_decline.keys()))
-            self.retire_fresh_city_option(coords)
+            logger.info(f"retiring option at {coords}")
+            self.fresh_cities_for_decline.pop(coords)
             new_locations_needed += 1
         logger.info(f"Generating {new_locations_needed} fresh cities for decline.")
         new_hexes = generate_decline_locations(self, new_locations_needed, [self.hexes[coord] for coord in self.fresh_cities_for_decline])

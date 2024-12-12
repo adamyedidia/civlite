@@ -31,10 +31,11 @@ def random_unit_by_age(advancement_level) -> UnitTemplate:
         return random_unit_by_age(advancement_level - 1)
 
 class Camp(MapObjectSpawner):
-    def __init__(self, civ: Civ | None = None, advancement_level=0, unit: UnitTemplate | None = None, hex: 'Hex | None' = None):
+    def __init__(self, civ: Civ | None = None, advancement_level=0, unit: UnitTemplate | None = None, hex: 'Hex | None' = None, turn_spawned: int=0):
         super().__init__(civ, hex)
         self.id = generate_unique_id("CAMP")
         self.target: Optional['Hex'] = None
+        self.turn_spawned = turn_spawned
         if STRICT_MODE:
             assert unit is None or advancement_level == 0, f"Only set one of unit and advancement_level"
         self.unit: UnitTemplate = unit or random_unit_by_age(advancement_level)
@@ -93,8 +94,8 @@ class Camp(MapObjectSpawner):
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.handle_siege(sess, game_state)
-        # Game plays that own camps through great bath get double production.
-        produce_unit = (game_state.turn_num % 2 == 0) or (not self.civ.template == CIVS.BARBARIAN)
+        # Game players that own camps through great bath get double production.
+        produce_unit = (game_state.turn_num % 2 == self.turn_spawned % 2) or (not self.civ.template == CIVS.BARBARIAN)
         if produce_unit:
             self.build_unit(game_state, self.unit)
 
@@ -104,7 +105,8 @@ class Camp(MapObjectSpawner):
             "id": self.id,
             "hex": self.hex.coords,
             "civ_id": self.civ.id,
-            "unit": self.unit.name
+            "unit": self.unit.name,
+            "turn_spawned": self.turn_spawned,
         }
     
     @staticmethod
@@ -113,5 +115,6 @@ class Camp(MapObjectSpawner):
         super(Camp, camp).from_json(json)
         camp.id = json["id"]
         camp.unit = UNITS.by_name(json["unit"])
+        camp.turn_spawned = json["turn_spawned"]
         return camp
 

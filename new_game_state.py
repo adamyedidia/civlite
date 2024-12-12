@@ -47,7 +47,7 @@ def new_game_state(game_id: str, game_players: list[GamePlayer]):
             game_player.civ_id = civ.id
             game_player.all_civ_ids.append(civ.id)
             for _, location in civ_options_tups[1:]:
-                game_state.register_camp(Camp(game_state.barbarians, advancement_level=0, hex=location, turn_spawned=1))
+                game_state.register_camp(Camp(game_state.barbarians, advancement_level=0, hex=location, turn_spawned=0))
 
         else:
             starting_civs_for_players[player_num] = []
