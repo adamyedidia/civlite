@@ -329,7 +329,7 @@ class Civ:
         # Don't decline if I have above average army size.
         all_army_sizes: dict[str, float] = defaultdict(float)
         for unit in game_state.units:
-            all_army_sizes[unit.civ.id] += unit.template.metal_cost
+            all_army_sizes[unit.civ.id] += unit.template.metal_cost * unit.get_stack_size()
         active_army_sizes: dict[str, float] = {
             game_player.civ_id: all_army_sizes[game_player.civ_id] 
             for game_player in game_state.game_player_by_player_num.values() 
@@ -337,7 +337,7 @@ class Civ:
         my_rank: int = sum(active_army_sizes[self.id] <= other for other in active_army_sizes.values())
         total_players: int = len(game_state.game_player_by_player_num)
         if my_rank <= total_players / 2:
-            logger.info(f"{self.moniker()} deciding not to decline because I'm rank {my_rank} of {total_players}")
+            logger.info(f"{self.moniker()} deciding not to decline because I'm rank {my_rank} of {total_players}. {active_army_sizes=}")
             return None
         
         # Don't decline if it would let someone else win
