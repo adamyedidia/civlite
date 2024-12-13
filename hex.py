@@ -159,10 +159,6 @@ class Hex:
                 "visibility_by_civ": self.visibility_by_civ,
                 "is_foundable_by_civ": self.is_foundable_by_civ,
             })
-        if self.city is not None and self.city.capital and self.city.civ.game_player is not None:
-            result.update({
-                "fog_city_player_capital": True,
-            })
         return result
     
     @staticmethod

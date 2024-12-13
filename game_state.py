@@ -1133,9 +1133,8 @@ class GameState:
         return decline_view_visible_hexes
 
     def update_fog_camps(self):
-        decline_view_visible_hexes = self.decline_view_visible_hexes(include_decline_cities=False)
+        decline_view_visible_hexes = self.decline_view_visible_hexes(include_decline_cities=True)
         decline_view_visible_hexes_with_camps = {hex for hex in decline_view_visible_hexes if hex.camp is not None}
-        game_player_civs = {player_num: game_player.get_current_civ(self) for player_num, game_player in self.game_player_by_player_num.items()}
 
         for hex in decline_view_visible_hexes_with_camps:
             for game_player in self.game_player_by_player_num.values():

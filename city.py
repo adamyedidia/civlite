@@ -1153,6 +1153,10 @@ class City(MapObjectSpawner):
     def capitalize(self, game_state: 'GameState') -> None:
         civ = self.civ
         self.capital = True
+
+        for game_player in game_state.game_player_by_player_num.values():
+            if self.hex.coords in game_player.fog_cities:
+                game_player.fog_cities[self.hex.coords]["capital"] = True
                 
         if civ.has_ability('StartWithResources'):
             if civ.numbers_of_ability('StartWithResources')[0] == 'food':
