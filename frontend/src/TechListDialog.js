@@ -5,6 +5,7 @@ import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from "@mui
 import { IconUnitDisplay } from "./UnitDisplay";
 import { BriefBuildingDisplay } from "./BuildingDisplay";
 import scienceImg from './images/science.png';
+import fountainImg from './images/fountain.svg';
 import ProgressBar from "./ProgressBar";
 import { romanNumeral } from "./romanNumeral";
 
@@ -12,13 +13,14 @@ const TechColumn = ({children}) => {
     return <div className="tech-column">{children}</div>
 }
 
-const TechLevelBox = ({level, techs, myCiv, gameState, templates, setHoveredTech, handleClickTech}) => {
+const TechLevelBox = ({level, techs, myCiv, myGamePlayer, gameState, templates, setHoveredTech, handleClickTech}) => {
     const levelRomanNumeral = romanNumeral(level);
 
     const nextAgeProgress = myCiv.next_age_progress;
     const unlockedLevel = myCiv.advancement_level;
     const researchingTechName = myCiv.researching_tech_name;
     const reserachingTechLevel = (researchingTechName && researchingTechName != "Renaissance") ? templates.TECHS[researchingTechName].advancement_level : 0;
+    const fountainTechs = myGamePlayer.tenets["Fountain of Youth"]?.unclaimed_techs;
     return (
         <div className={`tech-level-box ${unlockedLevel < level ? 'disabled' : ''}`}>
             <div className='tech-level-box-header'>
@@ -28,13 +30,14 @@ const TechLevelBox = ({level, techs, myCiv, gameState, templates, setHoveredTech
                 }
             </div>
             {techs.map((tech) => (
-                <TechCard key={tech.name} tech={tech} gameState={gameState} templates={templates} myCiv={myCiv} setHoveredTech={setHoveredTech} handleClickTech={handleClickTech}/>
+                <TechCard key={tech.name} tech={tech} gameState={gameState} templates={templates} myCiv={myCiv} 
+                setHoveredTech={setHoveredTech} handleClickTech={handleClickTech} fountainIcon={fountainTechs?.includes(tech.name)}/>
             ))}
         </div>
     )
 }
 
-const TechCard = ({tech, gameState, templates, myCiv, setHoveredTech, handleClickTech}) => {
+const TechCard = ({tech, gameState, templates, myCiv, setHoveredTech, handleClickTech, fountainIcon}) => {
     return <div
         className={`tech-tree-card ${myCiv.techs_status[tech.name]} `}
         onMouseEnter={() => setHoveredTech(templates.TECHS[tech.name])}
@@ -78,10 +81,11 @@ const TechCard = ({tech, gameState, templates, myCiv, setHoveredTech, handleClic
                 })}
             </div>
         </div>
+        {fountainIcon && <img src={fountainImg} className="fountain-icon"/>}
     </div>
 }
 
-const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, gameState, templates}) => {
+const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, myGamePlayer, gameState, templates}) => {
     if (!myCiv || !templates) return null;
     
     const advancementLevels = Object.values(templates.TECHS).reduce((acc, tech) => {
@@ -94,7 +98,7 @@ const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, 
     }, {});
 
     const techLevelBox = (level) => {
-        return <TechLevelBox level={level} techs={advancementLevels[level]} myCiv={myCiv} gameState={gameState} templates={templates} setHoveredTech={setHoveredTech} handleClickTech={handleClickTech}/>
+        return <TechLevelBox level={level} techs={advancementLevels[level]} myCiv={myCiv} myGamePlayer={myGamePlayer} gameState={gameState} templates={templates} setHoveredTech={setHoveredTech} handleClickTech={handleClickTech}/>
     }
 
     return (

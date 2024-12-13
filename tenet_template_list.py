@@ -3,6 +3,7 @@ from typing import Generator, TYPE_CHECKING
 from building_template import BuildingType
 from effects_list import BuildUnitsEffect, GainSlotsEffect, PointsEffect, UpgradeTerrainEffect
 from settings import WONDER_VPS
+from tech_templates_list import TECHS
 from tenet_template import TenetTemplate
 from terrain_templates_list import TERRAINS
 from unit_template import UnitTag
@@ -14,7 +15,7 @@ if TYPE_CHECKING:
     from game_state import GameState
     from game_player import GamePlayer
 
-EL_DORADO_NUM_HEXES = 7
+EL_DORADO_NUM_HEXES = 5
 def el_dorado_generate_hexes(game_player: 'GamePlayer', game_state: 'GameState') -> list[str]:
     hexes = list(game_state.hexes.values())
     region_centers = random.sample(hexes, 2)
@@ -25,7 +26,7 @@ def el_dorado_generate_hexes(game_player: 'GamePlayer', game_state: 'GameState')
             region_centers = sample
         i += 1
 
-    num_in_center_0 = random.randint(1, 4)
+    num_in_center_0 = random.randint(1, 3)
     num_in_center_1 = EL_DORADO_NUM_HEXES - num_in_center_0
     result = []
     for center, num_in_center in zip(region_centers, [num_in_center_0, num_in_center_1]):
@@ -104,16 +105,16 @@ class TENETS():
         advancement_level=3,
         name="Holy Grail",
         description="When choosing Great People, you can select two of the choices.",
-        quest_description="Kill 30 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 food demand per turn and this counts as 5 kills.",
+        quest_description="Kill 20 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 food demand per turn and this counts as 5 kills.",
         quest_complete_message="We may never find the goblet of the Lord. But the deeds of our crusades shall echo through the ages, and the heros of our people will remember the call.",
-        quest_target=30,
+        quest_target=20,
         initialize_data=lambda game_player, game_state: {"holy_city_id": random.choice([c for c in game_state.cities_by_id.values() if c.civ != game_player.get_current_civ(game_state)]).id},
     )
 
     EL_DORADO = TenetTemplate(
         advancement_level=3,
         name="El Dorado",
-        description="-1 max territories. In your territory capitals, +5 metal per military slot and +5 wood per urban slot.",
+        description="-1 max territories. In your territory capitals, +3 metal per military slot and +3 wood per urban slot.",
         quest_description=f"Explore the {EL_DORADO_NUM_HEXES} marked hexes.",
         quest_complete_message="After a long search we conclude that El Dorado was a myth. But we do not lose heart; the City of Gold always lay not in the ruined wilderness, but in our dreams. And this we will build the City with our own hands. Look not to the past for El Dorato ... look to the future.",
         quest_target=EL_DORADO_NUM_HEXES,
@@ -124,18 +125,20 @@ class TENETS():
         advancement_level=3,
         name="Fountain of Youth",
         description="Your vitality decays at 90% the normal rate.",
-        quest_description="Spend 7 turns with less than 70% vitality.",
+        quest_description="Tech to a tech no other civ has, 4 times.",
         quest_complete_message="In all the ages of history no person has escaped death by drinking from a simple fountain. But what no person can do, perhaps a people can. Though we each die, together our lineage and our ideas live on.",
-        quest_target=7,
+        quest_target=4,
+        initialize_data=lambda game_player, game_state: {"unclaimed_techs": [t.name for t in TECHS.all() if not any(c.has_tech(t) for c in game_state.civs_by_id.values())]},
     )
 
     YGGDRASILS_SEEDS = TenetTemplate(
         advancement_level=3,
         name="Yggdrasils Seeds",
-        description="New cities you build immediately expand twice and start with 50 food, 50 wood, 50 metal, and 50 science.",
-        quest_description="Build 3 new cities on forests.",
+        description="New cities you build start with 50 food, 50 wood, 50 metal.",
+        quest_description="Gain vision of 15 forests hexes (not simultaneously).",
         quest_complete_message="Yggdrasil's seeds have taken root. The world tree will grow and bear fruit for all eternity.",
-        quest_target=3,
+        quest_target=15,
+        initialize_data=lambda game_player, game_state: {"unseen_hexes": [h.coords for h in game_state.hexes.values() if h.terrain == TERRAINS.FOREST]},
     )
 
     FAITH = TenetTemplate(

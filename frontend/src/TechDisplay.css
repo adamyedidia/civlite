@@ -6,6 +6,7 @@
     background-color: #b0e0e6;
     cursor: pointer;
     width: 300px;
+    position: relative;
 }
 
 .tech-card h2 {

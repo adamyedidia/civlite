@@ -539,6 +539,9 @@ class Civ:
         return 50 * self.get_advancement_level() * (1 + self.renaissances)
 
     def gain_tech(self, game_state: 'GameState', tech: TechTemplate) -> None:
+        if self.game_player and self.game_player.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) and tech.name in self.game_player.tenets[TENETS.FOUNTAIN_OF_YOUTH]["unclaimed_techs"]:
+            self.game_player.increment_tenet_progress(TENETS.FOUNTAIN_OF_YOUTH, game_state)
+
         self.techs_status[tech] = TechStatus.RESEARCHED
         self.fill_out_available_buildings(game_state)
 
@@ -608,10 +611,6 @@ class Civ:
                     "type": "TechResearched",
                     "tech": researching_tech.name,
                 }, self)
-
-        if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) and self.vitality < 0.7:
-            assert self.game_player is not None  # guaranteed by has_tenet
-            self.game_player.increment_tenet_progress(TENETS.FOUNTAIN_OF_YOUTH, game_state)
 
         vitality_decay_rate = VITALITY_DECAY_RATE
         if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH, check_complete_quest=True):

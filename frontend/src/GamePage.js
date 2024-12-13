@@ -56,6 +56,7 @@ import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
 import vitalityImg from './images/heart.png';
 import declineImg from './images/phoenix.png';
+import acornImg from './images/acorn.svg';
 import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 
@@ -3233,6 +3234,14 @@ export default function GamePage() {
         );
     }
 
+    const YggdrasilSeedsMarker = () => {
+        return (
+            <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={-1.5}>
+                <image href={acornImg} alt="Yggdrasil Seeds" width="70%" height="70%" x="15%" y="15%"/>
+            </svg>
+        );
+    }
+
     function greyOutHexColor(hexColor, targetGrey = '#777777') {
         // Convert hex to RGB
         function hexToRgb(hex) {
@@ -3431,9 +3440,10 @@ export default function GamePage() {
                                         unit={hex.units[0]}
                                         small={hex?.city || hex?.camp || foundingCity}
                                     />}
+                                    {hex.quest === 'El Dorado' && <ElDoradoMarker/>}
+                                    {hex.quest === 'Yggdrasils Seeds' && <YggdrasilSeedsMarker/>}
                                     {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
                                     {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
-                                    {hex.quest === 'El Dorado' && <ElDoradoMarker/>}
                                 </Hexagon>
                             );
                         })}
@@ -3628,6 +3638,7 @@ export default function GamePage() {
                     handleClickTech={handleClickTech}
                     templates={templates}
                     myCiv={myCiv}
+                    myGamePlayer={myGamePlayer}
                     gameState={gameState}
                 />}
                 {ideologyTreeOpen && <IdeologyTreeDialog
@@ -3929,7 +3940,7 @@ export default function GamePage() {
                     <div className="tech-choices-content">
                         {techChoices.map((tech, index) => {
                             const techTemplate = templates.TECHS[tech];
-                            return <TechDisplay key={index} tech={techTemplate} civ={myCiv} templates={templates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(techTemplate)} />
+                            return <TechDisplay key={index} tech={techTemplate} civ={myCiv} templates={templates} unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState} onClick={() => handleClickTech(techTemplate)} fountainIcon={myGamePlayer?.tenets["Fountain of Youth"]?.unclaimed_techs?.includes(techTemplate.name)}/>
                         })}
 
                     </div>

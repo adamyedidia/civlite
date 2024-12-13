@@ -1,5 +1,6 @@
 from typing import Optional, TYPE_CHECKING
 from settings import STRICT_MODE
+from tech_templates_list import TECHS
 
 from tenet_template import TenetTemplate
 from tenet_template_list import TENETS, tenets_by_level
@@ -35,7 +36,7 @@ class GamePlayer:
     def has_tenet(self, tenet: TenetTemplate, check_complete_quest: bool = False) -> bool:
         if not tenet in self.tenets:
             return False
-        if check_complete_quest and tenet.quest_target > 0:
+        if check_complete_quest and tenet.is_quest:
             return self.tenets[tenet]["complete"]
         return True
 
@@ -45,12 +46,18 @@ class GamePlayer:
         return None
     
     def increment_tenet_progress(self, tenet: TenetTemplate, game_state: 'GameState', amount: int = 1):
-        if tenet.quest_target > 0:
+        if tenet.is_quest:
             self.tenets[tenet]["progress"] += amount
 
-    def check_quest_complete(self, game_state: 'GameState'):
+    def quest_roll_turn(self, game_state: 'GameState'):
+        if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH):
+            for tech_name in self.tenets[TENETS.FOUNTAIN_OF_YOUTH]["unclaimed_techs"]:
+                tech = TECHS.by_name(tech_name)
+                if any(c.has_tech(tech) for c in game_state.civs_by_id.values()):
+                    self.tenets[TENETS.FOUNTAIN_OF_YOUTH]["unclaimed_techs"].remove(tech_name)
+
         for tenet in self.tenets:
-            if tenet.quest_target > 0 and self.tenets[tenet]["progress"] >= tenet.quest_target and not self.tenets[tenet]["complete"]:
+            if tenet.is_quest and self.tenets[tenet]["progress"] >= tenet.quest_target and not self.tenets[tenet]["complete"]:
                 self.tenets[tenet]["complete"] = True
                 game_state.add_parsed_announcement({
                     "turn_num": game_state.turn_num,
@@ -82,7 +89,7 @@ class GamePlayer:
             self.tenets[tenet] = tenet.initialize_data(self, game_state)
         else:
             self.tenets[tenet] = {}
-        if tenet.quest_target > 0:
+        if tenet.is_quest:
             self.tenets[tenet]["progress"] = 0
             self.tenets[tenet]["complete"] = False
         if tenet.instant_effect is not None:
@@ -119,7 +126,7 @@ class GamePlayer:
             }
 
     def tenet_quest_display(self) -> dict:
-        quest_tenet = [t for t in self.tenets if t.quest_target > 0]
+        quest_tenet = [t for t in self.tenets if t.is_quest]
         if not quest_tenet:
             return {}
         quest_tenet = quest_tenet[0]

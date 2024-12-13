@@ -4,8 +4,9 @@ import './TechDisplay.css'; // Assuming you have a separate CSS file for styling
 import BuildingDisplay from './BuildingDisplay';
 import { romanNumeral } from "./romanNumeral";
 import scienceImg from './images/science.png';
+import fountainImg from './images/fountain.svg';
 
-const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameState, onClick }) => {
+const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameState, onClick, fountainIcon }) => {
     if (tech.name == "Renaissance") {
         tech.cost = civ.renaissance_cost
     }
@@ -34,6 +35,7 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
                 ))}
             </div>
             {tech.text && <p>{tech.text}</p>}
+            {fountainIcon && <img src={fountainImg} className="fountain-icon"/>}
         </div>
     );
 };

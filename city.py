@@ -385,8 +385,8 @@ class City(MapObjectSpawner):
 
         if self.civ.has_tenet(TENETS.EL_DORADO, check_complete_quest=True):
             yields.add_yields(TENETS.EL_DORADO.name, Yields(
-                metal=5 * self.military_slots,
-                wood=5 * self.urban_slots,
+                metal=3 * self.military_slots,
+                wood=3 * self.urban_slots,
             ))
 
         yields.set_multiplier(self.civ.vitality)

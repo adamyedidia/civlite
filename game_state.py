@@ -388,9 +388,6 @@ class GameState:
             city.grow(self)
             city.wood += 50
             city.metal += 50
-            city.civ.science += 50
-            city.develop(BuildingType.RURAL, self, free=True)
-            city.develop(BuildingType.RURAL, self, free=True)
 
         city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
 
@@ -899,6 +896,20 @@ class GameState:
         for obj in self.all_map_objects():
             obj.update_nearby_hexes_visibility(self, short_sighted=short_sighted)
 
+        for hex in self.hexes.values():
+            for game_player in self.game_player_by_player_num.values():
+                if not hex.visibility_by_civ.get(game_player.civ_id or ""):
+                    continue
+
+                if game_player.has_tenet(TENETS.YGGDRASILS_SEEDS) and hex.terrain == TERRAINS.FOREST and hex.coords in game_player.tenets[TENETS.YGGDRASILS_SEEDS]["unseen_hexes"]:
+                    game_player.tenets[TENETS.YGGDRASILS_SEEDS]["unseen_hexes"].remove(hex.coords)
+                    game_player.increment_tenet_progress(TENETS.YGGDRASILS_SEEDS, self)
+
+                if hex.camp is not None:
+                    game_player.fog_camp_coords_with_turn[hex.coords] = self.turn_num
+                elif hex.coords in game_player.fog_camp_coords_with_turn:
+                    del game_player.fog_camp_coords_with_turn[hex.coords]
+
     def refresh_foundability_by_civ(self) -> None:
         for hex in self.hexes.values():
             hex.is_foundable_by_civ.clear()
@@ -1081,7 +1092,7 @@ class GameState:
             game_player.decline_this_turn = False
             game_player.failed_to_decline_this_turn = False
             self.refresh_tenets_claimed_by_player_nums()
-            game_player.check_quest_complete(self)
+            game_player.quest_roll_turn(self)
         self.a7_tenets_yields_stolen_last_turn = self.a7_tenets_yields_stolen_this_turn
         self.a7_tenets_yields_stolen_this_turn = {}
 
@@ -1123,15 +1134,15 @@ class GameState:
 
     def update_fog_camps(self):
         decline_view_visible_hexes = self.decline_view_visible_hexes(include_decline_cities=False)
+        decline_view_visible_hexes_with_camps = {hex for hex in decline_view_visible_hexes if hex.camp is not None}
         game_player_civs = {player_num: game_player.get_current_civ(self) for player_num, game_player in self.game_player_by_player_num.items()}
 
-        for hex in self.hexes.values():
-            visible_players = list(game_player_civs.keys()) if hex in decline_view_visible_hexes else [i for i, civ in game_player_civs.items() if hex.visible_to_civ(civ)]
-            for player_num in visible_players:
+        for hex in decline_view_visible_hexes_with_camps:
+            for game_player in self.game_player_by_player_num.values():
                 if hex.camp:
-                    self.game_player_by_player_num[player_num].fog_camp_coords_with_turn[hex.coords] = self.turn_num
-                elif hex.coords in self.game_player_by_player_num[player_num].fog_camp_coords_with_turn:
-                    del self.game_player_by_player_num[player_num].fog_camp_coords_with_turn[hex.coords]
+                    game_player.fog_camp_coords_with_turn[hex.coords] = self.turn_num
+                elif hex.coords in game_player.fog_camp_coords_with_turn:
+                    del game_player.fog_camp_coords_with_turn[hex.coords]
 
     def handle_decline_options(self):
         self.populate_fresh_cities_for_decline()
@@ -1353,7 +1364,7 @@ class GameState:
             if civ.game_player is None:
                 continue
             game_player = civ.game_player
-            quest_tenets = [t for t in game_player.tenets if t.quest_target > 0]
+            quest_tenets = [t for t in game_player.tenets if t.is_quest]
             if len(quest_tenets) == 0:
                 continue
             quest_tenet = quest_tenets[0]
@@ -1368,6 +1379,9 @@ class GameState:
                 holy_city = self.cities_by_id.get(quest_data['holy_city_id'])
                 if holy_city is not None:
                     hexes[holy_city.hex.coords]['quest'] = "Holy Grail"
+            if quest_tenet == TENETS.YGGDRASILS_SEEDS:
+                for coords in quest_data['unseen_hexes']:
+                    hexes[coords]['quest'] = "Yggdrasils Seeds"
 
         return {
             "game_id": self.game_id,

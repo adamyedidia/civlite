@@ -40,6 +40,10 @@ class TenetTemplate:
         if any([self.a6_score_key, self.a6_score_weights]):
             assert all([self.a6_score_key, self.a6_score_weights]), "a6_score_key and a6_score_weights must all be provided"
 
+    @property
+    def is_quest(self):
+        return self.quest_description is not None
+
     def __repr__(self):
         return f"<TenetTemplate {self.name}>"
 
