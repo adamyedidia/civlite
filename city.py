@@ -783,7 +783,7 @@ class City(MapObjectSpawner):
 
         if not spawn_hex.is_occupied(civ, allow_enemy_city=False):
             return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)
-        if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ and spawn_hex.units[0].template == unit and spawn_hex.units[0].strength == unit.strength + bonus_strength:
+        if spawn_hex == self.hex and unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ and spawn_hex.units[0].template == unit and spawn_hex.units[0].strength == unit.strength + bonus_strength:
             # Defensive units build in city center no matter what.
             self.reinforce_unit(spawn_hex.units[0], stack_size=stack_size)
             return spawn_hex.units[0]
@@ -794,7 +794,7 @@ class City(MapObjectSpawner):
             free_neighbors = [h for h in free_neighbors if not any(u.template.has_tag(UnitTag.DEFENSIVE) for n in h.get_neighbors(game_state.hexes, include_self=False) for u in n.units)]
         if len(free_neighbors) > 0:
             best_hex = min(free_neighbors, key=lambda h: (h.distance_to(self.get_closest_target() or spawn_hex), random.random()))
-            if unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ:
+            if spawn_hex == self.hex and unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ:
                 # Kick out the unit that's there to build defensive units.
                 spawn_hex.units[0].take_one_step_to_hex(best_hex, game_state)
                 return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)

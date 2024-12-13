@@ -433,13 +433,11 @@ class GameState:
             lvl = tech.advancement_level
             tech_counts_by_adv_level[lvl][tech] = num
 
-        # We want the civ to start out at the start of the current game age.
-        target_total_levels_left = AGE_THRESHOLDS[self.advancement_level]
         excess_techs = 0
         for level in sorted(list(tech_counts_by_adv_level.keys()), reverse=True):
             tech_counts: dict[TechTemplate, int] = tech_counts_by_adv_level[level]
             total = sum(tech_counts.values())
-            target_num = min(total / len(civs_to_compare_to) - excess_techs, target_total_levels_left / level)
+            target_num = total / len(civs_to_compare_to) - excess_techs
             if target_num == 0.0:
                 continue
             logger.info(f"Level {level}; excess {excess_techs}; target: {target_num}")
@@ -450,22 +448,43 @@ class GameState:
             logger.info(f"  chose: {choose}")
             for tech in choose:
                 chosen_techs.add(tech)
-                target_total_levels_left -= tech.advancement_level
             excess_techs = len(choose) - target_num
-            assert target_total_levels_left >= 0
 
-        if target_total_levels_left > 0:
-            logger.info(f"  Still need {target_total_levels_left} levels")
+
+        # We want the civ to start out at the start of the current game age.
+        minimum_age = self.advancement_level
+        minimum_total_levels_left = AGE_THRESHOLDS[minimum_age] - sum([tech.advancement_level for tech in chosen_techs])
+        if minimum_total_levels_left > 0:
+            logger.info(f"  Still need {minimum_total_levels_left} levels to be in age {minimum_age}")
+            extras: list[TechTemplate] = []
             options = [tech for tech in TECHS.all() if tech.advancement_level <= self.advancement_level and tech not in chosen_techs]
-            options.sort(key=lambda tech: (tech_counts_by_adv_level[tech.advancement_level][tech], random.random()), reverse=True)
+            options.sort(key=lambda tech: (tech_counts_by_adv_level[tech.advancement_level][tech], tech.advancement_level, random.random()), reverse=True)
             for tech in options:
-                if tech.advancement_level <= target_total_levels_left:
-                    chosen_techs.add(tech)
-                    target_total_levels_left -= tech.advancement_level
-        if target_total_levels_left > 0:
-            if STRICT_MODE:
-                raise Exception(f"Could not find enough techs for new civ {city.name} at {self.turn_num}")
-            logger.warning(f"Could not find enough techs for new civ {city.name} at {self.turn_num}")
+                if tech.advancement_level <= minimum_total_levels_left:
+                    extras.append(tech)
+                    minimum_total_levels_left -= tech.advancement_level
+            logger.info(f"  extras: {extras}")
+            if minimum_total_levels_left > 0:
+                logger.info(f"  That wasn't enough! Still need {minimum_total_levels_left} levels to be in age {minimum_age}")
+                remaining_options = [tech for tech in options if tech not in extras]
+                cheapest_to_add = min(remaining_options, key=lambda tech: (tech.advancement_level, -tech_counts_by_adv_level[tech.advancement_level][tech]))
+                extras.append(cheapest_to_add)
+                minimum_total_levels_left -= cheapest_to_add.advancement_level
+                logger.info(f"  Added {cheapest_to_add} to extras, now need {minimum_total_levels_left} more levels to be in age {minimum_age}")
+                # minimum_total_levels_left is now negative because otherwise we'd have added that tech in the previous loop.
+                assert minimum_total_levels_left < 0, f"This shouldn't be possible. {minimum_total_levels_left=}, {extras=}, {options=}, {chosen_techs=}, {cheapest_to_add=}"
+                chosen_techs.update(extras)
+                # Remove things from the end until we hit the target.
+                for tech in list(extras[-2::-1]) + list(chosen_techs):
+                    if tech.advancement_level <= -minimum_total_levels_left:
+                        chosen_techs.remove(tech)
+                        minimum_total_levels_left += tech.advancement_level
+                        logger.info(f"    Removed {tech} from extras, now need {minimum_total_levels_left} more levels to be in age {minimum_age}")
+                if minimum_total_levels_left != 0:
+                    if STRICT_MODE:
+                        import pdb; pdb.set_trace()
+                        raise Exception(f"Could not find enough techs for new civ {city.name} at level {self.advancement_level} at {self.turn_num}")
+                    logger.warning(f"Could not find enough techs for new civ {city.name} at level {self.advancement_level} at {self.turn_num}")
 
         return chosen_techs
         

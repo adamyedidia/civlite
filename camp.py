@@ -91,6 +91,9 @@ class Camp(MapObjectSpawner):
 
     def roll_turn(self, sess, game_state: 'GameState') -> None:
         self.handle_siege(sess, game_state)
+        if self.hex.camp is None:
+            # The camp got cleared, it shouldn't spawn.
+            return
         if self.unit.advancement_level < game_state.advancement_level - 3 and random.random() < 0.2 and self.under_siege_by_civ is None:
             # This camp is too old. It makes a last hurrah and then dies.
             self.build_unit(game_state, self.unit, stack_size=3)

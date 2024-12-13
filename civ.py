@@ -702,7 +702,7 @@ class Civ:
         self._pop_great_people_choices_queue_if_needed(game_state)
 
     def spawn_unit_on_hex(self, game_state: 'GameState', unit_template: 'UnitTemplate', hex: 'Hex', bonus_strength: int=0, stack_size=1) -> 'Unit | None':
-        assert not hex.is_occupied(self, allow_enemy_city=False, allow_allied_unit=False, allow_enemy_unit=False)
+        assert not hex.is_occupied(self, allow_enemy_city=True, allow_allied_unit=False, allow_enemy_unit=False)
         unit = Unit(unit_template, civ=self, hex=hex)
         unit.health *= stack_size
         hex.units.append(unit)
