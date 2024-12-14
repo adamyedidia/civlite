@@ -11,7 +11,7 @@ from move_type import MoveType
 from tenet_template import TenetTemplate
 from tenet_template_list import TENETS, tenets_by_level
 from unit import Unit
-from settings import AGE_THRESHOLDS, GOD_MODE
+from settings import AGE_THRESHOLDS, DEVALUE, GOD_MODE
 from wonder_templates_list import WONDERS
 from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_people_by_name
 from civ_template import CivTemplate
@@ -556,7 +556,7 @@ class Civ:
             game_state.resolve_move(MoveType.FOUND_CITY, {'coords': hex.coords, 'city_id': generate_unique_id("CITY")}, civ=self)
 
     def renaissance_cost(self) -> float:
-        return 50 * self.get_advancement_level() * (1 + self.renaissances)
+        return DEVALUE(50 * self.get_advancement_level() * (1 + self.renaissances), self.get_advancement_level())
 
     def gain_tech(self, game_state: 'GameState', tech: TechTemplate) -> None:
         if self.game_player and self.game_player.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) and tech.name in self.game_player.tenets[TENETS.FOUNTAIN_OF_YOUTH]["unclaimed_techs"]:
