@@ -384,10 +384,10 @@ class GameState:
             assert civ.game_player is not None  # guaranteed by has_tenet
             civ.game_player.increment_tenet_progress(TENETS.YGGDRASILS_SEEDS, self)
         if civ.has_tenet(TENETS.YGGDRASILS_SEEDS, check_complete_quest=True):
-            city.food += 50
+            city.food += 40
             city.grow(self)
-            city.wood += 50
-            city.metal += 50
+            city.wood += 40
+            city.metal += 40
 
         city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
 

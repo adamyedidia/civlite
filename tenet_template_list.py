@@ -104,7 +104,7 @@ class TENETS():
     HOLY_GRAIL = TenetTemplate(
         advancement_level=3,
         name="Holy Grail",
-        description="When choosing Great People, you can select two of the choices.",
+        description="When choosing Great People, you select two of the choices but lose 50 science.",
         quest_description="Kill 20 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 food demand per turn and this counts as 5 kills.",
         quest_complete_message="We may never find the goblet of the Lord. But the deeds of our crusades shall echo through the ages, and the heros of our people will remember the call.",
         quest_target=20,
@@ -124,7 +124,7 @@ class TENETS():
     FOUNTAIN_OF_YOUTH = TenetTemplate(
         advancement_level=3,
         name="Fountain of Youth",
-        description="Your vitality decays at 90% the normal rate.",
+        description="Your vitality decays at 85% the normal rate.",
         quest_description="Tech to a tech no other civ has, 4 times.",
         quest_complete_message="In all the ages of history no person has escaped death by drinking from a simple fountain. But what no person can do, perhaps a people can. Though we each die, together our lineage and our ideas live on.",
         quest_target=4,
@@ -134,7 +134,7 @@ class TENETS():
     YGGDRASILS_SEEDS = TenetTemplate(
         advancement_level=3,
         name="Yggdrasils Seeds",
-        description="New cities you build start with 50 food, 50 wood, 50 metal.",
+        description="New cities you build start with 40 food, 40 wood, 40 metal.",
         quest_description="Each forest contains an acorn. Collect 15 acorns, by having sight of the hex at the start of the turn.",
         quest_complete_message="Yggdrasil's seeds have taken root. The world tree will grow and bear fruit for all eternity.",
         quest_target=15,
