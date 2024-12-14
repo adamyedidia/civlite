@@ -12,7 +12,7 @@ from civ_templates_list import CIVS, find_civ_pool
 from map_object import MapObject
 from move_type import MoveType
 from region import Region
-from settings import CAMPS_PER_TURN_PER_PLAYER, AGE_THRESHOLDS, GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
+from settings import CAMPS_PER_TURN_PER_HEX, AGE_THRESHOLDS, GOD_MODE, MIN_UNHAPPINESS_THRESHOLD, WONDER_VPS
 from tenet_template import TenetTemplate
 from tenet_template_list import TENETS, tenets_by_level
 from terrain_template import TerrainTemplate
@@ -1061,9 +1061,7 @@ class GameState:
 
         logger.info("Acting cities & civs")
 
-        # Spawn new camps
-        if random.random() < CAMPS_PER_TURN_PER_PLAYER * len(self.game_player_by_player_num):
-            self.spawn_fresh_camp()
+        self._maybe_spawn_fresh_camp()
 
         cities_copy = list(self.cities_by_id.values())
         random.shuffle(cities_copy)
@@ -1186,12 +1184,20 @@ class GameState:
         logger.info(f"Sampling new civs ({n}). {advancement_level_to_use=}; \n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
         return result
     
-    def spawn_fresh_camp(self):
+    def _maybe_spawn_fresh_camp(self):
         valid_hexes: set[str] = set([c for c, h in self.hexes.items() if h.camp is None and h.terrain != TERRAINS.OCEAN and not h.is_occupied(self.barbarians, allow_enemy_city=False, allow_allied_unit=True, allow_enemy_unit=False)])
         for city in self.cities_by_id.values():
             for hex in city.hex.get_hexes_within_range(self.hexes, 2):
                 valid_hexes.discard(hex.coords)
-        if len(valid_hexes) == 0:
+
+        for unit in self.units:
+            if unit.civ.game_player is not None:
+                for hex in unit.hex.get_hexes_within_range(self.hexes, 1):
+                    valid_hexes.discard(hex.coords)
+
+        camp_prob = CAMPS_PER_TURN_PER_HEX * len(valid_hexes)
+        logger.info(f"New camp prob: {camp_prob}")
+        if random.random() > camp_prob:
             return
         coords = random.choice(sorted(valid_hexes))
         camp_level: int = max(0, self.advancement_level - 2)
