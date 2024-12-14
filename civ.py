@@ -163,7 +163,7 @@ class Civ:
         if tech is not None:
             self.techs_status[tech] = TechStatus.RESEARCHING 
 
-    def initialize_techs(self, start_techs: set[TechTemplate]):
+    def initialize_techs(self, start_techs: list[TechTemplate]):
         for tech in start_techs:
             self.techs_status[tech] = TechStatus.RESEARCHED
         self.get_new_tech_choices()

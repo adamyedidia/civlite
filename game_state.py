@@ -411,11 +411,11 @@ class GameState:
             if other_civ.id != civ.id:
                 other_civ.gain_vps(min(BASE_SURVIVAL_BONUS + SURVIVAL_BONUS_PER_AGE * (self.advancement_level), 24), SURVIVAL_SCORE_LABEL)
 
-    def choose_techs_for_new_civ(self, city: City) -> set[TechTemplate]:
+    def choose_techs_for_new_civ(self, city: City) -> list[TechTemplate]:
         logger.info("Calculating starting techs!")
         # Make this function deterministic across staging and rolling
         random.seed(deterministic_hash(f"{self.game_id} {self.turn_num} {city.name} {city.hex.coords}"))
-        chosen_techs: set[TechTemplate] = set()
+        chosen_techs: list[TechTemplate] = []
 
         # Calculate mean tech amount at each level
         civs_to_compare_to: list[Civ] = [civ for civ in self.civs_by_id.values() if civ.id in self.civ_ids_with_game_player_at_turn_start and civ != city.civ]
@@ -444,7 +444,7 @@ class GameState:
             choose = available[:math.floor(target_num)]
             logger.info(f"  chose: {choose}")
             for tech in choose:
-                chosen_techs.add(tech)
+                chosen_techs.append(tech)
             excess_techs = len(choose) - target_num
 
 
@@ -461,19 +461,19 @@ class GameState:
                     extras.append(tech)
                     minimum_total_levels_left -= tech.advancement_level
             logger.info(f"  extras: {extras}")
-            chosen_techs.update(extras)
+            chosen_techs.extend(extras)
             if minimum_total_levels_left > 0:
                 logger.info(f"  That wasn't enough! Still need {minimum_total_levels_left} levels to be in age {minimum_age}")
                 remaining_options = [tech for tech in options if tech not in extras]
                 cheapest_to_add = min(remaining_options, key=lambda tech: (tech.advancement_level, -tech_counts_by_adv_level[tech.advancement_level][tech]))
-                chosen_techs.add(cheapest_to_add)
+                chosen_techs.append(cheapest_to_add)
                 minimum_total_levels_left -= cheapest_to_add.advancement_level
                 logger.info(f"  Added {cheapest_to_add} to extras, now need {minimum_total_levels_left} more levels to be in age {minimum_age}")
                 # minimum_total_levels_left is now negative because otherwise we'd have added that tech in the previous loop.
                 assert minimum_total_levels_left < 0, f"This shouldn't be possible. {minimum_total_levels_left=}, {extras=}, {options=}, {chosen_techs=}, {cheapest_to_add=}"
                 
                 # Remove things from the end until we hit the target.
-                for tech in list(extras[::-1]) + list(chosen_techs):
+                for tech in list(chosen_techs[::-1]):
                     if tech.advancement_level <= -minimum_total_levels_left:
                         chosen_techs.remove(tech)
                         minimum_total_levels_left += tech.advancement_level
