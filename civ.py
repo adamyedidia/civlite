@@ -388,6 +388,10 @@ class Civ:
         score.append(tech != TECHS.RENAISSANCE)
         # Prefer unique tech
         score.append(self.unique_unit is not None and tech == self.unique_unit.prereq)
+        # Prefer progress towards Fountain
+        if self.game_player is not None and self.game_player.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) \
+            and not self.game_player.tenets[TENETS.FOUNTAIN_OF_YOUTH]["complete"]:
+            score.append(tech.name in self.game_player.tenets[TENETS.FOUNTAIN_OF_YOUTH]["unclaimed_techs"])
         # Ignore techs that unlock units that are obsolete.
         obsolete = len(tech.unlocks_buildings) == 0 and tech.advancement_level < self.get_advancement_level() - 1
         score.append(not obsolete)
@@ -469,7 +473,7 @@ class Civ:
         if target is not None:
             game_state.resolve_move(MoveType.TRADE_HUB, {'city_id': target.id}, civ=self)
 
-        if WONDERS.UNITED_NATIONS in game_state.built_wonders:
+        if WONDERS.UNITED_NATIONS in game_state.built_wonders and self.game_player is None:
             un_owner_ids: list[str] = [civ_id for _, civ_id in game_state.built_wonders[WONDERS.UNITED_NATIONS].infos]
             if len(un_owner_ids) > 1:
                 # If lots fo people have UN, follow a random one for first flag and a random one for second flag
@@ -500,10 +504,26 @@ class Civ:
 
             random.shuffle(possible_target_hexes)
 
+            if self.game_player \
+                and self.game_player.has_tenet(TENETS.HOLY_GRAIL) \
+                and not self.game_player.tenets[TENETS.HOLY_GRAIL]["complete"] \
+                and self.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"] in game_state.cities_by_id \
+                and game_state.cities_by_id[self.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]].civ != self:
+                grail_hex = game_state.cities_by_id[self.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]].hex
+                if grail_hex in possible_target_hexes:
+                    possible_target_hexes.remove(grail_hex)
+                possible_target_hexes.insert(0, grail_hex)
+
+            possible_target_hex_coords: list[str] = [h.coords for h in possible_target_hexes]
+
+            if self.game_player \
+                and self.game_player.has_tenet(TENETS.EL_DORADO) \
+                and not self.game_player.tenets[TENETS.EL_DORADO]["complete"]:
+                possible_target_hex_coords = self.game_player.tenets[TENETS.EL_DORADO]["hexes"]
             if len(possible_target_hexes) > 0:
-                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': possible_target_hexes[0].coords}, civ=self, do_midturn_update=False)
+                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': possible_target_hex_coords[0]}, civ=self, do_midturn_update=False)
             if len(possible_target_hexes) > 1:
-                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': possible_target_hexes[1].coords}, civ=self, do_midturn_update=False)
+                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': possible_target_hex_coords[1]}, civ=self, do_midturn_update=False)
 
         if self.researching_tech is None:
             available_techs = self._available_techs()
