@@ -520,9 +520,9 @@ class Civ:
                 and self.game_player.has_tenet(TENETS.EL_DORADO) \
                 and not self.game_player.tenets[TENETS.EL_DORADO]["complete"]:
                 possible_target_hex_coords = self.game_player.tenets[TENETS.EL_DORADO]["hexes"]
-            if len(possible_target_hexes) > 0:
+            if len(possible_target_hex_coords) > 0:
                 game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': possible_target_hex_coords[0]}, civ=self, do_midturn_update=False)
-            if len(possible_target_hexes) > 1:
+            if len(possible_target_hex_coords) > 1:
                 game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': possible_target_hex_coords[1]}, civ=self, do_midturn_update=False)
 
         if self.researching_tech is None:
