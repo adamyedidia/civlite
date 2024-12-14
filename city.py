@@ -328,26 +328,32 @@ class City(MapObjectSpawner):
 
         self.projected_income = self.projected_income_base.value + {self.focus: self.projected_income_focus[self.focus]}
 
-        if self.is_trade_hub():
-            my_a7_tenet = self.civ.tenet_at_level(7)
+        my_a7_tenet = self.civ.tenet_at_level(7)
+        if self.is_trade_hub() and my_a7_tenet is None:
+            # Have to calculate income BEFORE the trade hub, so that trade hub knows how much to do.
+            self.projected_income.unhappiness += max(0, self.food_demand.value - self.projected_income.food)
+            self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand.value)
 
-            if my_a7_tenet is None:
-                city_power_to_consume = min(20, 2 * (self.unhappiness + self.projected_income.unhappiness))
-                self.projected_income.unhappiness -= 0.5 * city_power_to_consume
-            else:
-                city_power_to_consume = 60
-                amount = 3
-                type = my_a7_tenet.a7_yield
-                assert type is not None
-                yields = Yields(**{type: amount * len(game_state.cities_by_id)})
-                self.projected_income += yields
-                self.projected_income_base.add_yields("Trade Hub", yields)
-                game_state.a7_tenets_yields_stolen_this_turn[self.civ.id] = Yields(**{type: amount})
+            city_power_to_consume = min(20, 2 * (self.unhappiness + self.projected_income.unhappiness))
+            self.projected_income.unhappiness -= 0.5 * city_power_to_consume
+            self.civ.trade_hub_city_power_consumption = city_power_to_consume
+        elif self.is_trade_hub() and my_a7_tenet is not None:
+            city_power_to_consume = 60
+            amount = 3
+            type = my_a7_tenet.a7_yield
+            assert type is not None
+            yields = Yields(**{type: amount * len(game_state.cities_by_id)})
+            self.projected_income += yields
+            self.projected_income_base.add_yields("Trade Hub", yields)
+            game_state.a7_tenets_yields_stolen_this_turn[self.civ.id] = Yields(**{type: amount})
             self.civ.trade_hub_city_power_consumption = city_power_to_consume
 
-        # Have to do this after the trade hub above, so that if your trade hub is food you get credit for the food stolen.
-        self.projected_income.unhappiness += max(0, self.food_demand.value - self.projected_income.food)
-        self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand.value)
+            # Have to calculate income AFTER the trade hub, so that if we're stealing food it affects the income.
+            self.projected_income.unhappiness += max(0, self.food_demand.value - self.projected_income.food)
+            self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand.value)
+        else:
+            self.projected_income.unhappiness += max(0, self.food_demand.value - self.projected_income.food)
+            self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand.value)       
 
         # If I'm a puppet, give my yields to my parent.
         parent: City | None = self.get_territory_parent(game_state)
