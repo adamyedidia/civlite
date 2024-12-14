@@ -85,6 +85,7 @@ class Unit(MapObject):
             split_unit.attacks_used = self.attacks_used
             self.attacks_used = 0
 
+            assert not starting_hex.is_occupied(self.civ, allow_enemy_city=False, allow_allied_unit=False, allow_enemy_unit=False)
             starting_hex.units.append(split_unit)
             game_state.units.append(split_unit)
 
@@ -386,6 +387,9 @@ class Unit(MapObject):
         random.shuffle(neighbors)
 
         for neighboring_hex in neighbors:
+            if neighboring_hex.coords in coord_strs:
+                # Don't loop.
+                continue
             neighboring_hex_sensitive_distance_to_target = 10000
             neighboring_hex_distance_to_target = 10000
             if sensitive:
@@ -407,6 +411,7 @@ class Unit(MapObject):
         return False
 
     def take_one_step_to_hex(self, hex: 'Hex', game_state: 'GameState') -> None:
+        assert not hex.is_occupied(self.civ, allow_enemy_city=True)
         self.hex.remove_unit(self)
         self.update_hex(hex)
         hex.units.append(self)
