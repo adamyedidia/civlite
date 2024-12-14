@@ -135,7 +135,7 @@ class TENETS():
         advancement_level=3,
         name="Yggdrasils Seeds",
         description="New cities you build start with 50 food, 50 wood, 50 metal.",
-        quest_description="Gain vision of 15 forests hexes (not simultaneously).",
+        quest_description="Each forest contains an acorn. Collect 15 acorns, by having sight of the hex at the start of the turn.",
         quest_complete_message="Yggdrasil's seeds have taken root. The world tree will grow and bear fruit for all eternity.",
         quest_target=15,
         initialize_data=lambda game_player, game_state: {"unseen_hexes": [h.coords for h in game_state.hexes.values() if h.terrain == TERRAINS.FOREST]},
