@@ -380,14 +380,11 @@ class GameState:
         self.register_city(city)
 
         civ.gain_vps(2, "Founded Cities (2/city)")
-        if civ.has_tenet(TENETS.YGGDRASILS_SEEDS) and hex.terrain == TERRAINS.FOREST:
-            assert civ.game_player is not None  # guaranteed by has_tenet
-            civ.game_player.increment_tenet_progress(TENETS.YGGDRASILS_SEEDS, self)
         if civ.has_tenet(TENETS.YGGDRASILS_SEEDS, check_complete_quest=True):
-            city.food += 40
+            city.food += 50
             city.grow(self)
-            city.wood += 40
-            city.metal += 40
+            city.wood += 50
+            city.metal += 50
 
         city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
 

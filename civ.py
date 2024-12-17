@@ -710,7 +710,7 @@ class Civ:
                 self.great_people_choices = []
                 self._great_people_choices_city_id = None
                 self.game_player.tenets[TENETS.HOLY_GRAIL]["second_great_person_choice"] = False
-                self.science -= 50
+                self.science -= 100
             else:
                 self.great_people_choices = [person for person in self.great_people_choices if person != great_person and person.valid_for_city(city, civ=self)]
                 if len(self.great_people_choices) == 0:
