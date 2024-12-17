@@ -444,8 +444,28 @@ export default function GamePage() {
     const [announcementsThisTurn, setAnnouncementsThisTurn] = useState([]);
     const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
     
+    const [draggingTarget, setDraggingTarget] = useState(null); // 'target1' or 'target2' or null
+    const [mousePosition, setMousePosition] = useState(null); // {x: number, y: number}
+
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
+
+    useEffect(() => {
+        const handleMouseMove = (e) => {
+            const svg = document.querySelector('svg.grid');
+            if (!svg) return;
+    
+            const pt = svg.createSVGPoint();
+            pt.x = e.clientX;
+            pt.y = e.clientY;
+            const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+            
+            setMousePosition(svgP);
+        };
+    
+        window.addEventListener('mousemove', handleMouseMove);
+        return () => window.removeEventListener('mousemove', handleMouseMove);
+    }, []);
 
     const startAnnouncementFadeOut = () => {
         setIsAnnouncementFading(true);
@@ -506,6 +526,82 @@ export default function GamePage() {
     const playerNumRef = React.useRef(playerNum);
     const gameStateRef = React.useRef(gameState);
     const turnEndedByPlayerNumRef = React.useRef(turnEndedByPlayerNum);
+
+    const DraggableTargetMarker = ({ purple, onDragStart }) => {
+        return (
+            <image 
+                href={purple ? "/images/flag.png" : "/images/flag.png"} 
+                width="3" 
+                height="3" 
+                x={-1.5} 
+                y={-1.5}
+                style={{ cursor: 'move' }}
+                onMouseDown={(e) => {
+                    e.stopPropagation();
+                    onDragStart();
+                }}
+            />
+        );
+    };
+    
+    // Simplified mouse handlers
+    const handleMouseMove = (e) => {
+        if (!draggingTarget) return;
+    
+        // Get the SVG element and its CTM
+        const svg = document.querySelector('svg.grid');
+        if (!svg) return;
+    
+        const pt = svg.createSVGPoint();
+        pt.x = e.clientX;
+        pt.y = e.clientY;
+        const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+        
+        setMousePosition(svgP);
+    };
+    
+    const handleMouseUp = () => {
+        if (!draggingTarget || !mousePosition) {
+            setDraggingTarget(null);
+            setMousePosition(null);
+            return;
+        }
+    
+        // Find the closest hex to where we dropped
+        const closestHex = Object.values(gameState.hexes).reduce((closest, hex) => {
+            const hexRef = hexRefs.current[`${hex.q},${hex.r},${hex.s}`]?.current;
+            if (!hexRef) return closest;
+    
+            const hexRect = hexRef.getBoundingClientRect();
+            const svg = document.querySelector('svg.grid');
+            const pt = svg.createSVGPoint();
+            pt.x = hexRect.left + hexRect.width/2;
+            pt.y = hexRect.top + hexRect.height/2;
+            const svgP = pt.matrixTransform(svg.getScreenCTM().inverse());
+            
+            const dist = Math.sqrt(
+                Math.pow(svgP.x - mousePosition.x, 2) + 
+                Math.pow(svgP.y - mousePosition.y, 2)
+            );
+    
+            if (!closest || dist < closest.dist) {
+                return { hex, dist };
+            }
+            return closest;
+        }, null)?.hex;
+    
+        if (closestHex) {
+            const playerInput = {
+                move_type: 'set_target',
+                target_num: draggingTarget === 'target1' ? 1 : 2,
+                coords: `${closestHex.q},${closestHex.r},${closestHex.s}`,
+            };
+            submitPlayerInput(playerInput);
+        }
+    
+        setDraggingTarget(null);
+        setMousePosition(null);
+    };    
 
     useEffect(() => {
         hoveredHexRef.current = hoveredHex;
@@ -3370,7 +3466,11 @@ export default function GamePage() {
 
         return (
             <>
-                <div className="basic-example">
+                <div className="basic-example" 
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                >
                     <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140"
                     style={{backgroundColor: declineOptionsView ? '#FF6666' : foundingCity ? '#99FF99' : '#4488FF'}}>
                     <Layout size={{ x: 3, y: 3 }}>
@@ -3431,8 +3531,8 @@ export default function GamePage() {
                                         unit={hex.units[0]}
                                         small={hex?.city || hex?.camp || foundingCity}
                                     />}
-                                    {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
-                                    {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
+                                    {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <DraggableTargetMarker onDragStart={() => {setDraggingTarget('target1'); setMousePosition(mousePosition)}}/>}
+                                    {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <DraggableTargetMarker purple onDragStart={() => {setDraggingTarget('target2'); setMousePosition(mousePosition)}}/>}
                                     {hex.quest === 'El Dorado' && <ElDoradoMarker/>}
                                 </Hexagon>
                             );
@@ -3975,6 +4075,26 @@ export default function GamePage() {
             {allUnitsDialogOpen && <AllUnitsDialog open={allUnitsDialogOpen} onClose={() => setAllUnitsDialogOpen(false)} units={templates.UNITS}/>}
             {declinePreemptedDialogOpen && <DeclinePreemptedDialog open={declinePreemptedDialogOpen} onClose={() => setDeclinePreemptedDialogOpen(false)}/>}
             {declineFailedDialogOpen && <DeclineFailedDialog open={declineFailedDialogOpen} onClose={() => setDeclineFailedDialogOpen(false)}/>}
+            {!declineOptionsView && target1 && (
+                draggingTarget === 'target1' ? (
+                    <g transform={`translate(${mousePosition.x},${mousePosition.y})`}>
+                        <DraggableTargetMarker onDragStart={() => setDraggingTarget('target1')} />
+                    </g>
+                ) : (
+                    null
+                )
+            )}
+
+            {!declineOptionsView && target2 && (
+                draggingTarget === 'target2' ? (
+                    <g transform={`translate(${mousePosition.x},${mousePosition.y})`}>
+                        <DraggableTargetMarker purple onDragStart={() => setDraggingTarget('target2')} />
+                    </g>
+                ) : (
+                    null
+                )
+            )}                
         </div>
     )
 }
+
