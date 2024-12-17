@@ -55,10 +55,8 @@ class Civ:
         self.available_city_buildings: list[BuildingTemplate] = []
         self.available_unit_buildings: list[UnitTemplate] = []
         self.buildings_in_all_queues: list[str] = []
-        self.target1: Optional['Hex'] = None
-        self.target2: Optional['Hex'] = None
-        self.target1_coords: Optional[str] = None
-        self.target2_coords: Optional[str] = None
+        self.targets: list['Hex'] = []
+        self.target_coords: list[str] = []
         self.projected_science_income: DetailedNumber = DetailedNumber()
         self.projected_city_power_income: DetailedNumber = DetailedNumber()
         self.in_decline = False
@@ -77,6 +75,14 @@ class Civ:
     def __eq__(self, other: 'Civ') -> bool:
         # TODO(dfarhi) clean up all remaining instances of (civ1.id == civ2.id)
         return other is not None and self.id == other.id
+
+    def get_target_from_hex(self, hex: 'Hex') -> 'Hex':
+        """
+        Returns the target closest to the given hex. If there are multiple targets at the same distance, returns one at random.
+        """
+        targets_copy = self.targets[:]
+        random.shuffle(targets_copy)
+        return min(targets_copy, key=lambda target: hex.distance_to(target))
 
     def moniker(self) -> str:
         game_player_parenthetical = f' ({self.game_player.username})' if self.game_player else ''
@@ -263,8 +269,7 @@ class Civ:
             "available_buildings": [b.name for b in self.available_city_buildings],
             "available_unit_buildings": [u.name for u in self.available_unit_buildings],
             "buildings_in_all_queues": self.buildings_in_all_queues,
-            "target1": self.target1.coords if self.target1 else None,
-            "target2": self.target2.coords if self.target2 else None,
+            "targets": [target.coords for target in self.targets],
             "projected_science_income": self.projected_science_income.to_json(),
             "projected_city_power_income": self.projected_city_power_income.to_json(),
             "in_decline": self.in_decline,
@@ -483,18 +488,9 @@ class Civ:
                 # If only one person has UN, follow them for first and second flag
                 un_owner_ids = [un_owner_ids[0], un_owner_ids[0]]
             un_owner_civs: list[Civ] = [game_state.civs_by_id[civ_id] for civ_id in un_owner_ids]
-            target1_coords = un_owner_civs[0].target1_coords
-            target2_coords = un_owner_civs[1].target2_coords
-            if target1_coords is not None:
-                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': target1_coords}, civ=self, do_midturn_update=False)
-            else:
-                game_state.resolve_move(MoveType.REMOVE_CIV_PRIMARY_TARGET, {}, civ=self, do_midturn_update=False)
-            if target2_coords is not None:
-                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': target2_coords}, civ=self, do_midturn_update=False)
-            else:
-                game_state.resolve_move(MoveType.REMOVE_CIV_SECONDARY_TARGET, {}, civ=self, do_midturn_update=False)
-        elif random.random() < AI.CHANCE_MOVE_FLAG or self.target1 is None or self.target2 is None or \
-            (self.target1.city is not None and self.target1.city.civ == self) or (self.target2.city is not None and self.target2.city.civ == self):
+            target_coords = un_owner_civs[0].target_coords
+            game_state.resolve_move(MoveType.SET_ALL_TARGETS, {'target_coords': target_coords}, civ=self, do_midturn_update=False)
+        elif random.random() < AI.CHANCE_MOVE_FLAG or not self.target_coords:
             enemy_cities: list[City] = [city for city in game_state.cities_by_id.values() if city.civ.id != self.id]
             vandetta_cities: list[City] = [city for city in enemy_cities if city.civ.id == self.vandetta_civ_id]
             if len(vandetta_cities) > 0:
@@ -521,9 +517,7 @@ class Civ:
                 and not self.game_player.tenets[TENETS.EL_DORADO]["complete"]:
                 possible_target_hex_coords = self.game_player.tenets[TENETS.EL_DORADO]["hexes"]
             if len(possible_target_hex_coords) > 0:
-                game_state.resolve_move(MoveType.SET_CIV_PRIMARY_TARGET, {'target_coords': possible_target_hex_coords[0]}, civ=self, do_midturn_update=False)
-            if len(possible_target_hex_coords) > 1:
-                game_state.resolve_move(MoveType.SET_CIV_SECONDARY_TARGET, {'target_coords': possible_target_hex_coords[1]}, civ=self, do_midturn_update=False)
+                game_state.resolve_move(MoveType.SET_ALL_TARGETS, {'target_coords': possible_target_hex_coords}, civ=self, do_midturn_update=False)
 
         if self.researching_tech is None:
             available_techs = self._available_techs()
@@ -644,10 +638,8 @@ class Civ:
         if self.game_player is not None:
             self.game_player = game_state.game_player_by_player_num[self.game_player.player_num]
 
-        if self.target1_coords:
-            self.target1 = game_state.hexes[self.target1_coords]
-        if self.target2_coords:
-            self.target2 = game_state.hexes[self.target2_coords]
+        if self.target_coords:
+            self.targets = [game_state.hexes[target_coord] for target_coord in self.target_coords]
 
     def capital_city(self, game_state) -> 'City | None':
         lst = [city for city in game_state.cities_by_id.values() if city.civ == self and city.capital]
@@ -745,8 +737,7 @@ class Civ:
         civ.available_city_buildings = [BUILDINGS.by_name(b) for b in json["available_buildings"]]
         civ.available_unit_buildings = [UNITS.by_name(u) for u in json["available_unit_buildings"]]
         civ.buildings_in_all_queues = json["buildings_in_all_queues"]
-        civ.target1_coords = json["target1"]
-        civ.target2_coords = json["target2"]
+        civ.target_coords = json["targets"][:]
         civ.projected_science_income = DetailedNumber.from_json(json["projected_science_income"])
         civ.projected_city_power_income = DetailedNumber.from_json(json["projected_city_power_income"])
         civ.in_decline = json["in_decline"]

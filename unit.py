@@ -331,10 +331,13 @@ class Unit(MapObject):
         # shuffle(neighbors)  Do not shuffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
 
         # Move to adjacent flags
-        for target in [self.civ.target1, self.civ.target2]:
-            for neighboring_hex in neighbors:            
-                if target == neighboring_hex:
-                    return neighboring_hex
+        if self.civ and self.civ.targets:
+            targets_copy = self.civ.targets[:]
+            random.shuffle(targets_copy)
+            for target in targets_copy:
+                for neighboring_hex in neighbors:            
+                    if target == neighboring_hex:
+                        return neighboring_hex
 
         # Move into adjacent friendly empty threatened cities
         for neighboring_hex in neighbors:

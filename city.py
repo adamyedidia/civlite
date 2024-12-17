@@ -785,9 +785,9 @@ class City(MapObjectSpawner):
 
         spawn_hex = self.hex
         for _ in self.passive_building_abilities_of_name('Deployment Center'):
-            if civ.target1 is not None:
+            if civ.targets:
                 visible_hexes = [h for h in game_state.hexes.values() if h.visible_to_civ(civ)]
-                spawn_hex = min(visible_hexes, key=lambda h: civ.target1.distance_to(h))  # type: ignore
+                spawn_hex = min(visible_hexes, key=lambda h: civ.get_target_from_hex(self.hex).distance_to(h))  # type: ignore
 
         if not spawn_hex.is_occupied(civ, allow_enemy_city=False):
             return civ.spawn_unit_on_hex(game_state, unit, spawn_hex, bonus_strength, stack_size=stack_size)

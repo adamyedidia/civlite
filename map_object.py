@@ -1,5 +1,6 @@
 import abc
 from typing import TYPE_CHECKING
+import random
 
 if TYPE_CHECKING:
     from civ import Civ
@@ -49,22 +50,19 @@ class MapObject(abc.ABC):
         self._finish_loading_hex(game_state.hexes)
 
     def get_closest_target(self) -> 'Hex | None':
-        target1 = self.civ.target1
-        target2 = self.civ.target2
+        """
+        Returns the target closest to the given hex. If there are multiple targets at the same distance, returns one at random.
+        """        
+        targets = self.civ.targets
 
-        if target1 is None and target2 is None:
+        if not targets:
             return None
-        
-        if target1 is None:
-            return target2
-        
-        if target2 is None:
-            return target1
-        
-        if self.hex.distance_to(target1) <= self.hex.distance_to(target2):
-            return target1
-        else:
-            return target2
+        if not self.hex:
+            return None
+
+        targets_copy = targets[:]
+        random.shuffle(targets_copy)
+        return min(targets_copy, key=lambda target: self.hex.distance_to(target))
 
     def sight_range(self, short_sighted: bool) -> int:
         return 2 if short_sighted else 1

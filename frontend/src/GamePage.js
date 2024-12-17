@@ -494,16 +494,15 @@ export default function GamePage() {
         .filter(hex => hex.units?.length > 0 && civsById?.[hex.units[0].civ_id]?.game_player?.player_num === myGamePlayer?.player_num)
         .map(hex => hex.units[0])
 
-    const target1 = coordsToObject(myCiv?.target1);
-    const target2 = coordsToObject(myCiv?.target2);
+    const targets = [myCiv?.targets.map(target => coordsToObject(target))];
 
     const myCivIdRef = React.useRef(myCivId);
     const hoveredHexRef = React.useRef(hoveredHex);
     const civsByIdRef = React.useRef(civsById);
     const lastSetPrimaryTargetRef = React.useRef(lastSetPrimaryTarget);
     const playerApiUrl= `${URL}/api/player_input/${gameId}`
-    const target1Ref = React.useRef(target1);
-    const target2Ref = React.useRef(target2);
+    const targetsRef = React.useRef(targets);
+    const myCivRef = React.useRef(myCiv);
     const playerNumRef = React.useRef(playerNum);
     const gameStateRef = React.useRef(gameState);
     const turnEndedByPlayerNumRef = React.useRef(turnEndedByPlayerNum);
@@ -517,12 +516,8 @@ export default function GamePage() {
     }, [lastSetPrimaryTarget]);
 
     useEffect(() => {
-        target1Ref.current = target1;
-    }, [target1]);
-
-    useEffect(() => {
-        target2Ref.current = target2;
-    }, [target2]);
+        targetsRef.current = targets;
+    }, [targets]);
 
     useEffect(() => {
         myCivIdRef.current = myCivId;
@@ -539,6 +534,10 @@ export default function GamePage() {
     useEffect(() => {
         gameStateRef.current = gameState;
     }, [gameState]);
+
+    useEffect(() => {
+        myCivRef.current = myCiv;
+    }, [myCiv]);    
 
     useEffect(() => {
         turnEndedByPlayerNumRef.current = turnEndedByPlayerNum;
@@ -851,29 +850,31 @@ export default function GamePage() {
         hasRunCenterRef.current = true;
     }, [gameState]);
 
+    const hexIsInTargets = (hex) => {
+        const targets = myCiv?.targets;
+        return targets && targets.some(target => hexesAreEqual(hex, coordsToObject(target)));
+    }
+
+    // console.log("myCiv", myCiv);
+    console.log("myCiv.targets", myCiv?.targets);
+
     useEffect(() => {
-        const setTarget = (hex, isSecondary) => {
+        const addTarget = (hex) => {
             if (!myCivIdRef.current || gameStateRef?.current?.special_mode_by_player_num?.[playerNumRef.current]) return;
     
-            if (isSecondary) {
-                setLastSetPrimaryTarget(false);
-            }
-            else {
-                setLastSetPrimaryTarget(true);
-            }
-    
             const playerInput = {
-                'move_type': `set_civ_${isSecondary ? "secondary" : "primary"}_target`,
+                'move_type': `add_target`,
                 'target_coords': `${hex.q},${hex.r},${hex.s}`,
             }
             submitPlayerInput(playerInput);
         }
     
-        const removeTarget = (isSecondary) => {
+        const removeTarget = (hex) => {
             if (!myCivIdRef.current) return;
     
             const playerInput = {
-                'move_type': `remove_civ_${isSecondary ? "secondary" : "primary"}_target`,
+                'move_type': `remove_target`,
+                'target_coords': `${hex.q},${hex.r},${hex.s}`,
             }
             submitPlayerInput(playerInput);
         }
@@ -888,14 +889,21 @@ export default function GamePage() {
     
                 if (engineState !== EngineStates.PLAYING) {return;}
     
-                if (hexesAreEqual(hoveredHexRef.current, target1Ref.current)) {
-                    removeTarget(false);
-                } else if (hexesAreEqual(hoveredHexRef.current, target2Ref.current)) {
-                    removeTarget(true);
-                } else {
-                    setTarget(hoveredHexRef.current, !target1Ref.current ? false : !target2Ref.current ? true : lastSetPrimaryTargetRef.current ? true : false);
+                const targets = myCivRef.current?.targets;
+
+                if (targets != null) {
+                    let removedATarget = false;
+                    targets.forEach((target) => {
+                        if (hexesAreEqual(hoveredHexRef.current, coordsToObject(target))) {
+                            removeTarget(coordsToObject(target));
+                            removedATarget = true;
+                        }
+                    });
+
+                    if (!removedATarget) {
+                        addTarget(hoveredHexRef.current);
+                    }
                 }
-                
                 // Show flag arrows for 1s. Start after 100ms so there's time for the system to react to the update.
                 clearTimeout(flagArrowsTimeoutRef.current);
                 setTimeout(() => setShowFlagArrows(true), 100);
@@ -3442,8 +3450,7 @@ export default function GamePage() {
                                     />}
                                     {hex.quest === 'El Dorado' && <ElDoradoMarker/>}
                                     {hex.quest === 'Yggdrasils Seeds' && <YggdrasilSeedsMarker/>}
-                                    {!declineOptionsView && target1 && hex?.q === target1?.q && hex?.r === target1?.r && hex?.s === target1?.s && <TargetMarker />}
-                                    {!declineOptionsView && target2 && hex?.q === target2?.q && hex?.r === target2?.r && hex?.s === target2?.s && <TargetMarker purple />}
+                                    {!declineOptionsView && hexIsInTargets(hex) && <TargetMarker />}
                                 </Hexagon>
                             );
                         })}

@@ -780,23 +780,21 @@ class GameState:
             else:
                 raise ValueError(f"Invalid type: {move_data['type']}")
 
-        if move_type == MoveType.SET_CIV_PRIMARY_TARGET:
+        if move_type == MoveType.ADD_TARGET:
             target_coords = move_data['target_coords']
-            civ.target1_coords = target_coords
-            civ.target1 = self.hexes[target_coords]
+            civ.targets.append(self.hexes[target_coords])
+            civ.target_coords.append(target_coords)
 
-        if move_type == MoveType.SET_CIV_SECONDARY_TARGET:
+        if move_type == MoveType.SET_ALL_TARGETS:
             target_coords = move_data['target_coords']
-            civ.target2_coords = target_coords
-            civ.target2 = self.hexes[target_coords]
+            civ.targets = [self.hexes[target_coord] for target_coord in target_coords]
+            civ.target_coords = target_coords
 
-        if move_type == MoveType.REMOVE_CIV_PRIMARY_TARGET:
-            civ.target1_coords = None
-            civ.target1 = None
-
-        if move_type == MoveType.REMOVE_CIV_SECONDARY_TARGET:
-            civ.target2_coords = None
-            civ.target2 = None
+        if move_type == MoveType.REMOVE_TARGET:
+            target_coords = move_data['target_coords']
+            print(f"Removing target {target_coords}")
+            civ.targets = [t for t in civ.targets if t.coords != target_coords]
+            civ.target_coords = [t for t in civ.target_coords if t != target_coords]
 
         if move_type == MoveType.CHOOSE_FOCUS:
             city_id = move_data['city_id']
@@ -1013,10 +1011,8 @@ class GameState:
         logger.info(f"GameState incrementing turn {self.turn_num} -> {self.turn_num + 1}")
         self.turn_num += 1
 
-        self.barbarians.target1 = self.pick_random_hex()
-        self.barbarians.target2 = self.pick_random_hex()
-        self.barbarians.target1_coords = self.barbarians.target1.coords
-        self.barbarians.target2_coords = self.barbarians.target2.coords
+        self.barbarians.targets = [self.pick_random_hex(), self.pick_random_hex()]
+        self.barbarians.target_coords = [target.coords for target in self.barbarians.targets]
 
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
