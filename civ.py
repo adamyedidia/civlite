@@ -69,6 +69,7 @@ class Civ:
         self.vandetta_civ_id: Optional[str] = None
         self.unique_units_built: int = 0
         self.renaissances: int = 0
+        self._game_player_num: Optional[int] = self.game_player.player_num if self.game_player else None
 
         self.score_dict: dict[str, float] = {}
 
@@ -257,7 +258,7 @@ class Civ:
     def to_json(self) -> dict:
         return {
             "id": self.id,
-            "game_player": self.game_player.to_json() if self.game_player else None,
+            "game_player_num": self.game_player.player_num if self.game_player else None,
             "name": self.template.name,
             "science": self.science,
             "techs_status": {tech.name: status.value for tech, status in self.techs_status.items()},
@@ -635,8 +636,8 @@ class Civ:
             self.trade_hub_id = None
 
     def from_json_postprocess(self, game_state: 'GameState') -> None:
-        if self.game_player is not None:
-            self.game_player = game_state.game_player_by_player_num[self.game_player.player_num]
+        if self._game_player_num is not None:
+            self.game_player = game_state.game_player_by_player_num[self._game_player_num]
 
         if self.target_coords:
             self.targets = [game_state.hexes[target_coord] for target_coord in self.target_coords]
@@ -727,8 +728,9 @@ class Civ:
     def from_json(json: dict) -> "Civ":
         civ = Civ(
             civ_template=CIVS.by_name(json["name"]),
-            game_player=GamePlayer.from_json(json["game_player"]) if json["game_player"] else None,
+            game_player=None,
         )
+        civ._game_player_num = json["game_player_num"]
         civ.id = json["id"]
         civ.science = json["science"]
         civ.techs_status = {tech: TechStatus(json["techs_status"][tech.name]) for tech in TECHS.all()}

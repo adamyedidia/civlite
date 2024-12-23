@@ -329,7 +329,7 @@ const generateUniqueId = () => {
 }
 
 const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital, civsById}) => {
-    const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player?.player_num === playerNum;
+    const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player_num === playerNum;
     const disabledMsg = isMyCity ? "Can't decline to my own city" 
             : myGamePlayer?.decline_this_turn ? "Already declined this turn"
             : (isOvertime && !myGamePlayer?.failed_to_decline_this_turn) ? "Can't decline in overtime"
@@ -488,10 +488,10 @@ export default function GamePage() {
     const civsById = gameState?.civs_by_id;
     const declineViewCivsById = declineViewGameState?.civs_by_id;
 
-    const myCities = Object.values(mainGameState?.cities_by_id || {}).filter(city => civsById?.[city.civ_id]?.game_player?.player_num === myGamePlayer?.player_num);
+    const myCities = Object.values(mainGameState?.cities_by_id || {}).filter(city => civsById?.[city.civ_id]?.game_player_num === myGamePlayer?.player_num);
     const myTerritoryCapitals = myCities.filter(city => city.territory_parent_coords === null);
     const myUnits = Object.values(mainGameState?.hexes || {})
-        .filter(hex => hex.units?.length > 0 && civsById?.[hex.units[0].civ_id]?.game_player?.player_num === myGamePlayer?.player_num)
+        .filter(hex => hex.units?.length > 0 && civsById?.[hex.units[0].civ_id]?.game_player_num === myGamePlayer?.player_num)
         .map(hex => hex.units[0])
 
     const targets = [myCiv?.targets.map(target => coordsToObject(target))];
@@ -2959,7 +2959,7 @@ export default function GamePage() {
             return true;
         }
         if (playerNum !== null && playerNum !== undefined) {
-            return civsByIdRef.current?.[city.civ_id]?.game_player?.player_num === playerNum
+            return civsByIdRef.current?.[city.civ_id]?.game_player_num === playerNum
 
         }
         return false;
@@ -3040,7 +3040,8 @@ export default function GamePage() {
 
     const cityBoxCanvas = {'width': 8, 'height': 6};
 
-    const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppet, friendly, cityName, onMouseEnter, onClick, capital, children}) => {
+    const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppet, friendly, cityName, onMouseEnter, onClick, children}) => {
+        const capital = gameState.game_player_capital_city_names.includes(cityName);
         const cityBoxPanelBottomY = cityBoxCanvas.height / 2 + cityBoxPanel.height / 2
         return <svg width={cityBoxCanvas.width} height={cityBoxCanvas.height} viewBox={`0 0 ${cityBoxCanvas.width} ${cityBoxCanvas.height}`} x={-cityBoxCanvas.width / 2} y={-1.5 - cityBoxCanvas.height / 2} onMouseEnter={onMouseEnter} onClick={onClick} style={{...(friendly ? {cursor : 'pointer'} : {})}}>
             {/* Background rectangle */}
@@ -3060,8 +3061,8 @@ export default function GamePage() {
         </svg>
     }
 
-    const FogCity = ({ cityName, capital }) => {
-        return <CityRectangle cityBoxPanel={{width: 6, height: 2}} primaryColor="#bbbbbb" secondaryColor="#888888" puppet={false} cityName={cityName} capital={capital}>
+    const FogCity = ({ cityName }) => {
+        return <CityRectangle cityBoxPanel={{width: 6, height: 2}} primaryColor="#bbbbbb" secondaryColor="#888888" puppet={false} cityName={cityName}>
             <rect width={cityBoxCanvas.width} height={cityBoxCanvas.height} fill="none" stroke="none" />
         </CityRectangle>
     }
@@ -3112,7 +3113,7 @@ export default function GamePage() {
                         <image href="/images/fire.svg" x="0" y="0" height="6" width="6" />
                     </svg>
                 }
-                <CityRectangle cityBoxPanel={cityBoxPanel} primaryColor={primaryColor} secondaryColor={secondaryColor} puppet={puppet} cityName={city.name} capital={city.player_capital} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} friendly={friendly}>
+                <CityRectangle cityBoxPanel={cityBoxPanel} primaryColor={primaryColor} secondaryColor={secondaryColor} puppet={puppet} cityName={city.name} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} friendly={friendly}>
                     {/* Population */}
                     <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={secondaryColor} strokeWidth="0.1"/>
                     <image opacity={.7} href={workerIcon} x="3.5" y="1.4" height="1" width="1" />
@@ -3318,7 +3319,7 @@ export default function GamePage() {
         if (hex.city) {
             const cityCiv = civsByIdRef.current[hex?.city?.civ_id]
             setHoveredCiv(cityCiv);
-            setHoveredGamePlayer(civsByIdRef.current[hex?.city?.civ_id]?.game_player?.username);
+            setHoveredGamePlayer(gameState.game_players_by_player_num?.[civsByIdRef.current[hex?.city?.civ_id]?.game_player_num]?.username);
             setHoveredCity(hex.city)
             hoveredCivPicked = true;
         }
@@ -3330,7 +3331,7 @@ export default function GamePage() {
             const civ = civsByIdRef.current[unit?.civ_id]
             setHoveredUnit(unit);
             setHoveredCiv(civ);
-            setHoveredGamePlayer(civsByIdRef.current[hex?.units?.[0]?.civ_id]?.game_player?.username);
+            setHoveredGamePlayer(gameState.game_players_by_player_num?.[civsByIdRef.current[hex?.city?.civ_id]?.game_player_num]?.username);
             hoveredCivPicked = true;
         }
         else {
@@ -3430,7 +3431,6 @@ export default function GamePage() {
                                     />}
                                     {!(hex.yields && totalHexYields(hex.yields) > 0) && myGamePlayer?.fog_cities[coordsString(hex)] && <FogCity 
                                         cityName={myGamePlayer?.fog_cities[coordsString(hex)].name}  
-                                        capital={myGamePlayer?.fog_cities[coordsString(hex)].capital}
                                     />}
                                     {!(hex.yields && totalHexYields(hex.yields) > 0) && myGamePlayer?.fog_camp_coords_with_turn[coordsString(hex)] && <FogCamp
                                         coords={coordsString(hex)}

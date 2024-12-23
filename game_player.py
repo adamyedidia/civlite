@@ -140,8 +140,13 @@ class GamePlayer:
     def add_fog_city(self, city):
         self.fog_cities[city.hex.coords] = {
             "name": city.name,
-            "capital": city.capital and city.civ.game_player is not None,
         }
+
+    def get_capital_city_name(self, game_state: 'GameState') -> str:
+        if self.civ_id is None:
+            return ""
+        city = self.get_current_civ(game_state).capital_city(game_state)
+        return city.name if city is not None else ""
 
     def to_json(self) -> dict:
         a7_tenet = self.tenet_at_level(7)

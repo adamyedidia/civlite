@@ -1414,6 +1414,7 @@ class GameState:
             "advancement_level_tenets_display": self.advancement_level_tenets_display(),
             "a7_tenets_yields_stolen_last_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_last_turn.items()},
             "a7_tenets_yields_stolen_this_turn": {civ_id: yields.to_json() for civ_id, yields in self.a7_tenets_yields_stolen_this_turn.items()},
+            "game_player_capital_city_names": [game_player.get_capital_city_name(self) for game_player in self.game_player_by_player_num.values()],
         }
 
     @staticmethod
