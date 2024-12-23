@@ -5,8 +5,11 @@ const ProgressBar = ({barText, darkPercent, lightPercent}) => {
     if (typeof darkPercent !== 'number' || typeof lightPercent !== 'number') {
         throw new Error('darkPercent and lightPercent must be numbers');
     }
-    const darkPercentClipped = Math.min(darkPercent, 100);
-    const lightPercentClipped = Math.min(lightPercent, 100 - darkPercent)
+    const darkPercentClipped = Math.max(0, Math.min(darkPercent, 100));
+    if (darkPercent < 0) {
+        lightPercent = lightPercent + darkPercent;
+    }
+    const lightPercentClipped = Math.max(0, Math.min(lightPercent, 100 - darkPercent));
     return <div className="progress-bar">
                 <div className="bar stored" style={{ width: `${darkPercentClipped}%`, }}></div>
                 <div className="bar produced" style={{ width: `${lightPercentClipped}%`}}></div>
