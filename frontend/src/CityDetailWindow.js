@@ -344,8 +344,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                                 </div>
                             </div>
                             <Tooltip title={selectedCity.is_trade_hub ? 
-                                `Trade hub consumes 20 city power to remove 10 unhappiness per turn (if above 10). Click to cancel.` : 
-                                `Make this city your trade hub (20 city power -> 10 unhappiness)`}>
+                                `Trade hub consumes ${myGamePlayer?.a7_tenet_yield ? 50 : 20} city power to ${myGamePlayer?.a7_tenet_yield ? `steal 4 ${myGamePlayer?.a7_tenet_yield} from each city` : "remove 10 unhappiness per turn"}.` : 
+                                `Make this city your trade hub (${myGamePlayer?.a7_tenet_yield ? 50 : 20} city power -> ${myGamePlayer?.a7_tenet_yield ? `+4 ${myGamePlayer?.a7_tenet_yield} from each city` : "-10 unhappiness"})`}>
                             <div className="trade-hub"
                                 onClick = {handleClickTradeHub}>
                                     <TradeHubIcon myGamePlayer={myGamePlayer}

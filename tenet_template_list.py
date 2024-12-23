@@ -232,7 +232,7 @@ class TENETS():
     SPACE_RACE = TenetTemplate(
         advancement_level=7,
         name="Space Race",
-        description="Your trade hub now spends 60 city power to steal 3 science from every other city.",
+        description="Your trade hub now spends 50 city power to steal 4 science from every other city.",
         a7_yield="science",
         sort_order=ORDER_SCIENCE,
     )
@@ -240,7 +240,7 @@ class TENETS():
     IRON_CURTAIN = TenetTemplate(
         advancement_level=7,
         name="Iron Curtain",
-        description="Your trade hub now spends 60 city power to steal 3 metal from every other city.",
+        description="Your trade hub now spends 50 city power to steal 4 metal from every other city.",
         a7_yield="metal",
         sort_order=ORDER_METAL,
     )
@@ -248,7 +248,7 @@ class TENETS():
     TRADE_WARS = TenetTemplate(
         advancement_level=7,
         name="Trade Wars",
-        description="Your trade hub now spends 60 city power to steal 3 wood from every other city.",
+        description="Your trade hub now spends 50 city power to steal 4 wood from every other city.",
         a7_yield="wood",
         sort_order=ORDER_WOOD,
     )
@@ -256,7 +256,7 @@ class TENETS():
     POPULATION_BOOM = TenetTemplate(
         advancement_level=7,
         name="Population Boom",
-        description="Your trade hub now spends 60 city power to steal 3 food from every other city.",
+        description="Your trade hub now spends 50 city power to steal 4 food from every other city.",
         a7_yield="food",
         sort_order=ORDER_FOOD,
     )

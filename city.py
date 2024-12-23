@@ -338,8 +338,8 @@ class City(MapObjectSpawner):
             self.projected_income.unhappiness -= 0.5 * city_power_to_consume
             self.civ.trade_hub_city_power_consumption = city_power_to_consume
         elif self.is_trade_hub() and my_a7_tenet is not None:
-            city_power_to_consume = 60
-            amount = 3
+            city_power_to_consume = 50
+            amount = 4
             type = my_a7_tenet.a7_yield
             assert type is not None
             yields = Yields(**{type: amount * len(game_state.cities_by_id)})
