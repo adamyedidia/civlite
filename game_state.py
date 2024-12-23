@@ -1194,7 +1194,7 @@ class GameState:
         if random.random() > camp_prob:
             return
         coords = random.choice(sorted(valid_hexes))
-        camp_level: int = max(0, self.advancement_level - 2)
+        camp_level: int = max(0, self.advancement_level - 1)
         logger.info(f"Making camp at {coords} at level {camp_level}")
         self.register_camp(Camp(self.barbarians, advancement_level=camp_level, hex=self.hexes[coords], turn_spawned=self.turn_num))
 
