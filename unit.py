@@ -439,7 +439,8 @@ class Unit(MapObject):
             self.take_damage(5, game_state, from_civ=None)
 
     def update_nearby_hexes_friendly_foundability(self) -> None:
-        self.hex.is_foundable_by_civ[self.civ.id] = True
+        if self.civ.template != CIVS.BARBARIAN:
+            self.hex.is_foundable_by_civ[self.civ.id] = True
 
     def capture(self, sess, game_state: 'GameState') -> None:
         raise ValueError(f"Somehow a unit got sieged and captured. That should only happen to cities and camps. {self.id=} {self.template.name=} {self.hex.coords=}")

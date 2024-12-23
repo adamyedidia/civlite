@@ -321,7 +321,9 @@ class GameState:
     def pick_random_hex(self) -> Hex:
         return random.choice(list(self.hexes.values()))
 
-    def register_city(self, city):
+    def register_city(self, city: City):
+        assert city.hex.city is None, f"Creating city at {city.hex.coords} but it already has a city {city.hex.city.name}!"
+        assert city.hex.camp is None, f"Creating city at {city.hex.coords} but it already has a camp {city.hex.camp}!"
         city.hex.city = city
         city.founded_turn = self.turn_num
         self.cities_by_id[city.id] = city
@@ -577,9 +579,13 @@ class GameState:
             old_civ: Optional[Civ] = None
             logger.info(f"Declining to fresh city at {coords}")
             city = self.fresh_cities_for_decline[coords]
+            if hex.camp is not None:
+                self.unregister_camp(hex.camp)
             self.register_city(city)
             for game_player in self.game_player_by_player_num.values():
                 game_player.add_fog_city(city)
+                if coords in game_player.fog_camp_coords_with_turn:
+                    del game_player.fog_camp_coords_with_turn[coords]
         assert hex.city is not None, "Failed to register city!"
         hex.city.capitalize(self)
         hex.city.civ_to_revolt_into = None
@@ -608,15 +614,10 @@ class GameState:
         hexes_to_steal_from = hex.get_neighbors(self.hexes, include_self=True) if is_game_player else [hex]
         for neighbor_hex in hexes_to_steal_from:
             for unit in neighbor_hex.units:
-                if unit.civ == old_civ or unit.civ.template == CIVS.BARBARIAN:
+                if (unit.civ == old_civ or unit.civ.template == CIVS.BARBARIAN) and not (neighbor_hex.camp and neighbor_hex.camp.civ == unit.civ):
                     unit.update_civ(new_civ)
                     stack_size: int = unit.get_stack_size()
                     unit_count += stack_size
-        if hex.camp is not None:
-            self.unregister_camp(hex.camp)
-        for neighbor_hex in hex.get_neighbors(self.hexes, include_self=False):
-            if neighbor_hex.camp is not None:
-                neighbor_hex.camp.update_civ(new_civ)
         hex.city.revolt_unit_count = unit_count
 
         return hex.city
@@ -1124,7 +1125,7 @@ class GameState:
         return decline_view_visible_hexes
 
     def update_fog_camps(self):
-        decline_view_visible_hexes = self.decline_view_visible_hexes(include_decline_cities=True)
+        decline_view_visible_hexes = self.decline_view_visible_hexes(include_decline_cities=False)
         decline_view_visible_hexes_with_camps = {hex for hex in decline_view_visible_hexes if hex.camp is not None}
 
         for hex in decline_view_visible_hexes_with_camps:
