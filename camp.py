@@ -94,10 +94,6 @@ class Camp(MapObjectSpawner):
         if self.hex.camp is None:
             # The camp got cleared, it shouldn't spawn.
             return
-        if self.unit.advancement_level < game_state.advancement_level - 3 and random.random() < 0.2 and self.under_siege_by_civ is None:
-            # This camp is too old. It makes a last hurrah and then dies.
-            self.build_unit(game_state, self.unit, stack_size=3)
-            game_state.unregister_camp(self)
 
         # Game players that own camps through great bath get double production.
         produce_unit = (game_state.turn_num % 2 == self.turn_spawned % 2) or (not self.civ.template == CIVS.BARBARIAN)
