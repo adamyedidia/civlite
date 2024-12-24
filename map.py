@@ -197,8 +197,6 @@ def generate_decline_locations(game_state: 'GameState', n: int, existing_decline
     while len(valid_decline_locations) > 0 and len(decline_locations) < n:
         decline_location = max(valid_decline_locations, key=lambda hex: decline_location_score(city_distance_map[hex], active_player_city_distance_map[hex], existing_decline_location_distance_map[hex], camp_size(hex)))
         decline_locations.append(decline_location)
-        print(f"Selected decline location {decline_location.coords} with camp size {camp_size(decline_location)}")
-        print("\n".join([f"{loc.coords}: {camp_size(loc)}" for loc in valid_decline_locations]))
         update_distance_map(existing_decline_location_distance_map, decline_location)
         for loc in decline_location.get_neighbors(game_state.hexes, include_self=True):
             if loc in valid_decline_locations:
