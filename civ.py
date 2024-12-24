@@ -360,21 +360,13 @@ class Civ:
              for city in my_cities])
         
         option_total_yields: dict[str, float] = {}
-        for city in game_state.cities_by_id.values():
-            if city.civ_to_revolt_into is None:
-                continue
-
-            if city.civ == self:
-                continue
-
-            current_total_yields = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
-            option_total_yields[city.hex.coords] = current_total_yields / city.civ.vitality
-            option_total_yields[city.hex.coords] += AI.RURAL_SLOT_VALUE * city.rural_slots + city.population * city.urban_slots
-            option_total_yields[city.hex.coords] *= city.revolting_starting_vitality
-
-        for coords, city in game_state.fresh_cities_for_decline.items():
-            option_total_yields[coords] = city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science']
-            option_total_yields[coords] += (AI.RURAL_SLOT_VALUE * city.rural_slots + city.population * city.urban_slots) * city.revolting_starting_vitality
+        options: list[tuple[str, City]] = [(c.hex.coords, c) for c in game_state.cities_by_id.values() if c.civ_to_revolt_into is not None and c.civ != self] + list(game_state.fresh_cities_for_decline.items())
+        for coords, city in options:
+            current_total_yields = sum([hex.terrain.yields for hex in city.hex.get_neighbors(game_state.hexes, include_self=True)], city.projected_income_city_center)
+            option_total_yields[coords] = current_total_yields.total()
+            option_total_yields[coords] += city.population  # focus
+            option_total_yields[coords] += AI.RURAL_SLOT_VALUE * city.rural_slots + city.population * city.urban_slots
+            option_total_yields[coords] *= city.revolting_starting_vitality
 
         if len(option_total_yields) == 0:
             logger.info(f"{self.moniker()} deciding not to decline because there are no options.")
