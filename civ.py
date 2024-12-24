@@ -235,9 +235,14 @@ class Civ:
             average_available_tech_cost: float = sum([tech.cost for tech in available_techs]) / len(available_techs) if len(available_techs) > 0 else 1
             average_available_tech_level: float = sum([min(tech.advancement_level, missing_levels) for tech in available_techs]) / len(available_techs) if len(available_techs) > 0 else 1
             partial_tech_progress: float = self.science / average_available_tech_cost * average_available_tech_level
-            clipped_partial_tech_progress: float = min(partial_tech_progress, missing_levels * 0.9)
+            
+            # Need to clip to (0, 90% of missing levels), since you can have negative science or tons of science.
+            clipped_partial_tech_progress: float = np.clip(partial_tech_progress, 0, missing_levels * 0.9)
 
-            partial_age_progress = (progress_levels + clipped_partial_tech_progress) / total_levels_needed
+            # Need max(0, x) since you can have negative science.
+            partial_age_progress = max(0, (progress_levels + clipped_partial_tech_progress) / total_levels_needed)
+            if STRICT_MODE:
+                assert 0 <= partial_age_progress <= 1
 
             return age + partial_age_progress
 
