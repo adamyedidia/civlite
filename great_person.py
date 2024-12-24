@@ -171,7 +171,7 @@ class GreatEngineer(GreatPerson):
             return False
         if city.has_building(self.unit_template):
             return False
-        if city.military_slots <= city.num_buildings_of_type(BuildingType.UNIT):
+        if city.empty_slots(BuildingType.UNIT) <= 0:
             if all(unit.template.advancement_level >= self.unit_template.advancement_level for unit in city.unit_buildings):
                 return False
             if self.unit_template.has_tag(UnitTag.DEFENSIVE):

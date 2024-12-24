@@ -306,7 +306,7 @@ class City(MapObjectSpawner):
             first_neg_idx = next((i for i, c in enumerate(cumsum_excess) if c < 0), len(cumsum_excess))
             self.projected_build_queue_depth = first_neg_idx
 
-        unit_buildings_to_bulldoze = max(0, self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) - self.military_slots)
+        unit_buildings_to_bulldoze = max(0, -self.empty_slots(BuildingType.UNIT, include_in_queue=True))
         if STRICT_MODE:
             assert unit_buildings_to_bulldoze <= self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True)
         targets = self.unit_buildings_ranked_for_bulldoze()
@@ -382,9 +382,9 @@ class City(MapObjectSpawner):
         yields.add_yields("Buildings", total_bldg_yields)
         
         yields.add_yields("Empty Slots", Yields(
-            food=self.rural_slots - self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=False),
-            metal=(self.military_slots - self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False)) * 2,
-            science=(self.urban_slots - self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=False)) * 2,
+            food=self.empty_slots(BuildingType.RURAL, include_in_queue=False),
+            metal=self.empty_slots(BuildingType.UNIT, include_in_queue=False) * 2,
+            science=self.empty_slots(BuildingType.URBAN, include_in_queue=False) * 2,
         ))
 
         if self.civ.has_ability("IncreaseCapitalYields") and self.capital:
@@ -572,7 +572,7 @@ class City(MapObjectSpawner):
             return
         self.available_units = sorted([b.template for b in self.unit_buildings])
         
-        if self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=False) >= self.military_slots:
+        if self.empty_slots(BuildingType.UNIT, include_in_queue=False) <= 0:
             min_level = min([u.advancement_level for u in self.available_units])
         else:
             min_level = 0
@@ -741,7 +741,7 @@ class City(MapObjectSpawner):
                 for unit in self.available_units:
                     desc.pseudoyields_for_ai_nonvitality += Yields(metal=unit.metal_cost)
                     desc.buffed_units.append(unit)
-                desc.pseudoyields_for_ai_nonvitality += Yields(food=-self.growth_cost())
+                desc.pseudoyields_for_ai_nonvitality += Yields(food=-self.growth_cost(), city_power=self.growth_cost())
         return desc
 
     def _update_city_building_descriptions(self, game_state: 'GameState') -> None:
@@ -889,9 +889,9 @@ class City(MapObjectSpawner):
         if isinstance(building_template, BuildingTemplate):
             if building_template not in self.available_city_buildings:
                 return False
-            if building_template.type == BuildingType.URBAN and self.urban_slots <= self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True):
+            if building_template.type == BuildingType.URBAN and self.empty_slots(BuildingType.URBAN, include_in_queue=True) > 0:
                 return False
-            if building_template.type == BuildingType.RURAL and self.rural_slots <= self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True):
+            if building_template.type == BuildingType.RURAL and self.empty_slots(BuildingType.RURAL, include_in_queue=True) > 0:
                 return False
         if isinstance(building_template, WonderTemplate):
             if building_template not in self.available_wonders:
@@ -925,6 +925,17 @@ class City(MapObjectSpawner):
         if include_in_queue:
             bldgs += len([b for b in self.buildings_queue if type_from_template(b.template) == type])
         return bldgs
+
+    def empty_slots(self, type: BuildingType, include_in_queue=False) -> int:
+        if type == BuildingType.RURAL:
+            total_slots = self.rural_slots
+        elif type == BuildingType.URBAN:
+            total_slots = self.urban_slots
+        elif type == BuildingType.UNIT:
+            total_slots = self.military_slots
+        else:
+            raise ValueError(f"Unknown building type: {type}")
+        return total_slots - self.num_buildings_of_type(type, include_in_queue=include_in_queue)
 
     def develop_cost(self, type: BuildingType):
         result = DEVELOP_COST[type.value] * 2 ** self.develops_this_civ[type]
@@ -1222,9 +1233,9 @@ class City(MapObjectSpawner):
         return sum([AI_VALUE[k] * v for k, v in y.items()])
 
     def bot_pick_economic_building(self, choices: list[BuildingTemplate], remaining_wood: float, game_state: 'GameState') -> Optional[BuildingTemplate]:
-        if self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) >= self.rural_slots:
+        if self.empty_slots(BuildingType.RURAL, include_in_queue=True) <= 0:
             choices = [b for b in choices if b.type != BuildingType.RURAL]
-        if self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots:
+        if self.empty_slots(BuildingType.URBAN, include_in_queue=True) <= 0:
             choices = [b for b in choices if b.type != BuildingType.URBAN]
 
         # Don't build libraries
@@ -1296,14 +1307,14 @@ class City(MapObjectSpawner):
 
         if self.can_develop(BuildingType.URBAN) \
             and (random.random() < AI.CHANCE_URBANIZE or favorite_development == "urban") \
-            and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots - 1:
+            and self.empty_slots(BuildingType.URBAN, include_in_queue=True) <= 1:
             self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'urban'}, abbreviated_midturn_update=True)
         if self.can_develop(BuildingType.UNIT) \
             and (random.random() < AI.CHANCE_MILITARIZE or favorite_development == "unit") \
-            and self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) >= self.military_slots:
+            and self.empty_slots(BuildingType.UNIT, include_in_queue=True) <= 0:
             self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'unit'}, abbreviated_midturn_update=True)
         if self.can_develop(BuildingType.RURAL) \
-            and self.rural_slots - 1 <= self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) \
+            and self.empty_slots(BuildingType.RURAL, include_in_queue=True) <= 1 \
             and (random.random() < AI.CHANCE_EXPAND or favorite_development == "rural"):
             self.bot_single_move(game_state, MoveType.DEVELOP, {'type': 'rural'}, abbreviated_midturn_update=True)
 
@@ -1383,9 +1394,9 @@ class City(MapObjectSpawner):
             for effect in econ_bldg_choice.on_build:
                 if isinstance(effect, GainResourceEffect) and effect.resource == "wood":
                     remaining_wood_budget += effect.amount
-            if econ_bldg_choice.type == BuildingType.URBAN and self.urban_slots <= self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) + len([b for b in q if isinstance(b, BuildingTemplate) and b.type == BuildingType.URBAN]):
+            if econ_bldg_choice.type == BuildingType.URBAN and self.empty_slots(BuildingType.URBAN, include_in_queue=True) <= len([b for b in q if isinstance(b, BuildingTemplate) and b.type == BuildingType.URBAN]):
                 economic_buildings = [b for b in economic_buildings if b.type != BuildingType.URBAN]
-            if econ_bldg_choice.type == BuildingType.RURAL and self.rural_slots <= self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) + len([b for b in q if isinstance(b, BuildingTemplate) and b.type == BuildingType.RURAL]):
+            if econ_bldg_choice.type == BuildingType.RURAL and self.empty_slots(BuildingType.RURAL, include_in_queue=True) <= len([b for b in q if isinstance(b, BuildingTemplate) and b.type == BuildingType.RURAL]):
                 economic_buildings = [b for b in economic_buildings if b.type != BuildingType.RURAL]
             logger.info(f"  adding economic building {econ_bldg_choice.name} to buildings queue: {q}")
         
@@ -1417,7 +1428,7 @@ class City(MapObjectSpawner):
                 focuses_with_best_yields.remove("food")
             if len(production_city.active_unit_buildings) > 0 and 'metal' in focuses_with_best_yields and production_city.is_threatened_city(game_state):
                 choice = 'metal'
-            elif 'wood' in focuses_with_best_yields and self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) < production_city.urban_slots and parent_wants_wood:
+            elif 'wood' in focuses_with_best_yields and production_city.empty_slots(BuildingType.URBAN, include_in_queue=True) > 0 and parent_wants_wood:
                 choice = 'wood'
             else:
                 choice = random.choice(focuses_with_best_yields)
@@ -1452,9 +1463,9 @@ class City(MapObjectSpawner):
             "available_urban_building_names": [template.name for template in self.available_city_buildings if not self.building_in_queue(template) and template.type==BuildingType.URBAN],
             "available_rural_building_names": [template.name for template in self.available_city_buildings if not self.building_in_queue(template) and template.type==BuildingType.RURAL],
             "building_slots_full": {
-                "rural": self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) >= self.rural_slots,
-                "urban": self.num_buildings_of_type(BuildingType.URBAN, include_in_queue=True) >= self.urban_slots,
-                "military": self.num_buildings_of_type(BuildingType.UNIT, include_in_queue=True) >= self.military_slots,
+                "rural": self.empty_slots(BuildingType.RURAL, include_in_queue=True) <= 0,
+                "urban": self.empty_slots(BuildingType.URBAN, include_in_queue=True) <= 0,
+                "military": self.empty_slots(BuildingType.UNIT, include_in_queue=True) <= 0,
             },
             "capital": self.capital,
             "available_units": [u.name for u in self.available_units],
