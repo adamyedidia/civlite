@@ -303,7 +303,7 @@ def plot_rates(winner_data, loser_data, items, title, cond_prob_range, name_fn=l
         row=2 + 2 * fig_offset, col=1,
     )
 
-    if hasattr(items[0], "advancement_level"):
+    if len(items) > 0 and hasattr(items[0], "advancement_level"):
         for age in range(10):
             probs = [p for item, p in zip(items, cond_win_prob) if item.advancement_level == age]
             if len(probs) > 0:
