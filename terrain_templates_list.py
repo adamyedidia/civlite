@@ -8,24 +8,28 @@ class TERRAINS():
         yields= Yields(food=1, wood=0, metal=1, science=0),
         bonus_yields= Yields(food=3, wood=0, metal=1, science=0),
         frequency= 1,
+        city_center_yield= "food",
     )
     FOREST = TerrainTemplate(
         name= 'forest',
         yields= Yields(food=1, wood=1, metal=0, science=0),
         bonus_yields= Yields(food=1, wood=3, metal=0, science=0),
         frequency= 1,
+        city_center_yield= "wood",
     )
     HILLS = TerrainTemplate(
         name= 'hills',
         yields= Yields(food=0, wood=1, metal=1, science=0),
         bonus_yields= Yields(food=0, wood=1, metal=3, science=0),
         frequency= 1,
+        city_center_yield= "metal",
     )
     OCEAN = TerrainTemplate(
         name= 'ocean',
         yields= Yields(food=1, wood=0, metal=0, science=1),
         bonus_yields= Yields(food=3, wood=0, metal=0, science=1),
         frequency= 0.0,
+        city_center_yield= "science",
     )
 
     MOUNTAINS = TerrainTemplate(
@@ -33,18 +37,21 @@ class TERRAINS():
         yields= Yields(food=0, wood=0, metal=1, science=0),
         bonus_yields= Yields(food=0, wood=0, metal=3, science=0),
         frequency= 0.1,
+        city_center_yield= "science",
     )
     DESERT = TerrainTemplate(
         name= 'desert',
         yields= Yields(food=0, wood=0, metal=0, science=1),
         bonus_yields= Yields(food=3, wood=0, metal=0, science=2),
         frequency= 0.1,
+        city_center_yield= "science",
     )
     TUNDRA = TerrainTemplate(
         name= 'tundra',
         yields= Yields(food=0, wood=1, metal=0, science=0),
         bonus_yields= Yields(food=0, wood=1, metal=0, science=3),
         frequency= 0.1,
+        city_center_yield= "science",
     )
 
     # all & by_name are copy-pasted methods to all template lists.
