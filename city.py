@@ -741,6 +741,7 @@ class City(MapObjectSpawner):
                 for unit in self.available_units:
                     desc.pseudoyields_for_ai_nonvitality += Yields(metal=unit.metal_cost)
                     desc.buffed_units.append(unit)
+                desc.pseudoyields_for_ai_nonvitality += Yields(food=-self.growth_cost())
         return desc
 
     def _update_city_building_descriptions(self, game_state: 'GameState') -> None:

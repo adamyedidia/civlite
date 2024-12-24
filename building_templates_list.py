@@ -275,7 +275,7 @@ class BUILDINGS():
     CONSCRIPTION_POST = BuildingTemplate(
         name="Conscription Post",
         type=BuildingType.RURAL,
-        cost=75,
+        cost=20,
         per_turn=BuildEachUnitEffect(),
         calculate_yields=ConstantYields(Yields(unhappiness=4)),
         prereq=TECHS.PRINTING_PRESS,

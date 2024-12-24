@@ -287,11 +287,13 @@ class EndGameEffect(CityTargetEffect):
 class BuildEachUnitEffect(CityTargetEffect):
     @property
     def description(self) -> str:
-        return "Build one free unit of each type this city can build."
+        return "Lose 1 population to build one free unit of each type this city can build."
     
     def apply(self, city: 'City', game_state: 'GameState'):
-        for unit in city.available_units:
-            city.build_unit(game_state=game_state, unit=unit)
+        if city.population > 1:
+            city.population -= 1
+            for unit in city.available_units:
+                city.build_unit(game_state=game_state, unit=unit)
 
 class GreatWallEffect(CityTargetEffect):
     def __init__(self, num_garrisons: int) -> None:
