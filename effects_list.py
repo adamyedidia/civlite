@@ -284,7 +284,7 @@ class EndGameEffect(CityTargetEffect):
     def apply(self, city: 'City', game_state: 'GameState'):
         game_state.game_over = True
 
-class BuildEeachUnitEffect(CityTargetEffect):
+class BuildEachUnitEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return "Build one free unit of each type this city can build."

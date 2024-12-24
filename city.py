@@ -8,7 +8,7 @@ from building_templates_list import BUILDINGS
 from civ_template import CivTemplate
 from civ import Civ
 from camp import Camp
-from effects_list import BuildEeachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, ResetHappinessThisCityEffect
+from effects_list import BuildEachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, ResetHappinessThisCityEffect
 from map_object_spawner import MapObjectSpawner
 from move_type import MoveType
 from region import Region
@@ -737,7 +737,7 @@ class City(MapObjectSpawner):
             else:
                 raise NotImplementedError
         for effect in building_template.per_turn:
-            if isinstance(effect, BuildEeachUnitEffect):
+            if isinstance(effect, BuildEachUnitEffect):
                 for unit in self.available_units:
                     desc.pseudoyields_for_ai_nonvitality += Yields(metal=unit.metal_cost)
                     desc.buffed_units.append(unit)
@@ -1197,7 +1197,10 @@ class City(MapObjectSpawner):
         return max(affordable_choices, key=lambda x: (x.advancement_level, random.random()))
 
     def bot_evaluate_yields(self, yields: Yields, game_state: 'GameState') -> float:
-        if self.projected_income.unhappiness + self.unhappiness < game_state.unhappiness_threshold - 25:
+        projected_unhappiness = self.projected_income.unhappiness + self.unhappiness
+        if projected_unhappiness <= 0:
+            unhappiness_value = -0.0
+        elif projected_unhappiness < game_state.unhappiness_threshold:
             unhappiness_value = -0.7
         else:
             unhappiness_value = -2.0

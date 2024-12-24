@@ -1,7 +1,7 @@
 from typing import Generator
 from building_template import BuildingTemplate, BuildingType
 from terrain_templates_list import TERRAINS
-from effects_list import BuildEeachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, ResetHappinessThisCityEffect
+from effects_list import BuildEachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, ResetHappinessThisCityEffect
 from tech_templates_list import TECHS
 from unit_template import UnitTag
 from yields import ConstantYields, Yields, YieldsPerBuildingType, YieldsPerPopulation, YieldsPerTerrainType, YieldsPerUniqueTerrainType
@@ -276,7 +276,7 @@ class BUILDINGS():
         name="Conscription Post",
         type=BuildingType.RURAL,
         cost=75,
-        per_turn=BuildEeachUnitEffect(),
+        per_turn=BuildEachUnitEffect(),
         calculate_yields=ConstantYields(Yields(unhappiness=4)),
         prereq=TECHS.PRINTING_PRESS,
     )
