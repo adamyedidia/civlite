@@ -361,7 +361,8 @@ class Civ:
 
         my_cities: list[City] = self.get_my_cities(game_state)
         my_total_yields: float = sum(
-            [city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] 
+            [city.projected_income['food'] +city.projected_income['wood'] + city.projected_income['metal'] +city.projected_income['science'] \
+             + (city.empty_slots(BuildingType.RURAL) * AI.RURAL_SLOT_VALUE + AI.URBAN_SLOT_VALUE(city.population) * city.empty_slots(BuildingType.URBAN)) * self.vitality
              for city in my_cities])
         
         option_total_yields: dict[str, float] = {}
@@ -370,7 +371,7 @@ class Civ:
             current_total_yields = sum([hex.terrain.yields for hex in city.hex.get_neighbors(game_state.hexes, include_self=True)], city.projected_income_city_center)
             option_total_yields[coords] = current_total_yields.total()
             option_total_yields[coords] += city.population  # focus
-            option_total_yields[coords] += AI.RURAL_SLOT_VALUE * city.rural_slots + city.population * city.urban_slots
+            option_total_yields[coords] += AI.RURAL_SLOT_VALUE * city.rural_slots + AI.URBAN_SLOT_VALUE(city.population) * city.urban_slots
             option_total_yields[coords] *= city.revolting_starting_vitality
 
         if len(option_total_yields) == 0:
