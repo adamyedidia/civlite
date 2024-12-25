@@ -889,9 +889,9 @@ class City(MapObjectSpawner):
         if isinstance(building_template, BuildingTemplate):
             if building_template not in self.available_city_buildings:
                 return False
-            if building_template.type == BuildingType.URBAN and self.empty_slots(BuildingType.URBAN, include_in_queue=True) > 0:
+            if building_template.type == BuildingType.URBAN and self.empty_slots(BuildingType.URBAN, include_in_queue=True) <= 0:
                 return False
-            if building_template.type == BuildingType.RURAL and self.empty_slots(BuildingType.RURAL, include_in_queue=True) > 0:
+            if building_template.type == BuildingType.RURAL and self.empty_slots(BuildingType.RURAL, include_in_queue=True) <= 0:
                 return False
         if isinstance(building_template, WonderTemplate):
             if building_template not in self.available_wonders:
