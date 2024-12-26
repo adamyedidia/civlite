@@ -1209,13 +1209,13 @@ class City(MapObjectSpawner):
         return max(affordable_choices, key=lambda x: (x.advancement_level, random.random()))
 
     def bot_evaluate_yields(self, yields: Yields, game_state: 'GameState') -> float:
-        projected_unhappiness = self.projected_income.unhappiness + self.unhappiness
-        if projected_unhappiness <= 0:
-            unhappiness_value = -0.0
-        elif projected_unhappiness < game_state.unhappiness_threshold:
+        projected_unhappiness = self.projected_income.unhappiness + self.unhappiness + yields.unhappiness
+        if projected_unhappiness >= game_state.unhappiness_threshold:
+            unhappiness_value = -2.0
+        elif game_state.unhappiness_threshold - projected_unhappiness > 25:
             unhappiness_value = -0.7
         else:
-            unhappiness_value = -2.0
+            unhappiness_value = -1.5
 
         AI_VALUE = {
             "food_for_growth": 0.4,
