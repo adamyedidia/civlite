@@ -128,7 +128,7 @@ class TENETS():
         quest_description="Tech to a tech no other civ has, 4 times.",
         quest_complete_message="In all the ages of history no person has escaped death by drinking from a simple fountain. But what no person can do, perhaps a people can. Though we each die, together our lineage and our ideas live on.",
         quest_target=4,
-        initialize_data=lambda game_player, game_state: {"unclaimed_techs": [t.name for t in TECHS.all() if not any(c.has_tech(t) for c in game_state.civs_by_id.values())]},
+        initialize_data=lambda game_player, game_state: {"unclaimed_techs": [t.name for t in TECHS.all() if t != TECHS.RENAISSANCE and not any(c.has_tech(t) for c in game_state.civs_by_id.values())]},
     )
 
     YGGDRASILS_SEEDS = TenetTemplate(
