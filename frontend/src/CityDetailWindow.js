@@ -3,7 +3,7 @@ import './CityDetailWindow.css';
 
 import { Button } from '@mui/material';
 
-import { BriefBuildingDisplay, BriefBuildingDisplayTitle, ExistingBuildingDisplay, ExistingMilitaryBuildingDisplay, ExpandButton } from './BuildingDisplay';
+import { BriefBuildingDisplay, BriefBuildingDisplayTitle, ExistingBuildingDisplay, ExistingMilitaryBuildingDisplay, ExpandButton, YieldsDisplay } from './BuildingDisplay';
 import foodImg from './images/food.png';
 import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
@@ -20,6 +20,7 @@ import ProgressBar from './ProgressBar.js';
 import { Tooltip } from '@mui/material';
 import TradeHubIcon from './TradeHubIcon.js';
 import { DetailedNumberTooltipContent } from './DetailedNumber.js';
+import { terrainToColor } from './terrainToColor.js';
 
 const MakeTerritory = ({territoryReplacementCity, handleMakeTerritory, myCiv}) => {
     if (myCiv === null) {return}
@@ -243,6 +244,14 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
             {puppet && (!selectedCity.revolting_to_rebels_this_turn) && (territoryReplacementCity !== undefined) && (territoryReplacementCity === null || selectedCity.population > territoryReplacementCity.population) &&
                 <MakeTerritory myCiv={myCiv} territoryReplacementCity={territoryReplacementCity} handleMakeTerritory={handleMakeTerritory}/>                    
             }
+            <div className="city-center-yields-row">
+                <Tooltip title={`City makes 2 yields per population depending on its terrain.`}>
+                <div className="city-center-yields" style={{backgroundColor: `${terrainToColor[gameState.hexes[selectedCity.hex].terrain]}e0`}}>
+                    <span>Town Square ({gameState.hexes[selectedCity.hex].terrain}): </span>
+                    {<YieldsDisplay yields={selectedCity.projected_income_city_center}/>}
+                </div>
+                </Tooltip>
+            </div>
             <div className="existing-buildings-container">
             {selectedCity?.unit_buildings.slice().reverse().map((building, index) => (
                     <ExistingMilitaryBuildingDisplay key={index} 

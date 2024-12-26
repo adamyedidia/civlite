@@ -59,6 +59,7 @@ import declineImg from './images/phoenix.png';
 import acornImg from './images/acorn.svg';
 import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
+import { terrainToColor } from './terrainToColor.js';
 
 const difficultyLevels = {
     'Debug': 20,
@@ -3285,20 +3286,6 @@ export default function GamePage() {
     }
 
     const hexStyle = (terrain, inFog, pointer) => {
-        const terrainToColor = {
-            'foundable': '#44AA44',
-            'unfoundable': '#FF4444',
-            'forest': '#228B22',
-            'desert': '#FFFFAA',
-            'plains': '#CBC553',
-            'hills': '#9B9553',
-            'mountain': '#8B4513',
-            'ocean': '#4488FF',
-            // 'grassland': '#AAFF77',
-            'tundra': '#BBAABB',
-            // 'jungle': '#00BB00',
-            // 'marsh': '#00FFFF',
-        }
         const ocean = terrain === 'ocean';
         const fillColor = !inFog ? terrainToColor[terrain] : greyOutHexColor(terrainToColor[terrain], '#AAAAAA');
         return { 

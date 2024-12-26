@@ -105,6 +105,7 @@ class City(MapObjectSpawner):
         self._territory_parent_coords: Optional[str] = None
         self.available_units: list[UnitTemplate] = []
         self.projected_income = Yields()
+        self.projected_income_city_center = Yields()
         self.projected_income_base = DetailedYields()  # income without focus
         self.projected_income_focus = Yields()  # income from focus
         self.projected_income_puppets: dict[str, dict[str, tuple[float, int]]] = {'wood': {}, 'metal': {}} # (amount, distance)
@@ -370,8 +371,9 @@ class City(MapObjectSpawner):
 
     def _get_projected_yields_without_focus(self, game_state: 'GameState') -> DetailedYields:
         yields = DetailedYields()
-        yields.add_yields("Base", {"food": 2})
-        yields.add_yields("Population", {"science": self.population})
+
+        self.projected_income_city_center = (Yields(science=1) + {self.hex.terrain.city_center_yield: 1}) * self.population
+        yields.add_yields("Town Square", self.projected_income_city_center)
 
         terrain_yields: Yields = sum([hex.yields for hex in self.hex.get_neighbors(game_state.hexes, include_self=True)], Yields())
         yields.add_yields("Terrain", terrain_yields)
@@ -1473,6 +1475,7 @@ class City(MapObjectSpawner):
             "projected_income_base": self.projected_income_base.to_json(),
             "projected_income_focus": self.projected_income_focus.to_json(),
             "projected_income_puppets": self.projected_income_puppets,
+            "projected_income_city_center": self.projected_income_city_center.to_json(),
             "projected_on_decline_leaderboard": self.projected_on_decline_leaderboard,
             "projected_build_queue_depth": self.projected_build_queue_depth,
             "max_units_in_build_queue": self.military_slots <= len([entry for entry in self.buildings_queue if isinstance(entry.template, UnitTemplate)]),
@@ -1530,6 +1533,7 @@ class City(MapObjectSpawner):
         city.projected_income = Yields(**json["projected_income"])
         city.projected_income_base = DetailedYields.from_json(json["projected_income_base"])
         city.projected_income_focus = Yields(**json["projected_income_focus"])
+        city.projected_income_city_center = Yields(**json["projected_income_city_center"])
         city.projected_on_decline_leaderboard = json["projected_on_decline_leaderboard"]
         city.projected_build_queue_depth = json["projected_build_queue_depth"]
         city.terrains_dict = {TERRAINS.by_name(terrain): count for terrain, count in json["terrains_dict"].items()}
