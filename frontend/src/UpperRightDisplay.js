@@ -292,7 +292,11 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
         </div>
         </Tooltip>
     }
-    return <CivDetailPanel icon={vitalityImg} title='vitality' bignum={`${Math.round(myCiv.vitality * 100)}%`}>
+    const iconTooltip = <>
+        Losing {(myCiv.vitality_decay_rate.value*100).toFixed(0)}% of our vitality per turn:
+        <DetailedNumberTooltipContent detailedNumber={myCiv.vitality_decay_rate}/>
+    </>
+    return <CivDetailPanel icon={vitalityImg} iconTooltip={iconTooltip} title='vitality' bignum={`${Math.round(myCiv.vitality * 100)}%`}>
         {content}
     </CivDetailPanel>
 }
@@ -351,7 +355,7 @@ const ScoreDisplay = ({ myGamePlayer, gameEndScore, gameState }) => {
 
 const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTechChoiceDialogOpen, setHoveredTech, disableUI}) => {
     const tech = templates.TECHS[civ.researching_tech_name];
-    const techCost = tech?.name  === "Renaissance" ? civ.renaissance_cost : tech?.cost;
+    const techCost = tech?.cost;
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income.value / techCost * 100 : 0;
     return <CivDetailPanel title='science' icon={scienceImg} iconTooltip={<DetailedNumberTooltipContent detailedNumber={civ.projected_science_income}/>} bignum={`+${Math.floor(civ.projected_science_income.value)}`}>

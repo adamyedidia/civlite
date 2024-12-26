@@ -286,6 +286,8 @@ class GameState:
         self.highest_existing_frame_num_by_civ_id: defaultdict[str, int] = defaultdict(int)
 
     def midturn_update(self):
+        for civ in self.civs_by_id.values():
+            civ.update_vitality_decay_rate(self)
         for city in self.cities_by_id.values():
             if city.is_territory_capital:
                 city.midturn_update(self)

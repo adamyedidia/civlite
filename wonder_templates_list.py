@@ -4,7 +4,7 @@ from TechStatus import TechStatus
 from building_template import BuildingType
 from building_templates_list import BUILDINGS
 from unit_templates_list import UNITS
-from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GainSlotsEffect, GetGreatPersonEffect, GreatLighthouseEffect, GreatWallEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
+from effects_list import BuildUnitsEffect, EndGameEffect, FreeNearbyCityEffect, FreeRandomTechEffect, GainResourceEffect, GainSlotsEffect, GetGreatPersonEffect, GreatWallEffect, GrowEffect, PointsEffect, RecruitBarbariansEffect, ResetHappinessAllCitiesEffect, StealPopEffect, StrengthAllUnitsEffect, ZigguratWarriorsEffect
 from wonder_template import WonderTemplate
 from yields import ConstantYields, Yields, YieldsPerBuildingType
 
@@ -95,7 +95,7 @@ class WONDERS():
     GREAT_LIGHTHOUSE = WonderTemplate(
         name="Great Lighthouse", age=2,
         on_build=GainSlotsEffect(num=1, type=BuildingType.RURAL, free_building=BUILDINGS.LIGHTHOUSE),
-        per_turn=GreatLighthouseEffect()
+        abilities=[BUILDING_ABILITIES["DecreaseVitalityDecayPerAdjacentOcean"](0.005)]
     )
 
     # 4th century BC

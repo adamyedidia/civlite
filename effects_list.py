@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Callable, Literal
 
 from TechStatus import TechStatus
 from building_template import BuildingTemplate, BuildingType
-from settings import STRICT_MODE, VITALITY_DECAY_RATE
+from settings import STRICT_MODE
 from terrain_template import TerrainTemplate
 from terrain_templates_list import TERRAINS
 from unit_templates_list import UNITS
@@ -367,17 +367,6 @@ class GainSlotsEffect(CityTargetEffect):
                 city.develop(self.type, game_state, free=True)
         if self.free_building is not None:
             city.build_building(game_state=game_state, building=self.free_building, free=True)
-
-class GreatLighthouseEffect(CityTargetEffect):
-    @property
-    def description(self) -> str:
-        return "Reduce vitality decay rate by 5% per adjacent ocean tile"
-    
-    def apply(self, city: 'City', game_state: 'GameState'):
-        num_ocean_neighbors = city.terrains_dict.get(TERRAINS.OCEAN, 0)
-        vitality_decay_reduction = 1 - 0.05 * num_ocean_neighbors
-        new_vitality_decay_rate = 1 - (1 - VITALITY_DECAY_RATE) * vitality_decay_reduction
-        city.civ.vitality *= new_vitality_decay_rate / VITALITY_DECAY_RATE
 
 class UpgradeTerrainEffect(CityTargetEffect):
     def __init__(self, num: int, terrain: TerrainTemplate, override_yields: Yields, override_name: str | None = None) -> None:

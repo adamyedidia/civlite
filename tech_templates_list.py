@@ -1,5 +1,4 @@
 from typing import Generator
-from settings import RENAISSANCE_VITALITY_BOOST
 from tech_template import TechTemplate
 
 class TECHS():
@@ -114,11 +113,11 @@ class TECHS():
         cost=75,
         advancement_level=4,
     )
-    RENAISSANCE = TechTemplate(
-        name='Renaissance',
+    BUREAUCRACY = TechTemplate(
+        name='Bureaucracy',
         cost=0,
         advancement_level=999,
-        text=f"Multiply your vitality by {RENAISSANCE_VITALITY_BOOST:.0%} and refresh all discarded techs.",
+        text=f"Refresh all discarded techs. Your vitality now decays 1 percentage point faster.",
     )
     METALLURGY = TechTemplate(
         name='Metallurgy',

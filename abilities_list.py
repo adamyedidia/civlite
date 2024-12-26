@@ -143,6 +143,11 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Gain {x} city power for each enemy unit you kill.",
         numbers=[x],
     ),
+    "DecreaseVitalityDecayPerAdjacentOcean": lambda x: Ability(
+        name="DecreaseVitalityDecayPerAdjacentOcean",
+        description=f"Decrease vitality decay rate by {x:.1%} percentage points per adjacent ocean tile.",
+        numbers=[x],
+    ),
 }
 
 UNIT_ABILITIES: dict[str, Callable] = {

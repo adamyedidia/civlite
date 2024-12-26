@@ -604,12 +604,15 @@ class City(MapObjectSpawner):
                                 entry.template in self.available_city_buildings + self.available_unit_buildings + self.available_wonders]
 
     def calculate_payoff_time(self, yields: float, cost: float, vitality_exempt_yields: float = 0) -> float:
+        civ_decay_rate = self.civ.vitality_decay_rate.value
+        if civ_decay_rate == 0:
+            import pdb; pdb.set_trace()
         # How much will it produce next turn?
-        actual_yields = yields * (self.civ.vitality * VITALITY_DECAY_RATE)
-        # Need to find a time t such that sum(actual_yields * VITALITY_DECAY_RATE^k + vitality_exempt_yields) = cost
-        # ==> actual_yields * (1 - VITALITY_DECAY_RATE^t) / (1 - VITALITY_DECAY_RATE) + vitality_exempt_yields * t = cost
+        actual_yields = yields * (self.civ.vitality * (1 - civ_decay_rate))
+        # Need to find a time t such that sum(actual_yields * (1 - civ_decay_rate)^k + vitality_exempt_yields) = cost
+        # ==> actual_yields * (1 - (1 - civ_decay_rate)^t) /civ_decay_rate + vitality_exempt_yields * t = cost
         def solve_payoff_time(t):
-            return actual_yields * (1 - VITALITY_DECAY_RATE**t) / (1 - VITALITY_DECAY_RATE) + vitality_exempt_yields * t - cost
+            return actual_yields * (1 - (1 - civ_decay_rate)**t) / civ_decay_rate + vitality_exempt_yields * t - cost
 
         # Use binary search to find the payoff time
         left, right = 0, 10
