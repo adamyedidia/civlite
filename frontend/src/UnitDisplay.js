@@ -75,49 +75,55 @@ const UnitDisplay = ({ template, unit }) => {
     const displayTags = tags.filter(tag => tag !== "gunpowder").sort();
     return (
         <div className="unit-card">
-            <h2>{romanNumeral(template.advancement_level)}. {template.name}</h2>
-            <div className="subtitle-row">
-                <div className="cost-row">
-                    <div className="cost" style={template.building_name ? {visibility: 'visible'} : {visibility: 'hidden'}}>
-                        <div className="cost-itself">{template.wood_cost} <img src={woodImg} alt="" width="auto" height="12" /></div>
-                        <ShrinkFontText text={template.building_name} startFontSize={16}/> 
+            <div className="unit-card-main">
+                <h2>{romanNumeral(template.advancement_level)}. {template.name}</h2>
+                <div className="subtitle-row">
+                    <div className="cost-row">
+                        <div className="cost" style={template.building_name ? {visibility: 'visible'} : {visibility: 'hidden'}}>
+                            <div className="cost-itself">{template.wood_cost} <img src={woodImg} alt="" width="auto" height="12" /></div>
+                            <ShrinkFontText text={template.building_name} startFontSize={16}/> 
+                        </div>
+                        <div className="cost" style={template.tags.includes("wondrous") ? {visibility: 'hidden'} : {visibility: 'visible'}}>
+                            <div className="cost-itself">{template.metal_cost} <img src={metalImg} alt="" width="auto" height="12" /></div>
+                            <ShrinkFontText text={template.name} startFontSize={16}/>
+                        </div>
                     </div>
-                    <div className="cost" style={template.tags.includes("wondrous") ? {visibility: 'hidden'} : {visibility: 'visible'}}>
-                        <div className="cost-itself">{template.metal_cost} <img src={metalImg} alt="" width="auto" height="12" /></div>
-                        <ShrinkFontText text={template.name} startFontSize={16}/>
+                    <div className="tags">
+                        {displayTags.map((tag, i) => (
+                            <div key={i} className="tag">{tag}</div>
+                        ))}
                     </div>
                 </div>
-                <div className="tags">
-                    {displayTags.map((tag, i) => (
-                        <div key={i} className="tag">{tag}</div>
-                    ))}
+                <div className="content">
+                    <div className="abilities">
+                        {template.abilities.map((ability) => (
+                            <p key={ability.name}>{ability.description}</p>
+                        ))}
+                    </div>
                 </div>
-            </div>
-            <div className="content">
-                <div className="abilities">
-                    {template.abilities.map((ability) => (
-                        <p key={ability.name}>{ability.description}</p>
-                    ))}
-                </div>
-            </div>
-            <div className="stats">
-                <div className="stat move">
-                    {template.movement > 0 ? `Move: ${template.movement}` : 'IMMOBILE'}
-                </div>
-                {strength !== template.strength && <div className='base-strength'></div>} {/* So that the big one stays in the center */}
-                <TextOnIcon image={shieldImg} style={{ height: `${shieldSize}px`, width: `${shieldSize}px` }} offset={-shieldSize * 0.15}>
-                    <span className='strength-text'>{strength}</span>
-                </TextOnIcon>
-                {strength !== template.strength && <div className='base-strength'>
-                    <span style={{fontSize: '0.5em'}}>Base</span>
-                    <TextOnIcon image={shieldImg} style={{ height: `${shieldSize * 0.67}px`, width: `${shieldSize * 0.67}px` }} offset={-shieldSize * 0.1}>
-                        <span className='strength-text small'>{template.strength}</span>
+                <div className="stats">
+                    <div className="stat move">
+                        {template.movement > 0 ? `Move: ${template.movement}` : 'IMMOBILE'}
+                    </div>
+                    {strength !== template.strength && <div className='base-strength'></div>} {/* So that the big one stays in the center */}
+                    <TextOnIcon image={shieldImg} style={{ height: `${shieldSize}px`, width: `${shieldSize}px` }} offset={-shieldSize * 0.15}>
+                        <span className='strength-text'>{strength}</span>
                     </TextOnIcon>
-                </div>}
-                <div className="stat range">
-                    {tags.includes('ranged') ? `Range: ${template.range}` : "Melee"}
+                    {strength !== template.strength && <div className='base-strength'>
+                        <span style={{fontSize: '0.5em'}}>Base</span>
+                        <TextOnIcon image={shieldImg} style={{ height: `${shieldSize * 0.67}px`, width: `${shieldSize * 0.67}px` }} offset={-shieldSize * 0.1}>
+                            <span className='strength-text small'>{template.strength}</span>
+                        </TextOnIcon>
+                    </div>}
+                    <div className="stat range">
+                        {tags.includes('ranged') ? `Range: ${template.range}` : "Melee"}
+                    </div>
                 </div>
             </div>
+            {unit && <div className="unit-health-bar">
+                <div className="health-bar-fill" style={{width: `${(unit.health-1e-6) % 100}%`}}/>
+                <span className="health-bar-text">{unit.health} / 100</span>
+            </div>}
         </div>
     );
 };
