@@ -383,10 +383,10 @@ class GameState:
 
         civ.gain_vps(2, "Founded Cities (2/city)")
         if civ.has_tenet(TENETS.YGGDRASILS_SEEDS, check_complete_quest=True):
-            city.food += 50
+            city.food += 30
             city.grow(self)
-            city.wood += 50
-            city.metal += 50
+            city.wood += 30
+            city.metal += 30
 
         city.set_territory_parent_if_needed(game_state=self, adopt_focus=True)
 

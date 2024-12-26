@@ -627,7 +627,7 @@ class Civ:
 
         vitality_decay_rate = VITALITY_DECAY_RATE
         if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH, check_complete_quest=True):
-            vitality_decay_rate = 1 - (0.85 * (1 - vitality_decay_rate))
+            vitality_decay_rate = 1 - (0.9 * (1 - vitality_decay_rate))
         self.vitality *= vitality_decay_rate
         self.update_max_territories(game_state)
         if self.city_power < 0:
