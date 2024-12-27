@@ -3532,7 +3532,7 @@ export default function GamePage() {
                         setSelectedCity={setSelectedCity}
                         centerMap={centerMap}
                         />}
-                    <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 2000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center'}}>                             
+                    <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 2000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center', pointerEvents: 'none'}}>                             
                         {hoveredBuilding && (
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
                         )}

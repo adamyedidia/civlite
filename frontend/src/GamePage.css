@@ -111,6 +111,7 @@ body {
   align-items: center; /* Align items vertically in the center */
   font-size: 1.2em; /* Smaller font size */
   font-weight: bold; /* Make the text bold */
+  pointer-events: auto;
 }
 .advancement-level-card {
   display: flex;
