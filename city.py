@@ -1003,8 +1003,8 @@ class City(MapObjectSpawner):
     def militarize(self, game_state):
         self.develop(BuildingType.UNIT, game_state)
 
-    def unit_buildings_ranked_for_bulldoze(self) -> list[UnitBuilding]:
-        targets = self.unit_buildings.copy()
+    def unit_buildings_ranked_for_bulldoze(self, exclude: list[UnitBuilding] = []) -> list[UnitBuilding]:
+        targets = [b for b in self.unit_buildings if b not in exclude]
         targets.sort(key=lambda b: (-b.template.has_tag(UnitTag.DEFENSIVE), b.template.advancement_level))
         return targets
 
@@ -1024,7 +1024,7 @@ class City(MapObjectSpawner):
             new_building = UnitBuilding(building)
             self.unit_buildings.append(new_building)
             if len(self.unit_buildings) > self.military_slots:
-                bulldoze: UnitBuilding = self.unit_buildings_ranked_for_bulldoze()[0]
+                bulldoze: UnitBuilding = self.unit_buildings_ranked_for_bulldoze(exclude=[new_building])[0]
                 self.unit_buildings = [b for b in self.unit_buildings if b != bulldoze]
                 self.metal += bulldoze.metal
             self.clear_unit_builds()
