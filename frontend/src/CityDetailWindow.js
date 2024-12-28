@@ -210,6 +210,9 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
     const urbanBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type === "urban");
     const militaryBldgsInQueue = selectedCity.buildings_queue.filter(entry => templates.UNITS?.[entry.template_name]);
 
+    /* Use this key to notice when the set of available buildings has changed, and trigger a recalculation of the choices layout. */
+    const repaintBuildingChoicesKey = selectedCity.buildings_queue.map(entry => entry.template_name.slice(0, 2)).join(",");
+
     return (
         <div className="city-detail-window">
             <div className="main" style={{borderColor: myCivTemplate?.secondary_color}}>
@@ -407,8 +410,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
             </div>
             </div></div>
             {selectedCity && canBuild && 
-            <div className="building-choices-area" style={{borderColor: myCivTemplate?.secondary_color}}>
-                <div className="building-choices-area-inner" style={!showBuildingChoices ? {maxWidth: "30px", overflow: "hidden"} : {}}>
+            <div className={`building-choices-area`} style={{borderColor: myCivTemplate?.secondary_color}}>
+                <div className={`building-choices-area-inner`} style={!showBuildingChoices ? {maxWidth: "30px", overflow: "hidden"} : {}} key={repaintBuildingChoicesKey}>
                 {selectedCity.available_unit_building_names.length > 0 && <div className="building-choices-container">
                         {selectedCity.available_unit_building_names.map((buildingName, index) => availableBuildingEntry(buildingName, index, !selectedCity.max_units_in_build_queue, selectedCity.bot_favorite_builds.includes(buildingName)))}
                         {selectedCity.max_units_in_build_queue && <div className="building-slots-full-banner">

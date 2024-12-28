@@ -33,6 +33,7 @@
 
 .brief-building-card.clickable {
     cursor: pointer;
+    border: 2px solid transparent; /* Set invisible border, so the hover effect doesn't change the size */
 }
 
 .brief-building-card.clickable:hover {
