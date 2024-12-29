@@ -4,7 +4,7 @@ from terrain_templates_list import TERRAINS
 from effects_list import BuildEachUnitEffect, GainResourceEffect, GainUnhappinessEffect, GrowEffect, ResetHappinessThisCityEffect
 from tech_templates_list import TECHS
 from unit_template import UnitTag
-from yields import ConstantYields, Yields, YieldsPerBuildingType, YieldsPerPopulation, YieldsPerTerrainType, YieldsPerUniqueTerrainType
+from yields import ConstantYields, Yields, YieldsIncreaseTownCenter, YieldsPerBuildingType, YieldsPerPopulation, YieldsPerTerrainType, YieldsPerUniqueTerrainType
 
 class BUILDINGS():
     LUMBER_MILL = BuildingTemplate(
@@ -123,6 +123,13 @@ class BUILDINGS():
         }],
         prereq=TECHS.MATHEMATICS,
     )
+    FORUM = BuildingTemplate(
+        name="Forum",
+        type=BuildingType.URBAN,
+        cost=10,
+        calculate_yields=YieldsIncreaseTownCenter(constant=5),
+        prereq=TECHS.IRON_WORKING,
+    )
     QUARRY = BuildingTemplate(
         name="Quarry",
         type=BuildingType.RURAL,
@@ -177,7 +184,7 @@ class BUILDINGS():
         type=BuildingType.URBAN,
         cost=20,
         calculate_yields=YieldsPerPopulation(Yields(metal=1)),
-        prereq=TECHS.CIVIL_SERVICE,
+        prereq=TECHS.MACHINERY,
     )
     FACTORY = BuildingTemplate(
         name="Factory",
@@ -251,18 +258,11 @@ class BUILDINGS():
         calculate_yields=YieldsPerTerrainType(TERRAINS.PLAINS, Yields(food=2)),
         prereq=TECHS.PHYSICS,
     )
-    SMELTER = BuildingTemplate(
-        name="Smelter",
-        type=BuildingType.RURAL,
-        cost=20,
-        calculate_yields=YieldsPerTerrainType(TERRAINS.HILLS, Yields(metal=2)),
-        prereq=TECHS.ARCHITECTURE,
-    )
-    LUMBER_FARM = BuildingTemplate(
-        name="Lumber Farm",
-        type=BuildingType.RURAL,
-        cost=20,
-        calculate_yields=YieldsPerTerrainType(TERRAINS.FOREST, Yields(wood=2)),
+    PLAZA = BuildingTemplate(
+        name="Plaza",
+        type=BuildingType.URBAN,
+        cost=50,
+        calculate_yields=YieldsIncreaseTownCenter(multiplier=1),
         prereq=TECHS.ARCHITECTURE,
     )
     OUTPOST = BuildingTemplate(
@@ -297,7 +297,7 @@ class BUILDINGS():
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["metal", 1],
         }],
-        prereq=TECHS.MACHINERY,
+        prereq=TECHS.CIVIL_SERVICE,
     )
     NATIONAL_COLLEGE = BuildingTemplate(
         name="National College",

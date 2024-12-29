@@ -214,3 +214,27 @@ class YieldsPerBuildingType(YieldsCalculation):
     @property
     def description(self) -> str:
         return f"{self.yields.pretty_print()} per {self.building_type.value} building"
+    
+class YieldsIncreaseTownCenter(YieldsCalculation):
+    def __init__(self, multiplier: int | None = None, constant: int | None = None) -> None:
+        self.multiplier = multiplier
+        self.constant = constant
+        assert (self.multiplier is not None and self.constant is None) or (self.multiplier is None and self.constant is not None)
+
+    def calculate(self, city: 'City') -> Yields:
+        base_yields = Yields(science=1) + {city.hex.terrain.city_center_yield: 1}
+        if self.multiplier is not None:
+            return base_yields * self.multiplier * city.population
+        elif self.constant is not None:
+            return base_yields * self.constant
+        else:
+            raise ValueError("Either multiplier or constant must be provided")
+    
+    @property
+    def description(self) -> str:
+        if self.multiplier is not None:
+            return f"Increase town square yields by {self.multiplier:.0%}"
+        elif self.constant is not None:
+            return f"Increase town square yields by {self.constant * 2} ({self.constant} science & {self.constant} terrain yield)"
+        else:
+            raise ValueError("Either multiplier or constant must be provided")
