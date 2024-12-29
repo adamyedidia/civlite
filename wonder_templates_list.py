@@ -163,7 +163,7 @@ class WONDERS():
     ########################## Age 5 ##########################
 
     # 1791
-    BRANDENBURG_GATE = WonderTemplate(name="Brandenburg Gate", age=5, abilities=[BUILDING_ABILITIES["NewUnitsGainBonusStrength"](2)])
+    BRANDENBURG_GATE = WonderTemplate(name="Brandenburg Gate", age=5, abilities=[BUILDING_ABILITIES["NewUnitsGainBonusStrength"](4)])
 
     # 1849
     KREMLIN = WonderTemplate(
