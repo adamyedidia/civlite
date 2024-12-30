@@ -1079,7 +1079,7 @@ class GameState:
             civ.roll_turn_post_harvest(sess, self)
 
         logger.info("Final refresh")
-        for unit in units_copy:
+        for unit in self.units:
             unit.turn_end(self)
 
         for game_player in self.game_player_by_player_num.values():
