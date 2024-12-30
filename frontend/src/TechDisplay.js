@@ -7,10 +7,6 @@ import scienceImg from './images/science.png';
 import fountainImg from './images/fountain.svg';
 
 const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameState, onClick, fountainIcon }) => {
-    if (tech.name == "Renaissance") {
-        tech.cost = civ.renaissance_cost
-    }
-
     return (
         <div 
             className="tech-card" 

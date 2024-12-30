@@ -355,7 +355,7 @@ const ScoreDisplay = ({ myGamePlayer, gameEndScore, gameState }) => {
 
 const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTechChoiceDialogOpen, setHoveredTech, disableUI}) => {
     const tech = templates.TECHS[civ.researching_tech_name];
-    const techCost = tech?.name  === "Renaissance" ? civ.renaissance_cost : tech?.cost;
+    const techCost = tech?.cost;
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income.value / techCost * 100 : 0;
     return <CivDetailPanel title='science' icon={scienceImg} iconTooltip={<DetailedNumberTooltipContent detailedNumber={civ.projected_science_income}/>} bignum={`+${Math.floor(civ.projected_science_income.value)}`}>
