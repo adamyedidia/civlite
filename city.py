@@ -638,7 +638,8 @@ class City(MapObjectSpawner):
             if ability.name == "IncreaseFocusYieldsPerPopulation":
                 resource: str = ability.numbers[0]
                 amount: int = ability.numbers[1]
-                desc.building_yields += Yields(**{resource: self.population * amount})
+                double = self.hex.terrain.city_center_yield == resource
+                desc.building_yields += Yields(**{resource: self.population * amount * (2 if double else 1)})
 
             if ability.name == "CityGrowthCostReduction":
                 desc.other_strings.append(f"-{ability.numbers[0]:.0%}")
