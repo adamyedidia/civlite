@@ -19,7 +19,7 @@ const TechLevelBox = ({level, techs, myCiv, myGamePlayer, gameState, templates, 
     const nextAgeProgress = myCiv.next_age_progress;
     const unlockedLevel = myCiv.advancement_level;
     const researchingTechName = myCiv.researching_tech_name;
-    const reserachingTechLevel = (researchingTechName && researchingTechName != "Bureaucracy") ? templates.TECHS[researchingTechName].advancement_level : 0;
+    const reserachingTechLevel = (researchingTechName && researchingTechName != "Renaissance") ? templates.TECHS[researchingTechName].advancement_level : 0;
     const fountainTechs = myGamePlayer.tenets["Fountain of Youth"]?.unclaimed_techs;
     return (
         <div className={`tech-level-box ${unlockedLevel < level ? 'disabled' : ''}`}>

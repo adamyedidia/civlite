@@ -568,7 +568,7 @@ export default function GamePage() {
         else if (parsedAnnouncement.type === 'revolt') {
             playRevoltSound(revoltSound);
         }
-        else if (parsedAnnouncement.type === 'wonder_built') {
+        else if (parsedAnnouncement.type === 'renaissance' || parsedAnnouncement.type === 'wonder_built') {
             console.log("Playing wonder sound for parsed announcement", parsedAnnouncement);
             if (parsedAnnouncement.civ_id === myCivIdRef.current) {
                 playWonderRenaissanceSound(wonderRenaissanceSound);

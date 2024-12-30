@@ -18,7 +18,7 @@ from great_person import GreatGeneral, GreatPerson, great_people_by_age, great_p
 from civ_template import CivTemplate
 from civ_templates_list import player_civs, CIVS
 from game_player import GamePlayer
-from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, MAX_PLAYERS
+from settings import AI, NUM_STARTING_LOCATION_OPTIONS, STRICT_MODE, VITALITY_DECAY_RATE, BASE_CITY_POWER_INCOME, TECH_VP_REWARD, RENAISSANCE_VITALITY_BOOST, MAX_PLAYERS
 from tech_template import TechTemplate
 from building_template import BuildingTemplate, BuildingType
 from unit_template import UnitTag, UnitTemplate
@@ -70,7 +70,7 @@ class Civ:
         self.max_territories: int = 3
         self.vandetta_civ_id: Optional[str] = None
         self.unique_units_built: int = 0
-        self.bureaucracy_level: int = 0
+        self.renaissances: int = 0
         self._game_player_num: Optional[int] = self.game_player.player_num if self.game_player else None
 
         self.score_dict: dict[str, float] = {}
@@ -211,9 +211,9 @@ class Civ:
 
         for choice in techs_to_offer:
             self.techs_status[choice] = TechStatus.AVAILABLE
-        if len(techs_to_offer) == 0 and self.game_player is not None:
-            # We've teched to too many things, time for a Bureaucracy
-            self.techs_status[TECHS.BUREAUCRACY] = TechStatus.AVAILABLE
+        if len(techs_to_offer) < num_techs_to_offer and self.game_player is not None:
+            # We've teched to too many things, time for a Renaissance
+            self.techs_status[TECHS.RENAISSANCE] = TechStatus.AVAILABLE
 
     def next_age_progress(self) -> dict[str, int]:
         total_tech_levels = sum([tech.advancement_level for tech in self.researched_techs])
@@ -233,7 +233,7 @@ class Civ:
             return age
         else:
             missing_levels = total_levels_needed - progress_levels
-            available_techs = [t for t in self._available_techs() if t is not TECHS.BUREAUCRACY]
+            available_techs = [t for t in self._available_techs() if t is not TECHS.RENAISSANCE]
             average_available_tech_cost: float = sum([tech.cost for tech in available_techs]) / len(available_techs) if len(available_techs) > 0 else 1
             average_available_tech_level: float = sum([min(tech.advancement_level, missing_levels) for tech in available_techs]) / len(available_techs) if len(available_techs) > 0 else 1
             partial_tech_progress: float = self.science / average_available_tech_cost * average_available_tech_level
@@ -283,6 +283,7 @@ class Civ:
             "in_decline": self.in_decline,
             "advancement_level": self.get_advancement_level(),
             "next_age_progress": self.next_age_progress(),
+            "renaissance_cost": self.renaissance_cost() if self.game_player is not None else None,
             "trade_hub_id": self.trade_hub_id,
             "trade_hub_city_power_consumption": self.trade_hub_city_power_consumption,
             "great_people_choices": [great_person.to_json() for great_person in self.great_people_choices],
@@ -292,7 +293,7 @@ class Civ:
             "vandetta_civ_id": self.vandetta_civ_id,
             "score_dict": self.score_dict,
             "unique_units_built": self.unique_units_built,
-            "bureaucracy_level": self.bureaucracy_level,
+            "renaissances": self.renaissances,
             "has_tenet_choice": self.game_player is not None and self.game_player.active_tenet_choice_level is not None,
             "vitality_decay_rate": self.vitality_decay_rate.to_json(),
         }
@@ -386,8 +387,8 @@ class Civ:
 
     def bot_score_tech(self, game_state: 'GameState', tech: TechTemplate) -> list[float]:
         score = []
-        # Avoid bureaucracy if possible
-        score.append(tech != TECHS.BUREAUCRACY)
+        # Avoid renaissance if possible
+        score.append(tech != TECHS.RENAISSANCE)
         # Prefer unique tech
         score.append(self.unique_unit is not None and tech == self.unique_unit.prereq)
         # Prefer progress towards Fountain
@@ -546,6 +547,9 @@ class Civ:
             hex = max(choices, key=lambda h: (sum([n.yields for n in h.get_neighbors(game_state.hexes, include_self=True)], start=Yields()).total(), random.random()))
             game_state.resolve_move(MoveType.FOUND_CITY, {'coords': hex.coords, 'city_id': generate_unique_id("CITY")}, civ=self)
 
+    def renaissance_cost(self) -> float:
+        return 50 * self.get_advancement_level() * (1 + self.renaissances)
+
     def gain_tech(self, game_state: 'GameState', tech: TechTemplate) -> None:
         if self.game_player and self.game_player.has_tenet(TENETS.FOUNTAIN_OF_YOUTH) and tech.name in self.game_player.tenets[TENETS.FOUNTAIN_OF_YOUTH]["unclaimed_techs"]:
             self.game_player.increment_tenet_progress(TENETS.FOUNTAIN_OF_YOUTH, game_state)
@@ -553,7 +557,7 @@ class Civ:
         self.techs_status[tech] = TechStatus.RESEARCHED
         self.fill_out_available_buildings(game_state)
 
-        if tech != TECHS.BUREAUCRACY:
+        if tech != TECHS.RENAISSANCE:
             self.gain_vps(TECH_VP_REWARD * tech.advancement_level, score_strings.TECH)
             if self.has_tenet(TENETS.RATIONALISM):
                 self.gain_vps(max(0, tech.advancement_level - 3), f"Rationalism")
@@ -565,21 +569,32 @@ class Civ:
     def complete_research(self, tech: TechTemplate, game_state: 'GameState'):
 
         for other_tech, status in self.techs_status.items():
-            if status == TechStatus.AVAILABLE and other_tech != TECHS.BUREAUCRACY and other_tech.name != tech.name:
+            if status == TechStatus.AVAILABLE and other_tech != TECHS.RENAISSANCE and other_tech.name != tech.name:
                 self.techs_status[other_tech] = TechStatus.DISCARDED
 
-        if tech == TECHS.BUREAUCRACY:
-            logger.info(f"Bureaucracy for civ {self.moniker()}")
+        if tech == TECHS.RENAISSANCE:
+            logger.info(f"Renaissance for civ {self.moniker()}")
+            game_state.add_announcement(f"The <civ id={self.id}>{self.moniker()}</civ> have completed a Renaissance.")
+            game_state.add_parsed_announcement({
+                "type": "renaissance",
+                "turn_num": game_state.turn_num,
+                "civ_id": self.id,
+                "message": f"The {self.moniker()} have completed a Renaissance.",
+                "message_for_civ": f"My liege, we have undergone a Renaissance! Our people are more joyous, vigorous, and prosperous than ever before.",
+            })
+            cost: float = self.renaissance_cost()
+            self.science -= cost
             for other_tech, status in self.techs_status.items():
                 if status == TechStatus.DISCARDED:
                     self.techs_status[other_tech] = TechStatus.UNAVAILABLE
-            self.bureaucracy_level += 1
+            self.vitality *= RENAISSANCE_VITALITY_BOOST
+            self.renaissances += 1
         else:
             self.science -= tech.cost
             self.gain_tech(game_state, tech)
 
-        # Never discard bureaucracy
-        self.techs_status[TECHS.BUREAUCRACY] = TechStatus.UNAVAILABLE
+        # Never discard renaissance
+        self.techs_status[TECHS.RENAISSANCE] = TechStatus.UNAVAILABLE
 
         self.get_new_tech_choices()
 
@@ -600,7 +615,6 @@ class Civ:
         vitality_decay_rate.add("Base", VITALITY_DECAY_RATE)
         if self.has_tenet(TENETS.FOUNTAIN_OF_YOUTH, check_complete_quest=True):
             vitality_decay_rate.add("Fountain of Youth", -0.01)
-        vitality_decay_rate.add("Bureaucracy", self.bureaucracy_level * 0.01)
         for city in self.get_my_cities(game_state):
             for ability, building in city.passive_building_abilities_of_name("DecreaseVitalityDecayPerAdjacentOcean"):
                 vitality_decay_rate.add(building.building_name, -ability.numbers[0] * city.terrains_dict.get(TERRAINS.OCEAN, 0))
@@ -611,7 +625,7 @@ class Civ:
 
         if self.researching_tech:
             researching_tech = self.researching_tech
-            cost = researching_tech.cost
+            cost = self.renaissance_cost() if researching_tech == TECHS.RENAISSANCE else researching_tech.cost
             if researching_tech and cost <= self.science:
                 self.complete_research(researching_tech, game_state)
 
@@ -742,7 +756,7 @@ class Civ:
         civ.vandetta_civ_id = json.get("vandetta_civ_id")
         civ.score_dict = json["score_dict"]
         civ.unique_units_built = json["unique_units_built"]
-        civ.bureaucracy_level = json["bureaucracy_level"]
+        civ.renaissances = json["renaissances"]
 
         return civ
 
