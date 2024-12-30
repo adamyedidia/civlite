@@ -10,7 +10,7 @@ class BUILDINGS():
     LUMBER_MILL = BuildingTemplate(
         name="Lumber Mill",
         type=BuildingType.RURAL,
-        cost=10,
+        cost=5,
         calculate_yields=YieldsPerTerrainType(TERRAINS.FOREST, Yields(wood=1)),
         prereq=TECHS.FORESTRY,
     )
@@ -44,7 +44,7 @@ class BUILDINGS():
     GRANARY = BuildingTemplate(
         name="Granary",
         type=BuildingType.RURAL,
-        cost=10,
+        cost=5,
         calculate_yields=YieldsPerTerrainType(TERRAINS.PLAINS, Yields(food=1)),
         prereq=TECHS.POTTERY,
     )
@@ -68,7 +68,7 @@ class BUILDINGS():
     MINE = BuildingTemplate(
         name="Mine",
         type=BuildingType.RURAL,
-        cost=10,
+        cost=5,
         calculate_yields=YieldsPerTerrainType(TERRAINS.HILLS, Yields(metal=1)),
         prereq=TECHS.MINING,
     )
@@ -155,7 +155,7 @@ class BUILDINGS():
         name="Harbor",
         type=BuildingType.URBAN,
         cost=20,
-        calculate_yields=YieldsPerTerrainType(TERRAINS.OCEAN, Yields(wood=3)),
+        calculate_yields=YieldsPerTerrainType(TERRAINS.OCEAN, Yields(wood=5)),
         prereq=TECHS.COMPASS,
     )
     TAX_OFFICE = BuildingTemplate(
@@ -292,12 +292,12 @@ class BUILDINGS():
     IRONWORKS = BuildingTemplate(
         name="Ironworks",
         type=BuildingType.URBAN,
-        cost=15,
+        cost=20,
         abilities=[{
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["metal", 1],
         }],
-        prereq=TECHS.CIVIL_SERVICE,
+        prereq=TECHS.IRON_WORKING,
     )
     NATIONAL_COLLEGE = BuildingTemplate(
         name="National College",
@@ -312,7 +312,7 @@ class BUILDINGS():
     TIMBERWORKS = BuildingTemplate(
         name="Timberworks",
         type=BuildingType.URBAN,
-        cost=15,
+        cost=20,
         abilities=[{
             "name": "IncreaseFocusYieldsPerPopulation",
             "numbers": ["wood", 1],

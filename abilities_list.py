@@ -78,10 +78,10 @@ BUILDING_ABILITIES: dict[str, Callable] = {
         description=f"Reduce the cost of city growth by {'{:.0%}'.format(x)}.",
         numbers=[x],
     ),
-    "IncreaseFocusYieldsPerPopulation": lambda x, y: Ability(
+    "IncreaseFocusYieldsPerPopulation": lambda resource, amount: Ability(
         name="IncreaseFocusYieldsPerPopulation",
-        description=f"Increase {x} yields per population in the city with a {x} focus by {y}.",
-        numbers=[x, y],
+        description=f"Increase {resource} yields per population in the city with a {resource} focus by {amount}. Double this yield if {resource} matches the city center yield.",
+        numbers=[resource, amount],
     ),
     "DecreaseFoodDemand": lambda x, y: Ability(
         name="DecreaseFoodDemand",

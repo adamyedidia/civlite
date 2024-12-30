@@ -421,7 +421,8 @@ class City(MapObjectSpawner):
             yields += {bonus_resource: count}
         for ability, _ in self.passive_building_abilities_of_name('IncreaseFocusYieldsPerPopulation'):
             focus, amount_per_pop = ability.numbers
-            yields += {focus: amount_per_pop * self.population}
+            double = self.hex.terrain.city_center_yield == focus
+            yields += {focus: amount_per_pop * self.population * (2 if double else 1)}
 
         return yields * self.civ.vitality
 
