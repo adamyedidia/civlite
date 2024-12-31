@@ -60,6 +60,8 @@ import acornImg from './images/acorn.svg';
 import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 import { terrainToColor } from './terrainToColor.js';
+import knightSpriteData from './MiniCavalierMan.js';
+
 
 const difficultyLevels = {
     'Debug': 20,
@@ -3191,7 +3193,7 @@ export default function GamePage() {
         );
     };
 
-    const Unit = ({ unit, small }) => {
+    const BasicUnit = ({ unit, small }) => {
         const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
 
         const primaryColor = unitCivTemplate?.primary_color;
@@ -3225,6 +3227,93 @@ export default function GamePage() {
                 {unit.stack_size > 1 && <text x={`${2.8*scale}`} y={`${2.8*scale}`} style={{ fontSize: `${scale}px`, textAnchor: "middle", dominantBaseline: "middle", zIndex: 99999 }}>{unit.stack_size}</text>}
             </svg>
         );
+    };
+
+    const Unit = ({ unit, small }) => {
+        const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
+        const primaryColor = unitCivTemplate?.primary_color;
+        const secondaryColor = unitCivTemplate?.secondary_color;
+    
+        // Add state for animation frame
+        const [currentFrame, setCurrentFrame] = useState(0);
+    
+        // Set up animation loop
+        useEffect(() => {
+            if (false) return;
+            
+            const frameInterval = setInterval(() => {
+                setCurrentFrame(prev => (prev + 1) % knightSpriteData.idle.length);
+            }, 150); // Adjust timing as needed (150ms = ~6.6fps)
+    
+            return () => clearInterval(frameInterval);
+        }, []);
+    
+        if (1) {
+            const scale = small ? 0.95 : 1.4;
+            const pixelSize = scale * 4/16; // 4 units total width / 16 pixels
+            
+            const currentFrameData = knightSpriteData.idle[currentFrame];
+            console.log('Frame dimensions:', {
+                frameIndex: currentFrame,
+                height: currentFrameData.length,
+                width: currentFrameData[0]?.length,
+                isSquare: currentFrameData.length === currentFrameData[0]?.length,
+                is16x16: currentFrameData.length === 16 && currentFrameData[0]?.length === 16
+            });
+
+            return (
+                <svg 
+                    width={`${4*scale}`} 
+                    height={`${4*scale}`} 
+                    viewBox={`0 0 ${4*scale} ${6*scale}`} // Increased height of viewBox
+                    x={-2*scale} 
+                    y={-2*scale + (small ? 1 : 0)} // Adjusted y position to center the taller viewBox
+                >
+                    <g transform={`translate(${0*scale}, ${-1*scale})`}> {/* Move sprite down slightly */}
+                        {knightSpriteData.idle[currentFrame].map((row, y) => 
+                            row.map((pixel, x) => {
+                                if (Array.isArray(pixel) && pixel[3] === 0) return null;
+                                
+                                let color;
+                                if (pixel === "team color 1") {
+                                    color = primaryColor;
+                                } else if (pixel === "team color 2") {
+                                    color = secondaryColor;
+                                } else {
+                                    color = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]/255})`;
+                                }
+        
+                                return (
+                                    <rect
+                                        key={`${x}-${y}`}
+                                        x={x * pixelSize}
+                                        y={y * pixelSize}
+                                        width={pixelSize}
+                                        height={pixelSize}
+                                        fill={color}
+                                    />
+                                );
+                            })
+                        )}
+                    </g>
+                    
+                    {/* Health bar and stack size indicators remain at the bottom */}
+                    <rect x={`${scale}`} y={`${5.35*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" />
+                    <rect x={`${scale}`} y={`${5.35*scale}`} width={`${2*scale*(unit.health/100)}`} height={`${0.2*scale}`} fill="#00ff00" />
+                    
+                    {unit.stack_size > 1 && (
+                        <>
+                            <circle cx={`${2*scale + 0.8*scale}`} cy={`${3.5*scale - 0.8*scale}`} r={`${scale/2}`} fill="white" stroke="black" strokeWidth={0.1} />
+                            <text x={`${2.8*scale}`} y={`${2.8*scale}`} style={{ fontSize: `${scale}px`, textAnchor: "middle", dominantBaseline: "middle" }}>{unit.stack_size}</text>
+                        </>
+                    )}
+                </svg>
+            );
+        }
+    
+        else {
+            return <BasicUnit unit={unit} small={small} />
+        }
     };
 
     const TargetMarker = ({ purple }) => {
