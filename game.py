@@ -244,13 +244,14 @@ class Game(Base):
 
     def reset_to_turn(self, turn_num: int, sess):
         for turn in range(turn_num, self.turn_num + 1):
-            rdel(self._turn_over_key(turn))
+            rlock(self._turn_over_key(turn)).reset()
             for player in self.players:
                 rdel(staged_moves_key(self.id, player.player_num, turn))
                 rdel(self._staged_game_state_key(player.player_num, turn))
             decline_claimed_keys_pattern = f"decline-claimed-{self.id}-{turn}-*"
             for key in rkeys(decline_claimed_keys_pattern):
-                rdel(key)
+                rlock(key).reset()
+            rlock(self.roll_turn_lock_key(turn)).reset()
         for player in self.players:
             if not player.is_bot:
                 self.set_turn_ended_by_player_num(player.player_num, False, broadcast=False)
