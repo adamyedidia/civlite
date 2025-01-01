@@ -184,8 +184,10 @@ def parse_sprite_sheet(image_path):
             frames.append(row_frames)
 
     # Define animation states
-    animation_states = ['idle', 'move', 'charge', 'jump', 'attack', 'ouch', 'die']
-    
+    # animation_states = ['idle', 'move', 'charge', 'jump', 'attack', 'ouch', 'die']
+    # animation_states = ['idle', 'move', 'jump', 'attack', 'block', 'ouch', 'die']
+    animation_states = ['idle', 'move', 'jump', 'attack', 'ouch', 'die']
+
     normalized_frames = []
     for row_frames in frames:
         if not row_frames:
@@ -203,7 +205,6 @@ def parse_sprite_sheet(image_path):
         normalized_frames.append(normalized_row_frames)
     
     # Create JavaScript object string
-    animation_states = ['idle', 'move', 'charge', 'jump', 'attack', 'ouch', 'die']
     js_output = "const spriteData = {\n"
     
     for i, row_frames in enumerate(normalized_frames):
@@ -267,7 +268,7 @@ def save_frame_as_image(frame_data, output_path="output_frame.png"):
     img.save(output_path)
 
 # Example usage:
-result = parse_sprite_sheet("raw_pixel_art/MiniCavalierMan.png")
+result = parse_sprite_sheet("raw_pixel_art/MiniHalberdMan.png")
 print(result)
 if result:
     for i, out in enumerate(result):
