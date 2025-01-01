@@ -368,7 +368,7 @@ class Civ:
             option_total_yields[coords] = current_total_yields.total()
             option_total_yields[coords] += city.population  # focus
             option_total_yields[coords] += AI.RURAL_SLOT_VALUE * city.rural_slots + AI.URBAN_SLOT_VALUE(city.population) * city.urban_slots
-            option_total_yields[coords] *= city.revolting_starting_vitality
+            option_total_yields[coords] *= city.revolting_starting_vitality * self.game_player.vitality_multiplier
 
         if len(option_total_yields) == 0:
             logger.info(f"{self.moniker()} deciding not to decline because there are no options.")
