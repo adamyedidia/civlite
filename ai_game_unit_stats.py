@@ -51,6 +51,9 @@ def ai_game_count_units(id, num_players) -> tuple[dict[str, list[list[dict[Any, 
     buildings = [{building.name: 0 for building in BUILDINGS.all()} for _ in range(num_players)]
     civ_turn_counts = [{civ.name: 0 for civ in CIVS.all()} for _ in range(num_players)]
     researching_tech_turns = [{tech.name: 0 for tech in TECHS.all()} for _ in range(num_players)]
+    researching_frontier_tech_turns = [{tech.name: 0 for tech in TECHS.all()} for _ in range(num_players)]
+    _civ_lifetimes_counter = {civ.name: 0 for civ in CIVS.all()}
+    civ_lifetimes = [{i: 0 for i in range(100)} for _ in range(num_players)]
     for json_state in data:
         state = GameState.from_json(json_state)
         for city in state.cities_by_id.values():
@@ -64,15 +67,21 @@ def ai_game_count_units(id, num_players) -> tuple[dict[str, list[list[dict[Any, 
                         buildings[city.civ.game_player.player_num][item.template.name] += 1
         for civ in state.civs_by_id.values():
             if civ.game_player is not None:
+                _civ_lifetimes_counter[civ.template.name] += 1
                 civ_turn_counts[civ.game_player.player_num][civ.template.name] += 1
                 if civ.researching_tech is not None:
                     researching_tech_turns[civ.game_player.player_num][civ.researching_tech.name] += 1
+                    if civ.researching_tech.advancement_level == civ.get_advancement_level():
+                        researching_frontier_tech_turns[civ.game_player.player_num][civ.researching_tech.name] += 1
     final_state: GameState = GameState.from_json(data[-1])
     final_scores: dict[int, int] = {i: player.score for i, player in final_state.game_player_by_player_num.items()}
     sorted_game_players: list[GamePlayer] = sorted(final_state.game_player_by_player_num.values(), key=lambda p: p.player_num)
     score_sources = [player.score_dict for player in sorted_game_players]
     tenets = [{t.name: int(t in game_player.tenets) for t in TENETS.all()} for game_player in sorted_game_players]
     for i, game_player in enumerate(sorted_game_players):
+        for civ_id in game_player.all_civ_ids:
+            lifetime = _civ_lifetimes_counter[final_state.civs_by_id[civ_id].template.name]
+            civ_lifetimes[i][lifetime] += 1
         if (t := game_player.tenet_at_level(3)) is not None:
             complete = game_player.tenets[t]["complete"]
             tenets[i][t.name + " Complete"] = int(complete)
@@ -96,7 +105,9 @@ def ai_game_count_units(id, num_players) -> tuple[dict[str, list[list[dict[Any, 
     winner_civ_turn_counts = civ_turn_counts.pop(winner)
     winner_score_sources = score_sources.pop(winner)
     winner_researching_tech_turns = researching_tech_turns.pop(winner)
+    winner_researching_frontier_tech_turns = researching_frontier_tech_turns.pop(winner)
     winner_tenets = tenets.pop(winner)
+    winner_civ_lifetimes = civ_lifetimes.pop(winner)
 
     # get great people from announcements
     # Announcements look like: f"{great_person.name} will lead <civ id={self.id}>{self.moniker()}</civ> to glory."
@@ -117,7 +128,9 @@ def ai_game_count_units(id, num_players) -> tuple[dict[str, list[list[dict[Any, 
         'civs': [[winner_civ_turn_counts], civ_turn_counts],
         'score_sources': [[winner_score_sources], score_sources],
         'techs': [[winner_researching_tech_turns], researching_tech_turns],
+        'frontier_techs': [[winner_researching_frontier_tech_turns], researching_frontier_tech_turns],
         "tenets": [[winner_tenets], tenets],
+        'lifetimes': [[winner_civ_lifetimes], civ_lifetimes]
     }, {
         'turns': final_state.turn_num,
         'age': final_state.advancement_level,
@@ -178,7 +191,9 @@ def accumulate_unit_info(num_games, cache_file, offset=0, max_workers=10):
         'civs': {civ.name: defaultdict(int) for civ in CIVS.all()},
         'score_sources': defaultdict(blank_defaultdict),
         'techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
+        'frontier_techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
         'tenets': {tenet.name: defaultdict(int) for tenet in augmented_tenets_list()},
+        'lifetimes': {i: defaultdict(int) for i in range(100)},
     }
     loser_data = {
         'units': {unit.name: defaultdict(int) for unit in UNITS.all()},
@@ -188,7 +203,9 @@ def accumulate_unit_info(num_games, cache_file, offset=0, max_workers=10):
         'civs': {civ.name: defaultdict(int) for civ in CIVS.all()},
         'score_sources': defaultdict(blank_defaultdict),
         'techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
+        'frontier_techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
         'tenets': {tenet.name: defaultdict(int) for tenet in augmented_tenets_list()},
+        'lifetimes': {i: defaultdict(int) for i in range(100)},
     }
     game_data = {
         'turns': defaultdict(int),
@@ -409,7 +426,9 @@ if __name__ == "__main__":
             'civs': {civ.name: defaultdict(int) for civ in CIVS.all()},
             'score_sources': defaultdict(blank_defaultdict),
             'techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
+            'frontier_techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
             'tenets': {tenet.name: defaultdict(int) for tenet in augmented_tenets_list()},
+            'lifetimes': {i: defaultdict(int) for i in range(100)},
         }
         loser_data_raw = {
             'units': {unit.name: defaultdict(int) for unit in UNITS.all()},
@@ -419,7 +438,9 @@ if __name__ == "__main__":
             'civs': {civ.name: defaultdict(int) for civ in CIVS.all()},
             'score_sources': defaultdict(blank_defaultdict),
             'techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
+            'frontier_techs': {tech.name: defaultdict(int) for tech in TECHS.all()},
             'tenets': {tenet.name: defaultdict(int) for tenet in augmented_tenets_list()},
+            'lifetimes': {i: defaultdict(int) for i in range(100)},
         }
         game_data_raw = {
             'turns': defaultdict(int),
@@ -565,7 +586,7 @@ if __name__ == "__main__":
             return ""
 
 
-        fig = make_subplots(rows=16, cols=2)
+        fig = make_subplots(rows=20, cols=2)
         fig.update_layout(
             height=6000,
             width=1200,
@@ -599,6 +620,9 @@ if __name__ == "__main__":
         units, x, y_winner, y_loser, units_cond_win_prob, units_cond_win_prob_errors = plot_rates(winner_data['units'], loser_data['units'], sorted_units, "Unit", cond_prob_range=[0.23, 0.3], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         offset += 1
 
+        sorted_lifetimes = [DummyThingWithName(i) for i in range(100)]
+        plot_rates(winner_data['lifetimes'], loser_data['lifetimes'], sorted_lifetimes, "Civ Lifetimes", cond_prob_range=[0.2, 0.4], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
+        offset += 1
         sorted_wonders = sorted(WONDERS.all(), key=lambda w: (w.advancement_level, w.name))
         plot_rates(winner_data['wonders'], loser_data['wonders'], sorted_wonders, "Wonder", cond_prob_range=[0.2, 0.4], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         offset += 1
@@ -613,6 +637,9 @@ if __name__ == "__main__":
         offset += 1
         sorted_techs = sorted(TECHS.all(), key=lambda t: (t.advancement_level, t.cost, t.name))
         plot_rates(winner_data['techs'], loser_data['techs'], sorted_techs, "Tech", cond_prob_range=[0.23, 0.3], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
+        offset += 1
+        sorted_frontier_techs = sorted_techs
+        plot_rates(winner_data['frontier_techs'], loser_data['frontier_techs'], sorted_frontier_techs, "Frontier Tech", cond_prob_range=[0.23, 0.3], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         offset += 1
         sorted_tenets = augmented_tenets_list()
         plot_rates(winner_data['tenets'], loser_data['tenets'], sorted_tenets, "Tenet", cond_prob_range=[0.15, 0.35], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)

@@ -322,10 +322,10 @@ class BUILDINGS():
     HUSBANDRY_CENTER = BuildingTemplate(
         name="Husbandry Center",
         type=BuildingType.URBAN,
-        cost=20,
+        cost=5,
         abilities=[{
             "name": "IncreaseFocusYieldsPerPopulation",
-            "numbers": ["food", 2],
+            "numbers": ["food", 1],
         }],
         prereq=TECHS.IRRIGATION,
     )
