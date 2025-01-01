@@ -621,7 +621,7 @@ if __name__ == "__main__":
         offset += 1
 
         sorted_lifetimes = [DummyThingWithName(i) for i in range(100)]
-        plot_rates(winner_data['lifetimes'], loser_data['lifetimes'], sorted_lifetimes, "Civ Lifetimes", cond_prob_range=[0.2, 0.4], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
+        plot_rates(winner_data['lifetimes'], loser_data['lifetimes'], sorted_lifetimes, "Civ Lifetimes", cond_prob_range=[0.1, 0.4], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
         offset += 1
         sorted_wonders = sorted(WONDERS.all(), key=lambda w: (w.advancement_level, w.name))
         plot_rates(winner_data['wonders'], loser_data['wonders'], sorted_wonders, "Wonder", cond_prob_range=[0.2, 0.4], fig=fig, fig_offset=offset, magic_yref_thingy=magic_yref_thingy)
