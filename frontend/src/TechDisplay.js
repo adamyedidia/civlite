@@ -5,6 +5,9 @@ import BuildingDisplay from './BuildingDisplay';
 import { romanNumeral } from "./romanNumeral";
 import scienceImg from './images/science.png';
 import fountainImg from './images/fountain.svg';
+import { TextOnIcon } from './TextOnIcon';
+import vpImg from './images/crown.png';
+import { DetailedNumberTooltipContent } from './DetailedNumber';
 
 const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameState, onClick, fountainIcon }) => {
     return (
@@ -31,7 +34,17 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
                 ))}
             </div>
             {tech.text && <p>{tech.text}</p>}
-            {fountainIcon && <img src={fountainImg} className="fountain-icon"/>}
+            <div className="upper-right-floaters">
+                {civ && <TextOnIcon 
+                        image={vpImg}
+                        tooltip={<DetailedNumberTooltipContent detailedNumber={civ.vps_per_tech_level[tech.advancement_level]} />}
+                        offset={10}
+                    >
+                        {civ.vps_per_tech_level[tech.advancement_level].value}
+                    </TextOnIcon>
+                }
+                {!fountainIcon && <img src={fountainImg} className="fountain-icon"/>}
+            </div>
         </div>
     );
 };

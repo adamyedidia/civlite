@@ -112,10 +112,16 @@
     min-height: 45px;
 }
 
-.fountain-icon {
-    width: 20px;
-    height: 20px;
+.upper-right-floaters {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: -15px;
+    right: -5px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: 30px;
+}
+
+.upper-right-floaters * {
+    width: 100%;
 }

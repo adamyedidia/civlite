@@ -6,6 +6,9 @@ class DetailedNumber:
         self._value: float = sum(self._data.values())
         self._assert_invariants()
 
+    def items(self):
+        return self._data.items()
+
     @property
     def value(self) -> float:
         self._assert_invariants()

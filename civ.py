@@ -71,6 +71,7 @@ class Civ:
         self.vandetta_civ_id: Optional[str] = None
         self.unique_units_built: int = 0
         self._game_player_num: Optional[int] = self.game_player.player_num if self.game_player else None
+        self.vps_per_tech_level: list[DetailedNumber] = [DetailedNumber() for _ in range(10)]
 
         self.score_dict: dict[str, float] = {}
 
@@ -118,6 +119,7 @@ class Civ:
     def midturn_update(self, game_state):
         self.adjust_projected_yields(game_state)
         self.refresh_queues_cache(game_state)
+        self._update_vps_per_tech_level(game_state)
 
     def adjust_projected_yields(self, game_state: 'GameState') -> None:
         self.projected_science_income = DetailedNumber()
@@ -293,6 +295,7 @@ class Civ:
             "unique_units_built": self.unique_units_built,
             "has_tenet_choice": self.game_player is not None and self.game_player.active_tenet_choice_level is not None,
             "vitality_decay_rate": self.vitality_decay_rate.to_json(),
+            "vps_per_tech_level": [vps.to_json() for vps in self.vps_per_tech_level],
         }
 
     def fill_out_available_buildings(self, game_state: 'GameState') -> None:
@@ -550,13 +553,21 @@ class Civ:
         self.fill_out_available_buildings(game_state)
 
         if tech != TECHS.RENAISSANCE:
-            self.gain_vps(TECH_VP_REWARD * tech.advancement_level, score_strings.TECH)
-            if self.has_tenet(TENETS.RATIONALISM):
-                self.gain_vps(max(0, tech.advancement_level - 3), f"Rationalism")
+            vps = self.vps_per_tech_level[tech.advancement_level]
+            for source, amount in vps.items():
+                self.gain_vps(amount, source)
 
+    def _update_vps_per_tech_level(self, game_state: 'GameState'):
+        if self.game_player is None:
+            return DetailedNumber()
+
+        for lvl in range(10):
+            self.vps_per_tech_level[lvl] = DetailedNumber()
+            self.vps_per_tech_level[lvl].add(score_strings.TECH, TECH_VP_REWARD * lvl)
+            if self.has_tenet(TENETS.RATIONALISM):
+                self.vps_per_tech_level[lvl].add(TENETS.RATIONALISM.name, max(0, lvl - 3))
             for ability, building in self.passive_building_abilities_of_name("ExtraVpPerAgeOfTechResearched", game_state):
-                amount = ability.numbers[0] * tech.advancement_level
-                self.gain_vps(amount, building.building_name)
+                self.vps_per_tech_level[lvl].add(building.building_name, ability.numbers[0] * lvl)
 
     def complete_research(self, tech: TechTemplate, game_state: 'GameState'):
 
@@ -737,6 +748,7 @@ class Civ:
         civ.vandetta_civ_id = json.get("vandetta_civ_id")
         civ.score_dict = json["score_dict"]
         civ.unique_units_built = json["unique_units_built"]
+        civ.vps_per_tech_level = [DetailedNumber.from_json(vps_json) for vps_json in json.get("vps_per_tech_level", [])]
 
         return civ
 
