@@ -617,7 +617,7 @@ class Civ:
 
         self.vitality *= (1 - self.vitality_decay_rate.value)
         self.update_max_territories(game_state)
-        if self.city_power < 0:
+        if self.city_power <= 0:
             self.trade_hub_id = None
 
     def from_json_postprocess(self, game_state: 'GameState') -> None:
