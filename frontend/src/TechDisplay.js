@@ -43,7 +43,7 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
                         {civ.vps_per_tech_level[tech.advancement_level].value}
                     </TextOnIcon>
                 }
-                {!fountainIcon && <img src={fountainImg} className="fountain-icon"/>}
+                {fountainIcon && <img src={fountainImg} className="fountain-icon"/>}
             </div>
         </div>
     );
