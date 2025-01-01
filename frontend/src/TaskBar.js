@@ -41,7 +41,7 @@ export const TaskBar = ({myCiv, myGamePlayer, myCities, myUnits, canFoundCity, s
             {myCiv?.great_people_choices.length > 0 && !greatPersonChoiceDialogOpen && <TaskIcon icon={greatPersonImg} tooltip="Select Great Person" onClick={() => {setGreatPersonChoiceDialogOpen(true)}}/>}
             {!myCiv?.researching_tech_name && !techChoiceDialogOpen && <TaskIcon icon={scienceImg} onClick={() => {setTechChoiceDialogOpen(true)}} tooltip="Choose research" />}
             {canFoundCity && myCiv?.city_power > 100 && <TaskIcon icon={cityImg} onClick={() => {setFoundingCity(true)}} tooltip="Found city" />}
-            {!myCiv?.trade_hub_id && anyUnhappyCities && !a7Tenet && <TaskIcon content={<TradeHubIcon myGamePlayer={myGamePlayer}/>}
+            {!myCiv?.trade_hub_id && anyUnhappyCities && !a7Tenet && myCiv.city_power > 0 && <TaskIcon content={<TradeHubIcon myGamePlayer={myGamePlayer}/>}
                 tooltip={<div>Select trade hub (in city window). Unhappy cities: {unhappyCitiesList}</div>}
             />}
             {!myCiv.trade_hub_id && a7Tenet && myCiv.city_power > 0 && <TaskIcon content={<TradeHubIcon myGamePlayer={myGamePlayer}/>}
