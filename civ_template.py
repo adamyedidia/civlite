@@ -3,6 +3,7 @@ from abilities_list import CIV_ABILITIES
 from ability import Ability
 from civ_color_pairs import color_pairs
 from region import Region
+from settings import USE_REGIONS
 
 class CivTemplate:
     def __init__(self, name: str, abilities: list[dict[str, Union[str, list]]], advancement_level: int, region: Region, colors: tuple[str, str] | None = None):
@@ -12,7 +13,7 @@ class CivTemplate:
         self.primary_color, self.secondary_color = colors
         self.abilities: list[Ability] = [CIV_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
         self.advancement_level: int = advancement_level
-        self.region: Region = region
+        self.region: Region = region if USE_REGIONS else Region.GLOBAL
 
     def __repr__(self) -> str:
         return f"<CivTemplate {self.name}>"
