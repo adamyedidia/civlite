@@ -28,7 +28,7 @@ class Unit(MapObject):
         self.has_moved = False
         self.strength = self.template.strength
         self.attacks_used = 0
-        self.destination = None
+        self.destination: list['Hex'] = []
 
     @property
     def dead(self):
@@ -101,15 +101,15 @@ class Unit(MapObject):
             }, hexes_must_be_visible=[starting_hex, new_hex], no_commit=True)
 
     def merge_into_neighboring_unit(self, sess, game_state: 'GameState', always_merge_if_possible: bool = False) -> bool:
-        closest_target = self.get_closest_target()
-        if closest_target is None:
-            closest_target = self.hex
+        closest_targets = self.get_closest_targets()
+        if len(closest_targets) == 0:
+            closest_targets = [self.hex]
 
         coord_strs = [self.hex.coords]
         starting_hex = self.hex
 
         for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
-            if neighboring_hex.sensitive_distance_to(closest_target) < self.hex.sensitive_distance_to(closest_target) or always_merge_if_possible:
+            if neighboring_hex.sensitive_distance_to_list(closest_targets) < self.hex.sensitive_distance_to_list(closest_targets) or always_merge_if_possible:
                 for unit in neighboring_hex.units:
                     if unit.civ.id == self.civ.id and unit.template.name == self.template.name and unit.strength == self.strength:
                         unit.health += self.health
@@ -160,9 +160,10 @@ class Unit(MapObject):
         Ranking function for which target to attack
         """
         seiging_my_city: bool = (target.hex.city is not None and target.hex.city.civ == self.civ and len(target.hex.units) > 0 and target.hex.units[0].civ != self.civ)
-        closest_target: 'Hex' = self.destination or self.hex
+        targets: list['Hex'] = self.destination if len(self.destination) > 0 else [self.hex]
+        distance_to_target = min(target.hex.distance_to(t) for t in targets)
         is_vandetta_civ: bool = target.civ.id == self.civ.vandetta_civ_id
-        return seiging_my_city, is_vandetta_civ, -closest_target.distance_to(target.hex), -target.strength
+        return seiging_my_city, is_vandetta_civ, -distance_to_target, -target.strength
 
     def valid_attack(self, target: 'Unit') -> bool:
         visible: bool = target.hex.visible_to_civ(self.civ)
@@ -311,80 +312,75 @@ class Unit(MapObject):
         return (self.hex.city and self.hex.city.civ != self.civ) or (self.hex.camp and self.hex.camp.civ != self.civ)
 
     def calculate_destination_hex(self, game_state):
-        self.destination = self._calculate_destination_hex(game_state)
+        self.destination = self._calculate_destination(game_state)
         return self.destination
 
-    def _calculate_destination_hex(self, game_state) -> 'Hex | None':
+    def _calculate_destination(self, game_state) -> list['Hex']:
         # Stationary units don't move
         if self.template.movement == 0:
-            return None
+            return [self.hex]
 
         # Don't leave besieging cities
         if self.currently_sieging():
-            return None
+            return [self.hex]
 
         # Don't abandon threatened cities
         if (self.hex.city or self.hex.camp) and self.hex.is_threatened(game_state, self.civ):
-            return None
+            return [self.hex]
 
         neighbors = list(self.hex.get_neighbors(game_state.hexes))
-        # shuffle(neighbors)  Do not shuffle so that it's deterministic and you can't change your units plans by placing a bunch of flags over and over till you roll well.
 
         # Move to adjacent flags
-        if self.civ and self.civ.targets:
-            targets_copy = self.civ.targets[:]
-            random.shuffle(targets_copy)
-            for target in targets_copy:
-                for neighboring_hex in neighbors:            
-                    if target == neighboring_hex:
-                        return neighboring_hex
+        adjacent_flags = [hex for hex in neighbors if hex in self.civ.targets]
+        if len(adjacent_flags) > 0:
+            return adjacent_flags
 
         # Move into adjacent friendly empty threatened cities
-        for neighboring_hex in neighbors:
-            if neighboring_hex.city and neighboring_hex.is_threatened(game_state, self.civ) and neighboring_hex.city.civ == self.civ and len(neighboring_hex.units) == 0:
-                return neighboring_hex
+        adjacent_threatened_cities = [neighboring_hex for neighboring_hex in neighbors if neighboring_hex.city and neighboring_hex.is_threatened(game_state, self.civ) and neighboring_hex.city.civ == self.civ and len(neighboring_hex.units) == 0]
+        if len(adjacent_threatened_cities) > 0:
+            return adjacent_threatened_cities
 
         # ... and camps
-        for neighboring_hex in neighbors:
-            if neighboring_hex.camp and neighboring_hex.is_threatened(game_state, self.civ) and neighboring_hex.camp.civ == self.civ and len(neighboring_hex.units) == 0:
-                return neighboring_hex
+        adjacent_threatened_camps = [neighboring_hex for neighboring_hex in neighbors if neighboring_hex.camp and neighboring_hex.is_threatened(game_state, self.civ) and neighboring_hex.camp.civ == self.civ and len(neighboring_hex.units) == 0]
+        if len(adjacent_threatened_camps) > 0:
+            return adjacent_threatened_camps
 
         # Attack neighboring friendly cities under seige
-        for neighboring_hex in neighbors:
-            if (neighboring_hex.city and neighboring_hex.city.civ == self.civ and neighboring_hex.units and neighboring_hex.units[0].civ != self.civ):
-                return neighboring_hex
+        adjacent_friendly_cities = [neighboring_hex for neighboring_hex in neighbors if neighboring_hex.city and neighboring_hex.city.civ == self.civ and neighboring_hex.units and neighboring_hex.units[0].civ != self.civ]
+        if len(adjacent_friendly_cities) > 0:
+            return adjacent_friendly_cities
 
         # ... and camps
-        for neighboring_hex in neighbors:
-            if (neighboring_hex.camp and neighboring_hex.camp.civ == self.civ and neighboring_hex.units and neighboring_hex.units[0].civ != self.civ):
-                return neighboring_hex
+        adjacent_friendly_camps = [neighboring_hex for neighboring_hex in neighbors if neighboring_hex.camp and neighboring_hex.camp.civ == self.civ and neighboring_hex.units and neighboring_hex.units[0].civ != self.civ]
+        if len(adjacent_friendly_camps) > 0:
+            return adjacent_friendly_camps
 
         # Attack neighboring empty cities
-        for neighboring_hex in neighbors:
-            if neighboring_hex.city and neighboring_hex.city.civ != self.civ and len(neighboring_hex.units) == 0:
-                return neighboring_hex
+        adjacent_enemy_cities = [neighboring_hex for neighboring_hex in neighbors if neighboring_hex.city and neighboring_hex.city.civ != self.civ and len(neighboring_hex.units) == 0]
+        if len(adjacent_enemy_cities) > 0:
+            return adjacent_enemy_cities
             
         # ... and camps
-        for neighboring_hex in neighbors:
-            if neighboring_hex.camp and neighboring_hex.camp.civ != self.civ and len(neighboring_hex.units) == 0:
-                return neighboring_hex
+        adjacent_enemy_camps = [neighboring_hex for neighboring_hex in neighbors if neighboring_hex.camp and neighboring_hex.camp.civ != self.civ and len(neighboring_hex.units) == 0]
+        if len(adjacent_enemy_camps) > 0:
+            return adjacent_enemy_camps
 
         # Attack neighboring camps
-        for neighboring_hex in neighbors:
-            if neighboring_hex.camp and neighboring_hex.camp.civ != self.civ and not (len(neighboring_hex.units) > 0 and neighboring_hex.units[0].civ == self.civ):
-                return neighboring_hex
+        adjacent_enemy_camps = [neighboring_hex for neighboring_hex in neighbors if neighboring_hex.camp and neighboring_hex.camp.civ != self.civ and not (len(neighboring_hex.units) > 0 and neighboring_hex.units[0].civ == self.civ)]
+        if len(adjacent_enemy_camps) > 0:
+            return adjacent_enemy_camps
 
         # If none of the other things applied, go to nearest flag.
-        return self.get_closest_target()
+        return self.get_closest_targets()
 
     def move_one_step(self, game_state: 'GameState', coord_strs: list[str], sensitive: bool = False) -> bool:
         # Potentially change your mind at the last minute
         self.calculate_destination_hex(game_state)
 
-        if self.destination is None: return False
-
+        if len(self.destination) == 0: return False
+        
         best_hex = None
-        best_distance = self.hex.distance_to(self.destination) if not sensitive else self.hex.sensitive_distance_to(self.destination)
+        best_distance = min(self.hex.distance_to(destination) if not sensitive else self.hex.sensitive_distance_to(destination) for destination in self.destination)
 
         neighbors = list(self.hex.get_neighbors(game_state.hexes, exclude_ocean=True))
         random.shuffle(neighbors)
@@ -396,11 +392,11 @@ class Unit(MapObject):
             neighboring_hex_sensitive_distance_to_target = 10000
             neighboring_hex_distance_to_target = 10000
             if sensitive:
-                neighboring_hex_sensitive_distance_to_target = neighboring_hex.sensitive_distance_to(self.destination)
+                neighboring_hex_sensitive_distance_to_target = min(neighboring_hex.sensitive_distance_to(destination) for destination in self.destination)
                 # IF moving sensitive, use <= to prefer moving over staying still.
                 is_better_distance = neighboring_hex_sensitive_distance_to_target <= best_distance
             else:
-                neighboring_hex_distance_to_target = neighboring_hex.distance_to(self.destination)
+                neighboring_hex_distance_to_target = min(neighboring_hex.distance_to(destination) for destination in self.destination)
                 # If it's the first try at moving, use < to prefer staying still (maybe a better spot will open up)
                 is_better_distance = neighboring_hex_distance_to_target < best_distance
 
@@ -458,7 +454,7 @@ class Unit(MapObject):
             "attacks_used": self.attacks_used,
             "done_attacking": self.done_attacking,
             "stack_size": self.get_stack_size(),
-            "closest_target": self.destination.coords if self.destination is not None else None,
+            "closest_target": [destination.coords for destination in self.destination],
         }
     
     @staticmethod

@@ -36,8 +36,14 @@ class Hex:
     def __hash__(self):
         return deterministic_hash(self.coords)
 
+    def distance_to_list(self, others: list["Hex"]) -> int:
+        return min(self.distance_to(hex) for hex in others)
+
     def distance_to(self, other: "Hex") -> int:
         return max(abs(self.q - other.q), abs(self.r - other.r), abs(self.s - other.s))
+
+    def sensitive_distance_to_list(self, others: list["Hex"]) -> float:
+        return min(self.sensitive_distance_to(hex) for hex in others)
 
     # distance_to, but it prefers to move to hexes that are not a straight line away
     def sensitive_distance_to(self, other: "Hex") -> float:

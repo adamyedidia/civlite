@@ -2896,7 +2896,9 @@ export default function GamePage() {
         const destCoords = unit.closest_target
         if (!destCoords) {return;}
         const jitterAmnt = 20 * (Math.sin(hex.q * 13 + hex.r * 23 + hex.s * 31));
-        return <LineOnHexes from={`${hex.q},${hex.r},${hex.s}`} to={destCoords} jitterAmnt={jitterAmnt} className='flag-arrow' color='#111c'/>
+        return destCoords.map((dest, index) => 
+            <LineOnHexes key={index} from={`${hex.q},${hex.r},${hex.s}`} to={dest} jitterAmnt={jitterAmnt} className='flag-arrow' color='#111c'/>
+        )
     }
 
     const FlagArrows = ({hexagons, myCiv, civsById}) => {

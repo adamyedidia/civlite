@@ -809,7 +809,7 @@ class City(MapObjectSpawner):
             # Never build two stacks of immobile units next to each other.
             free_neighbors = [h for h in free_neighbors if not any(u.template.has_tag(UnitTag.DEFENSIVE) for n in h.get_neighbors(game_state.hexes, include_self=False) for u in n.units)]
         if len(free_neighbors) > 0:
-            best_hex = min(free_neighbors, key=lambda h: (h.distance_to(self.get_closest_target() or spawn_hex), random.random()))
+            best_hex = min(free_neighbors, key=lambda h: (h.distance_to_list(self.get_closest_targets() or [spawn_hex]), random.random()))
             if spawn_hex == self.hex and unit.has_tag(UnitTag.DEFENSIVE) and len(spawn_hex.units) > 0 and spawn_hex.units[0].civ == civ:
                 # Kick out the unit that's there to build defensive units.
                 spawn_hex.units[0].take_one_step_to_hex(best_hex, game_state)
@@ -822,7 +822,7 @@ class City(MapObjectSpawner):
         if len(potential_units_to_reinforce) > 0:
             best_unit_to_reinforce = min(potential_units_to_reinforce, key=lambda u: (
                             u.health, 
-                            u.hex.distance_to(self.get_closest_target() or spawn_hex),
+                            u.hex.distance_to_list(self.get_closest_targets() or [spawn_hex]),
                             random.random()
                             ))       
             self.reinforce_unit(best_unit_to_reinforce, stack_size=stack_size)

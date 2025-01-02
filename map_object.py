@@ -49,20 +49,18 @@ class MapObject(abc.ABC):
         self._finish_loading_civ(game_state.civs_by_id)
         self._finish_loading_hex(game_state.hexes)
 
-    def get_closest_target(self) -> 'Hex | None':
+    def get_closest_targets(self) -> list['Hex']:
         """
         Returns the target closest to the given hex. If there are multiple targets at the same distance, returns one at random.
         """        
         targets = self.civ.targets
 
-        if not targets:
-            return None
-        if not self.hex:
-            return None
+        if len(targets) == 0:
+            return []
 
-        targets_copy = targets[:]
-        random.shuffle(targets_copy)
-        return min(targets_copy, key=lambda target: self.hex.distance_to(target))
+        min_distance = min(self.hex.distance_to(target) for target in targets)
+        targets_at_min_distance = [target for target in targets if self.hex.distance_to(target) == min_distance]
+        return targets_at_min_distance
 
     def sight_range(self, short_sighted: bool) -> int:
         return 2 if short_sighted else 1
