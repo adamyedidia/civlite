@@ -35,7 +35,7 @@ class TECHS():
     )
     IRRIGATION = TechTemplate(
         name='Irrigation',
-        cost=20,
+        cost=10,
         advancement_level=1,
     )
     FISHING = TechTemplate(
