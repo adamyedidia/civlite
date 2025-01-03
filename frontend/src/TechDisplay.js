@@ -35,7 +35,7 @@ const TechDisplay = ({ tech, civ, templates, unitTemplatesByBuildingName, gameSt
             </div>
             {tech.text && <p>{tech.text}</p>}
             <div className="upper-right-floaters">
-                {civ && <TextOnIcon 
+                {civ && civ.vps_per_tech_level[tech.advancement_level] && <TextOnIcon 
                         image={vpImg}
                         tooltip={<DetailedNumberTooltipContent detailedNumber={civ.vps_per_tech_level[tech.advancement_level]} />}
                         offset={10}
