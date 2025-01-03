@@ -558,6 +558,7 @@ class GameState:
         civ.vitality *= game_player.vitality_multiplier
         self.make_new_civ_from_the_ashes(city)
         civ.get_great_person(self.advancement_level, city, self)
+        city.midturn_update(self)
         civ.midturn_update(self)
         logger.info(f"New civ {civ} great people choices: {civ.great_people_choices}")
 
@@ -640,6 +641,9 @@ class GameState:
                         city.civ.vitality = (STARTING_CIV_VITALITY if not GOD_MODE else 10) * game_player.vitality_multiplier
 
                         city.capitalize(self)
+                        city.civ.fill_out_available_buildings(self)
+                        city.midturn_update(self)
+                        city.civ.midturn_update(self)
 
                     else:
                         self.register_camp(Camp(self.barbarians, hex=city.hex, turn_spawned=0))
@@ -651,9 +655,6 @@ class GameState:
                         del self.civs_by_id[city.civ.id]
 
             self.refresh_visibility_by_civ()
-
-            for civ in self.civs_by_id.values():
-                civ.fill_out_available_buildings(self)
 
             rdel(dream_key(self.game_id, game_player.player_num, self.turn_num))
             return None
