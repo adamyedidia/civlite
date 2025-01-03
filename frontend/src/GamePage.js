@@ -879,9 +879,6 @@ export default function GamePage() {
         return targets && targets.some(target => hexesAreEqual(hex, coordsToObject(target)));
     }
 
-    // console.log("myCiv", myCiv);
-    console.log("myCiv.targets", myCiv?.targets);
-
     useEffect(() => {
         const addTarget = (hex) => {
             if (!myCivIdRef.current || gameStateRef?.current?.special_mode_by_player_num?.[playerNumRef.current]) return;
