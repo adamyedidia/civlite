@@ -109,7 +109,7 @@ class Unit(MapObject):
         starting_hex = self.hex
 
         for neighboring_hex in self.hex.get_neighbors(game_state.hexes):
-            if neighboring_hex.sensitive_distance_to_list(closest_targets) < self.hex.sensitive_distance_to_list(closest_targets) or always_merge_if_possible:
+            if neighboring_hex.distance_to_list(closest_targets, sensitive=True) < self.hex.distance_to_list(closest_targets, sensitive=True) or always_merge_if_possible:
                 for unit in neighboring_hex.units:
                     if unit.civ.id == self.civ.id and unit.template.name == self.template.name and unit.strength == self.strength:
                         unit.health += self.health
