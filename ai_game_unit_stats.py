@@ -613,6 +613,7 @@ if __name__ == "__main__":
         fig.update_yaxes(title_text="Fraction", row=1, col=1)
         fig.update_xaxes(title_text="Age", row=1, col=2)
         fig.update_yaxes(title_text="Fraction", row=1, col=2)
+        fig.update_layout(title_text=f"Run: {args.output_dir.split('/')[-1]} (N={args.games_per_chunk * args.chunks} games)")
 
         magic_yref_thingy = 3
         offset = 1
