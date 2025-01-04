@@ -61,6 +61,7 @@ import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 import { terrainToColor } from './terrainToColor.js';
 import Unit, { UnitCorpse } from './Unit';
+import { civNameToFlagImgSrc } from './flag.js';
 
 const difficultyLevels = {
     'Debug': 20,
@@ -3098,7 +3099,8 @@ export default function GamePage() {
 
     const City = ({ city, isHovered, isSelected, isUnitInHex, everControlled, myGamePlayer }) => {
         const civTemplate = templates.CIVS[civsById?.[city.civ_id]?.name]
-        
+        const civName = civTemplate?.name;
+
         const primaryColor = civTemplate?.primary_color;
         const secondaryColor = civTemplate?.secondary_color;
     
@@ -3142,6 +3144,7 @@ export default function GamePage() {
                         <image href="/images/fire.svg" x="0" y="0" height="6" width="6" />
                     </svg>
                 }
+                {/* {civName && <image href={civNameToFlagImgSrc(civName)} x={-1.6} y={-4.6} height={2} width={3} />} */}
                 <CityRectangle cityBoxPanel={cityBoxPanel} primaryColor={primaryColor} secondaryColor={secondaryColor} puppet={puppet} cityName={city.name} onMouseEnter={() => handleMouseOverCity(city)} onClick={() => handleClickCity(city)} friendly={friendly}>
                     {/* Population */}
                     <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={secondaryColor} strokeWidth="0.1"/>
