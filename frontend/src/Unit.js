@@ -14,20 +14,6 @@ import musketmanSpriteData from './MiniPirateGunner.js';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores.js';
 
 
-const useGlobalClock = () => {
-    const [clock, setClock] = useState(0);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setClock(prev => (prev + 1));
-        }, 120);  // Same timing as before
-
-        return () => clearInterval(interval);
-    }, []);
-
-    return clock;
-};
-
 const BasicUnit = ({ unit, small, templates, civsById }) => {
     const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
 
@@ -64,13 +50,12 @@ const BasicUnit = ({ unit, small, templates, civsById }) => {
     );
 };
 
-export function UnitCorpse({ corpse, small, templates, civsById }) {
+export function UnitCorpse({ corpse, small, templates, civsById, clock }) {
     const unitCivTemplate = templates.CIVS[civsById?.[corpse.unit_civ_id]?.name]
     const primaryColor = unitCivTemplate?.primary_color;
     const secondaryColor = unitCivTemplate?.secondary_color;
 
     const [deathStartTime, setDeathStartTime] = useState(null);
-    const clock = useGlobalClock();
 
     useEffect(() => {
         setDeathStartTime(clock);
@@ -153,13 +138,12 @@ export function UnitCorpse({ corpse, small, templates, civsById }) {
 
 }
 
-export default function Unit({ unit, small, templates, civsById, attackingUnitCoords, attackedUnitCoords }) {
+export default function Unit({ unit, small, templates, civsById, attackingUnitCoords, attackedUnitCoords, clock }) {
     const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
     const primaryColor = unitCivTemplate?.primary_color;
     const secondaryColor = unitCivTemplate?.secondary_color;
 
     
-    const clock = useGlobalClock();
     const [isAttacking, setIsAttacking] = useState(false);
     const [isAttacked, setIsAttacked] = useState(false);
     const [attackStartTime, setAttackStartTime] = useState(null);

@@ -74,6 +74,20 @@ const difficultyLevels = {
     'Diety': 0.3
 };
 
+const useGlobalClock = () => {
+    const [clock, setClock] = useState(0);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setClock(prev => (prev + 1));
+        }, 120);  // Same timing as before
+
+        return () => clearInterval(interval);
+    }, []);
+
+    return clock;
+};
+
 const coordsToObject = (coords) => {
     if (!coords) {
         return null;
@@ -462,6 +476,8 @@ export default function GamePage() {
             handleCloseAnnouncement();
         }, 500);
     };
+
+    const clock = useGlobalClock();
 
     useEffect(() => {
         let timeoutId;
@@ -3414,8 +3430,16 @@ export default function GamePage() {
                                         civsById={civsById}
                                         attackingUnitCoords={attackingUnitCoords}
                                         attackedUnitCoords={attackedUnitCoords}
+                                        clock={clock}
                                     />}
-                                    {corpses.map((corpse, i) => corpse.coords === coordsString(hex) && <UnitCorpse key={i} corpse={corpse} small={hex?.city || hex?.camp || foundingCity} templates={templates} civsById={civsById} />)}
+                                    {corpses.map((corpse, i) => corpse.coords === coordsString(hex) && <UnitCorpse 
+                                        key={i} 
+                                        corpse={corpse} 
+                                        small={hex?.city || hex?.camp || foundingCity} 
+                                        templates={templates} 
+                                        civsById={civsById} 
+                                        clock={clock} 
+                                    />)}
                                     {hex.quest === 'El Dorado' && <ElDoradoMarker/>}
                                     {hex.quest === 'Yggdrasils Seeds' && <YggdrasilSeedsMarker/>}
                                     {!declineOptionsView && hexIsInTargets(hex) && <TargetMarker />}
