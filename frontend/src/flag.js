@@ -10,3 +10,8 @@ export function civNameToFlagImgSrc(civName) {
     const flagName = CIV_TO_FLAG_NAME[civName];
     return `/flags/${flagName}-large.png`;
 }
+
+export function civNameToFlagSvgSrc(civName) {
+    const flagName = CIV_TO_FLAG_NAME[civName];
+    return `/flags/${flagName}.svg`;
+}

@@ -1,7 +1,7 @@
 import React from 'react';
 import './CivDisplay.css'; // Assuming you have a separate CSS file for styling
 import { romanNumeral } from "./romanNumeral";
-import { civNameToFlagImgSrc } from './flag.js';
+import { civNameToFlagSvgSrc } from './flag.js';
 
 class CivDisplay extends React.Component {
 
@@ -20,7 +20,7 @@ class CivDisplay extends React.Component {
                 <div className="civ-card-inner" style={{ backgroundColor: primary_color }}>
                     <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
                         <img 
-                            src={civNameToFlagImgSrc(name)} 
+                            src={civNameToFlagSvgSrc(name)} 
                             alt={`${name} flag`} 
                             className="civ-flag"
                             style={{ width: '200px' }} // Adjust size as needed
