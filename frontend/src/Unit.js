@@ -12,7 +12,7 @@ import cannonSpriteData from './MiniCannon.js';
 import musketmanSpriteData from './MiniPirateGunner.js';
 
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores.js';
-
+import { civNameToShieldImgSrc } from './flag.js';
 
 const BasicUnit = ({ unit, small, templates, civsById }) => {
     const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
@@ -143,7 +143,8 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
     const primaryColor = unitCivTemplate?.primary_color;
     const secondaryColor = unitCivTemplate?.secondary_color;
 
-    
+    const civName = unitCivTemplate?.name;
+
     const [isAttacking, setIsAttacking] = useState(false);
     const [isAttacked, setIsAttacked] = useState(false);
     const [attackStartTime, setAttackStartTime] = useState(null);
@@ -271,6 +272,9 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
                 y={-2*scale + (small ? 1 : 0)}
                 opacity={unit.done_attacking ? 0.65 : 1.0}
             >
+
+                <image href={civNameToShieldImgSrc(civName)} x={`${0.2*scale}`} y={`${0.8*scale}`} height={`${2*scale}`} width={`${2*scale}`}/>
+
                 <g transform={`translate(${horizontalOffset}, ${verticalOffset})`}>
                     {spriteData[currentAnimation][currentFrame].map((row, y) => 
                         row.map((pixel, x) => {
