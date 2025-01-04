@@ -297,6 +297,16 @@ class Unit(MapObject):
             "start_coords": self_hex_coords,
             "end_coords": target_hex_coords,
             "support_coords": [(hex1.coords, hex2.coords) for hex1, hex2 in support_hexes],
+            "attacker_corpse": {
+                "coords": self_hex_coords,
+                "unit_name": self.template.name,
+                "unit_civ_id": self.civ.id,
+            } if self.dead else None,
+            "defender_corpse": {
+                "coords": target_hex_coords,
+                "unit_name": target.template.name,
+                "unit_civ_id": target.civ.id,
+            } if target.dead else None,
         }, hexes_must_be_visible=[self_hex, target_hex], no_commit=True)
 
         if self.has_ability('Missile'):
