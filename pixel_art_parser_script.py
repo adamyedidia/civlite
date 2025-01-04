@@ -3,6 +3,7 @@ from PIL import Image
 def is_blue_pixel(r, g, b, threshold=0):
     # Simple heuristic: pixel is considered "blue" if blue > red + green
     return b > r and b > g
+    # return r > g and r > b
 
 def assign_team_colors(blue_colors):
     """
@@ -18,6 +19,7 @@ def assign_team_colors(blue_colors):
     def blueness_score(color):
         r, g, b, a = color
         return b - max(r, g)  # Higher score means more distinctly blue
+        # return r - max(g, b)
     
     # Sort by blueness, descending
     sorted_blues = sorted(blue_colors.keys(), key=blueness_score, reverse=True)
@@ -90,7 +92,12 @@ def parse_sprite_sheet(image_path):
                 blue_colors[(r, g, b, a)] = blue_colors.get((r, g, b, a), 0) + 1
 
     # Assign team colors
-    team_color_map = assign_team_colors(blue_colors)
+
+    # team_color_map = assign_team_colors(blue_colors)
+    team_color_map = {
+        (167, 71, 63, 255): "team color 1",
+        (111, 47, 39, 255): "team color 2",
+    }
 
     print("team_color_map", team_color_map)
 
@@ -165,9 +172,12 @@ def parse_sprite_sheet(image_path):
                 row_data = []
                 for x in range(col_start, col_end + 1):
                     pixel = pixels[x, y]
+                    print("pixel", pixel)
+                    print("team_color_map", team_color_map)
                     # Check if this pixel is a team color
                     if pixel in team_color_map:
                         row_data.append(team_color_map[pixel])
+                        # row_data.append(pixel)
                     else:
                         row_data.append(pixel)
                     # Check if this pixel has content
@@ -187,6 +197,7 @@ def parse_sprite_sheet(image_path):
     # animation_states = ['idle', 'move', 'charge', 'jump', 'attack', 'ouch', 'die']
     # animation_states = ['idle', 'move', 'jump', 'attack', 'block', 'ouch', 'die']
     animation_states = ['idle', 'move', 'jump', 'attack', 'ouch', 'die']
+    # animation_states = ['blank', 'idle', 'attack', 'turn', 'ouch', 'die']
 
     normalized_frames = []
     for row_frames in frames:
@@ -259,22 +270,22 @@ def save_frame_as_image(frame_data, output_path="output_frame.png"):
         for x in range(frame_width):
             val = frame_data[y][x]
             if val == "team color 1":
-                img_pixels[x, y] = (255, 0, 0, 255)
+                img_pixels[x, y] = (0, 200, 0, 255)
             elif val == "team color 2":
-                img_pixels[x, y] = (128, 0, 0, 255)
+                img_pixels[x, y] = (0, 100, 0, 255)
             else:
                 img_pixels[x, y] = val
     
     img.save(output_path)
 
 # Example usage:
-result = parse_sprite_sheet("raw_pixel_art/MiniHalberdMan.png")
-print(result)
+result = parse_sprite_sheet("raw_pixel_art/MiniPirateGunner.png")
+# print(result)
 if result:
     for i, out in enumerate(result):
-        print(f"output {i}")
+        # print(f"output {i}")
 
-        print("out", out)
+        # print("out", out)
 
         for j, frame in enumerate(out):
             save_frame_as_image(frame, f"output_frame_{i}_{j}.png")

@@ -8,6 +8,8 @@ import archerSpriteData from './MiniArcherMan.js';
 import crossbowmanSpriteData from './MiniCrossBowMan.js';
 import spearmanSpriteData from './MiniSpearMan.js';
 import pikemanSpriteData from './MiniHalberdMan.js';
+import cannonSpriteData from './MiniCannon.js';
+import musketmanSpriteData from './MiniPirateGunner.js';
 
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores.js';
 
@@ -83,6 +85,8 @@ export function UnitCorpse({ corpse, small, templates, civsById }) {
         "Crossbowman": crossbowmanSpriteData,
         "Spearman": spearmanSpriteData,
         "Pikeman": pikemanSpriteData,
+        "Cannon": cannonSpriteData,
+        "Musketman": musketmanSpriteData,
     }[corpse.unit_name];
 
     if (spriteData) {
@@ -170,6 +174,8 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
         "Crossbowman": crossbowmanSpriteData,
         "Spearman": spearmanSpriteData,
         "Pikeman": pikemanSpriteData,
+        "Cannon": cannonSpriteData,
+        "Musketman": musketmanSpriteData,
     }[unit.name];
 
     // Check if this unit is the attacker and manage attack animation
