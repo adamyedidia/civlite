@@ -3302,7 +3302,7 @@ export default function GamePage() {
         if (hex.city) {
             const cityCiv = civsByIdRef.current[hex?.city?.civ_id]
             setHoveredCiv(cityCiv);
-            setHoveredGamePlayer(gameState.game_player_by_player_num?.[civsByIdRef.current[hex?.city?.civ_id]?.game_player_num]?.username);
+            setHoveredGamePlayer(gameState.game_player_by_player_num?.[cityCiv?.game_player_num]?.username);
             setHoveredCity(hex.city)
             hoveredCivPicked = true;
         }
@@ -3314,7 +3314,7 @@ export default function GamePage() {
             const civ = civsByIdRef.current[unit?.civ_id]
             setHoveredUnit(unit);
             setHoveredCiv(civ);
-            setHoveredGamePlayer(gameState.game_player_by_player_num?.[civsByIdRef.current[hex?.city?.civ_id]?.game_player_num]?.username);
+            setHoveredGamePlayer(gameState.game_player_by_player_num?.[civ?.game_player_num]?.username);
             hoveredCivPicked = true;
         }
         else {
