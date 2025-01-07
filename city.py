@@ -1110,6 +1110,7 @@ class City(MapObjectSpawner):
         self.set_territory_parent_if_needed(game_state, adopt_focus=True)
 
         # Update available stuff
+        self.civ.update_vitality_decay_rate(game_state)
         self.midturn_update(game_state)
 
     def barbarian_capture(self, game_state: 'GameState') -> None:
