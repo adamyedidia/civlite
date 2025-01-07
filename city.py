@@ -606,8 +606,8 @@ class City(MapObjectSpawner):
 
     def calculate_payoff_time(self, yields: float, cost: float, vitality_exempt_yields: float = 0) -> float:
         civ_decay_rate = self.civ.vitality_decay_rate.value
-        if civ_decay_rate == 0:
-            import pdb; pdb.set_trace()
+        if civ_decay_rate == 0 and STRICT_MODE:
+            raise ValueError("Vitality decay rate is 0???")
         # How much will it produce next turn?
         actual_yields = yields * (self.civ.vitality * (1 - civ_decay_rate))
         # Need to find a time t such that sum(actual_yields * (1 - civ_decay_rate)^k + vitality_exempt_yields) = cost
