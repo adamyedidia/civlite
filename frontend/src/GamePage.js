@@ -76,17 +76,18 @@ const difficultyLevels = {
 };
 
 const useGlobalClock = () => {
-    const [clock, setClock] = useState(0);
+    // const [clock, setClock] = useState(0);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setClock(prev => (prev + 1));
-        }, 120);  // Same timing as before
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         setClock(prev => (prev + 1));
+    //     }, 120);  // Same timing as before
 
-        return () => clearInterval(interval);
-    }, []);
+    //     return () => clearInterval(interval);
+    // }, []);
 
-    return clock;
+    // return clock;
+    return 0;
 };
 
 const coordsToObject = (coords) => {
