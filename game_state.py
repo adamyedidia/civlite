@@ -558,6 +558,7 @@ class GameState:
         civ.vitality *= game_player.vitality_multiplier
         self.make_new_civ_from_the_ashes(city)
         civ.get_great_person(self.advancement_level, city, self)
+        civ.update_vitality_decay_rate(self)
         city.midturn_update(self)
         civ.midturn_update(self)
         logger.info(f"New civ {civ} great people choices: {civ.great_people_choices}")

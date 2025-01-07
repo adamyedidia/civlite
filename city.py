@@ -219,6 +219,7 @@ class City(MapObjectSpawner):
         """
         Update things that could have changed due to the controlling player fiddling with focus etc.
         """
+        assert self.civ.vitality_decay_rate.value > 0, "Vitality decay rate is 0???. Make sure to call civ.update_vitality_decay_rate before city.midturn_update."
         if self.is_territory_capital:
             for puppet in self.get_puppets(game_state):
                 puppet.midturn_update(game_state)
