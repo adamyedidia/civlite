@@ -55,7 +55,7 @@ export const CIV_TO_FLAG_NAME = {
     "Novgorod": "novgorod",
     "Portugal": "portugal",
     "Aragon": "aragon",
-    "Bohemia": "bavaria", // Placeholder
+    "Bohemia": "bavarian", // Placeholder
     "Mongols": "mongolia",
     "Delhi": "bangladesh", // Placeholder
     "Mali": "mali_ancient",
@@ -104,5 +104,6 @@ export const CIV_TO_FLAG_NAME = {
     "Arctic Alliance": "antarctica", // Placeholder?
     "Greater EuroZone": "europe",
     "Celestial Empire": "mars",
-    "The Machine Intelligence": "esperanto", // Placeholder
+    "The Machine Intelligence": "hacker",
+    "Luna": "luna"
 }
