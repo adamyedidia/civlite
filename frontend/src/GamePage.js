@@ -3291,9 +3291,11 @@ export default function GamePage() {
                                         handleMouseOverCity={handleMouseOverCity}
                                         handleClickCity={handleClickCity}
                                         myCiv={myCiv}
+                                        capitalCityNames={gameState.game_player_capital_city_names}
                                     />}
                                     {!(hex.yields && totalHexYields(hex.yields) > 0) && myGamePlayer?.fog_cities[coordsString(hex)] && <FogCity 
                                         cityName={myGamePlayer?.fog_cities[coordsString(hex)].name}  
+                                        capitalCityNames={gameState.game_player_capital_city_names}
                                     />}
                                     {!(hex.yields && totalHexYields(hex.yields) > 0) && myGamePlayer?.fog_camp_coords_with_turn[coordsString(hex)] && <FogCamp
                                         coords={coordsString(hex)}

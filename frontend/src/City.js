@@ -9,8 +9,8 @@ import declineImg from './images/phoenix.png';
 
 const cityBoxCanvas = {'width': 8, 'height': 6};
 
-export const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppet, friendly, cityName, onMouseEnter, gameState, onClick, children}) => {
-    const capital = gameState.game_player_capital_city_names.includes(cityName);
+export const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppet, friendly, cityName, onMouseEnter, gameState, onClick, children, capitalCityNames}) => {
+    const capital = capitalCityNames.includes(cityName);
     const cityBoxPanelBottomY = cityBoxCanvas.height / 2 + cityBoxPanel.height / 2
     return <svg width={cityBoxCanvas.width} height={cityBoxCanvas.height} viewBox={`0 0 ${cityBoxCanvas.width} ${cityBoxCanvas.height}`} x={-cityBoxCanvas.width / 2} y={-1.5 - cityBoxCanvas.height / 2} onMouseEnter={onMouseEnter} onClick={onClick} style={{...(friendly ? {cursor : 'pointer'} : {})}}>
         {/* Background rectangle */}
@@ -30,8 +30,15 @@ export const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppe
     </svg>
 }
 
-export const FogCity = ({ cityName }) => {
-    return <CityRectangle cityBoxPanel={{width: 6, height: 2}} primaryColor="#bbbbbb" secondaryColor="#888888" puppet={false} cityName={cityName}>
+export const FogCity = ({ cityName, capitalCityNames }) => {
+    return <CityRectangle 
+        cityBoxPanel={{width: 6, height: 2}} 
+        primaryColor="#bbbbbb" 
+        secondaryColor="#888888" 
+        puppet={false} 
+        cityName={cityName}
+        capitalCityNames={capitalCityNames}
+    >
         <rect width={cityBoxCanvas.width} height={cityBoxCanvas.height} fill="none" stroke="none" />
     </CityRectangle>
 }
@@ -52,6 +59,7 @@ export default function City({
     handleMouseOverCity,
     handleClickCity,
     myCiv,
+    capitalCityNames,
 }) {
     const civTemplate = templates.CIVS[civsById?.[city.civ_id]?.name]
     const civName = civTemplate?.name;
@@ -110,6 +118,7 @@ export default function City({
                 onClick={() => handleClickCity(city)} 
                 friendly={friendly}
                 gameState={gameState}
+                capitalCityNames={capitalCityNames}
             >
                 {/* Population */}
                 <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={secondaryColor} strokeWidth="0.1"/>
