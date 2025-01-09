@@ -41,7 +41,16 @@ const BasicUnit = ({ unit, small, templates, civsById }) => {
             <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.3} />
             {buffedUnit > 0 && <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${1*scale}`} cy={`${3*scale}`} r={`${0.4 * scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.15} />}
             {buffedUnit > 0 && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1*scale}`} y={`${3*scale}`} style={{ fontSize: `${scale * 0.5}px`, textAnchor: "middle", dominantBaseline: "middle" }}> {buffIcon} </text>}
-            <image opacity={unit.done_attacking ? 0.5 : 1.0} href={unitImage} x={`${scale}`} y={`${scale}`} height={`${2*scale}`} width={`${2*scale}`} />
+            <image 
+                href={unitImage} 
+                x={`${scale}`} 
+                y={`${scale}`} 
+                height={`${2*scale}`} 
+                width={`${2*scale}`}
+                style={{
+                    filter: unitCivTemplate?.darkmode ? 'invert(1)' : 'none'
+                }}
+            />
             <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" /> {/* Total health bar */}
             <rect x={`${scale}`} y={`${3.4*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" /> {/* Current health bar */}
             {unit.stack_size > 1 && <circle cx={`${2*scale + 0.8*scale}`} cy={`${3.5*scale - 0.8*scale}`} r={`${scale/2}`} fill="white" stroke="black" strokeWidth={0.1} style={{ zIndex: 99999 }} />}

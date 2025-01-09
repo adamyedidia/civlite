@@ -9,7 +9,7 @@ import declineImg from './images/phoenix.png';
 
 const cityBoxCanvas = {'width': 8, 'height': 6};
 
-export const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppet, friendly, cityName, onMouseEnter, gameState, onClick, children, capitalCityNames}) => {
+export const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppet, friendly, cityName, onMouseEnter, gameState, onClick, children, capitalCityNames, darkMode}) => {
     const capital = capitalCityNames.includes(cityName);
     const cityBoxPanelBottomY = cityBoxCanvas.height / 2 + cityBoxPanel.height / 2
     return <svg width={cityBoxCanvas.width} height={cityBoxCanvas.height} viewBox={`0 0 ${cityBoxCanvas.width} ${cityBoxCanvas.height}`} x={-cityBoxCanvas.width / 2} y={-1.5 - cityBoxCanvas.height / 2} onMouseEnter={onMouseEnter} onClick={onClick} style={{...(friendly ? {cursor : 'pointer'} : {})}}>
@@ -23,7 +23,7 @@ export const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppe
         {/* Pointer triangle. make the fill and the stroke separately so the fill can cover the border of the main box without the stroke looking dumb */}
         <path d={`M3.3,${cityBoxPanelBottomY-0.12} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY-0.12}`} style={{opacity: 1.0, fill: primaryColor, stroke: "none", strokeWidth: 0.2}} />
         <path d={`M3.3,${cityBoxPanelBottomY} L4,${cityBoxPanelBottomY + 1} L4.7,${cityBoxPanelBottomY}`} style={{strokeOpacity: 1.0, stroke: secondaryColor, strokeWidth: 0.2}} />
-        <text x="50%" y={0.3 + cityBoxCanvas.height / 2} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
+        <text x="50%" y={0.3 + cityBoxCanvas.height / 2} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px", fill: darkMode ? "white" : "black"}}>
             {cityName}
         </text>
         {children}
@@ -38,6 +38,7 @@ export const FogCity = ({ cityName, capitalCityNames }) => {
         puppet={false} 
         cityName={cityName}
         capitalCityNames={capitalCityNames}
+        darkMode={false}
     >
         <rect width={cityBoxCanvas.width} height={cityBoxCanvas.height} fill="none" stroke="none" />
     </CityRectangle>
@@ -119,6 +120,7 @@ export default function City({
                 friendly={friendly}
                 gameState={gameState}
                 capitalCityNames={capitalCityNames}
+                darkMode={civTemplate?.darkmode}
             >
                 {/* Population */}
                 <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={secondaryColor} strokeWidth="0.1"/>

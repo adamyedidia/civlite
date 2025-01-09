@@ -74,16 +74,24 @@ def soften_color(hex_color):
     g = int(hex_color[2:4], 16)
     b = int(hex_color[4:6], 16)
     
-    # Move halfway towards middle grey
-    # Soften dark colors more than bright colors
-    if r + g + b < 384:
-        new_r = int((3*r + MIDDLE_GREY[0]) / 4)
-        new_g = int((3*g + MIDDLE_GREY[0]) / 4)
-        new_b = int((3*b + MIDDLE_GREY[0]) / 4)
+    is_dark = 2*r + 2*g + b < 255
+
+    if is_dark:
+        new_r = int(max(1, min(255, 2*r)))
+        new_g = int(max(1, min(255, 2*g)))
+        new_b = int(max(1, min(255, 2*b)))
+
+        total_color = new_r + new_g + new_b
+        target_amount = 192
+
+        scale_factor = target_amount / total_color
+        new_r = int(scale_factor * new_r)
+        new_g = int(scale_factor * new_g)
+        new_b = int(scale_factor * new_b)
     else:
-        new_r = int((r + MIDDLE_GREY[0]) / 2)
-        new_g = int((g + MIDDLE_GREY[0]) / 2)
-        new_b = int((b + MIDDLE_GREY[0]) / 2)
+        new_r = r
+        new_g = g
+        new_b = b
     
     # Convert back to hex
     return f'#{new_r:02x}{new_g:02x}{new_b:02x}'
