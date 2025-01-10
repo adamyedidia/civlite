@@ -40,7 +40,7 @@ const BasicUnit = ({ unit, small, templates, civsById }) => {
         <svg width={`${4*scale}`} height={`${4*scale}`} viewBox={`0 0 ${4*scale} ${4*scale}`} x={-2*scale} y={-2*scale + (small ? 1 : 0)}>
             <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.3} />
             {buffedUnit > 0 && <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${1*scale}`} cy={`${3*scale}`} r={`${0.4 * scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.15} />}
-            {buffedUnit > 0 && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1*scale}`} y={`${3*scale}`} style={{ fontSize: `${scale * 0.5}px`, textAnchor: "middle", dominantBaseline: "middle", color: unitCivTemplate?.darkmode ? "white" : "black" }}> {buffIcon} </text>}
+            {buffedUnit > 0 && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1*scale}`} y={`${3*scale}`} style={{ fontSize: `${scale * 0.5}px`, textAnchor: "middle", dominantBaseline: "middle", fill: unitCivTemplate?.darkmode ? "white" : "black" }}> {buffIcon} </text>}
             <image 
                 href={unitImage} 
                 x={`${scale}`} 
@@ -151,6 +151,8 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
     const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
     const primaryColor = unitCivTemplate?.primary_color;
     const secondaryColor = unitCivTemplate?.secondary_color;
+
+    console.log(unitCivTemplate);
 
     const civName = unitCivTemplate?.name;
 
@@ -324,7 +326,7 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
                 )}
 
             {buffedUnit > 0 && <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${1.2*scale}`} cy={`${4.5*scale}`} r={`${0.5 * scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.15} />}
-            {buffedUnit > 0 && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1.2*scale}`} y={`${4.5*scale}`} style={{ fontSize: `${scale * 0.5}px`, textAnchor: "middle", dominantBaseline: "middle" }}> {buffIcon} </text>}
+            {buffedUnit > 0 && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1.2*scale}`} y={`${4.5*scale}`} style={{ fontSize: `${scale * 0.5}px`, textAnchor: "middle", dominantBaseline: "middle", fill: unitCivTemplate?.darkmode ? "white" : "black" }}> {buffIcon} </text>}
 
             </svg>
         );
