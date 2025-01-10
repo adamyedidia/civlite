@@ -50,10 +50,10 @@ CIV_COLORS = {
     "Caralans": ("#ffffff", "#909090"),
     "Troy": ("#2194de", "#ce1029"),
     "Nubians": ("#078930", "#0000be"),
-    "Teotihuacan": ("#fe0000", "#404040"),
+    "Teotihuacan": ("#100df6", "#fee422"),
     "Akkad": ("#1c3b67", "#ffff00"),
     "Assyria": ("#ffffff", "#0000be"),
-    "Jomon": ("#e70013", "#404040"),
+    "Jomon": ("#f6b02e", "#fad083"),
     "Yangshao": ("#e80000", "#ffffff"),
     "Longshan": ("#0099cc", "#ffe513"),
     "Olmecs": ("#e20212", "#00ffff"),
@@ -64,7 +64,7 @@ CIV_COLORS = {
     "Thrace": ("#003788", "#ffffff"),
     "Polynesia": ("#003887", "#ffffff"),
     "Scythians": ("#fed100", "#404040"),
-    "Sparta": ("#ce1126", "#404040"),
+    "Sparta": ("#ffff00", "#ff5700"),
     "Athens": ("#ffffff", "#0061f3"),
     "Persia": ("#410c72", "#c73d30"),
     "Macedonia": ("#0078f0", "#0179ef"),
@@ -143,8 +143,17 @@ CIV_COLORS = {
     "Greater EuroZone": ("#0000be", "#0101bd"),
     "Celestial Empire": ("#ff0000", "#009933"),
     "The Machine Intelligence": ("#404040", "#26d009"),
-    "Luna": ("#404040", "#a8a8a8"),
+    "Solaria": ("#165044", "#7fcc2b"),
 }
+# Bespoke choices to prevent civs from looking like barbarians
+OVERWRITE_CIV_COLORS = {
+    "Egypt": ("#c09300", "#ce1126"),
+    "Harrapans": ("#404040", "#ffff00"),
+}
+
+print(CIV_COLORS["Harrapans"])
+
+CIV_COLORS.update(OVERWRITE_CIV_COLORS)
 class CIVS():
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
@@ -1547,15 +1556,15 @@ class CIVS():
         region=Region.GLOBAL,
         colors=CIV_COLORS["The Machine Intelligence"]
     )
-    LUNA = CivTemplate(
-        name="Luna",
+    SOLARIA = CivTemplate(
+        name="Solaria",
         abilities=[{
             "name": "ExtraVpsPerWonder",
             "numbers": [20],
         }],
         advancement_level=9,
         region=Region.GLOBAL,
-        colors=CIV_COLORS["Luna"]
+        colors=CIV_COLORS["Solaria"]
     )
 
     # FRANCE = CivTemplate(

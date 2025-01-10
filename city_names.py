@@ -481,7 +481,7 @@ unified_latin_america_cities = [
     "Mexico City", "Guadalajara", "Monterrey", "Puebla", "Tijuana",
     "Ciudad Juárez", "León", "Cancún", "Querétaro", "Merida"
 ]
-luna_cities = [
+solaria_cities = [
     "Solaria Prime", "Lumina", "Raylight", "Gleamhold", "Sparkstone",
     "Illumina", "Radiant City", "Photonis", "Mirrortown", "Glowhaven"
 ]
@@ -627,7 +627,7 @@ CITY_NAMES_BY_CIV = {
     "Turkey": turkish_cities,
     "NATO": nato_cities,
     "Unified Latin America": unified_latin_america_cities,
-    "Luna": luna_cities,
+    "Solaria": solaria_cities,
     "Arctic Alliance": arctic_cities,
     "Greater EuroZone": greater_euro_zone_cities,
     "Celestial Empire": celestial_empire_cities,

@@ -12,10 +12,10 @@ export const CIV_TO_FLAG_NAME = {
     "Caralans": "carantanian", // Placeholder?
     "Troy": "ainu", // Placeholder
     "Nubians": "nubia",
-    "Teotihuacan": "akwe", // Placeholder
+    "Teotihuacan": "boii", // Placeholder
     "Akkad": "aleut", // Placeholder
     "Assyria": "assyria",
-    "Jomon": "almohad", // Placeholder
+    "Jomon": "jaffna", // Placeholder
     "Yangshao": "alsace", // Placeholder
     "Longshan": "amazigh", // Placeholder
     "Olmecs": "amazon", // Placeholder
@@ -26,7 +26,7 @@ export const CIV_TO_FLAG_NAME = {
     "Thrace": "thrace",
     "Polynesia": "polynesian",
     "Scythians": "scythia",
-    "Sparta": "angola", // Placeholder
+    "Sparta": "rvn", // Placeholder
     "Athens": "greece_ancient",
     "Persia": "iran_ancient",
     "Macedonia": "macedon",
@@ -105,5 +105,5 @@ export const CIV_TO_FLAG_NAME = {
     "Greater EuroZone": "europe",
     "Celestial Empire": "mars",
     "The Machine Intelligence": "hacker",
-    "Luna": "luna"
+    "Solaria": "dryad"
 }

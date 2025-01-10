@@ -117,10 +117,10 @@ CIV_COLORS = {
     "Caralans": ('#ffffff', '#909090'),
     "Troy": ('#2194de', '#ce1029'),
     "Nubians": ('#078930', '#000080'),
-    "Teotihuacan": ('#fe0000', '#000000'),
+    "Teotihuacan": ('#100df6', '#fee422'),
     "Akkad": ('#0b1728', '#ffff00'),
     "Assyria": ('#ffffff', '#000077'),
-    "Jomon": ('#e70013', '#000000'),
+    "Jomon": ('#f6b02e', '#fad083'),
     "Yangshao": ('#e80000', '#ffffff'),
     "Longshan": ('#0099cc', '#ffe513'),
     "Olmecs": ('#e20212', '#00ffff'),
@@ -131,7 +131,7 @@ CIV_COLORS = {
     "Thrace": ('#003490', '#ffffff'),
     "Polynesia": ('#003580', '#ffffff'),
     "Scythians": ('#fed100', '#000000'),
-    "Sparta": ('#ce1126', '#000000'),
+    "Sparta": ('#ffff00', '#ff5700'),
     "Athens": ('#ffffff', '#0061f3'),
     "Persia": ('#380b62', '#c73d30'),
     "Macedonia": ('#0078f0', '#0179ef'),
@@ -210,7 +210,7 @@ CIV_COLORS = {
     "Greater EuroZone": ('#0000a9', '#0101a8'),
     "Celestial Empire": ('#ff0000', '#009933'),
     "The Machine Intelligence": ('#000000', '#26d009'),
-    "Luna": ('#000000', '#a8a8a8'),
+    "Solaria": ('#165044', '#7fcc2b'),
 }
 soften_civ_colors(CIV_COLORS)
 
