@@ -10,6 +10,10 @@ class CivTemplate:
         self.name = name
         if colors is None:
             colors = color_pairs.pop(0)
+        red_channel = int(colors[0][1:3], 16)
+        green_channel = int(colors[0][3:5], 16)
+        blue_channel = int(colors[0][5:7], 16)
+        self.darkmode = 2*red_channel + 3*green_channel + blue_channel < 550
         self.primary_color, self.secondary_color = colors
         self.abilities: list[Ability] = [CIV_ABILITIES[ability["name"]](*ability["numbers"]) for ability in abilities]  # type: ignore
         self.advancement_level: int = advancement_level
@@ -33,7 +37,8 @@ class CivTemplate:
             "primary_color": self.primary_color,
             "secondary_color": self.secondary_color,
             "abilities": [ability.to_json() for ability in self.abilities],
-            "advancement_level": self.advancement_level
+            "advancement_level": self.advancement_level,
+            "darkmode": self.darkmode
         }
 
     

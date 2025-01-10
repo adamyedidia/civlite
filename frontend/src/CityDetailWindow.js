@@ -14,6 +14,7 @@ import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import declineImg from './images/phoenix.png';
 import workerImg from './images/worker.png';
+import workerDarkImg from './images/worker_darkmode.png';
 import { CityDetailPanel } from './CityDetailPanel.js';
 import { TextOnIcon } from './TextOnIcon.js';
 import ProgressBar from './ProgressBar.js';
@@ -217,8 +218,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
         <div className="city-detail-window">
             <div className="main" style={{borderColor: myCivTemplate?.secondary_color}}>
             <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate?.primary_color}e0`}}>
-                <h1 style={{ margin: '0', display: 'flex', alignItems: 'center' }}>
-                    <TextOnIcon image={workerImg}>{selectedCity.population}</TextOnIcon>
+                <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', color: myCivTemplate?.darkmode ? "white" : "black" }}>
+                    <TextOnIcon image={myCivTemplate?.darkmode ? workerDarkImg : workerImg} darkMode={myCivTemplate?.darkmode}>{selectedCity.population}</TextOnIcon>
                 </h1>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '60%' }}>
                     <span 
@@ -226,10 +227,11 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                         aria-label="Previous City" 
                         className="city-navigation-icon" 
                         onClick={() => CycleCities(false)}
+                        style={{color: myCivTemplate?.darkmode ? "white" : "black"}}
                     >
                         {puppet ? "⇧" : "◀"}
                     </span>
-                    <span style={{ textAlign: 'center' }}>
+                    <span style={{ textAlign: 'center', color: myCivTemplate?.darkmode ? "white" : "black" }}>
                     {selectedCity.name}
                     {declinePreviewMode ? " (preview)" : ""}
                     </span>
@@ -238,6 +240,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                         aria-label="Previous City" 
                         className="city-navigation-icon" 
                         onClick={() => CycleCities(true)}
+                        style={{color: myCivTemplate?.darkmode ? "white" : "black"}}
                     >
                     {puppet ? "⇧" : "▶"}
                     </span>

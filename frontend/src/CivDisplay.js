@@ -9,7 +9,7 @@ class CivDisplay extends React.Component {
         const { civ, templates } = this.props
 
         const { vitality, name } = civ;
-        const { abilities, primary_color, secondary_color, advancement_level } = templates.CIVS[name];
+        const { abilities, primary_color, secondary_color, advancement_level, darkmode } = templates.CIVS[name];
 
         const hoveredGamePlayerDisplay = this.props?.hoveredGamePlayer ? ` (${this.props.hoveredGamePlayer})` : '';
 
@@ -23,15 +23,20 @@ class CivDisplay extends React.Component {
                             src={civNameToFlagSvgSrc(name)} 
                             alt={`${name} flag`} 
                             className="civ-flag"
-                            style={{ width: '200px' }} // Adjust size as needed
-                        />            
+                            style={{ 
+                                width: '200px',
+                                filter: darkmode ? 
+                                    'drop-shadow(0 0 2px white) drop-shadow(0 0 2px white)' : 
+                                    'drop-shadow(0 0 2px black) drop-shadow(0 0 2px black)',
+                            }} 
+                        />    
                     </div>
-                    <h2>{`${name} ${hoveredGamePlayerDisplay}`}</h2>
-                    <h4>{`Age ${romanNumeral(advancement_level)} civilization`}</h4>
-                    {vitalityDisplay && <h4>{vitalityDisplay}</h4>}
+                    <h2 style={{color: darkmode ? "white" : "black"}}>{`${name} ${hoveredGamePlayerDisplay}`}</h2>
+                    <h4 style={{color: darkmode ? "white" : "black"}}>{`Age ${romanNumeral(advancement_level)} civilization`}</h4>
+                    {vitalityDisplay && <h4 style={{color: darkmode ? "white" : "black"}}>{vitalityDisplay}</h4>}
                     <ul>
                         {abilities.map((ability, index) => (
-                            <li key={index}>{ability.description}</li>
+                            <li key={index} style={{color: darkmode ? "white" : "black"}}>{ability.description}</li>
                         ))}
                     </ul>
                 </div>

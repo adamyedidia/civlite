@@ -10,6 +10,7 @@ import vpImg from './images/crown.png';
 import sadImg from './images/sadface.png';
 import cityImg from './images/city.png';
 import workerImg from './images/worker.png';
+import workerDarkImg from './images/worker_darkmode.png';
 import wonderImg from './images/wonders.png';
 import ideologyImg from './images/ideology.png';
 import fireImg from './images/fire.svg';
@@ -65,7 +66,9 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
             {[...Array(newCities)].map((_, index) => (
                 <div key={index} className={`new-city-button ${(canFoundCity && index===0) ? (isFoundingCity ? 'active': 'enabled'): ''}`} onClick={disableUI? null :toggleFoundingCity}>
                     <NewCityIcon civTemplate={civTemplate} disabled={!canFoundCity || (isFoundingCity & index > 0)} atMaxTerritories={atMaxTerritories}>
-                        +
+                        <div style={{color: civTemplate.darkmode && !(!canFoundCity || (isFoundingCity & index > 0)) ? "white" : "black"}}>
+                            +
+                        </div>
                     </NewCityIcon>
                 </div>
             ))}
@@ -75,6 +78,7 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
             <div className='city-power-territories' style={{
                 backgroundColor: civTemplate.primary_color,
                 borderColor: civTemplate.secondary_color,
+                color: civTemplate.darkmode ? "white" : "black"
             }}>
                 {currentTerritories}/{civ.max_territories}
             </div>
@@ -152,22 +156,32 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
                 position: "absolute",
                 left: "-10px",
             }}>
-                {Math.floor(city.revolting_starting_vitality * 100 * myGamePlayer.vitality_multiplier)}%
+                <div style={{color: civTemplate?.darkmode ? "white" : "black"}}>
+                    {Math.floor(city.revolting_starting_vitality * 100 * myGamePlayer.vitality_multiplier)}%
+                </div>
             </TextOnIcon>
-            <TextOnIcon image={workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
-                <b>{city.population}</b>
+            <TextOnIcon image={civTemplate?.darkmode ? workerDarkImg : workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
+                <div style={{color: civTemplate?.darkmode ? "white" : "black"}}>
+                    <b>{city.population}</b>
+                </div>
             </TextOnIcon>
-            <div className="unit-count" style={{visibility: city.revolt_unit_count > 0 ? "visible" : "hidden" }}>
-                {city.revolt_unit_count}
+            <div className="unit-count" style={{visibility: city.revolt_unit_count > 0 ? "visible" : "hidden", border: civTemplate?.darkmode ? "2px solid white" : "2px solid black"}}>
+                <div style={{color: civTemplate?.darkmode ? "white" : "black"}}>
+                    {city.revolt_unit_count}
+                </div>
             </div>
-            {city.name}
+            <div style={{color: civTemplate?.darkmode ? "white" : "black"}}>
+                {city.name}
+            </div>
             {isMyCity && <div className="my-city-revolting"
                             style={{
                                 backgroundColor: templates.CIVS[myCiv.name]?.primary_color, 
                                 borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
                         >
                 <Tooltip title="Your city">
-                    !!
+                    <div style={{color: templates.CIVS[myCiv.name]?.darkmode ? "white" : "black"}}>
+                        !!
+                    </div>
                 </Tooltip>
             </div>}
         </div>
@@ -257,6 +271,7 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
         </div><div className="revolt-cities" style={{minHeight: (newUnhappinessThresholdHigher && citiesReadyForRevolt.length > 5) ? "" : "30px"}}>
             {citiesRevoltingNextTurn.length > 0 && <>
                 {citiesRevoltingNextTurn.sort((a, b) => b.unhappiness + b.projected_income.unhappiness - a.unhappiness - a.projected_income.unhappiness).map((city, index) => {
+                    const cityCivTemplate = templates.CIVS[city.civ_id];
                     return <Tooltip title="Your city will be revolting next turn">
                     <div className="decline-option-row future-revolting"
                     style={{
@@ -264,16 +279,22 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
                         borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
                     >
                     <div className="revolt-cities-row">
-                        <TextOnIcon image={workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
-                            <b>{city.population}</b>
+                        <TextOnIcon image={cityCivTemplate?.darkmode ? workerDarkImg : workerImg} style={{width: "20px", height: "20px", marginLeft: "40px"}}>
+                            <div style={{color: cityCivTemplate?.darkmode ? "white" : "black"}}>
+                                <b>{city.population}</b>
+                            </div>
                         </TextOnIcon>
-                        {city.name}
+                        <div style={{color: cityCivTemplate?.darkmode ? "white" : "black"}}>
+                            {city.name}
+                        </div>
                         <div className="my-city-revolting"
                                         style={{
                                             backgroundColor: templates.CIVS[myCiv.name]?.primary_color, 
                                             borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
                                     >
-                                !
+                                        <div style={{color: templates.CIVS[myCiv.name]?.darkmode ? "white" : "black"}}>
+                                    !
+                                </div>
                         </div>
                     </div>
                 </div></Tooltip>

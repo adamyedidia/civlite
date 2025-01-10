@@ -36,6 +36,124 @@ def find_civ_pool(n, advancement_level_target, target_regions: set[Region], civs
     else:
         raise ValueError(f"Couldn't find enough civs to decline ({n}) in {target_regions}.\n\nargs were {advancement_level_target=}, {target_regions=}, {civs_already_in_game=}.\n\nFinal amounts found was {amounts_found}")
 
+CIV_COLORS = {
+    "Barbarians": ("#404040", "#f50021"),
+    "Pueblo": ("#ed0000", "#ffffff"),
+    "Egypt": ("#ce1126", "#404040"),
+    "Mycenaeans": ("#008800", "#ffffff"),
+    "Harrapans": ("#ff0000", "#404040"),
+    "Shang": ("#229e45", "#f8e509"),
+    "Sumer": ("#32cbfe", "#ffb012"),
+    "Indus": ("#00aad4", "#ffcc00"),
+    "Minoans": ("#2a6b11", "#66950c"),
+    "Babylon": ("#125dd3", "#eea831"),
+    "Caralans": ("#ffffff", "#909090"),
+    "Troy": ("#2194de", "#ce1029"),
+    "Nubians": ("#078930", "#0000be"),
+    "Teotihuacan": ("#100df6", "#fee422"),
+    "Akkad": ("#1c3b67", "#ffff00"),
+    "Assyria": ("#ffffff", "#0000be"),
+    "Jomon": ("#f6b02e", "#fad083"),
+    "Yangshao": ("#e80000", "#ffffff"),
+    "Longshan": ("#0099cc", "#ffe513"),
+    "Olmecs": ("#e20212", "#00ffff"),
+    "Hittites": ("#b62dd7", "#ffb200"),
+    "Phoenicia": ("#0066ff", "#cc0000"),
+    "Elamites": ("#800080", "#ffffff"),
+    "Lydia": ("#001ea1", "#d81c3f"),
+    "Thrace": ("#003788", "#ffffff"),
+    "Polynesia": ("#003887", "#ffffff"),
+    "Scythians": ("#fed100", "#404040"),
+    "Sparta": ("#ffff00", "#ff5700"),
+    "Athens": ("#ffffff", "#0061f3"),
+    "Persia": ("#410c72", "#c73d30"),
+    "Macedonia": ("#0078f0", "#0179ef"),
+    "Maurya": ("#007d41", "#ffc400"),
+    "Chola": ("#ffa101", "#404040"),
+    "Qin": ("#404040", "#ffffff"),
+    "Romans": ("#cc0000", "#ffd90c"),
+    "Parthia": ("#630085", "#e7bc2a"),
+    "Carthage": ("#0066ff", "#cc0000"),
+    "Han": ("#e20212", "#b3a400"),
+    "Gupta": ("#ffff00", "#aa0000"),
+    "Huns": ("#f9f9f9", "#e7c03b"),
+    "Franks": ("#0000be", "#ffd700"),
+    "Maya": ("#364a90", "#ffffff"),
+    "Celts": ("#59a859", "#ffff00"),
+    "Jin": ("#44aa00", "#404040"),
+    "Byzantines": ("#c8100b", "#f8c420"),
+    "Srivijaya": ("#ff0000", "#00318d"),
+    "Umayyads": ("#0099cc", "#009933"),
+    "Abbasids": ("#ce1126", "#ffffff"),
+    "Vikings": ("#ffffff", "#404040"),
+    "Khmer": ("#187e37", "#cdd5cf"),
+    "Seljuks": ("#2d96ff", "#ffffff"),
+    "Castile": ("#cc0000", "#bda944"),
+    "England": ("#ffffff", "#cc0000"),
+    "Novgorod": ("#ffffff", "#0087dd"),
+    "Portugal": ("#ff0000", "#009900"),
+    "Aragon": ("#fcdd09", "#da121a"),
+    "Bohemia": ("#ffffff", "#0080ff"),
+    "Mongols": ("#e90649", "#0082d1"),
+    "Delhi": ("#10931c", "#fc000f"),
+    "Mali": ("#ce1126", "#fcd116"),
+    "Ethiopia": ("#298c08", "#ef2118"),
+    "Denmark": ("#d00c33", "#ffffff"),
+    "Sukhothai": ("#e70000", "#ffffff"),
+    "Mamluks": ("#fcd116", "#fcd116"),
+    "Inca": ("#df0000", "#ffa000"),
+    "Austria-Hungary": ("#df0000", "#ffffff"),
+    "Majapahit": ("#e70011", "#ffffff"),
+    "Ottomans": ("#ff0000", "#008000"),
+    "Vijayanagara": ("#002c93", "#ffc726"),
+    "Bahmani": ("#0070ff", "#00be00"),
+    "Ming": ("#ed1c24", "#00a651"),
+    "Timurids": ("#404040", "#ffffff"),
+    "Joseon": ("#ffe000", "#ff0003"),
+    "Aztecs": ("#dc3632", "#404040"),
+    "Songhai": ("#ffffff", "#3399ff"),
+    "Spain": ("#c60b1e", "#ffc400"),
+    "Iroquois": ("#821a7b", "#ffffff"),
+    "Poland": ("#df0000", "#ffffff"),
+    "Mughals": ("#306030", "#d40d0d"),
+    "United Kingdom": ("#cc0000", "#0000be"),
+    "Marathas": ("#ffffff", "#ff9600"),
+    "Prussia": ("#ffffff", "#404040"),
+    "Comanches": ("#0000ff", "#c80000"),
+    "Russia": ("#ffffff", "#fe0101"),
+    "United States": ("#bd3d44", "#ffffff"),
+    "Mexico": ("#0b7226", "#bc0000"),
+    "Zulu": ("#ffffff", "#b10c0c"),
+    "Japan": ("#ffffff", "#d30000"),
+    "Sweden": ("#00447b", "#ffcc00"),
+    "Brazil": ("#229e45", "#f8e509"),
+    "Italy": ("#01bd01", "#ffffff"),
+    "Canada": ("#ff0000", "#ffffff"),
+    "Germany": ("#404040", "#ffce00"),
+    "Korea": ("#ffffff", "#ff1600"),
+    "Australia": ("#0000be", "#cc0000"),
+    "Soviet Union": ("#cc0000", "#cd0400"),
+    "Turkey": ("#e30a17", "#ffffff"),
+    "Indonesia": ("#e70011", "#ffffff"),
+    "India": ("#e77300", "#329203"),
+    "Communist China": ("#e20212", "#f6e204"),
+    "Unified Latin America": ("#75aadb", "#ffffff"),
+    "NATO": ("#00358a", "#214ca9"),
+    "Arctic Alliance": ("#fe6500", "#ffffff"),
+    "Greater EuroZone": ("#0000be", "#0101bd"),
+    "Celestial Empire": ("#ff0000", "#009933"),
+    "The Machine Intelligence": ("#404040", "#26d009"),
+    "Solaria": ("#165044", "#7fcc2b"),
+}
+# Bespoke choices to prevent civs from looking like barbarians
+OVERWRITE_CIV_COLORS = {
+    "Egypt": ("#c09300", "#ce1126"),
+    "Harrapans": ("#404040", "#ffff00"),
+}
+
+print(CIV_COLORS["Harrapans"])
+
+CIV_COLORS.update(OVERWRITE_CIV_COLORS)
 class CIVS():
     # all & by_name are copy-pasted methods to all template lists.
     # I wasn't able to set up a base class system for this
@@ -69,6 +187,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Pueblo"]
     )
     EGPYT = CivTemplate(
         name="Egypt",
@@ -78,6 +197,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Egypt"]
     )
     MYCENAEANS = CivTemplate(
         name="Mycenaeans",
@@ -87,6 +207,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Mycenaeans"]
     )
     HARRAPANS = CivTemplate(
         name="Harrapans",
@@ -96,6 +217,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Harrapans"]
     )
     SHANG = CivTemplate(
         name="Shang",
@@ -105,6 +227,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Shang"]
     )
     SUMER = CivTemplate(
         name="Sumer",
@@ -114,6 +237,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Sumer"]
     )
     INDUS = CivTemplate(
         name="Indus",
@@ -123,6 +247,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Indus"]
     )
     MINOANS = CivTemplate(
         name="Minoans",
@@ -132,6 +257,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Minoans"]
     )
     BABYLON = CivTemplate(
         name="Babylon",
@@ -141,6 +267,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Babylon"]
     )
     CARALANS = CivTemplate(
         name="Caralans",
@@ -150,6 +277,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Caralans"]
     )
     TROY = CivTemplate(
         name="Troy",
@@ -159,6 +287,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Troy"]
     )    
     NUBIANS = CivTemplate(
         name="Nubians",
@@ -168,6 +297,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Nubians"]
     )
     TEOTIHUACAN = CivTemplate(
         # late 1st millenim BC -- could go to a1?
@@ -178,6 +308,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Teotihuacan"]
     )
     AKKAD = CivTemplate(
         name="Akkad",
@@ -187,6 +318,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Akkad"]
     )
     ASSYRIA = CivTemplate(
         name="Assyria",
@@ -196,6 +328,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Assyria"]
     )
     JOMON = CivTemplate(
         name="Jomon",
@@ -205,6 +338,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Jomon"]
     )
     YANGSHAO = CivTemplate(
         name="Yangshao",
@@ -214,6 +348,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Yangshao"]
     )
     LONGSHAN = CivTemplate(
         name="Longshan",
@@ -223,6 +358,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Longshan"]
     )
     OLMECS = CivTemplate(
         name="Olmecs",
@@ -232,6 +368,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Olmecs"]
     )
     HITTITES = CivTemplate(
         name="Hittites",
@@ -241,6 +378,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Hittites"]
     )
     PHOENICIA = CivTemplate(
         name="Phoenicia",
@@ -250,6 +388,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Phoenicia"]
     )
     ELAMITES = CivTemplate(
         name="Elamites",
@@ -259,6 +398,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Elamites"]
     )
     LYDIA = CivTemplate(
         name="Lydia",
@@ -268,6 +408,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Lydia"]
     )
     THRACE = CivTemplate(
         name="Thrace",
@@ -277,7 +418,7 @@ class CIVS():
         }],
         advancement_level=0,
         region=Region.MEDITERRANEAN,
-
+        colors=CIV_COLORS["Thrace"]
     )
 
 
@@ -293,6 +434,7 @@ class CIVS():
         }],
         advancement_level=1,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Polynesia"]
     )
     SCYTHIANS = CivTemplate(
         # 9th century BC
@@ -306,6 +448,7 @@ class CIVS():
         }],
         advancement_level=1,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Scythians"]
     )
     SPARTA = CivTemplate(
         # 7th century BC ish
@@ -316,6 +459,7 @@ class CIVS():
         }],
         advancement_level=1,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Sparta"]
     )
     ATHENS = CivTemplate(
         # 5th century BC
@@ -329,6 +473,7 @@ class CIVS():
         }],
         advancement_level=1,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Athens"]
     )
     PERSIA = CivTemplate(
         # 550 BC
@@ -339,6 +484,7 @@ class CIVS():
         }],
         advancement_level=1,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Persia"]
     )
     MACEDONIA = CivTemplate(
         # 4th century BC
@@ -352,6 +498,7 @@ class CIVS():
         }],
         advancement_level=1,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Macedonia"]
     )
     MAURYA = CivTemplate(
         # 322 BC
@@ -365,6 +512,7 @@ class CIVS():
         }],
         advancement_level=1,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Maurya"]
     )
     CHOLA = CivTemplate(
         # 3rd century BC
@@ -378,6 +526,7 @@ class CIVS():
         }],
         advancement_level=1,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Chola"]
     )
     QIN = CivTemplate(
         # 221 BC
@@ -391,6 +540,7 @@ class CIVS():
         }],
         advancement_level=1,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Qin"]
     )
 
 
@@ -406,6 +556,7 @@ class CIVS():
         }],
         advancement_level=2,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Romans"]
     )
     PARTHIA = CivTemplate(
         # 3rd century BC
@@ -419,6 +570,7 @@ class CIVS():
         }, ],
         advancement_level=2,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Parthia"]
     )
     CARTHAGE = CivTemplate(
         # 2nd century BC ish
@@ -432,6 +584,7 @@ class CIVS():
         }],
         advancement_level=2,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Carthage"]
     )
     HAN = CivTemplate(
         # 2nd century BC
@@ -445,6 +598,7 @@ class CIVS():
         }],
         advancement_level=2,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Han"]
     )
     GUPTA = CivTemplate(
         # 3rd century AD
@@ -458,6 +612,7 @@ class CIVS():
         }],
         advancement_level=2,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Gupta"]
     )
     HUNS = CivTemplate(
         # 4th century AD
@@ -471,6 +626,7 @@ class CIVS():
         }],
         advancement_level=2,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Huns"]
     )
     FRANKS = CivTemplate(
         # 5th century AD very loosely
@@ -484,6 +640,7 @@ class CIVS():
         }],
         advancement_level=2,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Franks"]
     )
     MAYA = CivTemplate(
         # 1st century AD
@@ -497,6 +654,7 @@ class CIVS():
         }],
         advancement_level=2,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Maya"]
     )
     CELTS = CivTemplate(
         # ????
@@ -510,6 +668,7 @@ class CIVS():
         }],
         advancement_level=2,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Celts"]
     )
 
     JIN = CivTemplate(
@@ -524,6 +683,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Jin"]
     )
     BYZANTINES = CivTemplate(
         # 324 AD
@@ -537,6 +697,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Byzantines"]
     )
     SRIVIJAYA = CivTemplate(
         # 7th century AD
@@ -550,6 +711,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Srivijaya"]
     )
     # UMAYYADS = CivTemplate(
     #     # 661 AD
@@ -576,6 +738,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Abbasids"]
     )
     VIKINGS = CivTemplate(
         # 8th century AD
@@ -589,6 +752,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Vikings"]
     )
     KHMER = CivTemplate(
         # 802
@@ -602,6 +766,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Khmer"]
     )
     # SELJUKS = CivTemplate(
     #     # 1037
@@ -641,6 +806,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.EUROPE,
+        colors=CIV_COLORS["England"]
     )
     NOVGOROD = CivTemplate(
         # 1136
@@ -654,6 +820,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Novgorod"]
     )
     PORTUGAL = CivTemplate(
         # 1139
@@ -667,6 +834,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Portugal"]
     )
     ARAGON = CivTemplate(
         # 1164
@@ -680,6 +848,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Aragon"]
     )
     BOHEMIA = CivTemplate(
         # 12th century AD, loosely
@@ -693,6 +862,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Bohemia"]
     )
     MONGOLS = CivTemplate(
         # 1206
@@ -706,6 +876,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Mongols"]
     )
     DELHI = CivTemplate(
         # 1206
@@ -719,6 +890,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Delhi"]
     )
     MALI = CivTemplate(
         # 1226
@@ -732,6 +904,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.AFRICA,
+        colors=CIV_COLORS["Mali"]
     )
 
 
@@ -747,6 +920,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.AFRICA,
+        colors=CIV_COLORS["Ethiopia"]
     )
     DENMARK = CivTemplate(
         # 10th century, technically. Ought to be an age after Vikings.
@@ -760,6 +934,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Denmark"]
     )
     SUKHOTHAI = CivTemplate(
         # 1238 AD
@@ -773,6 +948,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Sukhothai"]
     )
     MAMLUKS = CivTemplate(
         # 1261
@@ -786,6 +962,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Mamluks"]
     )
     INCA = CivTemplate(
         # 13th century
@@ -799,6 +976,7 @@ class CIVS():
         }],
         advancement_level=3,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Inca"]
     )
 
 
@@ -814,6 +992,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Austria-Hungary"]
     )
     MAJAPAHIT = CivTemplate(
         # 1292
@@ -827,6 +1006,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Majapahit"]
     )
     OTTOMANS = CivTemplate(
         # 1299
@@ -840,6 +1020,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Ottomans"]
     )
     VIJAYANAGARA = CivTemplate(
         # 1336 -- huge cities that grew very fast, fought with giant hordes of relatively low-tech infantry.
@@ -853,6 +1034,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Vijayanagara"]
     )
     BAHMANI = CivTemplate(
         # 1347 -- very into knights ("Lords of the Horse"), early adopter of cannons.
@@ -866,6 +1048,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Bahmani"]
     )
     MING = CivTemplate(
         # 1368
@@ -879,6 +1062,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Ming"]
     )
     TIMURIDS = CivTemplate(
         # 1370
@@ -892,6 +1076,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Timurids"]
     )
     JOSEON = CivTemplate(
         # 1392 AD
@@ -905,6 +1090,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Joseon"]
     )
     AZTECS = CivTemplate(
         # 1428
@@ -915,6 +1101,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Aztecs"]
     )
     SONGHAI = CivTemplate(
         # 1464
@@ -928,6 +1115,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.AFRICA,
+        colors=CIV_COLORS["Songhai"]
     )
     SPAIN = CivTemplate(
         # 1492
@@ -941,6 +1129,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Spain"]
     )
     IROQUOIS = CivTemplate(
         # 16th century
@@ -954,6 +1143,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Iroquois"]
     )
     POLAND = CivTemplate(
         # 1569
@@ -967,6 +1157,7 @@ class CIVS():
         }],
         advancement_level=4,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Poland"]
     )
 
 
@@ -982,6 +1173,7 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Mughals"]
     )
     # NETHERLANDS = CivTemplate(
     #     # 1581
@@ -1008,6 +1200,7 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.EUROPE,
+        colors=CIV_COLORS["United Kingdom"]
     )
     MARATHAS = CivTemplate(
         # 1674
@@ -1021,6 +1214,7 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Marathas"]
     )
     PRUSSIA = CivTemplate(
         # 1701
@@ -1034,6 +1228,7 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Prussia"]
     )
     COMANCHES = CivTemplate(
         # 18th century
@@ -1044,6 +1239,7 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Comanches"]
     )
     RUSSIA = CivTemplate(
         # 1721
@@ -1057,6 +1253,7 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Russia"]
     )
     UNITED_STATES = CivTemplate(
         # 1776
@@ -1070,6 +1267,7 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["United States"]
     )
     MEXICO = CivTemplate(
         # 1810
@@ -1083,6 +1281,7 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Mexico"]
     )
     ZULU = CivTemplate(
         # 1816
@@ -1096,7 +1295,8 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.AFRICA,
-    )
+        colors=CIV_COLORS["Zulu"]
+)
     JAPAN = CivTemplate(
         # Depends what you mean
         name="Japan",
@@ -1109,6 +1309,7 @@ class CIVS():
         }],
         advancement_level=5,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Japan"]
     )
 
 
@@ -1124,6 +1325,7 @@ class CIVS():
         }],
         advancement_level=6,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Sweden"]
     )
     BRAZIL = CivTemplate(
         # 1822
@@ -1137,6 +1339,7 @@ class CIVS():
         }],
         advancement_level=6,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Brazil"]
     )
     ITALY = CivTemplate(
         # 1861
@@ -1150,6 +1353,7 @@ class CIVS():
         }],
         advancement_level=6,
         region=Region.MEDITERRANEAN,
+        colors=CIV_COLORS["Italy"]
     )
     CANADA = CivTemplate(
         # 1867
@@ -1163,6 +1367,7 @@ class CIVS():
         }],
         advancement_level=6,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Canada"]
     )
     GERMANY = CivTemplate(
         # 1871
@@ -1176,6 +1381,7 @@ class CIVS():
         }],
         advancement_level=6,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Germany"]
     )
     KOREA = CivTemplate(
         # 1897
@@ -1189,6 +1395,7 @@ class CIVS():
         }],
         advancement_level=6,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Korea"]
     )
     AUSTRALIA = CivTemplate(
         # 1901
@@ -1202,6 +1409,7 @@ class CIVS():
         }],
         advancement_level=6,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Australia"]
     )
     SOVIET_UNION = CivTemplate(
         # 1922
@@ -1215,6 +1423,7 @@ class CIVS():
         }],
         advancement_level=6,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Soviet Union"]
     )
 
 
@@ -1230,6 +1439,7 @@ class CIVS():
         }],
         advancement_level=7,
         region=Region.MIDDLE_EAST,
+        colors=CIV_COLORS["Turkey"]
     )
     INDONESIA = CivTemplate(
         # 1945?
@@ -1243,6 +1453,7 @@ class CIVS():
         }],
         advancement_level=7,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["Indonesia"]
     )
     INDIA = CivTemplate(
         # 1947
@@ -1256,6 +1467,7 @@ class CIVS():
         }],
         advancement_level=7,
         region=Region.SOUTH_ASIA,
+        colors=CIV_COLORS["India"]
     )
     COMMUNIST_CHINA = CivTemplate(
         # 1949
@@ -1269,6 +1481,7 @@ class CIVS():
         }],
         advancement_level=7,
         region=Region.EAST_ASIA,
+        colors=CIV_COLORS["Communist China"]
     )
     UNIFIED_LATIN_AMERICA = CivTemplate(
         name="Unified Latin America",
@@ -1281,6 +1494,7 @@ class CIVS():
         }],
         advancement_level=7,
         region=Region.AMERICAS,
+        colors=CIV_COLORS["Unified Latin America"]
     )
     NATO = CivTemplate(
         name="NATO",
@@ -1293,6 +1507,7 @@ class CIVS():
         }],
         advancement_level=7,
         region=Region.EUROPE,
+        colors=CIV_COLORS["NATO"]
     )
 
     ARCTIC_ALLIANCE = CivTemplate(
@@ -1303,6 +1518,7 @@ class CIVS():
         }],
         advancement_level=9,
         region=Region.GLOBAL,
+        colors=CIV_COLORS["Arctic Alliance"]
     )
     GREATER_EURO_ZONE = CivTemplate(
         name="Greater EuroZone",
@@ -1312,6 +1528,7 @@ class CIVS():
         }],
         advancement_level=9,
         region=Region.EUROPE,
+        colors=CIV_COLORS["Greater EuroZone"]
     )
     CELESTIAL_EMPIRE = CivTemplate(
         name="Celestial Empire",
@@ -1321,6 +1538,7 @@ class CIVS():
         }],
         advancement_level=9,
         region=Region.GLOBAL,
+        colors=CIV_COLORS["Celestial Empire"]
     )
     THE_MACHINE_INTELLIGENCE = CivTemplate(
         name="The Machine Intelligence",
@@ -1336,6 +1554,7 @@ class CIVS():
         }],
         advancement_level=9,
         region=Region.GLOBAL,
+        colors=CIV_COLORS["The Machine Intelligence"]
     )
     SOLARIA = CivTemplate(
         name="Solaria",
@@ -1345,6 +1564,7 @@ class CIVS():
         }],
         advancement_level=9,
         region=Region.GLOBAL,
+        colors=CIV_COLORS["Solaria"]
     )
 
     # FRANCE = CivTemplate(
@@ -1582,7 +1802,6 @@ for check_order in CHECK_ORDERS:
         previous_age = current_age
 
 
-
 if __name__ == "__main__":
     from collections import defaultdict
     from tabulate import tabulate
@@ -1642,3 +1861,5 @@ if __name__ == "__main__":
     #         print(f"- {civ.name} (Age: {civ.advancement_level})")
     # else:
     #     print("\nAll civs are included in CHECK_ORDERS.")
+
+    
