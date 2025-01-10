@@ -125,7 +125,7 @@ export default function City({
                 {/* Population */}
                 <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={secondaryColor} strokeWidth="0.1"/>
                 <image opacity={.7} href={workerIcon} x="3.5" y="1.4" height="1" width="1" />
-                <text x="50%" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
+                <text x="50%" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px", fill: civTemplate?.darkmode && !friendly ? "white" : "black"}}>
                     {city.population}
                 </text>              
 

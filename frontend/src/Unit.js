@@ -152,8 +152,6 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
     const primaryColor = unitCivTemplate?.primary_color;
     const secondaryColor = unitCivTemplate?.secondary_color;
 
-    console.log(unitCivTemplate);
-
     const civName = unitCivTemplate?.name;
 
     const [isAttacking, setIsAttacking] = useState(false);
@@ -266,13 +264,6 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
         const buffIcons = ['+', "▲", "★", "✸"];
         const buffIcon = buffIconIndex < buffIcons.length ? buffIcons[buffIconIndex - 1] : buffIcons[buffIcons.length - 1];    
 
-        // console.log('Frame dimensions:', {
-        //     frameIndex: currentFrame,
-        //     height: currentFrameData.length,
-        //     width: currentFrameData[0]?.length,
-        //     isSquare: currentFrameData.length === currentFrameData[0]?.length,
-        //     is16x16: currentFrameData.length === 16 && currentFrameData[0]?.length === 16
-        // });
 
         return (
             <svg 
