@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 
 import knightSpriteData from './MiniCavalierMan.js';
-import garrisonSpriteData from './MiniSwordMan.js';
+// import garrisonSpriteData from './MiniSwordMan.js';
 import horsemanSpriteData from './MiniHorseMan.js';
 import swordsmanSpriteData from './MiniShieldMan.js';
 import archerSpriteData from './MiniArcherMan.js';
@@ -71,7 +71,7 @@ export function UnitCorpse({ corpse, small, templates, civsById, clock }) {
     }, []);
 
     const spriteData = {
-        "Garrison": garrisonSpriteData,
+        // "Garrison": garrisonSpriteData,
         "Horseman": horsemanSpriteData,
         "Knight": knightSpriteData,
         "Swordsman": swordsmanSpriteData,
@@ -160,7 +160,7 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
     const [animationComplete, setAnimationComplete] = useState(false);
 
     const spriteData = {
-        "Garrison": garrisonSpriteData,
+        // "Garrison": garrisonSpriteData,
         "Horseman": horsemanSpriteData,
         "Knight": knightSpriteData,
         "Swordsman": swordsmanSpriteData,
