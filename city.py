@@ -493,7 +493,7 @@ class City(MapObjectSpawner):
         if self.founded_turn is None: return DetailedNumber()  # Not sure why we're even calculating this.
         if self.capital: 
             return DetailedNumber()
-        result = DetailedNumber()
+        result = DetailedNumber(min_zero=True)
         result.add("Age", 1.0 * self.age(game_state))
 
         if self.is_territory_capital:
@@ -519,8 +519,6 @@ class City(MapObjectSpawner):
 
         if include_recent_owner_change:
             result.add("Recent conquest", -self.food_demand_reduction_recent_owner_change)
-        if result.value < 0:
-            result.add("Min zero", -result.value)
         return result
 
     def handle_unhappiness(self, game_state: 'GameState') -> None:

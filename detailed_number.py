@@ -1,18 +1,16 @@
 class DetailedNumber:
     """A number that can be displayed with a detailed breakdown."""
 
-    def __init__(self, data: dict[str, float] | None = None):
+    def __init__(self, data: dict[str, float] | None = None, min_zero: bool = False):
         self._data: dict[str, float] = data if data is not None else {}
-        self._value: float = sum(self._data.values())
-        self._assert_invariants()
+        self._min_zero = min_zero
 
     def items(self):
         return self._data.items()
 
     @property
     def value(self) -> float:
-        self._assert_invariants()
-        return self._value
+        return self._calculate_value()
     
     def add(self, key: str, value: float):
         if value == 0: return
@@ -20,24 +18,26 @@ class DetailedNumber:
             self._data[key] += value
         else:
             self._data[key] = value
-        self._value += value
-        self._assert_invariants()
     
-    def _assert_invariants(self):
-        assert round(self._value, 4) == round(sum(self._data.values()), 4), f"DetailedNumber._assert_invariants: value mismatch: {round(self._value, 4)} != {round(sum(self._data.values()), 4)}. Data: {self._data}"
+    def _calculate_value(self):
+        total: float = sum(self._data.values())
+        if self._min_zero:
+            total = max(total, 0)
+        return total
 
     def to_json(self) -> dict:
-        self._assert_invariants()
-        return {
-            "value": self._value,
+        result = {
+            "value": self.value,
             "data": self._data,
         }
-    
+        if self._min_zero:
+            result["min_zero"] = True
+        return result
+        
     @staticmethod
     def from_json(json: dict):
-        result = DetailedNumber(json["data"])
+        result = DetailedNumber(json["data"], min_zero=json.get('min_zero', False))
         assert round(result.value, 4) == round(json["value"], 4), f"DetailedNumber.from_json: value mismatch: {result.value} != {json['value']}. Data: {json['data']}; result: {result._data}"
-        result._assert_invariants()
         return result
     
     def __repr__(self)  -> str:
