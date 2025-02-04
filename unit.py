@@ -423,13 +423,7 @@ class Unit(MapObject):
         assert not hex.is_occupied(self.civ, allow_enemy_city=True)
         self.hex.remove_unit(self)
         self.update_hex(hex)
-        hex.units.append(self)
-
-        if self.civ.has_tenet(TENETS.EL_DORADO):
-            assert self.civ.game_player is not None  # guaranteed by has_tenet
-            if hex.coords in self.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"]:
-                self.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"].remove(hex.coords)
-                self.civ.game_player.increment_tenet_progress(TENETS.EL_DORADO, game_state)
+        hex.append_unit(self, game_state)
 
     def turn_end(self, game_state: 'GameState') -> None:
         self.has_moved = False

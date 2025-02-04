@@ -714,7 +714,7 @@ class Civ:
         assert not hex.is_occupied(self, allow_enemy_city=True, allow_allied_unit=False, allow_enemy_unit=False)
         unit = Unit(unit_template, civ=self, hex=hex)
         unit.health *= stack_size
-        hex.units.append(unit)
+        hex.append_unit(unit, game_state)
         game_state.units.append(unit)
         unit.strength += bonus_strength
         game_state.refresh_visibility_by_civ()

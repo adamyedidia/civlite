@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, Generator, Optional
 from camp import Camp
 from civ import Civ
+from tenet_template_list import TENETS
 from terrain_templates_list import TERRAINS
 from terrain_template import TerrainTemplate
 from unit import Unit
@@ -50,6 +51,15 @@ class Hex:
 
     def remove_unit(self, unit: Unit) -> None:
         self.units = [u for u in self.units if u.id != unit.id]
+
+    def append_unit(self, unit: Unit, game_state: "GameState") -> None:
+        self.units.append(unit)
+        if unit.civ.has_tenet(TENETS.EL_DORADO):
+            assert unit.civ.game_player is not None  # guaranteed by has_tenet
+            if self.coords in unit.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"]:
+                unit.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"].remove(self.coords)
+                unit.civ.game_player.increment_tenet_progress(TENETS.EL_DORADO, game_state)
+
 
     def hexes_at_offsets(self, offsets: list[tuple[int, int, int]], hexes: dict[str, "Hex"], exclude_ocean=False) -> Generator["Hex", None, None]:
         for (delta_q, delta_r, delta_s) in offsets:
