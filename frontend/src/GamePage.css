@@ -133,7 +133,10 @@ body {
   top: 0;
   left: 5px;
   height: 100%;
-  align-content: center;
+  width: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .flag-arrows-container {

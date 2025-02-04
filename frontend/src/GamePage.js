@@ -3460,7 +3460,9 @@ export default function GamePage() {
                                     <Typography variant="h5" style={{zIndex: 1}}>
                                         Age {romanNumeral(myCiv.advancement_level)}
                                     </Typography>
-                                    <span className='advancement-level-progress-bar-label'>🚩</span>
+                                    <span className='advancement-level-progress-bar-label'>
+                                        <img src={civNameToFlagImgSrc(myCiv.name)} style={{width: '1em', height: '1em'}}/>
+                                    </span>
                                 </div>}
                                 </Tooltip>
                             </div>
