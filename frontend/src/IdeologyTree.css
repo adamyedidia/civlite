@@ -113,11 +113,14 @@
 @keyframes pulse {
     0% {
         transform: scale(1);
+        font-size: 1em;
     }
     50% {
         transform: scale(1.05);
+        font-size: 1.05em;
     }
     100% {
         transform: scale(1);
+        font-size: 1em;
     }
 }
