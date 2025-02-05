@@ -59,6 +59,7 @@ import { terrainToColor } from './terrainToColor.js';
 import Unit, { UnitCorpse } from './Unit';
 import { civNameToFlagImgSrc } from './flag.js';
 import City, { FogCity } from './City';
+import { GlobalClockProvider } from './GlobalClockContext.js';
 
 const difficultyLevels = {
     'Debug': 20,
@@ -70,21 +71,6 @@ const difficultyLevels = {
     'Emperor': 0.75,
     'Immortal': 0.5,
     'Diety': 0.3
-};
-
-const useGlobalClock = () => {
-    const [clock, setClock] = useState(0);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setClock(prev => (prev + 1));
-        }, 120);  // Same timing as before
-
-        return () => clearInterval(interval);
-    }, []);
-
-    return clock;
-    // return 0;
 };
 
 const coordsToObject = (coords) => {
@@ -467,6 +453,8 @@ export default function GamePage() {
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
 
+    console.log("render");
+
     const startAnnouncementFadeOut = () => {
         setIsAnnouncementFading(true);
         setTimeout(() => {
@@ -475,8 +463,6 @@ export default function GamePage() {
             handleCloseAnnouncement();
         }, 500);
     };
-
-    const clock = useGlobalClock();
 
     useEffect(() => {
         let timeoutId;
@@ -3309,23 +3295,23 @@ export default function GamePage() {
                                         camp={hex.camp}
                                         isUnitInHex={hex?.units?.length > 0}
                                     />}
-                                    {hex?.units?.length > 0 && <Unit
-                                        unit={hex.units[0]}
-                                        small={hex?.city || hex?.camp || foundingCity}
-                                        templates={templates}
-                                        civsById={civsById}
-                                        attackingUnitCoords={attackingUnitCoords}
-                                        attackedUnitCoords={attackedUnitCoords}
-                                        clock={clock}
-                                    />}
-                                    {corpses.map((corpse, i) => corpse.coords === coordsString(hex) && <UnitCorpse 
-                                        key={i} 
-                                        corpse={corpse} 
-                                        small={hex?.city || hex?.camp || foundingCity} 
-                                        templates={templates} 
-                                        civsById={civsById} 
-                                        clock={clock} 
-                                    />)}
+                                    <GlobalClockProvider>
+                                        {hex?.units?.length > 0 && <Unit
+                                            unit={hex.units[0]}
+                                            small={hex?.city || hex?.camp || foundingCity}
+                                            templates={templates}
+                                            civsById={civsById}
+                                            attackingUnitCoords={attackingUnitCoords}
+                                            attackedUnitCoords={attackedUnitCoords}
+                                        />}
+                                        {corpses.map((corpse, i) => corpse.coords === coordsString(hex) && <UnitCorpse 
+                                            key={i} 
+                                            corpse={corpse} 
+                                            small={hex?.city || hex?.camp || foundingCity} 
+                                            templates={templates} 
+                                            civsById={civsById} 
+                                        />)}
+                                    </GlobalClockProvider>
                                     {hex.quest === 'El Dorado' && <ElDoradoMarker/>}
                                     {hex.quest === 'Yggdrasils Seeds' && <YggdrasilSeedsMarker/>}
                                     {!declineOptionsView && hexIsInTargets(hex) && <TargetMarker />}

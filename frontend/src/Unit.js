@@ -13,7 +13,7 @@ import musketmanSpriteData from './MiniPirateGunner.js';
 
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores.js';
 import { civNameToShieldImgSrc } from './flag.js';
-
+import { useGlobalClockValue } from './GlobalClockContext.js';
 const BasicUnit = ({ unit, small, templates, civsById }) => {
     const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
 
@@ -59,7 +59,8 @@ const BasicUnit = ({ unit, small, templates, civsById }) => {
     );
 };
 
-export function UnitCorpse({ corpse, small, templates, civsById, clock }) {
+export function UnitCorpse({ corpse, small, templates, civsById }) {
+    const clock = useGlobalClockValue();
     const unitCivTemplate = templates.CIVS[civsById?.[corpse.unit_civ_id]?.name]
     const primaryColor = unitCivTemplate?.primary_color;
     const secondaryColor = unitCivTemplate?.secondary_color;
@@ -147,7 +148,8 @@ export function UnitCorpse({ corpse, small, templates, civsById, clock }) {
 
 }
 
-export default function Unit({ unit, small, templates, civsById, attackingUnitCoords, attackedUnitCoords, clock }) {
+export default function Unit({ unit, small, templates, civsById, attackingUnitCoords, attackedUnitCoords }) {
+    const clock = useGlobalClockValue();
     const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
     const primaryColor = unitCivTemplate?.primary_color;
     const secondaryColor = unitCivTemplate?.secondary_color;
