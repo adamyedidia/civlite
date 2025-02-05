@@ -46,7 +46,7 @@ def rlock(key: str, expire: int = 60) -> Lock:
     return Lock(redis, key, expire=expire)
 
 
-def rkeys(pattern: str) -> list[str]:
+def rkeys(pattern: str) -> list[bytes]:
     return redis.keys(pattern)
 
 

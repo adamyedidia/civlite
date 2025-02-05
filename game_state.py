@@ -674,7 +674,7 @@ class GameState:
             # If speculative is False, then there should be no collisions
             # We could be less strict here and not even check, but that seems dangerous
             with rlock(f'decline-claimed-{self.game_id}-{self.turn_num}-lock'):
-                redis_key = f"decline-claimed-{self.game_id}-{self.turn_num}-{coords}"
+                redis_key = f"decline-claimed-{self.game_id}-{self.turn_num}-coords-{coords}"
                 already_claimed_by = rget(redis_key)
                 logger.info(f"{already_claimed_by=}")
                 proceed = False

@@ -248,10 +248,11 @@ class Game(Base):
             for player in self.players:
                 rdel(staged_moves_key(self.id, player.player_num, turn))
                 rdel(self._staged_game_state_key(player.player_num, turn))
-            decline_claimed_keys_pattern = f"decline-claimed-{self.id}-{turn}-*"
+            decline_claimed_lock_key = f"decline-claimed-{self.id}-{turn}-lock"
+            rlock(decline_claimed_lock_key).reset()
+            decline_claimed_keys_pattern = f"decline-claimed-{self.id}-{turn}-coords-*"
             for key in rkeys(decline_claimed_keys_pattern):
-                rlock(key).reset()
-            rlock(self.roll_turn_lock_key(turn)).reset()
+                rdel(key.decode('utf-8'))
         for player in self.players:
             if not player.is_bot:
                 self.set_turn_ended_by_player_num(player.player_num, False, broadcast=False)
