@@ -563,6 +563,10 @@ class GameState:
         civ.midturn_update(self)
         logger.info(f"New civ {civ} great people choices: {civ.great_people_choices}")
 
+        for hex in city.hex.get_neighbors(self.hexes, include_self=True):
+            if hex.units and hex.units[0].civ == civ:
+                hex.units[0].check_el_dorado()
+
         return from_civ_perspectives
 
 
@@ -904,7 +908,7 @@ class GameState:
 
                 if game_player.has_tenet(TENETS.YGGDRASILS_SEEDS) and hex.terrain == TERRAINS.FOREST and hex.coords in game_player.tenets[TENETS.YGGDRASILS_SEEDS]["unseen_hexes"]:
                     game_player.tenets[TENETS.YGGDRASILS_SEEDS]["unseen_hexes"].remove(hex.coords)
-                    game_player.increment_tenet_progress(TENETS.YGGDRASILS_SEEDS, self)
+                    game_player.increment_tenet_progress(TENETS.YGGDRASILS_SEEDS)
 
                 if hex.camp is not None:
                     game_player.fog_camp_coords_with_turn[hex.coords] = self.turn_num

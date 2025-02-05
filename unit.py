@@ -268,7 +268,7 @@ class Unit(MapObject):
                     and from_civ.has_tenet(TENETS.HOLY_GRAIL) \
                     and (holy_city := game_state.cities_by_id.get(from_civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"])) is not None \
                     and holy_city.civ == self.civ:
-                    from_civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL, game_state)
+                    from_civ.game_player.increment_tenet_progress(TENETS.HOLY_GRAIL)
 
     def fight(self, sess, game_state: 'GameState', target: 'Unit') -> None:
         self_hex_coords = self.hex.coords

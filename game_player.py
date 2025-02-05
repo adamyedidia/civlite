@@ -45,7 +45,7 @@ class GamePlayer:
             return [t for t in self.tenets if t.advancement_level == level][0]
         return None
     
-    def increment_tenet_progress(self, tenet: TenetTemplate, game_state: 'GameState', amount: int = 1):
+    def increment_tenet_progress(self, tenet: TenetTemplate, amount: int = 1):
         if tenet.is_quest:
             self.tenets[tenet]["progress"] += amount
 

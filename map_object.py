@@ -2,6 +2,8 @@ import abc
 from typing import TYPE_CHECKING
 import random
 
+from tenet_template_list import TENETS
+
 if TYPE_CHECKING:
     from civ import Civ
     from game_state import GameState
@@ -44,6 +46,14 @@ class MapObject(abc.ABC):
     def update_civ(self, civ: 'Civ'):
         assert self._civ is not None
         self._civ = civ
+        self.check_el_dorado()
+
+    def check_el_dorado(self) -> None:
+        if self.civ.has_tenet(TENETS.EL_DORADO):
+            assert self.civ.game_player is not None  # guaranteed by has_tenet
+            if self.hex.coords in self.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"]:
+                self.civ.game_player.tenets[TENETS.EL_DORADO]["hexes"].remove(self.hex.coords)
+                self.civ.game_player.increment_tenet_progress(TENETS.EL_DORADO)
 
     def from_json_postprocess(self, game_state: 'GameState') -> None:
         self._finish_loading_civ(game_state.civs_by_id)
