@@ -14,6 +14,8 @@ import musketmanSpriteData from './MiniPirateGunner.js';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores.js';
 import { civNameToShieldImgSrc } from './flag.js';
 import { useGlobalClockValue } from './GlobalClockContext.js';
+import UnitModel from './UnitModel.js';
+
 const BasicUnit = ({ unit, small, templates, civsById }) => {
     const unitCivTemplate = templates.CIVS[civsById?.[unit.civ_id]?.name]
 
@@ -156,6 +158,8 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
 
     const civName = unitCivTemplate?.name;
 
+    const modelPath = '/models/units/TT_RTS_Characters_customizable.FBX';
+
     const [isAttacking, setIsAttacking] = useState(false);
     const [isAttacked, setIsAttacked] = useState(false);
     const [attackStartTime, setAttackStartTime] = useState(null);
@@ -268,64 +272,70 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
 
 
         return (
-            <svg 
-                width={`${4*scale}`} 
-                height={`${4*scale}`} 
-                viewBox={`0 0 ${4*scale} ${6*scale}`}
-                x={-2*scale} 
-                y={-2*scale + (small ? 1 : 0)}
-                opacity={unit.done_attacking ? 0.65 : 1.0}
-            >
+            <UnitModel modelPath={modelPath} width={400} height={400} />
+        )
+    }
 
-                <image href={civNameToShieldImgSrc(civName)} x={`${0.2*scale}`} y={`${0.8*scale}`} height={`${2*scale}`} width={`${2*scale}`}/>
 
-                <g transform={`translate(${horizontalOffset}, ${verticalOffset})`}>
-                    {spriteData[currentAnimation][currentFrame].map((row, y) => 
-                        row.map((pixel, x) => {
-                            if (Array.isArray(pixel) && pixel[3] === 0) return null;
+    //     return (
+    //         <svg 
+    //             width={`${4*scale}`} 
+    //             height={`${4*scale}`} 
+    //             viewBox={`0 0 ${4*scale} ${6*scale}`}
+    //             x={-2*scale} 
+    //             y={-2*scale + (small ? 1 : 0)}
+    //             opacity={unit.done_attacking ? 0.65 : 1.0}
+    //         >
+
+    //             <image href={civNameToShieldImgSrc(civName)} x={`${0.2*scale}`} y={`${0.8*scale}`} height={`${2*scale}`} width={`${2*scale}`}/>
+
+    //             <g transform={`translate(${horizontalOffset}, ${verticalOffset})`}>
+    //                 {spriteData[currentAnimation][currentFrame].map((row, y) => 
+    //                     row.map((pixel, x) => {
+    //                         if (Array.isArray(pixel) && pixel[3] === 0) return null;
                             
-                            let color;
-                            if (pixel === "team color 1") {
-                                color = primaryColor;
-                            } else if (pixel === "team color 2") {
-                                color = secondaryColor;
-                            } else {
-                                color = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]/255})`;
-                            }
+    //                         let color;
+    //                         if (pixel === "team color 1") {
+    //                             color = primaryColor;
+    //                         } else if (pixel === "team color 2") {
+    //                             color = secondaryColor;
+    //                         } else {
+    //                             color = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]/255})`;
+    //                         }
     
-                            return (
-                                <rect
-                                    key={`${x}-${y}`}
-                                    x={Math.round(x * pixelSize * 100) / 100}
-                                    y={Math.round(y * pixelSize * 100) / 100}
-                                    width={Math.round(pixelSize * 100) / 100}
-                                    height={Math.round(pixelSize * 100) / 100}
-                                    fill={color}
-                                />
-                            );
-                        })
-                    )}
-                </g>    
+    //                         return (
+    //                             <rect
+    //                                 key={`${x}-${y}`}
+    //                                 x={Math.round(x * pixelSize * 100) / 100}
+    //                                 y={Math.round(y * pixelSize * 100) / 100}
+    //                                 width={Math.round(pixelSize * 100) / 100}
+    //                                 height={Math.round(pixelSize * 100) / 100}
+    //                                 fill={color}
+    //                             />
+    //                         );
+    //                     })
+    //                 )}
+    //             </g>    
                 
-                {/* Health bar and stack size indicators remain at the bottom */}
-                <rect x={`${scale}`} y={`${5.35*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" />
-                <rect x={`${scale}`} y={`${5.35*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" />
+    //             {/* Health bar and stack size indicators remain at the bottom */}
+    //             <rect x={`${scale}`} y={`${5.35*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" />
+    //             <rect x={`${scale}`} y={`${5.35*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" />
                 
-                {unit.stack_size > 1 && (
-                    <>
-                        <circle cx={`${2*scale + 0.8*scale}`} cy={`${4.5*scale}`} r={`${scale/2}`} fill="white" stroke="black" strokeWidth={0.1} />
-                        <text x={`${2.8*scale}`} y={`${4.6*scale}`} style={{ fontSize: `${scale}px`, textAnchor: "middle", dominantBaseline: "middle" }}>{unit.stack_size}</text>
-                    </>
-                )}
+    //             {unit.stack_size > 1 && (
+    //                 <>
+    //                     <circle cx={`${2*scale + 0.8*scale}`} cy={`${4.5*scale}`} r={`${scale/2}`} fill="white" stroke="black" strokeWidth={0.1} />
+    //                     <text x={`${2.8*scale}`} y={`${4.6*scale}`} style={{ fontSize: `${scale}px`, textAnchor: "middle", dominantBaseline: "middle" }}>{unit.stack_size}</text>
+    //                 </>
+    //             )}
 
-            {buffedUnit > 0 && <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${1.2*scale}`} cy={`${4.5*scale}`} r={`${0.5 * scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.15} />}
-            {buffedUnit > 0 && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1.2*scale}`} y={`${4.5*scale}`} style={{ fontSize: `${scale * 0.5}px`, textAnchor: "middle", dominantBaseline: "middle", fill: unitCivTemplate?.darkmode ? "white" : "black" }}> {buffIcon} </text>}
+    //         {buffedUnit > 0 && <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${1.2*scale}`} cy={`${4.5*scale}`} r={`${0.5 * scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.15} />}
+    //         {buffedUnit > 0 && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1.2*scale}`} y={`${4.5*scale}`} style={{ fontSize: `${scale * 0.5}px`, textAnchor: "middle", dominantBaseline: "middle", fill: unitCivTemplate?.darkmode ? "white" : "black" }}> {buffIcon} </text>}
 
-            </svg>
-        );
-    }
+    //         </svg>
+    //     );
+    // }
 
-    else {
-        return <BasicUnit unit={unit} small={small} templates={templates} civsById={civsById} />
-    }
+    // else {
+    //     return <BasicUnit unit={unit} small={small} templates={templates} civsById={civsById} />
+    // }
 };
