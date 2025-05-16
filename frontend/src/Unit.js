@@ -276,6 +276,7 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
         )
     }
 
+    return <BasicUnit unit={unit} small={small} templates={templates} civsById={civsById} />
 
     //     return (
     //         <svg 
