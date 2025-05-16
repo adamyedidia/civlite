@@ -163,15 +163,15 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
 
     const spriteData = {
         // "Garrison": garrisonSpriteData,
-        "Horseman": horsemanSpriteData,
-        "Knight": knightSpriteData,
-        "Swordsman": swordsmanSpriteData,
-        "Archer": archerSpriteData,
-        "Crossbowman": crossbowmanSpriteData,
-        "Spearman": spearmanSpriteData,
-        "Pikeman": pikemanSpriteData,
-        "Cannon": cannonSpriteData,
-        "Musketman": musketmanSpriteData,
+        // "Horseman": horsemanSpriteData,
+        // "Knight": knightSpriteData,
+        // "Swordsman": swordsmanSpriteData,
+        // "Archer": archerSpriteData,
+        // "Crossbowman": crossbowmanSpriteData,
+        // "Spearman": spearmanSpriteData,
+        // "Pikeman": pikemanSpriteData,
+        // "Cannon": cannonSpriteData,
+        // "Musketman": musketmanSpriteData,
     }[unit.name];
 
     // Check if this unit is the attacker and manage attack animation
