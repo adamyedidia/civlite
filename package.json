@@ -2,6 +2,7 @@
   "dependencies": {
     "@mui/icons-material": "^5.15.7",
     "plotly.js": "^2.32.0",
-    "react-plotly.js": "^2.6.0"
+    "react-plotly.js": "^2.6.0",
+    "three": "^0.173.0"
   }
 }
