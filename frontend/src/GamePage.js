@@ -3128,10 +3128,10 @@ export default function GamePage() {
         );
     };
 
-    const TargetMarker = ({ purple }) => {
+    const TargetMarker = () => {
         return (
             <svg width="3" height="3" viewBox="0 0 3 3" x={-1.5} y={-1.5}>
-                <image href={purple ? "/images/purple_flag.svg" : "/images/flag.svg"} x="0" y="0" height="3" width="3" />
+                <image href="/images/flag.svg" x="0" y="0" height="3" width="3" />
             </svg>
         );
     };
