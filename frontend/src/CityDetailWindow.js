@@ -172,7 +172,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
     const happinessIcon = (incomeExceedsDemand && selectedCity.unhappiness === 0) ? happyImg : (!incomeExceedsDemand && selectedCity.unhappiness === 0) ? neutralImg : sadImg;
     const unhappinessBarsMaxWidth = 180;
     const unhappinessBarsWidthPerUnit = Math.min(10, unhappinessBarsMaxWidth/foodDemanded, unhappinessBarsMaxWidth/projectedIncome['food']);
-    const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> :
+    const foodDemandTooltip = (selectedCity.capital && foodDemanded === 0) ? <p>Capitals have no food demand</p> :
         <DetailedNumberTooltipContent detailedNumber={selectedCity.food_demand} titleHeader={`Food Demand ${foodDemanded}`}/>
     ;
 

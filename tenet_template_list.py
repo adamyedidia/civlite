@@ -39,6 +39,12 @@ def el_dorado_generate_hexes(game_player: 'GamePlayer', game_state: 'GameState')
         result.extend(random.sample(options, num_in_center))
     return result
 
+def choose_holy_city(game_player: 'GamePlayer', game_state: 'GameState') -> str:
+    possible_cities = [c for c in game_state.cities_by_id.values() if c.civ != game_player.get_current_civ(game_state)]
+    if len(possible_cities) == 0:
+        possible_cities = [c for c in game_state.cities_by_id.values()]
+    return random.choice(possible_cities)
+
 ORDER_FOOD = "food"
 ORDER_WOOD = "wood"
 ORDER_METAL = "metal"
@@ -108,7 +114,7 @@ class TENETS():
         quest_description="Kill 25 units belonging to the civ that controls the Holy City (at the time). If you control the Holy City, it gains 30 food demand per turn and this counts as 5 kills.",
         quest_complete_message="We may never find the goblet of the Lord. But the deeds of our crusades shall echo through the ages, and the heros of our people will remember the call.",
         quest_target=25,
-        initialize_data=lambda game_player, game_state: {"holy_city_id": random.choice([c for c in game_state.cities_by_id.values() if c.civ != game_player.get_current_civ(game_state)]).id},
+        initialize_data=lambda game_player, game_state: {"holy_city_id": choose_holy_city(game_player, game_state).id},
     )
 
     EL_DORADO = TenetTemplate(
@@ -275,7 +281,7 @@ class TENETS():
             if item.name == name:
                 return item
         raise KeyError(f'No item with name {name}')
-    
+
 tenets_by_level = {
     i: [t for t in TENETS.all() if t.advancement_level == i]
     for i in range(1, 10)

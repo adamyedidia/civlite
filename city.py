@@ -491,9 +491,12 @@ class City(MapObjectSpawner):
 
     def _calculate_food_demand(self, game_state: 'GameState', include_recent_owner_change: bool = True) -> DetailedNumber:
         if self.founded_turn is None: return DetailedNumber()  # Not sure why we're even calculating this.
-        if self.capital:
-            return DetailedNumber()
         result = DetailedNumber(min_zero=True)
+        if self.civ.has_tenet(TENETS.HOLY_GRAIL) and self.civ.game_player and self.id == self.civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]:
+            result.add("Holy Grail", 30)
+        if self.capital:
+            return result
+
         result.add("Age", 1.0 * self.age(game_state))
 
         if self.is_territory_capital:
@@ -513,9 +516,6 @@ class City(MapObjectSpawner):
         if parent is not None:
             for ability, building in parent.passive_building_abilities_of_name('DecreaseFoodDemandPuppets'):
                 result.add(building.building_name, -ability.numbers[0])
-
-        if self.civ.has_tenet(TENETS.HOLY_GRAIL) and self.civ.game_player and self.id == self.civ.game_player.tenets[TENETS.HOLY_GRAIL]["holy_city_id"]:
-            result.add("Holy Grail", 30)
 
         if include_recent_owner_change:
             result.add("Recent conquest", -self.food_demand_reduction_recent_owner_change)
