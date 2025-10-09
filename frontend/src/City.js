@@ -7,6 +7,8 @@ import vpImage from './images/crown.png';
 import vitalityImg from './images/heart.png';
 import declineImg from './images/phoenix.png';
 
+export const DECLINE_RING_GRADIENT_ID = 'decline-ring-gradient';
+
 const cityBoxCanvas = {'width': 8, 'height': 6};
 
 export const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppet, friendly, cityName, onMouseEnter, gameState, onClick, children, capitalCityNames, darkMode}) => {
@@ -31,11 +33,11 @@ export const CityRectangle = ({cityBoxPanel, primaryColor, secondaryColor, puppe
 }
 
 export const FogCity = ({ cityName, capitalCityNames }) => {
-    return <CityRectangle 
-        cityBoxPanel={{width: 6, height: 2}} 
-        primaryColor="#bbbbbb" 
-        secondaryColor="#888888" 
-        puppet={false} 
+    return <CityRectangle
+        cityBoxPanel={{width: 6, height: 2}}
+        primaryColor="#bbbbbb"
+        secondaryColor="#888888"
+        puppet={false}
         cityName={cityName}
         capitalCityNames={capitalCityNames}
         darkMode={false}
@@ -44,13 +46,13 @@ export const FogCity = ({ cityName, capitalCityNames }) => {
     </CityRectangle>
 }
 
-export default function City({ 
-    city, 
-    isHovered, 
-    isSelected, 
-    isUnitInHex, 
-    everControlled, 
-    myGamePlayer, 
+export default function City({
+    city,
+    isHovered,
+    isSelected,
+    isUnitInHex,
+    everControlled,
+    myGamePlayer,
     templates,
     isFriendlyCity,
     gameState,
@@ -71,7 +73,7 @@ export default function City({
     const friendly = isFriendlyCity(city);
     const puppet = city.territory_parent_coords;
 
-    const colors = 
+    const colors =
         {'wood': '#e0b096',
         'food': '#ccffaa',
         'metal': '#bbbbbb',
@@ -89,10 +91,10 @@ export default function City({
         buildingText = city.buildings_queue[0].template_name.slice(0, 2);
         buildingIconUnit = null;
     }
-    const buildingImage = buildingIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(buildingIconUnit)}.svg`; 
+    const buildingImage = buildingIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(buildingIconUnit)}.svg`;
 
     const unitText = !city.icon_unit_name && "??";
-    const unitIconUnit = city.icon_unit_name;    
+    const unitIconUnit = city.icon_unit_name;
     const unitImage = unitIconUnit && `/images/${lowercaseAndReplaceSpacesWithUnderscores(unitIconUnit)}.svg`;
 
     const cityBoxPanel = {'width': (puppet ? 5 : 6), 'height': 2};
@@ -109,14 +111,22 @@ export default function City({
                 </svg>
             }
             {/* {civName && <image href={civNameToFlagImgSrc(civName)} x={-1.6} y={-4.6} height={2} width={3} />} */}
+            {declineOptionsView && city.is_decline_view_option && <>
+                <circle cx="0" cy={0} r="5.3" fill={`url(#${DECLINE_RING_GRADIENT_ID})`} stroke="red" strokeWidth="0.2"/>
+                <image href={vitalityImg} x="-1.8" y="-5.3" height="3.6" width="3.6" />
+                <text x="0" y="-3.8" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.1px"}}>
+                    {Math.floor(city.revolting_starting_vitality * 100 * myGamePlayer.vitality_multiplier)}%
+                </text>
+                </>
+            }
             <CityRectangle
-                cityBoxPanel={cityBoxPanel} 
-                primaryColor={primaryColor} 
-                secondaryColor={secondaryColor} 
-                puppet={puppet} 
-                cityName={city.name} 
-                onMouseEnter={() => handleMouseOverCity(city)} 
-                onClick={() => handleClickCity(city)} 
+                cityBoxPanel={cityBoxPanel}
+                primaryColor={primaryColor}
+                secondaryColor={secondaryColor}
+                puppet={puppet}
+                cityName={city.name}
+                onMouseEnter={() => handleMouseOverCity(city)}
+                onClick={() => handleClickCity(city)}
                 friendly={friendly}
                 gameState={gameState}
                 capitalCityNames={capitalCityNames}
@@ -127,7 +137,7 @@ export default function City({
                 <image opacity={.7} href={workerIcon} x="3.5" y="1.4" height="1" width="1" />
                 <text x="50%" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px", fill: civTemplate?.darkmode && !friendly ? "white" : "black"}}>
                     {city.population}
-                </text>              
+                </text>
 
                 {friendly && puppet === null &&
                     <>
@@ -136,14 +146,14 @@ export default function City({
                         <image href={buildingImage} x={1.2} y={1.45} height="1" width="1" />
                         <text x="1.7" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
                             {buildingText}
-                        </text>    
+                        </text>
 
                         {/* Metal */}
                         <circle cx="6.3" cy={cityCirclesY} r={cityCircleRadius} fill={colors.metal} stroke={secondaryColor} strokeWidth="0.1"/>
                         <image href={unitImage} x={5.8} y={1.45} height="1" width="1" />
                         <text x="6.3" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "0.8px"}}>
                             {unitText}
-                        </text>    
+                        </text>
                     </>
                 }
                 {friendly && (city.projected_on_decline_leaderboard || city.civ_to_revolt_into) && <>
@@ -151,17 +161,10 @@ export default function City({
                     <image href={declineImg} x={6.0} y={2.5} height="1" opacity={city.civ_to_revolt_into ? 1 : 0.75}/>
                 </>
                 }
-                {myCiv && !everControlled && 
+                {myCiv && !everControlled &&
                     <image href={vpImage} x={5.75} y={1.1} height="1" />
                 }
             </CityRectangle>
-            {declineOptionsView && city.is_decline_view_option && <>
-                <image href={vitalityImg} x="-1.8" y="-1" height="3.6" width="3.6" />
-                <text x="0" y="0.4" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px"}}>
-                    {Math.floor(city.revolting_starting_vitality * 100 * myGamePlayer.vitality_multiplier)}%
-                </text>
-                </>
-            }
             {!declineOptionsView && friendly && city.revolting_to_rebels_this_turn && <>
                 <image href={declineImg} x="-1.5" y="-2.5" height="3" width="3" style={{ pointerEvents: 'none' }}/>
                 </>

@@ -58,7 +58,7 @@ import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceS
 import { terrainToColor } from './terrainToColor.js';
 import Unit, { UnitCorpse } from './Unit';
 import { civNameToFlagImgSrc } from './flag.js';
-import City, { FogCity } from './City';
+import City, { FogCity, DECLINE_RING_GRADIENT_ID } from './City';
 import { GlobalClockProvider } from './GlobalClockContext.js';
 
 const difficultyLevels = {
@@ -3279,6 +3279,14 @@ export default function GamePage() {
                 <div className="basic-example">
                     <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140"
                     style={{backgroundColor: declineOptionsView ? '#FF6666' : foundingCity ? '#99FF99' : '#4488FF'}}>
+                    <defs>
+                        <radialGradient id={DECLINE_RING_GRADIENT_ID} cx="50%" cy="50%" r="50%">
+                            <stop offset="30%" stopColor="red" stopOpacity="0"/>
+                            <stop offset="65%" stopColor="red" stopOpacity="0.1"/>
+                            <stop offset="85%" stopColor="red" stopOpacity="0.4"/>
+                            <stop offset="100%" stopColor="red" stopOpacity="0.8"/>
+                        </radialGradient>
+                    </defs>
                     <Layout size={{ x: 3, y: 3 }}>
                         {hexagons.map((hex, i) => {
                             return (
