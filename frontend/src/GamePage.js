@@ -7,11 +7,11 @@ import { Typography, IconButton, Tooltip } from '@mui/material';
 import { useSocket } from './SocketContext';
 import { useParams, useLocation } from 'react-router-dom';
 import { URL } from './settings';
-import { 
-    Button, 
-    Dialog, 
-    DialogTitle, 
-    DialogContent, 
+import {
+    Button,
+    Dialog,
+    DialogTitle,
+    DialogContent,
     DialogContentText,
     DialogActions,
     Grid,
@@ -106,7 +106,7 @@ function RulesDialog({open, onClose, gameConstants}) {
             <DialogTitle>Rules</DialogTitle>
             <DialogContent>
                 <DialogContentText>
-                    Civlite is a turn-based strategy game. On the first turn of the game, you choose your starting city and civilization from three options. Afterwards, you 
+                    Civlite is a turn-based strategy game. On the first turn of the game, you choose your starting city and civilization from three options. Afterwards, you
                     queue up units and buildings at your cities and choose technologies from among three options.
                 </DialogContentText>
                 <br />
@@ -114,17 +114,17 @@ function RulesDialog({open, onClose, gameConstants}) {
                     <b>Resources</b>
                 </DialogContentText>
                 <DialogContentText>
-                    The game has four resources: food, wood, metal, and science. Food is used to grow your cities. Your city automatically grows after it collects food; growing 
+                    The game has four resources: food, wood, metal, and science. Food is used to grow your cities. Your city automatically grows after it collects food; growing
                     a population costs {gameConstants?.base_food_cost_of_pop} food + {gameConstants?.additional_per_pop_food_cost} per current population. Metal is used to build units.
                     Every unit in the game (except Warriors) require a building a production building before you can build them in the city. Wood is used to build buildings.
-                    There are a few kinds of buildings: unit production buildings do nothing, except for unlock the ability to build their corresponding unit in a single city. Wonders 
+                    There are a few kinds of buildings: unit production buildings do nothing, except for unlock the ability to build their corresponding unit in a single city. Wonders
                     can be built only once in the game. National wonders can be built once per civilization. Science is used to research technologies, which unlock more units and buildings.
                     Science is shared across your civilization, but food, metal, and wood are stored in each city. In general, everything is infinitely stockpilable; if you fail to put anything
-                    in your queue, there's no penalty and you can just accumulate more resources and spend them later. Putting something in your queue doesn't have any effect until you 
+                    in your queue, there's no penalty and you can just accumulate more resources and spend them later. Putting something in your queue doesn't have any effect until you
                     actually accumulate enough resources to build it, at which point it will be built and removed from your queue.
                 </DialogContentText>
                 <DialogContentText>
-                    You collect food, wood, metal, and science yields from two sources: the hexes around your cities, and the city's population. Your cities always collect yields from 
+                    You collect food, wood, metal, and science yields from two sources: the hexes around your cities, and the city's population. Your cities always collect yields from
                     the seven hexes that are adjacent to or underneath them. Also, each population in each of your cities collects 1 science + 1 yield of your choice (the "focus" of your city).
                     Certain buildings and civ abilities can enhance the yields of hexes; when you enhance the yield of a hex, that hex's yields are increased permanently, and the enhancement
                     applies to other cities working that hex as well.
@@ -134,7 +134,7 @@ function RulesDialog({open, onClose, gameConstants}) {
                     <b>Founding cities</b>
                 </DialogContentText>
                 <DialogContentText>
-                    There's another resource, called "city power", which you collect passively; your city power income is equal to {gameConstants?.base_city_power_income} plus the 
+                    There's another resource, called "city power", which you collect passively; your city power income is equal to {gameConstants?.base_city_power_income} plus the
                     total food income across all your cities. Cities passively make 2 food. When you have enough city power, you can found a new city. Founding a new city costs 100 city power.
                     You can only found cities on hexes that satisfy all of the following properties:
                     <ul>
@@ -150,9 +150,9 @@ function RulesDialog({open, onClose, gameConstants}) {
                     <b>Civ vitality</b>
                 </DialogContentText>
                 <DialogContentText>
-                    Your civilization has a "vitality" statistic, which starts out high and then declines over time. Your civilization's starting vitality is equal 200% plus another 10% 
+                    Your civilization has a "vitality" statistic, which starts out high and then declines over time. Your civilization's starting vitality is equal 200% plus another 10%
                     per turn since the start of the game. Vitality decays exponentially at a rate of x{gameConstants.fast_vitality_decay_rate} per turn when it's above 100%, and by{' '}
-                    x{gameConstants.vitality_decay_rate} per turn when it's below 100%. Vitality is a multiplier that gets applied to your income of all resources in all your cities. 
+                    x{gameConstants.vitality_decay_rate} per turn when it's below 100%. Vitality is a multiplier that gets applied to your income of all resources in all your cities.
                 </DialogContentText>
                 <br />
                 <DialogContentText>
@@ -160,12 +160,12 @@ function RulesDialog({open, onClose, gameConstants}) {
                 </DialogContentText>
                 <DialogContentText>
                     When your civilization's vitality has fallen too low, or things have started going badly for you, you can choose to have your civilization "enter decline." When this happens,
-                    a bot takes over your current civilization, and you start a new civilization somewhere else. The way this works is that your presented with three options for new civilizations to found, in 
-                    three different cities where you can found them. The city you take over might be an already-existing city on the map that belongs to a different player. If you choose such a city as your starting city, 
-                    that city will "revolt": you'll take over that city, and all units adjacent to that city, and the player who previously owned the city and units will be compensated with victory points. 
-                    Whatever city you choose will be your new capital. Your new civilization will start with a high vitality (200% + 10% per turn since the start of the game). 
+                    a bot takes over your current civilization, and you start a new civilization somewhere else. The way this works is that your presented with three options for new civilizations to found, in
+                    three different cities where you can found them. The city you take over might be an already-existing city on the map that belongs to a different player. If you choose such a city as your starting city,
+                    that city will "revolt": you'll take over that city, and all units adjacent to that city, and the player who previously owned the city and units will be compensated with victory points.
+                    Whatever city you choose will be your new capital. Your new civilization will start with a high vitality (200% + 10% per turn since the start of the game).
                     You'll also start with some technologies, corresponding
-                    to the median player-controlled civilization's techs. When you enter decline and start a new civilization, you are starting over from scratch, and leaving literally everything behind 
+                    to the median player-controlled civilization's techs. When you enter decline and start a new civilization, you are starting over from scratch, and leaving literally everything behind
                     with just one exception: your victory points.
                 </DialogContentText>
                 <br />
@@ -173,7 +173,7 @@ function RulesDialog({open, onClose, gameConstants}) {
                     <b>Victory points</b>
                 </DialogContentText>
                 <DialogContentText>
-                    The goal of the game is to get to the most victory points, and your victory points are held by you, the player. The game ends when someone reaches a sufficiently high score, which is given by {gameConstants.game_end_score} VPs + {gameConstants.extra_game_end_score_per_player} VPs per player. 
+                    The goal of the game is to get to the most victory points, and your victory points are held by you, the player. The game ends when someone reaches a sufficiently high score, which is given by {gameConstants.game_end_score} VPs + {gameConstants.extra_game_end_score_per_player} VPs per player.
                     (So, for example, in a 4-player game, the game ends at {gameConstants.game_end_score + 4*gameConstants.extra_game_end_score_per_player} VPs.)
                     You get VPs from a variety of sources:
                     <ul>
@@ -192,9 +192,9 @@ function RulesDialog({open, onClose, gameConstants}) {
                 </DialogContentText>
                 <DialogContentText>
                     You don't have fine-grained control over your units in this game. Instead, you set two "targets" on the map, repesented by flags. Your units will attack-move to those flags, and choose whichever of the two
-                    is closer. If a unit is adjacent to an enemy unit, it will attack that unit. When two units fight, they each deal damage to the other according to a complicated function of their respective strengths, meant to 
+                    is closer. If a unit is adjacent to an enemy unit, it will attack that unit. When two units fight, they each deal damage to the other according to a complicated function of their respective strengths, meant to
                     approximately imitate what would happen in Civ 5 or other games with this system. Ranged units don't take damage back when they attack. If you occupy an enemy city or a camp, that city or camp is now "under siege"
-                    (and will appear as on fire); if you then occupy it for a second turn in a row, you'll capture the city or clear the camp. Cities don't take any damage or population loss from being captured. Barbarian camps spawn a 
+                    (and will appear as on fire); if you then occupy it for a second turn in a row, you'll capture the city or clear the camp. Cities don't take any damage or population loss from being captured. Barbarian camps spawn a
                     Warrior unit every other turn.
                 </DialogContentText>
             </DialogContent>
@@ -212,7 +212,7 @@ function GameOverDialog({open, onClose, gameState, gameId, URL, templates}) {
     return (
         <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth={false} style={{ width: '80vw' }}>
             <DialogTitle>
-                <Typography variant="h2" component="div">  
+                <Typography variant="h2" component="div">
                     {/* component="div" removes an html error complaining of nested h2s */}
                     Game over
                 </Typography>
@@ -265,7 +265,7 @@ function GreatPersonChoiceDialog({open, onClose, greatPersonChoices, handleSelec
         </DialogTitle>
         <div className="tech-choices-content">
             {greatPersonChoices.map((person, index) => (
-                <GreatPerson key={index} greatPerson={person} handleSelectGreatPerson={handleSelectGreatPerson} 
+                <GreatPerson key={index} greatPerson={person} handleSelectGreatPerson={handleSelectGreatPerson}
                     setHoveredUnit={setHoveredUnit} setHoveredTech={setHoveredTech} templates={templates}/>
             ))}
         </div>
@@ -276,7 +276,7 @@ function DeclineFailedDialog({open, onClose}) {
     return (
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>
-                <Typography variant="h2" component="div">  
+                <Typography variant="h2" component="div">
                    Decline Failed
                 </Typography>
             </DialogTitle>
@@ -298,7 +298,7 @@ function DeclinePreemptedDialog({open, onClose}) {
     return (
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>
-                <Typography variant="h2" component="div">  
+                <Typography variant="h2" component="div">
                    Decline Preempted
                 </Typography>
             </DialogTitle>
@@ -331,7 +331,7 @@ const generateUniqueId = () => {
 
 const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity, nonDeclineViewGameState, engineState, handleFoundCapital, civsById}) => {
     const isMyCity = nonDeclineViewGameState?.cities_by_id[selectedCity.id] && civsById[nonDeclineViewGameState?.cities_by_id[selectedCity.id].civ_id]?.game_player_num === playerNum;
-    const disabledMsg = isMyCity ? "Can't decline to my own city" 
+    const disabledMsg = isMyCity ? "Can't decline to my own city"
             : myGamePlayer?.decline_this_turn ? "Already declined this turn"
             : (isOvertime && !myGamePlayer?.failed_to_decline_this_turn) ? "Can't decline in overtime"
             : null;
@@ -345,7 +345,7 @@ const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity,
             padding: '10px 20px', // Increase padding for larger button
             fontSize: '1.5em', // Increase font size for larger text
             marginBottom: '10px',
-        }} 
+        }}
         variant="contained"
         onClick={() => handleFoundCapital()}
         disabled={disabled}
@@ -415,6 +415,8 @@ export default function GamePage() {
     const [showFlagArrows, setShowFlagArrows] = useState(false);
     const flagArrowsTimeoutRef = React.useRef(null);
 
+    const [showResources, setShowResources] = useState(true);
+
     const [selectedCity, setSelectedCity] = useState(null);
 
     const [techChoiceDialogOpen, setTechChoiceDialogOpen] = useState(false);
@@ -449,7 +451,7 @@ export default function GamePage() {
     const [announcementsThisTurn, setAnnouncementsThisTurn] = useState([]);
     const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
     const [corpses, setCorpses] = useState([]);
-    
+
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
 
@@ -544,7 +546,7 @@ export default function GamePage() {
 
     useEffect(() => {
         myCivRef.current = myCiv;
-    }, [myCiv]);    
+    }, [myCiv]);
 
     useEffect(() => {
         turnEndedByPlayerNumRef.current = turnEndedByPlayerNum;
@@ -611,7 +613,7 @@ export default function GamePage() {
         if (newAnnouncementsThisTurn.length > 0) {
             setCurrentAnnouncement(getMessageToShowFromParsedAnnouncement(newAnnouncementsThisTurn[0]));
             playSoundForParsedAnnouncement(newAnnouncementsThisTurn[0]);
-        }        
+        }
     }
 
     const handleCloseAnnouncement = () => {
@@ -675,10 +677,10 @@ export default function GamePage() {
                 setHoveredTenet(null);
             }
         };
-    
+
         // Add event listener
         window.addEventListener('keydown', handleKeyDown);
-    
+
         // Remove event listener on cleanup
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []); // Empty dependency array ensures this effect runs only once after the initial render
@@ -698,7 +700,7 @@ export default function GamePage() {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []); // Empty dependency array ensures this effect runs only once after the initial render
 
-    
+
     useEffect(() => {
         // When the user presses B
         const handleKeyDown = (event) => {
@@ -708,14 +710,30 @@ export default function GamePage() {
                 }
             }
         };
-    
+
         // Add event listener
         window.addEventListener('keydown', handleKeyDown);
-    
+
         // Remove event listener on cleanup
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [foundingCity, engineState]); // Dependency ensures foundingCity is in a valid state before running
 
+    useEffect(() => {
+        // When the user presses R
+        const handleKeyDown = (event) => {
+            if (event.key === 'r' || event.key === 'R') {
+                if (engineState === EngineStates.PLAYING) {
+                    setShowResources(prev => !prev);
+                }
+            }
+        };
+
+        // Add event listener
+        window.addEventListener('keydown', handleKeyDown);
+
+        // Remove event listener on cleanup
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [engineState]);
     useEffect(() => {
         // Define a variable outside of your event listener to keep track of the interval ID
         let scrollIntervalId = null;
@@ -781,7 +799,7 @@ export default function GamePage() {
             const zoomFactor = 0.01;
             const minScale = 0.5; // Minimum scale limit
             if (!hexGridElement) return;
-    
+
             let newScale = parseFloat(hexGridElement.style.transform.replace('scale(', '').replace(')', '')) || 1;
             if (event.deltaY < 0) {
                 newScale += zoomFactor;
@@ -822,7 +840,7 @@ export default function GamePage() {
             window.removeEventListener('wheel', disableBigWheel);
         };
     }, []);
-    
+
     const centerMap = (coords) => {
         // coords should be like "0,0,0"
         console.log("Centering on ", coords);
@@ -865,17 +883,17 @@ export default function GamePage() {
     useEffect(() => {
         const addTarget = (hex) => {
             if (!myCivIdRef.current || gameStateRef?.current?.special_mode_by_player_num?.[playerNumRef.current]) return;
-    
+
             const playerInput = {
                 'move_type': `add_target`,
                 'target_coords': `${hex.q},${hex.r},${hex.s}`,
             }
             submitPlayerInput(playerInput);
         }
-    
+
         const removeTarget = (hex) => {
             if (!myCivIdRef.current) return;
-    
+
             const playerInput = {
                 'move_type': `remove_target`,
                 'target_coords': `${hex.q},${hex.r},${hex.s}`,
@@ -886,13 +904,13 @@ export default function GamePage() {
         const handleContextMenu = (e) => {
             if (hoveredHexRef.current || !process.env.REACT_APP_LOCAL) {
                 e.preventDefault();
-            } 
-    
+            }
+
             if (hoveredHexRef.current) {
                 setHoveredCity(null);
-    
+
                 if (engineState !== EngineStates.PLAYING) {return;}
-    
+
                 const targets = myCivRef.current?.targets;
 
                 if (targets != null) {
@@ -977,7 +995,7 @@ export default function GamePage() {
 
     function playMoveSound(moveSound) {
         if (!userHasInteracted) return;
-    
+
         try {
             let audio = new Audio(moveSound);
             audio.volume = 0.5 * volumeRef.current / 100;
@@ -989,7 +1007,7 @@ export default function GamePage() {
 
     function playMountedMoveSound(mountedMoveSound) {
         if (!userHasInteracted) return;
-    
+
         try {
             let audio = new Audio(mountedMoveSound);
             audio.volume = 0.7 * volumeRef.current / 100;
@@ -1002,7 +1020,7 @@ export default function GamePage() {
 
     function playArmoredMoveSound(armoredMoveSound) {
         if (!userHasInteracted) return;
-    
+
         try {
             let audio = new Audio(armoredMoveSound);
             audio.volume = 0.5 * volumeRef.current / 100;
@@ -1014,7 +1032,7 @@ export default function GamePage() {
 
     function playMeleeAttackSound(meleeAttackSound) {
         if (!userHasInteracted) return;
-    
+
         try {
             let audio = new Audio(meleeAttackSound);
             audio.volume = 0.1 * volumeRef.current / 100;
@@ -1055,7 +1073,7 @@ export default function GamePage() {
         catch (error) {
             console.error('Error playing sound:', error);
         }
-    }        
+    }
 
     function playGunpowderMeleeAttackSound(gunpowderMeleeAttackSound) {
         if (!userHasInteracted) return;
@@ -2585,7 +2603,7 @@ export default function GamePage() {
                 }
             });
     }
-    
+
     const handleClickTech = (tech) => {
         if (engineState !== EngineStates.PLAYING) {return;}
 
@@ -2605,9 +2623,9 @@ export default function GamePage() {
             'move_type': 'choose_tenet',
         }
 
-        submitPlayerInput(playerInput);  
+        submitPlayerInput(playerInput);
     }
-   
+
     useEffect(() => {
         console.log("Loading templates ...")
         fetch(`${URL}/api/templates`)
@@ -2675,7 +2693,7 @@ export default function GamePage() {
     const waitForFrame = async (frameNum) => {
         if (animationFrameLastPlayedRef.current !== frameNum) {
             console.log(now(), "Frame", frameNum, "delayed.")
-            while (animationFrameLastPlayedRef.current !== frameNum) { 
+            while (animationFrameLastPlayedRef.current !== frameNum) {
                 await new Promise(resolve => setTimeout(resolve, 20));
             }
         }
@@ -2884,7 +2902,7 @@ export default function GamePage() {
         const destCoords = unit.closest_target
         if (!destCoords) {return;}
         const jitterAmnt = 20 * (Math.sin(hex.q * 13 + hex.r * 23 + hex.s * 31));
-        return destCoords.map((dest, index) => 
+        return destCoords.map((dest, index) =>
             <LineOnHexes key={index} from={`${hex.q},${hex.r},${hex.s}`} to={dest} jitterAmnt={jitterAmnt} className='flag-arrow' color='#111c'/>
         )
     }
@@ -2908,7 +2926,7 @@ export default function GamePage() {
         const svgElement = document.querySelector('svg.grid');
 
         if (!destRef || !myRef || !svgElement) {return;}
-    
+
         /////////////////////////////////
         // Some GPT4 magic I don't understand
         function screenToSVG(x, y, svgEl) {
@@ -2932,7 +2950,7 @@ export default function GamePage() {
 
         const civ = civsById[city.civ_id]
         const civTemplate = templates.CIVS[civ.name]
-        return <line x1={mySVGPoint.x} y1={mySVGPoint.y} x2={destSVGPoint.x} y2={destSVGPoint.y} 
+        return <line x1={mySVGPoint.x} y1={mySVGPoint.y} x2={destSVGPoint.x} y2={destSVGPoint.y}
             stroke={civTemplate.secondary_color} strokeWidth=".5" strokeOpacity={0.9}
             />
     }
@@ -3012,7 +3030,7 @@ export default function GamePage() {
                 .then(data => {
                     if (data.game_state) {
                         setGameState(data.game_state);
-                        refreshSelectedCity(data.game_state);    
+                        refreshSelectedCity(data.game_state);
                     }
                 });
         } else if (declineOptionsView) {
@@ -3068,7 +3086,7 @@ export default function GamePage() {
         const template = templates.CIVS[civ.name]
 
         const primaryColor = template.primary_color;
-    
+
         return (
             <>
                 {camp.under_siege_by_civ_id && <svg width="5" height="5" viewBox="0 0 5 5" x={-2.5} y={isUnitInHex ? -3.5 : -2.5}>
@@ -3115,12 +3133,12 @@ export default function GamePage() {
                 b: parseInt(result[3], 16)
             } : null;
         }
-    
+
         // Convert RGB to hex
         function rgbToHex(r, g, b) {
             return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
         }
-    
+
         // Blend two colors
         function blendColors(color1, color2, bias) {
             return {
@@ -3129,21 +3147,21 @@ export default function GamePage() {
                 b: Math.floor((bias * color1.b + (1 - bias) * color2.b))
             };
         }
-    
+
         const originalRgb = hexToRgb(hexColor);
         const greyRgb = hexToRgb(targetGrey);
-    
+
         const blendedRgb = blendColors(originalRgb, greyRgb, 0.25);
-    
+
         return rgbToHex(blendedRgb.r, blendedRgb.g, blendedRgb.b);
     }
 
     const hexStyle = (terrain, inFog, pointer) => {
         const ocean = terrain === 'ocean';
         const fillColor = !inFog ? terrainToColor[terrain] : greyOutHexColor(terrainToColor[terrain], '#AAAAAA');
-        return { 
-                fill: ocean ? 'none' : fillColor, 
-                fillOpacity: '0.8', 
+        return {
+                fill: ocean ? 'none' : fillColor,
+                fillOpacity: '0.8',
                 strokeWidth: 0.2,
                 stroke: ocean ? 'none' : 'black',
                 ...(pointer ? {cursor: 'pointer'} : {})}; // example color for forest
@@ -3201,7 +3219,7 @@ export default function GamePage() {
         }
         else {
             setHoveredCity(null);
-        }   
+        }
     };
 
     const handleSelectGreatPerson = (greatPerson) => {
@@ -3234,20 +3252,20 @@ export default function GamePage() {
                     <Layout size={{ x: 3, y: 3 }}>
                         {hexagons.map((hex, i) => {
                             return (
-                                <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s} 
-                                        cellStyle={foundingCity ? 
-                                                hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields) 
-                                                : 
-                                                (hex.yields && totalHexYields(hex.yields) > 0) ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)} 
+                                <Hexagon key={i} q={hex.q} r={hex.r} s={hex.s}
+                                        cellStyle={foundingCity ?
+                                                hexStyle(hex?.is_foundable_by_civ?.[myCivId] ? 'foundable' : 'unfoundable', !hex.yields)
+                                                :
+                                                (hex.yields && totalHexYields(hex.yields) > 0) ? hexStyle(hex.terrain, false) : hexStyle(hex.terrain, true)}
                                     >
-                                    <circle 
-                                        cx="0" 
-                                        cy="0" 
-                                        r="0.01" 
+                                    <circle
+                                        cx="0"
+                                        cy="0"
+                                        r="0.01"
                                         ref={hexRefs.current[`${hex.q},${hex.r},${hex.s}`]}
                                         style={{visibility: 'hidden'}}
                                     />
-                                    {hex.yields ? <YieldImages yields={hex.yields} /> : null}
+                                    {showResources && hex.yields ? <YieldImages yields={hex.yields} /> : null}
                                 </Hexagon>
                             );
                         })}
@@ -3258,13 +3276,13 @@ export default function GamePage() {
                                     fillOpacity: 0,
                                     strokeOpacity: 0,
                                     }}
-                                    onClick={(e) => handleClickHex(hex, e)} 
+                                    onClick={(e) => handleClickHex(hex, e)}
                                     onMouseOver={() => handleMouseOverHex(hex)}
                                     onMouseLeave={() => handleMouseLeaveHex(hex)}>
-                                    {hex.city && <City 
+                                    {hex.city && <City
                                         city={hex.city}
                                         isHovered={hex?.city?.id === hoveredCity?.id && isFriendlyCity(hex.city)}
-                                        isSelected={hex?.city?.id === selectedCity?.id}  
+                                        isSelected={hex?.city?.id === selectedCity?.id}
                                         isUnitInHex={hex?.units?.length > 0}
                                         everControlled={hex?.city?.ever_controlled_by_civ_ids[myCivId]}
                                         myGamePlayer={myGamePlayer}
@@ -3279,13 +3297,13 @@ export default function GamePage() {
                                         myCiv={myCiv}
                                         capitalCityNames={gameState.game_player_capital_city_names}
                                     />}
-                                    {!(hex.yields && totalHexYields(hex.yields) > 0) && myGamePlayer?.fog_cities[coordsString(hex)] && <FogCity 
-                                        cityName={myGamePlayer?.fog_cities[coordsString(hex)].name}  
+                                    {!(hex.yields && totalHexYields(hex.yields) > 0) && myGamePlayer?.fog_cities[coordsString(hex)] && <FogCity
+                                        cityName={myGamePlayer?.fog_cities[coordsString(hex)].name}
                                         capitalCityNames={gameState.game_player_capital_city_names}
                                     />}
                                     {!(hex.yields && totalHexYields(hex.yields) > 0) && myGamePlayer?.fog_camp_coords_with_turn[coordsString(hex)] && <FogCamp
                                         coords={coordsString(hex)}
-                                        seenThisTurn={myGamePlayer.fog_camp_coords_with_turn[coordsString(hex)] === gameState.turn_num}  
+                                        seenThisTurn={myGamePlayer.fog_camp_coords_with_turn[coordsString(hex)] === gameState.turn_num}
                                     />}
                                     {hex.quest === 'Holy Grail' && <>
                                         <line x1="-0.5" y1="-2" x2="0.5" y2="-2" stroke="yellow" strokeWidth="0.2"/>
@@ -3304,12 +3322,12 @@ export default function GamePage() {
                                             attackingUnitCoords={attackingUnitCoords}
                                             attackedUnitCoords={attackedUnitCoords}
                                         />}
-                                        {corpses.map((corpse, i) => corpse.coords === coordsString(hex) && <UnitCorpse 
-                                            key={i} 
-                                            corpse={corpse} 
-                                            small={hex?.city || hex?.camp || foundingCity} 
-                                            templates={templates} 
-                                            civsById={civsById} 
+                                        {corpses.map((corpse, i) => corpse.coords === coordsString(hex) && <UnitCorpse
+                                            key={i}
+                                            corpse={corpse}
+                                            small={hex?.city || hex?.camp || foundingCity}
+                                            templates={templates}
+                                            civsById={civsById}
                                         />)}
                                     </GlobalClockProvider>
                                     {hex.quest === 'El Dorado' && <ElDoradoMarker/>}
@@ -3318,7 +3336,7 @@ export default function GamePage() {
                                 </Hexagon>
                             );
                         })}
-                    </Layout>         
+                    </Layout>
                     </HexGrid>
                     {<Grid container direction="row" spacing={2} style={{position: 'fixed', right: '10px', bottom: '10px'}}>
                             <Grid item>
@@ -3341,7 +3359,7 @@ export default function GamePage() {
                     {hoveredHex && (
                         <HexDisplay hoveredHex={hoveredHex} templates={templates} />
                     )}
-                    {<LowerRightDisplay 
+                    {<LowerRightDisplay
                         gameState={gameState}
                         gameId={gameId}
                         playerNum={playerNum}
@@ -3359,9 +3377,9 @@ export default function GamePage() {
                         cancelAnimations={cancelAnimations}
                         playFinalMovie={playFinalMovie}
                     />}
-                    {<UpperRightDisplay 
-                        setHoveredUnit={setHoveredUnit} 
-                        setHoveredBuilding={setHoveredBuilding} 
+                    {<UpperRightDisplay
+                        setHoveredUnit={setHoveredUnit}
+                        setHoveredBuilding={setHoveredBuilding}
                         setHoveredTech={setHoveredTech}
                         setHoveredCiv={setHoveredCiv}
                         setHoveredWonder={setHoveredWonder}
@@ -3372,9 +3390,9 @@ export default function GamePage() {
                         canFoundCity={canFoundCity}
                         isFoundingCity={foundingCity}
                         templates={templates}
-                        myCiv={myCiv} 
+                        myCiv={myCiv}
                         myCities={myCities}
-                        myGamePlayer={myGamePlayer} 
+                        myGamePlayer={myGamePlayer}
                         mainGameState={mainGameState}
                         centerMap={centerMap}
                         isFriendlyCity={selectedCity && isFriendlyCity(selectedCity)}
@@ -3388,7 +3406,7 @@ export default function GamePage() {
                         civsById={civsById}
                         declineViewCivsById={declineViewCivsById}
                     />}
-                    {selectedCity && <CityDetailWindow 
+                    {selectedCity && <CityDetailWindow
                         gameState={gameState}
                         myGamePlayer={myGamePlayer}
                         myTerritoryCapitals={myTerritoryCapitals}
@@ -3400,7 +3418,7 @@ export default function GamePage() {
                         playerApiUrl={playerApiUrl}
                         setGameState={setGameState}
                         refreshSelectedCity={refreshSelectedCity}
-                        selectedCity={selectedCity} 
+                        selectedCity={selectedCity}
                         unitTemplatesByBuildingName={unitTemplatesByBuildingName}
                         templates={templates}
                         setHoveredUnit={setHoveredUnit}
@@ -3409,7 +3427,7 @@ export default function GamePage() {
                         setSelectedCity={setSelectedCity}
                         centerMap={centerMap}
                         />}
-                    <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 2000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center', pointerEvents: 'none'}}>                             
+                    <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 2000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center', pointerEvents: 'none'}}>
                         {hoveredBuilding && (
                             <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
                         )}
@@ -3456,17 +3474,17 @@ export default function GamePage() {
                     </div>
                     {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons} civsById={civsById}/>}
                     {<div style={{
-                        position: 'fixed', 
-                        bottom: '10px', 
-                        left: '50%', 
-                        transform: 'translate(-50%, 0%)', 
+                        position: 'fixed',
+                        bottom: '10px',
+                        left: '50%',
+                        transform: 'translate(-50%, 0%)',
                         display: 'flex', // Enable flexbox
                         flexDirection: 'row',
-                        whiteSpace: 'nowrap', // Prevent wrapping                    
+                        whiteSpace: 'nowrap', // Prevent wrapping
                     }}>
-                        {engineState === EngineStates.PLAYING && selectedCity && 
-                            (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] === 'starting_location') && 
-                            <ChooseCapitalButton 
+                        {engineState === EngineStates.PLAYING && selectedCity &&
+                            (declineOptionsView || gameState?.special_mode_by_player_num[playerNum] === 'starting_location') &&
+                            <ChooseCapitalButton
                                 playerNum={playerNum}
                                 isOvertime={timerStatus === "OVERTIME"}
                                 myGamePlayer={myGamePlayer}
@@ -3485,16 +3503,16 @@ export default function GamePage() {
                                 padding: '10px 20px', // Increase padding for larger button
                                 fontSize: '1.5em', // Increase font size for larger text
                                 marginBottom: '10px',
-                            }} 
+                            }}
                             variant="contained"
                             onClick={() => setGameOverDialogOpen(true)}
                         >
                             See end game info
                         </Button>}
                         {engineState === EngineStates.PLAYING && !declineOptionsView && myCiv &&
-                            <TaskBar 
-                                myCiv={myCiv} myGamePlayer={myGamePlayer} myCities={myCities} myUnits={myUnits} 
-                                canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity} 
+                            <TaskBar
+                                myCiv={myCiv} myGamePlayer={myGamePlayer} myCities={myCities} myUnits={myUnits}
+                                canFoundCity={canFoundCity} setSelectedCity={setSelectedCity} setFoundingCity={setFoundingCity}
                                 setTechChoiceDialogOpen={setTechChoiceDialogOpen} techChoiceDialogOpen={techChoiceDialogOpen}
                                 setGreatPersonChoiceDialogOpen={setGreatPersonChoiceDialogOpen} greatPersonChoiceDialogOpen={greatPersonChoiceDialogOpen}
                                 setIdeologyTreeOpen={setIdeologyTreeOpen} ideologyTreeOpen={ideologyTreeOpen}
@@ -3578,7 +3596,7 @@ export default function GamePage() {
                     }
                 }
             });
-    
+
     }
 
     const fetchTurnStartGameState = (playAnimations) => {
@@ -3680,7 +3698,7 @@ export default function GamePage() {
     // if (!username) {
     //     return (
     //         <div>
-    //             <TextField 
+    //             <TextField
     //                 label="Username"
     //                 value={username}
     //                 onChange={(e) => setUsername}
@@ -3743,7 +3761,7 @@ export default function GamePage() {
                         <MenuItem value={60}>60 seconds per turn</MenuItem>
                         <MenuItem value={90}>90 seconds per turn</MenuItem>
                         <MenuItem value={120}>2 minutes per turn</MenuItem>
-                        <MenuItem value={-1}>No timer</MenuItem>                            
+                        <MenuItem value={-1}>No timer</MenuItem>
                     </Select>
                 </div>
                 <Grid style={{ width: '500px', backgroundColor: 'lightblue', margin: '10px', borderRadius: '10px', overflow: 'hidden' }}>
@@ -3775,9 +3793,9 @@ export default function GamePage() {
                                 >
                                 {Object.entries(difficultyLevels).map(([name, value]) => (
                                     <MenuItem value={value} key={name}>
-                                        <Tooltip 
-                                            title={<span style={{ fontSize: '20px' }}>Vitality x{Math.round(value * 100)}%</span>} 
-                                            placement="right" 
+                                        <Tooltip
+                                            title={<span style={{ fontSize: '20px' }}>Vitality x{Math.round(value * 100)}%</span>}
+                                            placement="right"
                                             style={{ width: '100%' }}>
                                             {name}
                                         </Tooltip>
@@ -3835,7 +3853,7 @@ export default function GamePage() {
                 />
             )}
             {currentAnnouncement && (
-                <div 
+                <div
                     onClick={startAnnouncementFadeOut}
                     style={{
                         position: 'fixed',
