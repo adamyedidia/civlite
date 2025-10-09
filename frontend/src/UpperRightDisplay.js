@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './UpperRightDisplay.css';
 import { Grid, Table, TableBody, TableRow, TableCell, TableContainer, MenuItem, FormControl, InputLabel, Select, Tooltip } from '@mui/material';
 import { romanNumeral } from "./romanNumeral.js";
@@ -24,7 +24,7 @@ import { DetailedNumberTooltipContent } from './DetailedNumber.js';
 import TradeHubIcon from './TradeHubIcon.js';
 import { IDEOLOGY_LEVEL_STRINGS } from "./ideologyLevelStrings";
 
-const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
+const CivDetailPanel = ({title, icon, iconTooltip, bignum, children, contentRef}) => {
     const bignumCharLen = bignum.length;
     return (
         <div className={`civ-detail-panel ${title}-area`}>
@@ -34,7 +34,7 @@ const CivDetailPanel = ({title, icon, iconTooltip, bignum, children}) => {
                     <span className={bignumCharLen > 3 ? "small-font" : ""}>{bignum}</span>
                 </div>
             </Tooltip>
-            <div className="panel-content">
+            <div className="panel-content" ref={contentRef}>
                 {children}
             </div>
         </div>
@@ -53,7 +53,7 @@ const CityPowerDisplay = ({ civ, myCities, templates, toggleFoundingCity, canFou
     const civTemplate = templates.CIVS[civ.name];
     const currentTerritories = myCities.filter(city => !city.territory_parent_id).length;
     const atMaxTerritories = currentTerritories === civ.max_territories;
-    
+
     return <CivDetailPanel icon={cityImg} title='food' bignum={`+${Math.floor(civ.projected_city_power_income.value)}`}
         iconTooltip={<DetailedNumberTooltipContent detailedNumber={civ.projected_city_power_income} />}
     >
@@ -97,19 +97,19 @@ const WonderDisplay = ({ wonder, available, setHoveredWonder }) => {
 const WonderAgeDisplay = ({ age, unlocked, wonders, available_wonders, vp_chunks_left, vp_chunks_total, templates, setHoveredWonder }) => {
     const vp_chunks_next_wonder = unlocked ? (vp_chunks_left == vp_chunks_total ? 2 : vp_chunks_left > 0 ? 1 : 0) : 0;
     const tooltip = !unlocked ? `Age ${age} not unlocked yet` :
-        vp_chunks_left < 0 ? `Maximum wonders built` :
+        vp_chunks_left <= 0 ? `Maximum wonders built` :
         `Next wonder earns ${vp_chunks_next_wonder} crowns (${vp_chunks_next_wonder * 5} vps)`;
 
-    return <div className={`wonder-age-display ${unlocked ? "unlocked" : "locked"}`}>
+    return <div className={`wonder-age-display ${unlocked ? "unlocked" : "locked"}`} data-age={age}>
         <div className="wonder-age">{romanNumeral(age)}</div>
         <Tooltip title={tooltip}>
             <div className="wonder-vp-container">
             <div className="wonder-vp">
             {vp_chunks_next_wonder > 0 && <div className="wonder-vps-next" style={{width: `${vp_chunks_next_wonder * (16+6)}px`}}/>}
             {[...Array(vp_chunks_total)].map((_, index) => (
-                <img 
+                <img
                     key={index}
-                    src={vpImg} 
+                    src={vpImg}
                     alt="Crown"
                     className={index >= vp_chunks_left ? 'wonder-vp-unavailable' : 'wonder-vp-available'}
                     style={{width: '16px', height: '16px'}}
@@ -123,12 +123,38 @@ const WonderAgeDisplay = ({ age, unlocked, wonders, available_wonders, vp_chunks
     </div>
 }
 
-const WonderListDisplay = ({ wonders_by_age, game_age, available_wonders, templates, setHoveredWonder, vp_chunks_left_by_age, vp_chunks_total_per_age }) => {
-    return <CivDetailPanel title="wonders" icon={wonderImg} iconTooltip="Wonders" bignum="">
+const WonderListDisplay = ({ wonders_by_age, game_age, available_wonders, templates, setHoveredWonder, vp_chunks_left_by_age, vp_chunks_total_per_age, turnNum }) => {
+    const panelContentRef = useRef(null);
+
+    useEffect(() => {
+        const container = panelContentRef.current;
+        if (!container) return;
+        if (!wonders_by_age || !vp_chunks_left_by_age) return;
+
+        // Find smallest age with remaining VP chunks
+        const ages = Object.keys(wonders_by_age)
+            .map(a => parseInt(a))
+            .sort((a, b) => a - b);
+        const targetAge = ages.find(age => (vp_chunks_left_by_age[age] || 0) > 0);
+        if (targetAge === undefined) return;
+
+        // Defer until children have laid out
+        requestAnimationFrame(() => {
+            const targetEl = container.querySelector(`.wonder-age-display[data-age="${targetAge}"]`);
+            if (targetEl) {
+                const containerRect = container.getBoundingClientRect();
+                const targetRect = targetEl.getBoundingClientRect();
+                const left = container.scrollLeft + (targetRect.left - containerRect.left) - 10;
+                container.scrollLeft = left;
+            }
+        });
+    }, [turnNum, wonders_by_age, vp_chunks_left_by_age]);
+
+    return <CivDetailPanel title="wonders" icon={wonderImg} iconTooltip="Wonders" bignum="" contentRef={panelContentRef}>
     <div className="wonder-list-display">
         {Object.entries(wonders_by_age).map(([age, wonders]) => {
             return <WonderAgeDisplay key={age} unlocked={game_age >= parseInt(age)} age={parseInt(age)} wonders={wonders} available_wonders={available_wonders}
-             vp_chunks_left={vp_chunks_left_by_age[age]} vp_chunks_total={vp_chunks_total_per_age} templates={templates} setHoveredWonder={setHoveredWonder}/>
+                vp_chunks_left={vp_chunks_left_by_age[age]} vp_chunks_total={vp_chunks_total_per_age} templates={templates} setHoveredWonder={setHoveredWonder}/>
         })}
     </div>
     </CivDetailPanel>
@@ -139,7 +165,7 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
     const civTemplate = templates.CIVS[civ.name];
     return <div className="decline-option-row clickable"
         style={{
-            backgroundColor: civTemplate.primary_color, 
+            backgroundColor: civTemplate.primary_color,
             borderColor: civTemplate.secondary_color}}
         onClick = {() => {
             setDeclineOptionsView(true);
@@ -175,7 +201,7 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
             </div>
             {isMyCity && <div className="my-city-revolting"
                             style={{
-                                backgroundColor: templates.CIVS[myCiv.name]?.primary_color, 
+                                backgroundColor: templates.CIVS[myCiv.name]?.primary_color,
                                 borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
                         >
                 <Tooltip title="Your city">
@@ -192,10 +218,10 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
         <div className="revolt-cities-detail">
             {city.available_units.map((unitName, index) => (
                 <div key={index} className="slot military">
-                    <IconUnitDisplay 
-                        unitName={unitName} 
-                        templates={templates} 
-                        setHoveredUnit={setHoveredUnit} 
+                    <IconUnitDisplay
+                        unitName={unitName}
+                        templates={templates}
+                        setHoveredUnit={setHoveredUnit}
                         size={20}
                         style={{border: '0px'}}
                     />
@@ -216,8 +242,8 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
 }
 
 const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer,
-    setDeclineOptionsView, declineViewGameState, mainGameState, declineOptionsView, 
-    templates, 
+    setDeclineOptionsView, declineViewGameState, mainGameState, declineOptionsView,
+    templates,
     setSelectedCity, setHoveredCiv, setHoveredUnit, setHoveredBuilding, declineViewCivsById}) => {
     const citiesReadyForRevolt = Object.values(declineViewGameState?.cities_by_id || {}).filter(city => city.is_decline_view_option);
     const citiesRevoltingNextTurn = Object.values(mainGameState?.cities_by_id || {}).filter(city => (city.projected_on_decline_leaderboard && city.civ_id == myCiv?.id && !citiesReadyForRevolt.map(c => c.id).includes(city.id)));
@@ -241,9 +267,9 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
                 GAME WILL END SOON
             </div>
         </Tooltip>}
-        {turnNum > 1 && <Button className="toggle-decline-view" 
+        {turnNum > 1 && <Button className="toggle-decline-view"
             onClick={() => setDeclineOptionsView(!declineOptionsView)}
-            variant="contained" 
+            variant="contained"
             color="primary"
         >
             {declineOptionsView ? "Close Decline View" : "View Decline Options"}
@@ -254,8 +280,8 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
                     const mainGameStateCity = mainGameState.cities_by_id[city.id];
                     const isMyCity = mainGameStateCity && mainGameStateCity.civ_id === myCiv.id;
                     return <DeclineOptionRow key={city.id} city={city} isMyCity={isMyCity} myCiv={myCiv} setDeclineOptionsView={setDeclineOptionsView} centerMap={centerMap}
-                        templates={templates} setHoveredCiv={setHoveredCiv} 
-                        setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} setSelectedCity={setSelectedCity} 
+                        templates={templates} setHoveredCiv={setHoveredCiv}
+                        setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding} setSelectedCity={setSelectedCity}
                         declineViewCivsById={declineViewCivsById} myGamePlayer={myGamePlayer}/>
                     })}
             </>}
@@ -275,7 +301,7 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
                     return <Tooltip title="Your city will be revolting next turn">
                     <div className="decline-option-row future-revolting"
                     style={{
-                        backgroundColor: templates.CIVS[myCiv.name]?.primary_color, 
+                        backgroundColor: templates.CIVS[myCiv.name]?.primary_color,
                         borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
                     >
                     <div className="revolt-cities-row">
@@ -289,7 +315,7 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
                         </div>
                         <div className="my-city-revolting"
                                         style={{
-                                            backgroundColor: templates.CIVS[myCiv.name]?.primary_color, 
+                                            backgroundColor: templates.CIVS[myCiv.name]?.primary_color,
                                             borderColor: templates.CIVS[myCiv.name]?.secondary_color}}
                                     >
                                         <div style={{color: templates.CIVS[myCiv.name]?.darkmode ? "white" : "black"}}>
@@ -380,9 +406,9 @@ const ScienceDisplay = ({civ, myCities, templates, setTechListDialogOpen, setTec
     const storedProgress = tech ? civ.science / techCost * 100 : 0;
     const incomeProgress = tech ? civ.projected_science_income.value / techCost * 100 : 0;
     return <CivDetailPanel title='science' icon={scienceImg} iconTooltip={<DetailedNumberTooltipContent detailedNumber={civ.projected_science_income}/>} bignum={`+${Math.floor(civ.projected_science_income.value)}`}>
-        <h2 className="tech-name" 
+        <h2 className="tech-name"
             onMouseEnter={tech ? () => setHoveredTech(templates.TECHS[tech.name]) : () => {}}
-            onMouseLeave={() => setHoveredTech(null)}  
+            onMouseLeave={() => setHoveredTech(null)}
         > {romanNumeral(tech?.advancement_level)}. {tech?.name} </h2>
         <ProgressBar darkPercent={storedProgress} lightPercent={incomeProgress} barText={tech ? `${Math.floor(civ.science)} / ${techCost}` : `${Math.floor(civ.science)} / ???`}/>
         <Button variant="contained" color="primary" onClick={() => setTechListDialogOpen(true)}>
@@ -416,9 +442,9 @@ const IdeologyLevelDisplay = ({lvl, tenets, myPlayerNum, myCiv, templates, setHo
 
 const TenetDisplay = ({myTenets, level, setHoveredTenet, className, headerStyle, children}) => {
     const myTenet = myTenets[level];
-    const content = <div 
-        className={`tenet ${className} ${myTenet ? 'active' : 'inactive'}`} 
-        onMouseEnter={myTenet ? () => setHoveredTenet(myTenets[level]) : null} 
+    const content = <div
+        className={`tenet ${className} ${myTenet ? 'active' : 'inactive'}`}
+        onMouseEnter={myTenet ? () => setHoveredTenet(myTenets[level]) : null}
         onMouseLeave={myTenet ? () => setHoveredTenet(null) : null}>
             <div className="tenet-header" style={myTenet && headerStyle}>{IDEOLOGY_LEVEL_STRINGS[level].header}</div>
             {myTenet ? children : null}
@@ -444,7 +470,7 @@ const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeology
     myTenetTemplates.sort((a, b) => a.advancement_level - b.advancement_level);
     // Now they are zero-indexed; push a blank one on the front so the indexing is level
     myTenetTemplates.unshift({});
-    
+
     const myA4TenetName = myTenetTemplates[4]?.name;
     const myA5TenetName = myTenetTemplates[5]?.name;
     const a5TenetIcon = myA5TenetName === 'Dragons' ? '/images/archer.svg' : myA5TenetName === 'Giants' ? '/images/cannon.svg' : myA5TenetName === 'Unicorns' ? '/images/horseman.svg' : myA5TenetName === 'Ninjas' ? '/images/swordsman.svg' : null;
@@ -483,7 +509,7 @@ const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeology
                                     <div style={{width: '32px', height: '24px', background: 'linear-gradient(to right, #bbbbbb 50%, #e08b5e 50%)', border: '2px solid black', borderRadius: '5px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px'}}>
                                         <img src={metalImg} alt="metal" height="8px"/>
                                         <img src={woodImg} alt="science" height="10px"/>
-                                    </div>                                    
+                                    </div>
                                 </> : myGamePlayer.tenet_quest.name == "Yggdrasils Seeds" ? <>
                                     <div style={{width: '24px', height: '12px', backgroundColor: 'grey', border: '2px solid black', fontSize: '10px', textAlign: 'center'}}>
                                         ++
@@ -501,7 +527,7 @@ const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeology
                 <TenetDisplay myTenets={myTenetTemplates} level={4} setHoveredTenet={setHoveredTenet} className="one-row-tenet">
                     <img src={vpImg} alt="vp" height="20px"/>
                     /
-                    {myA4TenetName == "Honor" ? 
+                    {myA4TenetName == "Honor" ?
                     <div style={{
                         width: '0',
                         height: '0',
@@ -528,17 +554,17 @@ const IdeologyDisplay = ({myCiv, myGamePlayer, gameState, templates, setIdeology
 const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disableUI, centerMap, declineOptionsView,
     templates,
     setConfirmEnterDecline, setTechChoiceDialogOpen, setIdeologyTreeOpen, setHoveredUnit, setHoveredBuilding, setHoveredTech, setHoveredTenet,
-    toggleFoundingCity, myCiv, myGamePlayer, myCities, setTechListDialogOpen, 
+    toggleFoundingCity, myCiv, myGamePlayer, myCities, setTechListDialogOpen,
     turnNum, setDeclineOptionsView, declineViewGameState, setSelectedCity, setHoveredCiv, setHoveredWonder, civsById, declineViewCivsById}) => {
     return (
         <div className="upper-right-display">
             {mainGameState && <WonderListDisplay wonders_by_age={mainGameState?.wonders_by_age} game_age={mainGameState?.advancement_level} available_wonders={mainGameState?.available_wonders} templates={templates} setHoveredWonder={setHoveredWonder}
-            vp_chunks_left_by_age={mainGameState?.wonder_vp_chunks_left_by_age} vp_chunks_total_per_age={mainGameState?.vp_chunks_total_per_age}
+            vp_chunks_left_by_age={mainGameState?.wonder_vp_chunks_left_by_age} vp_chunks_total_per_age={mainGameState?.vp_chunks_total_per_age} turnNum={turnNum}
             />}
             {myCiv && <ScienceDisplay civ={myCiv} myCities={myCities} setTechListDialogOpen={setTechListDialogOpen} setTechChoiceDialogOpen={setTechChoiceDialogOpen} setHoveredTech={setHoveredTech} templates={templates} disableUI={disableUI}/>}
             {myCiv && <CityPowerDisplay civ={myCiv} myCities={myCities} templates={templates} toggleFoundingCity={toggleFoundingCity} canFoundCity={canFoundCity} isFoundingCity={isFoundingCity} disableUI={disableUI}/>}
             {myCiv && <CivVitalityDisplay playerNum={myGamePlayer?.player_num} myCiv={myCiv} myGamePlayer={myGamePlayer} turnNum={turnNum}
-                disableUI={disableUI} centerMap={centerMap} declineOptionsView={declineOptionsView} setDeclineOptionsView={setDeclineOptionsView} 
+                disableUI={disableUI} centerMap={centerMap} declineOptionsView={declineOptionsView} setDeclineOptionsView={setDeclineOptionsView}
                 declineViewGameState={declineViewGameState} mainGameState={mainGameState} templates={templates}
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
                 declineViewCivsById={declineViewCivsById}/>}
