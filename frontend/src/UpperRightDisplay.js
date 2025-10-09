@@ -182,7 +182,7 @@ const DeclineOptionRow = ({ city, isMyCity, myCiv, setDeclineOptionsView, templa
                 position: "absolute",
                 left: "-10px",
             }}>
-                <div style={{color: civTemplate?.darkmode ? "white" : "black"}}>
+                <div>
                     {Math.floor(city.revolting_starting_vitality * 100 * myGamePlayer.vitality_multiplier)}%
                 </div>
             </TextOnIcon>
