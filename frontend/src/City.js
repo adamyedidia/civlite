@@ -102,6 +102,7 @@ export default function City({
 
     const cityCirclesY = (cityBoxCanvas.height - cityBoxPanel.height) / 2
     const cityCirclesTextY = cityCirclesY + 0.05;
+    const populationFontSize = (city.population >= 10) ? "1.0px" : "1.2px";
     return (
         <>
             {isHovered && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="white" strokeWidth="0.2"/>}
@@ -135,7 +136,7 @@ export default function City({
                 {/* Population */}
                 <circle cx="50%" cy={cityCirclesY} r={cityCircleRadius} fill={focusColor} stroke={secondaryColor} strokeWidth="0.1"/>
                 <image opacity={.7} href={workerIcon} x="3.5" y="1.4" height="1" width="1" />
-                <text x="50%" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.2px", fill: civTemplate?.darkmode && !friendly ? "white" : "black"}}>
+                <text x="50%" y={cityCirclesTextY} dominantBaseline="middle" textAnchor="middle" style={{fontSize: populationFontSize, fill: civTemplate?.darkmode && !friendly ? "white" : "black"}}>
                     {city.population}
                 </text>
 
