@@ -58,9 +58,12 @@
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    border-top: 2px dashed #d3cb2c;
     padding-top: 10px;
     width: 100%;
+}
+
+.tenet-level-box:not(:last-child) {
+    border-top: 2px dashed #d3cb2c;
 }
 
 .tenet-level-box.future {
