@@ -105,15 +105,15 @@ export default function City({
     const populationFontSize = (city.population >= 10) ? "1.0px" : "1.2px";
     return (
         <>
-            {isHovered && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="white" strokeWidth="0.2"/>}
-            {isSelected && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="black" strokeWidth="0.2"/>}
+            {isHovered && !declineOptionsView && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="white" strokeWidth="0.2"/>}
+            {isSelected && !declineOptionsView && <circle cx="0" cy={`${isUnitInHex ? -1 : 0}`} r="2.25" fill="none" stroke="black" strokeWidth="0.2"/>}
             {city.under_siege_by_civ_id && <svg width="6" height="6" viewBox="0 0 6 6" x={-3} y={isUnitInHex ? -4 : -3}>
                     <image href="/images/fire.svg" x="0" y="0" height="6" width="6" />
                 </svg>
             }
             {/* {civName && <image href={civNameToFlagImgSrc(civName)} x={-1.6} y={-4.6} height={2} width={3} />} */}
             {declineOptionsView && city.is_decline_view_option && <>
-                <circle cx="0" cy={0} r="5.3" fill={`url(#${DECLINE_RING_GRADIENT_ID})`} stroke="red" strokeWidth="0.2"/>
+                <circle cx="0" cy={0} r="5.3" fill={`url(#${DECLINE_RING_GRADIENT_ID})`} stroke={isSelected ? "black" : isHovered ? "white" : "red"} strokeWidth="0.2"/>
                 <image href={vitalityImg} x="-1.8" y="-5.3" height="3.6" width="3.6" />
                 <text x="0" y="-3.8" dominantBaseline="middle" textAnchor="middle" style={{fontSize: "1.1px"}}>
                     {Math.floor(city.revolting_starting_vitality * 100 * myGamePlayer.vitality_multiplier)}%
@@ -140,7 +140,7 @@ export default function City({
                     {city.population}
                 </text>
 
-                {friendly && puppet === null &&
+                {friendly && puppet === null && !declineOptionsView &&
                     <>
                         {/* Wood */}
                         <circle cx="1.7" cy={cityCirclesY} r={cityCircleRadius} fill={colors.wood} stroke={secondaryColor} strokeWidth="0.1"/>
@@ -162,7 +162,7 @@ export default function City({
                     <image href={declineImg} x={6.0} y={2.5} height="1" opacity={city.civ_to_revolt_into ? 1 : 0.75}/>
                 </>
                 }
-                {myCiv && !everControlled &&
+                {myCiv && !everControlled && !declineOptionsView &&
                     <image href={vpImage} x={5.75} y={1.1} height="1" />
                 }
             </CityRectangle>
