@@ -34,11 +34,11 @@ export const YieldsDisplay = ({ yields }) => {
 
 export const BriefBuildingDisplayTitle = ({ title }) => {
     return (
-        <div 
-            className="building-title-card" 
+        <div
+            className="building-title-card"
         >
             <span className="building-name">{title}</span>
-        </div>        
+        </div>
     );
 }
 
@@ -69,8 +69,8 @@ export const BriefBuildingDisplay = ({ buildingName, faded, hideCost, clickable,
     const building_class = building_type === 'WONDER' ? 'wonder' : building_type === 'UNIT' ? 'military' : building?.type === "urban" ? 'urban' : 'rural';
     const cost = !hideCost && (building_type === 'UNIT' ? building.wood_cost : building_type === 'BUILDING' ? building.cost : building_type === 'WONDER' ? building.cost : null);
     return (
-        <div 
-            className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''} ${faded ? 'faded' : ''}`} 
+        <div
+            className={`brief-building-card ${building_class} ${clickable ? 'clickable' : ''} ${faded ? 'faded' : ''}`}
             onClick={clickable ? onClick : null}
             onMouseEnter={() => building_type === 'WONDER' ? setHoveredWonder(building) : building_type === 'UNIT' ? setHoveredUnit(building) : setHoveredBuilding(buildingName)} // set on mouse enter
             onMouseLeave={() => building_type === 'WONDER' ? setHoveredWonder(null) : building_type === 'UNIT' ? setHoveredUnit(null) : setHoveredBuilding(null)} // clear on mouse leave
@@ -110,7 +110,7 @@ const BuildingDisplay = ({ buildingName, templates, unitTemplatesByBuildingName,
     const building_class = building_type === 'WONDER' ? 'wonder' : building_type === 'UNIT' ? 'military' : building?.type === "urban" ? 'urban' : 'rural';
 
     return (
-        building_type === 'UNIT' ? 
+        building_type === 'UNIT' ?
             <div className="building-card" onClick={onClick}>
                 <h2>{building.building_name}</h2>
                 <p>Cost: {building.wood_cost} wood</p>
@@ -154,8 +154,8 @@ const DevelopButton = ({ cantDevelopReason, handleClickDevelop, developCost, hid
     if (cantDevelopReason) {
         content = <Tooltip title={cantDevelopReason}>{content}</Tooltip>
     }
-    return         <div className={`develop-btn ${type} ${cantDevelopReason ? 'disabled' : 'enabled'} ${hidden ? 'hidden' : ''}`}
-    onClick={() => handleClickDevelop(type)}>
+    return <div className={`develop-btn ${type} ${cantDevelopReason ? 'disabled' : 'enabled'} ${hidden ? 'hidden' : ''}`}
+        onClick={() => handleClickDevelop(type)}>
         {content}
     </div>
 }
@@ -190,7 +190,7 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
             {queuedBldg && <div className="queued-bldg-name">
                 {queuedBldg.template_name}
             </div>}
-            {yields && 
+            {yields &&
                 <YieldsDisplay yields={yields} />
             }
             {buffed_units && <div style={{display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center'}}>
@@ -203,10 +203,10 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
                     <div key={index}>{effect}</div>
                 ))}
             </div>}
-            {emptyYields && <div className="empty-yields"><YieldsDisplay yields={emptyYields} /></div>}
+            {emptyYields && <Tooltip title={emptyType === 'rural' ? "Empty rural slots produce 1 food" : emptyType === 'urban' ? "Empty urban slots produce 2 science" : `UNKOWN EMPTY TYPE ${emptyType}`}><div className="empty-yields"><YieldsDisplay yields={emptyYields} /></div></Tooltip>}
             {developButtons && <>
                 <div className="develop-btns">
-                <DevelopButton 
+                <DevelopButton
                     cantDevelopReason={cantMilitarizeReason}
                     handleClickDevelop={handleClickDevelop}
                     developCost={militarizeCost}
@@ -214,7 +214,7 @@ export const ExistingBuildingDisplay = ({ buildingName, templates, emptyType, se
                     text="Militarize"
                     type="unit"
                 />
-                <DevelopButton 
+                <DevelopButton
                     cantDevelopReason={cantUrbanizeReason}
                     handleClickDevelop={handleClickDevelop}
                     developCost={urbanizeCost}
@@ -235,25 +235,25 @@ export const ExistingMilitaryBuildingDisplay = ({ unitBuilding, queuedBldg, temp
     const display_num = unitBuilding?.projected_unit_count > 3 ? 1 : unitBuilding?.projected_unit_count;
 
     return (
-        <div className={`existing-building-card military ${unitBuilding?.delete_queued ? 'delete-queued' : ''} ${unitBuilding?.active ? 'infinite-queue' : ''} ${handleSetInfiniteQueue ? 'enabled' : 'disabled'}`} 
+        <div className={`existing-building-card military ${unitBuilding?.delete_queued ? 'delete-queued' : ''} ${unitBuilding?.active ? 'infinite-queue' : ''} ${handleSetInfiniteQueue ? 'enabled' : 'disabled'}`}
             onMouseEnter={() => setHoveredUnit(unit)} onMouseLeave={() => setHoveredUnit(null)}
             onClick={handleSetInfiniteQueue ? () => handleSetInfiniteQueue(unitName) : null}
         >
             {unitName && <ShrinkFontText className="building-name" text={unit.building_name || ""} />}
             {queuedBldg && <div className="queued-bldg-name">{templates.UNITS[queuedBldg.template_name].building_name || ""}</div>}
             {unitName && unitBuilding.active && <div className="build-num">
-                {Array.from(({length: display_num})).map((_, index) => 
+                {Array.from(({length: display_num})).map((_, index) =>
                 <IconUnitDisplay
                     key={index}
-                    unitName={unitName} 
-                    templates={templates} 
-                    setHoveredUnit={setHoveredUnit} 
+                    unitName={unitName}
+                    templates={templates}
+                    setHoveredUnit={setHoveredUnit}
                     size={30}
                 />)}
                 {unitBuilding.projected_unit_count > 3 ? `x${unitBuilding.projected_unit_count}` : ''}
                 </div>
             }
-            {!unitName && <div className="empty-yields"><YieldsDisplay yields={{metal: 2}} /></div>}
+            {!unitName && <Tooltip title="Empty military slots produce 2 metal"><div className="empty-yields"><YieldsDisplay yields={{metal: 2}} /></div></Tooltip>}
             {unitName && <div style={{"display": "flex", "alignItems": "center", "justifyContent": "center", "fontSize": "16px", "position": "absolute", "bottom": "2px", "left": "4px"}}>
                     {Math.floor(unitBuilding.metal)} / {templates.UNITS[unitName].metal_cost}
                     <img src={metalImg} alt="" height="10px"/>

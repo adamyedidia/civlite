@@ -49,7 +49,7 @@ class BuildingDescription:
     @property
     def combined_display_yields(self) -> Yields:
         return self.building_yields + self.non_vitality_yields + self.instant_yields
-    
+
     def to_json(self):
         return {
             "yields": self.building_yields.to_json(),
@@ -61,7 +61,7 @@ class BuildingDescription:
             "other_strings": self.other_strings,
             "combined_display_yields": self.combined_display_yields.to_json(),
         }
-    
+
     @staticmethod
     def from_json(json_data):
         b = BuildingDescription()
@@ -128,7 +128,7 @@ class City(MapObjectSpawner):
 
     def __repr__(self):
         return f"<City {self.name} @ {self.hex.coords if self._hex else None}>"
-    
+
     def __hash__(self):
         return deterministic_hash(self.id)
 
@@ -202,7 +202,7 @@ class City(MapObjectSpawner):
     @property
     def is_territory_capital(self) -> bool:
         return self._territory_parent_id is None
-    
+
     def get_puppets(self, game_state: 'GameState') -> list['City']:
         return [city for city in game_state.cities_by_id.values() if city.get_territory_parent(game_state) == self]
 
@@ -235,14 +235,14 @@ class City(MapObjectSpawner):
 
     def is_trade_hub(self):
         return self.civ.trade_hub_id == self.id
-    
+
     def is_fake_city(self) -> bool:
         return self.hex.city != self
 
     def _puppet_penalty_per_distance(self) -> float:
         bldg_factors = [ability.numbers[0] for ability, _ in self.passive_building_abilities_of_name('ReducePuppetDistancePenalty')]
         return min([.1] + bldg_factors)
-    
+
     def puppet_distance_penalty(self, distance: int) -> float:
         return max(0.1, 1 - self._puppet_penalty_per_distance() * distance)
 
@@ -283,7 +283,7 @@ class City(MapObjectSpawner):
             return self.wood
         else:
             return self.wood + self.projected_income["wood"]
-        
+
     @property
     def projected_total_metal(self) -> float:
         if self.already_harvested_this_turn:
@@ -355,7 +355,7 @@ class City(MapObjectSpawner):
             self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand.value)
         else:
             self.projected_income.unhappiness += max(0, self.food_demand.value - self.projected_income.food)
-            self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand.value)       
+            self.projected_income.city_power += max(0, self.projected_income.food - self.food_demand.value)
 
         # If I'm a puppet, give my yields to my parent.
         parent: City | None = self.get_territory_parent(game_state)
@@ -383,7 +383,7 @@ class City(MapObjectSpawner):
         bldg_yields = [y for y in bldg_yields if y is not None]
         total_bldg_yields = sum(bldg_yields, Yields())
         yields.add_yields("Buildings", total_bldg_yields)
-        
+
         yields.add_yields("Empty Slots", Yields(
             food=self.empty_slots(BuildingType.RURAL, include_in_queue=False),
             metal=self.empty_slots(BuildingType.UNIT, include_in_queue=False) * 2,
@@ -491,7 +491,7 @@ class City(MapObjectSpawner):
 
     def _calculate_food_demand(self, game_state: 'GameState', include_recent_owner_change: bool = True) -> DetailedNumber:
         if self.founded_turn is None: return DetailedNumber()  # Not sure why we're even calculating this.
-        if self.capital: 
+        if self.capital:
             return DetailedNumber()
         result = DetailedNumber(min_zero=True)
         result.add("Age", 1.0 * self.age(game_state))
@@ -529,7 +529,7 @@ class City(MapObjectSpawner):
 
         if GOD_MODE:
             self.revolting_starting_vitality *= 10
-        
+
         self.food_demand_reduction_recent_owner_change = max(0, self.food_demand_reduction_recent_owner_change - FOOD_DEMAND_REDUCTION_RECENT_OWNER_CHANGE_DECAY)
 
     @property
@@ -573,7 +573,7 @@ class City(MapObjectSpawner):
         if self.civ is None:
             return
         self.available_units = sorted([b.template for b in self.unit_buildings])
-        
+
         if self.empty_slots(BuildingType.UNIT, include_in_queue=False) <= 0:
             min_level = min([u.advancement_level for u in self.available_units])
         else:
@@ -600,7 +600,7 @@ class City(MapObjectSpawner):
         ))
 
         # Validate queue
-        self.buildings_queue = [entry for entry in self.buildings_queue if 
+        self.buildings_queue = [entry for entry in self.buildings_queue if
                                 entry.template in self.available_city_buildings + self.available_unit_buildings + self.available_wonders]
 
     def calculate_payoff_time(self, yields: float, cost: float, vitality_exempt_yields: float = 0) -> float:
@@ -628,7 +628,7 @@ class City(MapObjectSpawner):
         # Add 1 to account for the first turn (when it makes no yields since we're building it).
         payoff_turns += 1
         return payoff_turns
-    
+
     def _calculate_city_building_description(self, building_template: BuildingTemplate, game_state: 'GameState') -> BuildingDescription:
         desc = BuildingDescription()
         desc.building_yields = building_template.calculate_yields.calculate(self) if building_template.calculate_yields is not None else Yields()
@@ -687,7 +687,7 @@ class City(MapObjectSpawner):
                     if unit_building.template.advancement_level >= age:
                         desc.buffed_units.append(unit_building.template)
                         buff_ratio = Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength + buff, unit_building.template.strength) / Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength, unit_building.template.strength + buff)
-                        buff_ratio = buff_ratio ** 0.5  # Hack to make the AI not obsessed with these buildings. 
+                        buff_ratio = buff_ratio ** 0.5  # Hack to make the AI not obsessed with these buildings.
                         approximate_metal_value = buff_ratio * self.projected_income.metal
                         approximate_metal_value_yesvitality = approximate_metal_value * (1 / self.civ.vitality)
                         desc.pseudoyields_for_ai_yesvitality += Yields(metal=approximate_metal_value_yesvitality)
@@ -698,7 +698,7 @@ class City(MapObjectSpawner):
                     if unit_building.template.has_tag(tag):
                        desc.buffed_units.append(unit_building.template)
                        buff_ratio = Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength + buff, unit_building.template.strength) / Unit.get_damage_to_deal_from_effective_strengths(unit_building.template.strength, unit_building.template.strength + buff)
-                       buff_ratio = buff_ratio ** 0.5  # Hack to make the AI not obsessed with these buildings. 
+                       buff_ratio = buff_ratio ** 0.5  # Hack to make the AI not obsessed with these buildings.
                        approximate_metal_value = buff_ratio * self.projected_income.metal
                        approximate_metal_value_yesvitality = approximate_metal_value * (1 / self.civ.vitality)
                        desc.pseudoyields_for_ai_yesvitality += Yields(metal=approximate_metal_value_yesvitality)
@@ -776,7 +776,7 @@ class City(MapObjectSpawner):
             for bldg, target_num in sorted(build_dict.items(), key=lambda x: (x[1], random.random())):  # sort just for determinism.
                 if i < target_num:
                     logger.info(f"{self.name}@{self.hex.coords} building {bldg.template.name} {i}/{target_num}, has {bldg.metal}")
-                    unit = self.build_unit(game_state, bldg.template) 
+                    unit = self.build_unit(game_state, bldg.template)
                     if unit is not None:
                         bldg.metal -= bldg.template.metal_cost
 
@@ -816,17 +816,17 @@ class City(MapObjectSpawner):
             else:
                 return civ.spawn_unit_on_hex(game_state, unit, best_hex, bonus_strength, stack_size=stack_size)
 
-        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == civ and u.template == unit and u.strength == unit.strength + bonus_strength]  
+        potential_units_to_reinforce = [u for hex in spawn_hex.get_neighbors(game_state.hexes, include_self=True) for u in hex.units if u.civ == civ and u.template == unit and u.strength == unit.strength + bonus_strength]
 
         if len(potential_units_to_reinforce) > 0:
             best_unit_to_reinforce = min(potential_units_to_reinforce, key=lambda u: (
-                            u.health, 
+                            u.health,
                             u.hex.distance_to_list(self.get_closest_targets() or [spawn_hex]),
                             random.random()
-                            ))       
+                            ))
             self.reinforce_unit(best_unit_to_reinforce, stack_size=stack_size)
             return best_unit_to_reinforce
-        
+
         if give_up_if_still_impossible:
             return None
         num_merges = 0
@@ -970,12 +970,12 @@ class City(MapObjectSpawner):
         if type in [BuildingType.URBAN, BuildingType.UNIT] and self.num_buildings_of_type(BuildingType.RURAL, include_in_queue=True) == self.rural_slots:
             return "No rural slots available"
         if self.civ.city_power < self.develop_cost(type):
-            return f"City power ({int(self.civ.city_power)} / {self.develop_cost(type)})"
+            return f"Insufficient city power ({int(self.civ.city_power)} / {self.develop_cost(type)})"
         return None
-    
+
     def can_develop(self, type: BuildingType) -> bool:
         return self.cant_develop_reason(type) is None
-    
+
     def develop(self, type: BuildingType, game_state, free=False):
         if STRICT_MODE:
             assert free or self.can_develop(type)
@@ -990,7 +990,7 @@ class City(MapObjectSpawner):
         if not free:
             self.civ.city_power -= self.develop_cost(type)
             self.develops_this_civ[type] += 1
-        self.civ.gain_vps(DEVELOP_VPS, score_strings.DEVELOPMENT)  
+        self.civ.gain_vps(DEVELOP_VPS, score_strings.DEVELOPMENT)
         if self.civ.has_tenet(TENETS.COMMUNITY):
             self.civ.gain_vps(DEVELOP_VPS, "Community")
         if self.civ.has_ability("OnDevelop"):
@@ -1034,7 +1034,7 @@ class City(MapObjectSpawner):
             self.clear_unit_builds()
             self._refresh_available_buildings_and_units(game_state)
             self.toggle_unit_build(building)
-        
+
         else:
             new_building = Building(building)
             self.buildings.append(new_building)
@@ -1054,7 +1054,7 @@ class City(MapObjectSpawner):
             # Clear it from any other cities immediately; you can't build two in one turn.
             for city in self.civ.get_my_cities(game_state):
                 city.buildings_queue = [b for b in city.buildings_queue if b.template != building]
-    
+
     def passive_building_abilities_of_name(self, ability_name: str) -> Generator[tuple['Ability', 'Building'], None, None]:
         for building in self.buildings:
             for ability in building.passive_building_abilities_of_name(ability_name):
@@ -1184,7 +1184,7 @@ class City(MapObjectSpawner):
         for game_player in game_state.game_player_by_player_num.values():
             if self.hex.coords in game_player.fog_cities:
                 game_player.fog_cities[self.hex.coords]["capital"] = True
-                
+
         if civ.has_ability('StartWithResources'):
             if civ.numbers_of_ability('StartWithResources')[0] == 'food':
                 self.food += civ.numbers_of_ability('StartWithResources')[1]
@@ -1195,10 +1195,10 @@ class City(MapObjectSpawner):
 
             elif civ.numbers_of_ability('StartWithResources')[0] == 'wood':
                 self.wood += civ.numbers_of_ability('StartWithResources')[1]
-            
+
             elif civ.numbers_of_ability('StartWithResources')[0] == 'science':
                 self.civ.science += civ.numbers_of_ability('StartWithResources')[1]
-            
+
             else:
                 raise ValueError(f"Invalid resource type for StartWithResources: {civ.numbers_of_ability('StartWithResources')[0]}")
 
@@ -1291,7 +1291,7 @@ class City(MapObjectSpawner):
         if abbreviated_midturn_update:
             parent = self.get_territory_parent(game_state) or self
             parent.midturn_update(game_state)
-        
+
 
     def _bot_effective_advancement_level(self, unit: UnitTemplate, slingers_better_than_warriors=False) -> float:
         # treat my civ's unique unit as +1 adv level.
@@ -1342,7 +1342,7 @@ class City(MapObjectSpawner):
         for u in self.unit_buildings:
             if (u.template in build_units) != u.active:
                 self.bot_single_move(game_state, MoveType.SELECT_INFINITE_QUEUE, {'unit_name': u.template.name}, abbreviated_midturn_update=True)
-        
+
         # Clear the queue
         for entry in self.buildings_queue:
             self.bot_single_move(game_state, MoveType.CANCEL_BUILDING, {'building_name': entry.template.name}, abbreviated_midturn_update=False)  # Need full midturn_update to tell other cities they can build it.
@@ -1367,14 +1367,14 @@ class City(MapObjectSpawner):
         if len(military_buildings) > 0:
             # Choose buildings first by effective advancement level, then randomly
             best_military_building = max(military_buildings, key=lambda building: (
-                self._bot_effective_advancement_level(building, slingers_better_than_warriors=lotsa_wood), 
+                self._bot_effective_advancement_level(building, slingers_better_than_warriors=lotsa_wood),
                 random.random()
                 ))
             best_military_building_age = self._bot_effective_advancement_level(best_military_building, slingers_better_than_warriors=lotsa_wood)
         else:
             best_military_building = None
             best_military_building_age = -1
-        
+
         remaining_wood_budget = self.projected_total_wood
         for item in self.buildings_queue:
             remaining_wood_budget -= item.get_cost(game_state)
@@ -1406,7 +1406,7 @@ class City(MapObjectSpawner):
             if econ_bldg_choice.type == BuildingType.RURAL and self.empty_slots(BuildingType.RURAL, include_in_queue=True) <= len([b for b in q if isinstance(b, BuildingTemplate) and b.type == BuildingType.RURAL]):
                 economic_buildings = [b for b in economic_buildings if b.type != BuildingType.RURAL]
             logger.info(f"  adding economic building {econ_bldg_choice.name} to buildings queue: {q}")
-        
+
         i_want_wood = len([b for b in economic_buildings if b.type == BuildingType.URBAN and b.cost > remaining_wood_budget]) > 0
         return q, i_want_wood
 
@@ -1415,7 +1415,7 @@ class City(MapObjectSpawner):
         if self.civ_to_revolt_into is not None or self.unhappiness + self.projected_income.unhappiness > game_state.unhappiness_threshold:
             choice = 'food'
             logger.info(f"  chose focus: {self.focus} to prevent revolt")
-        
+
         else:
             parent = self.get_territory_parent(game_state)
             production_city: City = self if parent is None else parent
@@ -1428,7 +1428,7 @@ class City(MapObjectSpawner):
                 plausible_focuses.remove('science')
             if production_city.wood >= 150:
                 plausible_focuses.remove('wood')
-                
+
             max_yields = max(self.projected_income_focus[focus] for focus in plausible_focuses)
             focuses_with_best_yields = [focus for focus in plausible_focuses if max_yields - self.projected_income_focus[focus] < 2]
             if "food" in focuses_with_best_yields and len(focuses_with_best_yields) > 1:

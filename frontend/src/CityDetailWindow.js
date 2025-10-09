@@ -158,7 +158,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
     const descriptions = selectedCity?.building_descriptions;
 
     const roomForNewTerritory = myCiv && (myCiv.id === selectedCity.civ_id) && myTerritoryCapitals.length < myCiv.max_territories;
-    const territoryReplacementCity = !roomForNewTerritory ? 
+    const territoryReplacementCity = !roomForNewTerritory ?
         myTerritoryCapitals.reduce((minCity, city) => (city.population + 1000 * city.capital) < (minCity.population + 1000 * minCity.capital) ? city : minCity, myTerritoryCapitals[0])
     : null;
 
@@ -172,7 +172,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
     const happinessIcon = (incomeExceedsDemand && selectedCity.unhappiness === 0) ? happyImg : (!incomeExceedsDemand && selectedCity.unhappiness === 0) ? neutralImg : sadImg;
     const unhappinessBarsMaxWidth = 180;
     const unhappinessBarsWidthPerUnit = Math.min(10, unhappinessBarsMaxWidth/foodDemanded, unhappinessBarsMaxWidth/projectedIncome['food']);
-    const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> : 
+    const foodDemandTooltip = selectedCity.capital ? <p>Capitals have no food demand</p> :
         <DetailedNumberTooltipContent detailedNumber={selectedCity.food_demand} titleHeader={`Food Demand ${foodDemanded}`}/>
     ;
 
@@ -193,7 +193,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
 
         return <div key={index} className='building-choices-row'>
             {botHighlight && <span className="bot-highlight">🤖</span>}
-            <BriefBuildingDisplay 
+            <BriefBuildingDisplay
                 buildingName={buildingName}
                 faded={inOtherQueue}
                 clickable={clickable}
@@ -218,40 +218,48 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
         <div className="city-detail-window">
             <div className="main" style={{borderColor: myCivTemplate?.secondary_color}}>
             <div className="city-detail-header" style={{backgroundColor: `${myCivTemplate?.primary_color}e0`}}>
-                <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', color: myCivTemplate?.darkmode ? "white" : "black" }}>
-                    <TextOnIcon image={myCivTemplate?.darkmode ? workerDarkImg : workerImg} darkMode={myCivTemplate?.darkmode}>{selectedCity.population}</TextOnIcon>
-                </h1>
+                <Tooltip title={`${selectedCity.name} has population ${selectedCity.population}. Population increases the production of the town square, the focus yields, and production from certain buildings. Produce food to increase population.`}>
+                    <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', color: myCivTemplate?.darkmode ? "white" : "black" }}>
+                        <TextOnIcon image={myCivTemplate?.darkmode ? workerDarkImg : workerImg} darkMode={myCivTemplate?.darkmode}>{selectedCity.population}</TextOnIcon>
+                    </h1>
+                </Tooltip>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '60%' }}>
-                    <span 
-                        role="img" 
-                        aria-label="Previous City" 
-                        className="city-navigation-icon" 
-                        onClick={() => CycleCities(false)}
-                        style={{color: myCivTemplate?.darkmode ? "white" : "black"}}
-                    >
-                        {puppet ? "⇧" : "◀"}
-                    </span>
+                    <Tooltip title="Previous City">
+                        <span
+                            role="img"
+                            aria-label="Previous City"
+                            className="city-navigation-icon"
+                            onClick={() => CycleCities(false)}
+                            style={{color: myCivTemplate?.darkmode ? "white" : "black"}}
+                        >
+                            {puppet ? "⇧" : "◀"}
+                        </span>
+                    </Tooltip>
                     <span style={{ textAlign: 'center', color: myCivTemplate?.darkmode ? "white" : "black" }}>
                     {selectedCity.name}
                     {declinePreviewMode ? " (preview)" : ""}
                     </span>
-                    <span 
-                        role="img" 
-                        aria-label="Previous City" 
-                        className="city-navigation-icon" 
-                        onClick={() => CycleCities(true)}
-                        style={{color: myCivTemplate?.darkmode ? "white" : "black"}}
-                    >
-                    {puppet ? "⇧" : "▶"}
-                    </span>
+                    <Tooltip title="Next City">
+                        <span
+                            role="img"
+                            aria-label="Previous City"
+                            className="city-navigation-icon"
+                            onClick={() => CycleCities(true)}
+                            style={{color: myCivTemplate?.darkmode ? "white" : "black"}}
+                        >
+                        {puppet ? "⇧" : "▶"}
+                        </span>
+                    </Tooltip>
                 </h1>
-                <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
+                <Tooltip title="Close City Window">
+                    <button className="city-detail-close-button" onClick={handleClickClose}>X</button>
+                </Tooltip>
             </div>
             {puppet && (!selectedCity.revolting_to_rebels_this_turn) && (territoryReplacementCity !== undefined) && (territoryReplacementCity === null || selectedCity.population > territoryReplacementCity.population) &&
-                <MakeTerritory myCiv={myCiv} territoryReplacementCity={territoryReplacementCity} handleMakeTerritory={handleMakeTerritory}/>                    
+                <MakeTerritory myCiv={myCiv} territoryReplacementCity={territoryReplacementCity} handleMakeTerritory={handleMakeTerritory}/>
             }
             <div className="city-center-yields-row">
-                <Tooltip title={`City makes 2 yields per population depending on its terrain.`}>
+                <Tooltip title={`Each population produces 1 science and 1 other yield, depending on its terrain.`}>
                 <div className="city-center-yields" style={{backgroundColor: `${terrainToColor[gameState.hexes[selectedCity.hex].terrain]}e0`}}>
                     <span>Town Square ({gameState.hexes[selectedCity.hex].terrain}): </span>
                     {<YieldsDisplay yields={selectedCity.projected_income_city_center}/>}
@@ -260,10 +268,10 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
             </div>
             <div className="existing-buildings-container">
             {selectedCity?.unit_buildings.slice().reverse().map((building, index) => (
-                    <ExistingMilitaryBuildingDisplay key={index} 
+                    <ExistingMilitaryBuildingDisplay key={index}
                     unitBuilding={building}
                     handleSetInfiniteQueue={canBuild && handleSetInfiniteQueue}
-                    templates={templates} setHoveredUnit={setHoveredUnit} 
+                    templates={templates} setHoveredUnit={setHoveredUnit}
                     slotsFull={selectedCity.building_slots_full.military}
                     />
                 ))}
@@ -272,13 +280,13 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
                     building.type === "rural" &&
-                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
-                    templates={templates} setHoveredBuilding={setHoveredBuilding} 
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name}
+                    templates={templates} setHoveredBuilding={setHoveredBuilding}
                     description={descriptions?.[building.building_name]}
                     slotsFull={selectedCity.building_slots_full.rural}/>
                 ))}
                 {Array.from({ length: selectedCity?.rural_slots - selectedCity?.buildings.filter(building => building.type === "rural").length }).map((_, index) => (
-                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding} 
+                    <ExistingBuildingDisplay key={`empty-${index}`} buildingName={null} templates={templates} setHoveredBuilding={setHoveredBuilding}
                         emptyType="rural"
                         queuedBldg={ruralBldgsInQueue?.[index]}
                         militarizeBtn={selectedCity?.show_develop_buttons.unit && index === selectedCity.buildings_queue.filter(entry => templates.BUILDINGS?.[entry.template_name]?.type === "rural").length}
@@ -293,8 +301,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                 ))}
                 {selectedCity?.buildings.map((building, index) => (
                     building.type === "urban" &&
-                    <ExistingBuildingDisplay key={index} buildingName={building.building_name} 
-                    templates={templates} setHoveredBuilding={setHoveredBuilding} 
+                    <ExistingBuildingDisplay key={index} buildingName={building.building_name}
+                    templates={templates} setHoveredBuilding={setHoveredBuilding}
                     description={descriptions?.[building.building_name]}
                     slotsFull={selectedCity.building_slots_full.urban}/>
                 ))}
@@ -321,17 +329,17 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                             <BriefBuildingDisplayTitle title="Building Queue" />
                             {selectedCity.buildings_queue.map((entry, index) => {
                                 return <div key={index} className={index > bldgQueueMaxIndexFinishing ? "queue-not-building" : "queue-building"} >
-                                    <BriefBuildingDisplay 
-                                        buildingName={entry.template_name} 
-                                        clickable={true} 
-                                        unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} 
+                                    <BriefBuildingDisplay
+                                        buildingName={entry.template_name}
+                                        clickable={true}
+                                        unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates}
                                         setHoveredBuilding={setHoveredBuilding} setHoveredWonder={setHoveredWonder} setHoveredUnit={setHoveredUnit}
-                                        onClick={() => handleCancelBuilding(entry.template_name)} 
+                                        onClick={() => handleCancelBuilding(entry.template_name)}
                                         description={descriptions?.[entry.template_name]} payoffTime = {selectedCity.available_buildings_payoff_times?.[entry.template_name]}/>
                                 </div>
                             })}
                         </div>
-                    )}               
+                    )}
                 </CityDetailPanel>
             </div>
             <div className="city-detail-column">
@@ -358,8 +366,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                                 </Tooltip>
                                 </div>
                             </div>
-                            <Tooltip title={selectedCity.is_trade_hub ? 
-                                `Trade hub consumes ${myGamePlayer?.a7_tenet_yield ? 50 : 20} city power to ${myGamePlayer?.a7_tenet_yield ? `steal 4 ${myGamePlayer?.a7_tenet_yield} from each city` : "remove 10 unhappiness per turn"}.` : 
+                            <Tooltip title={selectedCity.is_trade_hub ?
+                                `Trade hub consumes ${myGamePlayer?.a7_tenet_yield ? 50 : 20} city power to ${myGamePlayer?.a7_tenet_yield ? `steal 4 ${myGamePlayer?.a7_tenet_yield} from each city` : "remove 10 unhappiness per turn"}.` :
                                 `Make this city your trade hub (${myGamePlayer?.a7_tenet_yield ? 50 : 20} city power -> ${myGamePlayer?.a7_tenet_yield ? `+4 ${myGamePlayer?.a7_tenet_yield} from each city` : "-10 unhappiness"})`}>
                             <div className="trade-hub"
                                 onClick = {handleClickTradeHub}>
@@ -370,8 +378,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                             </Tooltip>
                         </div>
                         <div className="unhappiness-income-area">
-                            <Tooltip title={projectedIncome['food'] >= foodDemanded ? 
-                                `income exceeds demand; city produces city power ${projectedIncome['city_power'].toFixed(2)}` : 
+                            <Tooltip title={projectedIncome['food'] >= foodDemanded ?
+                                `income exceeds demand; city produces city power ${projectedIncome['city_power'].toFixed(2)}` :
                                 `demand exceds income; city is gaining unhappiness ${projectedIncome['unhappiness'].toFixed(2)}`}
                             >
                                 <div className="unhappiness-income-value">
@@ -412,7 +420,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                 </CityDetailPanel>
             </div>
             </div></div>
-            {selectedCity && canBuild && 
+            {selectedCity && canBuild &&
             <div className={`building-choices-area`} style={{borderColor: myCivTemplate?.secondary_color}}>
                 <div className={`building-choices-area-inner`} style={!showBuildingChoices ? {maxWidth: "30px", overflow: "hidden"} : {}} key={repaintBuildingChoicesKey}>
                 {selectedCity.available_unit_building_names.length > 0 && <div className="building-choices-container">
@@ -437,8 +445,8 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                         </div>}
                 </div>}
                 </div>
-                <div className="building-choices-area-button" 
-                    style={{backgroundColor: myCivTemplate?.secondary_color, color: myCivTemplate?.primary_color}} 
+                <div className="building-choices-area-button"
+                    style={{backgroundColor: myCivTemplate?.secondary_color, color: myCivTemplate?.primary_color}}
                     onClick={() => setShowBuildingChoices(!showBuildingChoices)}>
                     <span>{showBuildingChoices ? "◀️" : "▶️"}</span>
                 </div>
