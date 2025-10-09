@@ -3462,23 +3462,27 @@ export default function GamePage() {
                         setSelectedCity={setSelectedCity}
                         centerMap={centerMap}
                         />}
-                    <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 2000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center', pointerEvents: 'none'}}>
-                        {hoveredBuilding && (
-                            <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
-                        )}
-                        {hoveredUnit && (
-                            hoveredUnit?.template === undefined ? <UnitDisplay template={hoveredUnit} /> : <UnitDisplay unit={hoveredUnit} />
-                        )}
-                        {hoveredWonder && (
-                            <WonderHover wonder={hoveredWonder} templates={templates} />
-                        )}
-                        {hoveredTech && (
-                            <TechDisplay tech={hoveredTech} civ={myCiv} templates={templates}  unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
-                        )}
-                        {hoveredTenet && (
-                            <TenetDisplay tenet={hoveredTenet} templates={templates} />
-                        )}
-                        {!hoveredBuilding && !hoveredUnit && !hoveredTech && !hoveredWonder && !hoveredTenet && <>
+                    {(hoveredBuilding || hoveredUnit || hoveredTech || hoveredWonder || hoveredTenet) && (
+                        <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 2000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center', pointerEvents: 'none'}}>
+                            {hoveredBuilding && (
+                                <BuildingDisplay buildingName={hoveredBuilding} unitTemplatesByBuildingName={unitTemplatesByBuildingName} templates={templates} />
+                            )}
+                            {hoveredUnit && (
+                                (hoveredUnit?.template === undefined ? <UnitDisplay template={hoveredUnit} /> : <UnitDisplay unit={hoveredUnit} />)
+                            )}
+                            {hoveredWonder && (
+                                <WonderHover wonder={hoveredWonder} templates={templates} />
+                            )}
+                            {hoveredTech && (
+                                <TechDisplay tech={hoveredTech} civ={myCiv} templates={templates}  unitTemplatesByBuildingName={unitTemplatesByBuildingName} gameState={gameState}/>
+                            )}
+                            {hoveredTenet && (
+                                <TenetDisplay tenet={hoveredTenet} templates={templates} />
+                            )}
+                        </div>
+                    )}
+                    {!hoveredBuilding && !hoveredUnit && !hoveredTech && !hoveredWonder && !hoveredTenet && (
+                        <div style={{position: 'fixed', top: '10px', left: '50%', zIndex: 1000, transform: 'translate(-50%, 0%)', width: '300px', minWidth: '300px', display: 'flex', justifyContent: 'center', pointerEvents: 'none'}}>
                             <div className='turn-num-card'>
                                 <Typography variant="h4">
                                     Turn {gameState?.turn_num}
@@ -3505,8 +3509,8 @@ export default function GamePage() {
                                 </div>}
                                 </Tooltip>
                             </div>
-                        </>}
-                    </div>
+                        </div>
+                    )}
                     {myCiv && <FlagArrows myCiv={myCiv} hexagons={hexagons} civsById={civsById}/>}
                     {<div style={{
                         position: 'fixed',
