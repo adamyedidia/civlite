@@ -208,6 +208,35 @@ function RulesDialog({open, onClose, gameConstants}) {
     )
 }
 
+function HotkeysDialog({open, onClose}) {
+    return (
+        <Dialog open={open} onClose={onClose}>
+            <DialogTitle>Hotkeys</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    Esc: Close everything.
+                </DialogContentText>
+                <br />
+                <DialogContentText>
+                    W/A/S/D: Pan viewport
+                </DialogContentText>
+                <DialogContentText>
+                    B: Found City mode
+                </DialogContentText>
+                <DialogContentText>
+                    R: Toggle resource icons
+                </DialogContentText>
+                <DialogContentText>
+                    F (hold): Show flag target arrows
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button onClick={onClose}>Close</Button>
+            </DialogActions>
+        </Dialog>
+    );
+}
+
 function GameOverDialog({open, onClose, gameState, gameId, URL, templates}) {
     return (
         <Dialog open={open} onClose={onClose} fullWidth={true} maxWidth={false} style={{ width: '80vw' }}>
@@ -437,6 +466,7 @@ export default function GamePage() {
     const [gameConstants, setGameConstants] = useState(null);
 
     const [rulesDialogOpen, setRulesDialogOpen] = useState(false);
+    const [hotkeysDialogOpen, setHotkeysDialogOpen] = useState(false);
     const [declinePreemptedDialogOpen, setDeclinePreemptedDialogOpen] = useState(false);
     const [declineFailedDialogOpen, setDeclineFailedDialogOpen] = useState(false);
     const [allUnitsDialogOpen, setAllUnitsDialogOpen] = useState(false);
@@ -3338,19 +3368,24 @@ export default function GamePage() {
                         })}
                     </Layout>
                     </HexGrid>
-                    {<Grid container direction="row" spacing={2} style={{position: 'fixed', right: '10px', bottom: '10px'}}>
+                    {<Grid container direction="row" spacing={2} style={{position: 'fixed', left: '10px', bottom: '10px', flexWrap: 'wrap'}}>
                             <Grid item>
-                                <Button onClick={() => setRulesDialogOpen(!rulesDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', left: '130px', bottom: '10px'}}>
-                                    Rules
-                                </Button>
-                            </Grid>
-                            <Grid item>
-                                <Button onClick={() => setSettingsDialogOpen(!settingsDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', left: '10px', bottom: '10px'}}>
+                                <Button onClick={() => setSettingsDialogOpen(!settingsDialogOpen)} variant="contained" style={{backgroundColor: '#444444'}}>
                                     Settings
                                 </Button>
                             </Grid>
                             <Grid item>
-                                <Button onClick={() => setAllUnitsDialogOpen(!allUnitsDialogOpen)} variant="contained" style={{backgroundColor: '#444444', position: 'fixed', left: '250px', bottom: '10px'}}>
+                                <Button onClick={() => setRulesDialogOpen(!rulesDialogOpen)} variant="contained" style={{backgroundColor: '#444444'}}>
+                                    Rules
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Button onClick={() => setHotkeysDialogOpen(!hotkeysDialogOpen)} variant="contained" style={{backgroundColor: '#444444'}}>
+                                    Hotkeys
+                                </Button>
+                            </Grid>
+                            <Grid item>
+                                <Button onClick={() => setAllUnitsDialogOpen(!allUnitsDialogOpen)} variant="contained" style={{backgroundColor: '#444444'}}>
                                     Civilopedia: Units
                                 </Button>
                             </Grid>
@@ -3850,6 +3885,12 @@ export default function GamePage() {
                     open={rulesDialogOpen}
                     onClose={() => setRulesDialogOpen(false)}
                     gameConstants={gameConstants}
+                />
+            )}
+            {hotkeysDialogOpen && (
+                <HotkeysDialog
+                    open={hotkeysDialogOpen}
+                    onClose={() => setHotkeysDialogOpen(false)}
                 />
             )}
             {currentAnnouncement && (
