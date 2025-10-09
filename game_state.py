@@ -205,7 +205,7 @@ def make_game_statistics_plots(sess, game_id: str):
         def civ_color(hex: Hex) -> str | None:
             if hex.city:
                 return hex.city.civ.id
-           
+
             neighbor_city_civs = {n.city.civ.id for n in hex.get_neighbors(game_state.hexes) if n.city}
             if len(neighbor_city_civs) == 1:
                 return neighbor_city_civs.pop()
@@ -219,7 +219,7 @@ def make_game_statistics_plots(sess, game_id: str):
             'turn_num': frame.turn_num,
             'hexes': [{
                 'coords': {'q': hex.q, 'r': hex.r, 's': hex.s},
-                'civ': civ_color(hex), 
+                'civ': civ_color(hex),
                 'city': hex.city is not None,
                 'puppet': hex.city is not None and not hex.city.is_territory_capital,
                 'camp': hex.camp is not None,
@@ -258,7 +258,7 @@ class GameState:
         self.units: list[Unit] = get_all_units(hexes)
         self.cities_by_id: dict[str, City] = get_all_cities(hexes)
         self.camps: list[Camp] = get_all_camps(hexes)
-        self.barbarians: Civ = Civ(CIVS.BARBARIAN, None)  
+        self.barbarians: Civ = Civ(CIVS.BARBARIAN, None)
         self.civs_by_id: dict[str, Civ] = {self.barbarians.id: self.barbarians}
         self.turn_num = 1
         self.game_player_by_player_num: dict[int, GamePlayer] = {}
@@ -308,7 +308,7 @@ class GameState:
             if existing["turn_num"] == turn_num and existing["type"] == type and existing["civ_id"] == civ_id:
                 return existing
         return None
-    
+
     def add_to_message_of_existing_parsed_announcement(self, turn_num: int, type: str, player_num: Optional[int], extra_message: str):
         for existing in self.parsed_announcements:
             if existing["turn_num"] == turn_num and existing["type"] == type and player_num is not None and (existing_player_num := existing.get("player_num")) is not None and existing_player_num == player_num:
@@ -396,14 +396,14 @@ class GameState:
         return city
 
     def enter_decline_for_civ(self, civ: Civ, game_player: GamePlayer) -> None:
-        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have entered decline!')     
+        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have entered decline!')
         self.add_parsed_announcement({
             "turn_num": self.turn_num,
             "type": "decline",
             "civ_id": civ.id,
             "player_num": game_player.player_num,
             "message": f"The {civ.moniker()} have entered decline!",
-        })           
+        })
         civ.game_player = None
         civ.in_decline = True
         game_player.civ_id = None
@@ -472,7 +472,7 @@ class GameState:
                 logger.info(f"  Added {cheapest_to_add} to extras, now need {minimum_total_levels_left} more levels to be in age {minimum_age}")
                 # minimum_total_levels_left is now negative because otherwise we'd have added that tech in the previous loop.
                 assert minimum_total_levels_left < 0, f"This shouldn't be possible. {minimum_total_levels_left=}, {extras=}, {options=}, {chosen_techs=}, {cheapest_to_add=}"
-                
+
                 # Remove things from the end until we hit the target.
                 for tech in list(chosen_techs[::-1]):
                     if tech.advancement_level <= -minimum_total_levels_left:
@@ -485,7 +485,7 @@ class GameState:
                     logger.warning(f"Could not find enough techs for new civ {city.name} at level {self.advancement_level} at {self.turn_num}")
 
         return chosen_techs
-        
+
 
     def make_new_civ_from_the_ashes(self, city: City) -> None:
         chosen_techs = self.choose_techs_for_new_civ(city)
@@ -500,7 +500,7 @@ class GameState:
 
         if civ.has_ability('ExtraCityPower'):
             civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
-        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')        
+        self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')
         if not self.add_to_message_of_existing_parsed_announcement(self.turn_num, "decline", civ.game_player.player_num if civ.game_player else None, f" The {civ.moniker()} have been founded in {city.name}."):
             self.add_parsed_announcement({
                 "turn_num": self.turn_num,
@@ -714,10 +714,10 @@ class GameState:
             raise ValueError(f"Invalid move type: {move_type}")
 
     def resolve_move(self,
-                     move_type: MoveType, 
-                     move_data: dict, 
-                     speculative: bool = False, 
-                     game_player: GamePlayer | None = None, 
+                     move_type: MoveType,
+                     move_data: dict,
+                     speculative: bool = False,
+                     game_player: GamePlayer | None = None,
                      civ: Civ | None = None,
                      do_midturn_update: bool = True) -> int | None:
         """
@@ -854,7 +854,7 @@ class GameState:
         if do_midturn_update:
             self.midturn_update()
 
-    def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False, 
+    def update_from_player_moves(self, player_num: int, moves: list[dict], speculative: bool = False,
                                  city_owner_by_city_id: Optional[dict] = None) -> tuple[dict, Optional[int]]:
         """
         Returns:
@@ -876,7 +876,7 @@ class GameState:
 
             move_type = MoveType(move['move_type'])
             decline_eviction_player = self.resolve_move(move_type, move, speculative, game_player=game_player)
-        
+
         assert game_player.civ_id is not None
         from_civ_perspectives = [self.civs_by_id[game_player.civ_id]]
         return (self.to_json(from_civ_perspectives=from_civ_perspectives), decline_eviction_player)
@@ -1010,7 +1010,7 @@ class GameState:
         sess.commit()
 
         logger.info("GameState.end_turn(): Creating decline view")
-        self.create_decline_view(sess)   
+        self.create_decline_view(sess)
 
         logger.info("GameState.end_turn() complete")
 
@@ -1121,7 +1121,7 @@ class GameState:
             city.already_harvested_this_turn = False
 
         self.midturn_update()
-        
+
         self.civ_ids_with_game_player_at_turn_start = [civ.id for civ in self.civs_by_id.values() if civ.game_player is not None]
 
     def decline_view_visible_hexes(self, include_decline_cities: bool) -> set[Hex]:
@@ -1183,10 +1183,10 @@ class GameState:
             target_regions = set(Region) - set(civ.region for civ in civs_already_in_game)
 
         decline_choice_big_civ_pool = find_civ_pool(n, advancement_level_to_use, target_regions, civs_already_in_game)
-        result = random.sample(decline_choice_big_civ_pool, n)       
+        result = random.sample(decline_choice_big_civ_pool, n)
         logger.info(f"Sampling new civs ({n}). {advancement_level_to_use=}; \n Already present: {civs_already_in_game}\n Chose from: {decline_choice_big_civ_pool}\n Chose {result}")
         return result
-    
+
     def _maybe_spawn_fresh_camp(self):
         valid_hexes: set[str] = set([c for c, h in self.hexes.items() if h.camp is None and h.terrain != TERRAINS.OCEAN and not h.is_occupied(self.barbarians, allow_enemy_city=False, allow_allied_unit=True, allow_enemy_unit=False)])
         for city in self.cities_by_id.values():
@@ -1241,13 +1241,13 @@ class GameState:
             assert self.hexes[coords].city is None, f"City already exists at {coords}"
             city: City = self.process_decline_option(coords, from_civ_perspectives)
             city.is_decline_view_option = True
-        
+
         for city in self.cities_by_id.values():
             if city.civ_to_revolt_into is not None:
                 logger.info(f"decline view for city {city.name}")
                 self.process_decline_option(city.hex.coords, from_civ_perspectives)
                 city.is_decline_view_option = True
-        
+
         self.refresh_foundability_by_civ()
         self.refresh_visibility_by_civ(short_sighted=True)
         self.midturn_update()
@@ -1271,7 +1271,7 @@ class GameState:
         vp_chunks = self.wonder_vp_chunks(wonder.advancement_level)
         civ.gain_vps(vp_chunks * WONDER_VPS, score_strings.WONDER)
         self.wonder_vp_chunks_left_by_age[wonder.advancement_level] -= vp_chunks
-        
+
         if civ.has_ability('ExtraVpsPerWonder'):
             civ.gain_vps(civ.numbers_of_ability('ExtraVpsPerWonder')[0], civ.template.name)
         if civ.has_tenet(TENETS.FAITH):
@@ -1363,7 +1363,7 @@ class GameState:
             if civ.template.name == civ_name:
                 return civ
         raise Exception(f"Civ not found: {civ_name}, {self.civs_by_id}")
-    
+
     def to_json(self, from_civ_perspectives: Optional[list[Civ]] = None) -> dict:
         if self.game_over:
             from_civ_perspectives = None
@@ -1430,7 +1430,7 @@ class GameState:
     def from_json(json: dict) -> "GameState":
         hexes = {key: Hex.from_json(hex_json) for key, hex_json in json["hexes"].items()}
         game_state = GameState(game_id=json["game_id"], hexes=hexes)
-        game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}        
+        game_state.game_player_by_player_num = {int(player_num): GamePlayer.from_json(game_player_json) for player_num, game_player_json in json["game_player_by_player_num"].items()}
         game_state.civs_by_id = {civ_id: Civ.from_json(civ_json) for civ_id, civ_json in json["civs_by_id"].items()}
         game_state.civ_ids_with_game_player_at_turn_start = json["civ_ids_with_game_player_at_turn_start"]
         # game_state.cities_by_id set from the other entries, to ensure references are all good.
