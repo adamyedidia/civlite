@@ -57,6 +57,14 @@
     position: relative;
 }
 
+.tech-tree-card .fountain-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+}
+
 .tech-level-box.disabled .tech-tree-card.unavailable{
     background-color: #dde;
 }
