@@ -162,7 +162,7 @@ export default function City({
                     <image href={declineImg} x={6.0} y={2.5} height="1" opacity={city.civ_to_revolt_into ? 1 : 0.75}/>
                 </>
                 }
-                {myCiv && !everControlled && !declineOptionsView &&
+                {myCiv && !everControlled && !declineOptionsView && !gameState.game_over &&
                     <image href={vpImage} x={5.75} y={1.1} height="1" />
                 }
             </CityRectangle>
