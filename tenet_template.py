@@ -8,9 +8,9 @@ if TYPE_CHECKING:
 
 
 class TenetTemplate:
-    def __init__(self, name, advancement_level, sort_order: str = "", initialize_data: Callable[['GamePlayer', 'GameState'], dict] | None=None, description: str | None=None, 
-                 instant_effect: CityTargetEffect | None=None, 
-                 quest_description: str | None=None, quest_target: int = 0, quest_complete_message: str | None=None, 
+    def __init__(self, name, advancement_level, sort_order: str = "", initialize_data: Callable[['GamePlayer', 'GameState'], dict] | None=None, description: str | None=None,
+                 instant_effect: CityTargetEffect | None=None,
+                 quest_description: str | None=None, quest_target: int = 0, quest_complete_message: str | None=None,
                  a5_unit_types: list[UnitTag] | None=None,
                  a6_score_key: str | None=None, a6_score_weights: list[float] | None=None,
                  a7_yield: str | None=None):

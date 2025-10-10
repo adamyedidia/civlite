@@ -45,6 +45,15 @@ def choose_holy_city(game_player: 'GamePlayer', game_state: 'GameState') -> str:
         possible_cities = [c for c in game_state.cities_by_id.values()]
     return random.choice(possible_cities)
 
+YGGDRASILS_SEEDS_TARGET = 15
+def yggdrasils_seeds_generate_hexes(game_player: 'GamePlayer', game_state: 'GameState') -> list[str]:
+    forests = [h.coords for h in game_state.hexes.values() if h.terrain == TERRAINS.FOREST]
+    if len(forests) < YGGDRASILS_SEEDS_TARGET:
+        non_forests = [h.coords for h in game_state.hexes.values() if h.terrain != TERRAINS.FOREST]
+        extra_hexes = random.sample(non_forests, YGGDRASILS_SEEDS_TARGET - len(forests))
+        forests.extend(extra_hexes)
+    return forests
+
 ORDER_FOOD = "food"
 ORDER_WOOD = "wood"
 ORDER_METAL = "metal"
@@ -143,8 +152,8 @@ class TENETS():
         description="New cities you build start with 30 food, 30 wood, 30 metal.",
         quest_description="Each forest contains an acorn. Collect 15 acorns, by having sight of the hex at the start of the turn.",
         quest_complete_message="Yggdrasil's seeds have taken root. The world tree will grow and bear fruit for all eternity.",
-        quest_target=15,
-        initialize_data=lambda game_player, game_state: {"unseen_hexes": [h.coords for h in game_state.hexes.values() if h.terrain == TERRAINS.FOREST]},
+        quest_target=YGGDRASILS_SEEDS_TARGET,
+        initialize_data=lambda game_player, game_state: {"unseen_hexes": yggdrasils_seeds_generate_hexes(game_player, game_state)},
     )
 
     FAITH = TenetTemplate(
