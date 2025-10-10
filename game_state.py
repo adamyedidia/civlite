@@ -592,15 +592,15 @@ class GameState:
         bldg_to_start_with = {
             0: UNITS.WARRIOR,
             1: UNITS.WARRIOR,
-            2: UNITS.GARRISON,
-            3: UNITS.GARRISON,
-            4: UNITS.MILITIA,
-            5: UNITS.MILITIA,
-            6: UNITS.MILITIA,
-            7: UNITS.RAMPARTS,
-            8: UNITS.RAMPARTS,
-            9: UNITS.RAMPARTS,
-            10: UNITS.RAMPARTS,
+            2: UNITS.SPEARMAN,
+            3: UNITS.SWORDSMAN,
+            4: UNITS.SWORDSMAN,
+            5: UNITS.MUSKETMAN,
+            6: UNITS.RIFLEMAN,
+            7: UNITS.INFANTRY,
+            8: UNITS.INFANTRY,
+            9: UNITS.INFANTRY,
+            10: UNITS.INFANTRY,
         }[self.advancement_level]
         hex.city.unit_buildings = [UnitBuilding(bldg_to_start_with)]
 

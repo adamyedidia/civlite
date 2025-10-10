@@ -41,11 +41,11 @@ const BasicUnit = ({ unit, small, templates, civsById }) => {
             <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${2*scale}`} cy={`${2*scale}`} r={`${scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.3} />
             {buffedUnit > 0 && <circle opacity={unit.done_attacking ? 0.5 : 1.0} cx={`${1*scale}`} cy={`${3*scale}`} r={`${0.4 * scale}`} fill={primaryColor} stroke={secondaryColor} strokeWidth={0.15} />}
             {buffedUnit > 0 && <text opacity={unit.done_attacking ? 0.5 : 1.0} x={`${1*scale}`} y={`${3*scale}`} style={{ fontSize: `${scale * 0.5}px`, textAnchor: "middle", dominantBaseline: "middle", fill: unitCivTemplate?.darkmode ? "white" : "black" }}> {buffIcon} </text>}
-            <image 
-                href={unitImage} 
-                x={`${scale}`} 
-                y={`${scale}`} 
-                height={`${2*scale}`} 
+            <image
+                href={unitImage}
+                x={`${scale}`}
+                y={`${scale}`}
+                height={`${2*scale}`}
                 width={`${2*scale}`}
                 style={{
                     filter: unitCivTemplate?.darkmode ? 'invert(1)' : 'none'
@@ -99,25 +99,25 @@ export function UnitCorpse({ corpse, small, templates, civsById }) {
 
         const frameWidth = currentFrameData[0]?.length || 16;
         const frameHeight = currentFrameData.length || 16;
-        
+
         // Calculate centering offsets
         const horizontalOffset = (16 - frameWidth) / 2 * pixelSize;  // Assuming 16 is our target width
         const verticalOffset = (16 - frameHeight) * pixelSize + scale;  // -scale for general adjustment
 
         return (
-            <svg 
-                width={`${4*scale}`} 
-                height={`${4*scale}`} 
+            <svg
+                width={`${4*scale}`}
+                height={`${4*scale}`}
                 viewBox={`0 0 ${4*scale} ${6*scale}`}
-                x={-2*scale} 
+                x={-2*scale}
                 y={-2*scale + (small ? 1 : 0)}
                 opacity={1.0}
             >
                 <g transform={`translate(${horizontalOffset}, ${verticalOffset})`}>
-                    {spriteData.die[currentFrame].map((row, y) => 
+                    {spriteData.die[currentFrame].map((row, y) =>
                         row.map((pixel, x) => {
                             if (Array.isArray(pixel) && pixel[3] === 0) return null;
-                            
+
                             let color;
                             if (pixel === "team color 1") {
                                 color = primaryColor;
@@ -126,7 +126,7 @@ export function UnitCorpse({ corpse, small, templates, civsById }) {
                             } else {
                                 color = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]/255})`;
                             }
-    
+
                             return (
                                 <rect
                                     key={`${x}-${y}`}
@@ -139,7 +139,7 @@ export function UnitCorpse({ corpse, small, templates, civsById }) {
                             );
                         })
                     )}
-                </g> 
+                </g>
             </svg>
         );
     }
@@ -162,7 +162,6 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
     const [animationComplete, setAnimationComplete] = useState(false);
 
     const spriteData = {
-        // "Garrison": garrisonSpriteData,
         // "Horseman": horsemanSpriteData,
         // "Knight": knightSpriteData,
         // "Swordsman": swordsmanSpriteData,
@@ -201,7 +200,7 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
     // Set up animation loop
     // useEffect(() => {
     //     if (!spriteData) return;
-        
+
     //     const frameInterval = setInterval(() => {
     //         // setCurrentFrame(prev => (prev + 1) % spriteData.idle.length);
     //         setCurrentFrame(prev => clock % spriteData.idle.length);
@@ -228,14 +227,14 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
                 // Still playing attack animation
                 currentAnimation = 'attack';
                 currentFrame = framesSinceAttackStart % spriteData.attack.length;
-            } 
+            }
         } else if (isAttacked) {
             const framesSinceAttackStart = clock - attackStartTime;
             if (framesSinceAttackStart) {
                 // Still playing attack animation
                 currentAnimation = 'ouch';
                 currentFrame = framesSinceAttackStart % spriteData.ouch.length;
-            } 
+            }
         } else {
             // Normal idle animation
             currentAnimation = 'idle';
@@ -246,7 +245,7 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
 
         const frameWidth = currentFrameData[0]?.length || 16;
         const frameHeight = currentFrameData.length || 16;
-        
+
         let healthPercentage = (unit.health / 100) % 1; // Calculate health as a percentage
         if (healthPercentage === 0) {
             healthPercentage = 1;
@@ -255,7 +254,7 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
         // Calculate centering offsets
         const horizontalOffset = (16 - frameWidth) / 2 * pixelSize;  // Assuming 16 is our target width
         const verticalOffset = (16 - frameHeight) * pixelSize + scale;  // -scale for general adjustment
-        
+
         const buffedUnit = unit.strength - templates.UNITS[unit.name].strength;
         let buffIconIndex
         if (templates.UNITS[unit.name].advancement_level <= 3) {
@@ -264,15 +263,15 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
             buffIconIndex = Math.ceil(buffedUnit / (0.25 * templates.UNITS[unit.name].strength))
         }
         const buffIcons = ['+', "▲", "★", "✸"];
-        const buffIcon = buffIconIndex < buffIcons.length ? buffIcons[buffIconIndex - 1] : buffIcons[buffIcons.length - 1];    
+        const buffIcon = buffIconIndex < buffIcons.length ? buffIcons[buffIconIndex - 1] : buffIcons[buffIcons.length - 1];
 
 
         return (
-            <svg 
-                width={`${4*scale}`} 
-                height={`${4*scale}`} 
+            <svg
+                width={`${4*scale}`}
+                height={`${4*scale}`}
                 viewBox={`0 0 ${4*scale} ${6*scale}`}
-                x={-2*scale} 
+                x={-2*scale}
                 y={-2*scale + (small ? 1 : 0)}
                 opacity={unit.done_attacking ? 0.65 : 1.0}
             >
@@ -280,10 +279,10 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
                 <image href={civNameToShieldImgSrc(civName)} x={`${0.2*scale}`} y={`${0.8*scale}`} height={`${2*scale}`} width={`${2*scale}`}/>
 
                 <g transform={`translate(${horizontalOffset}, ${verticalOffset})`}>
-                    {spriteData[currentAnimation][currentFrame].map((row, y) => 
+                    {spriteData[currentAnimation][currentFrame].map((row, y) =>
                         row.map((pixel, x) => {
                             if (Array.isArray(pixel) && pixel[3] === 0) return null;
-                            
+
                             let color;
                             if (pixel === "team color 1") {
                                 color = primaryColor;
@@ -292,7 +291,7 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
                             } else {
                                 color = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]/255})`;
                             }
-    
+
                             return (
                                 <rect
                                     key={`${x}-${y}`}
@@ -305,12 +304,12 @@ export default function Unit({ unit, small, templates, civsById, attackingUnitCo
                             );
                         })
                     )}
-                </g>    
-                
+                </g>
+
                 {/* Health bar and stack size indicators remain at the bottom */}
                 <rect x={`${scale}`} y={`${5.35*scale}`} width={`${2*scale}`} height={`${0.2*scale}`} fill="#ff0000" />
                 <rect x={`${scale}`} y={`${5.35*scale}`} width={`${2*scale*healthPercentage}`} height={`${0.2*scale}`} fill="#00ff00" />
-                
+
                 {unit.stack_size > 1 && (
                     <>
                         <circle cx={`${2*scale + 0.8*scale}`} cy={`${4.5*scale}`} r={`${scale/2}`} fill="white" stroke="black" strokeWidth={0.1} />

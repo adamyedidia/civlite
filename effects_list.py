@@ -75,7 +75,7 @@ class FreeRandomTechEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return f"Learn {self.number} random age {self.age} {p.plural('tech', self.number)} for free"  # type: ignore
-    
+
     def learn_one_tech(self, civ: 'Civ', game_state: 'GameState'):
         # try at the right age, but if none available, go down to age below.
         for a in range(self.age, 0, -1):
@@ -118,7 +118,7 @@ class GainUnhappinessEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return f"Gain {self.amount} unhappiness"
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         city.unhappiness += self.amount
 
@@ -171,7 +171,7 @@ class FreeNearbyCityEffect(CityTargetEffect):
                 city = game_state.found_city_for_civ(civ=city.civ, city_id=None, hex=hex)
                 city.unhappiness = 20
                 return
-            
+
 class RecruitBarbariansEffect(CityTargetEffect):
     def __init__(self, range: int) -> None:
         self.range = range
@@ -179,7 +179,7 @@ class RecruitBarbariansEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return f"Recruit all barbarians within {self.range} tiles (including camps). Your camps produce double units."
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         for hex in city.hex.get_hexes_within_range_expensive(game_state.hexes, self.range):
             if len(hex.units) > 0 and hex.units[0].civ == game_state.barbarians:
@@ -196,7 +196,7 @@ class PointsEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return self._description
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         value = self.calculate_points(city, game_state)
         city.civ.gain_vps(value, self._label)
@@ -209,7 +209,7 @@ class StrengthAllUnitsEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return f"All your existing units gain {self.amount} strength"
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         for unit in game_state.units:
             if unit.civ == city.civ:
@@ -223,7 +223,7 @@ class StealPopEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return f"Steal {self.num} population from the {self.cities} unhappiest cities"
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         all_cities = list(game_state.cities_by_id.values())
         all_cities.sort(key=lambda c: c.unhappiness, reverse=True)
@@ -233,13 +233,13 @@ class StealPopEffect(CityTargetEffect):
                 c.population -= 1
             else:
                 c.barbarian_capture(game_state=game_state)
-        
+
 
 class ResetHappinessThisCityEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return "Reset the happiness in this city to 0 (before income)"
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         city.unhappiness = 0
 
@@ -247,7 +247,7 @@ class ResetHappinessAllCitiesEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return "Reset the happiness in all your cities to zero (before income)"
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         for c in city.civ.get_my_cities(game_state=game_state):
             c.unhappiness = 0
@@ -259,7 +259,7 @@ class GetGreatPersonEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return f"Get a great person from {p.number_to_words(self.age_offset)} {p.plural('age', self.age_offset)} ago."  # type: ignore
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         city.civ.get_great_person(game_state.advancement_level - self.age_offset, city, game_state)
 
@@ -267,7 +267,7 @@ class ZigguratWarriorsEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return "One warrior gets +1 strength & -20 health"
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         my_warriors = [unit for unit in game_state.units if unit.civ == city.civ and unit.template == UNITS.WARRIOR]
         prefer_smaller_stacks = sorted(my_warriors, key=lambda u: (u.get_stack_size(), u.strength, random.random()))
@@ -280,7 +280,7 @@ class EndGameEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return "End the game"
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         game_state.game_over = True
 
@@ -288,7 +288,7 @@ class BuildEachUnitEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return "Lose 1 population to build one free unit of each type this city can build."
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         if city.population > 1:
             city.population -= 1
@@ -296,13 +296,13 @@ class BuildEachUnitEffect(CityTargetEffect):
                 city.build_unit(game_state=game_state, unit=unit)
 
 class GreatWallEffect(CityTargetEffect):
-    def __init__(self, num_garrisons: int) -> None:
-        self.num_garrisons = num_garrisons
+    def __init__(self, num_walls: int) -> None:
+        self.num_walls = num_walls
 
     @property
     def description(self) -> str:
-        return f"Build {self.num_garrisons} garrisons around your border"
-    
+        return f"Build {self.num_walls} walls around your border"
+
     def apply(self, city: 'City', game_state: 'GameState'):
         my_cities = city.civ.get_my_cities(game_state=game_state)
         all_distance_2 = {hex for c in my_cities for hex in c.hex.get_distance_2_hexes(game_state.hexes, exclude_ocean=True)}
@@ -319,10 +319,10 @@ class GreatWallEffect(CityTargetEffect):
         # Remove any that still contain a unit
         border_hexes = {hex for hex in border_hexes if not hex.is_occupied(city.civ, allow_enemy_city=False, allow_allied_unit=False, allow_enemy_unit=False)}
         built_hexes = set()
-        for _ in range(self.num_garrisons):
+        for _ in range(self.num_walls):
             if len(border_hexes) > 0:
                 hex = random.choice(list(border_hexes))
-                success = city.civ.spawn_unit_on_hex(game_state=game_state, unit_template=UNITS.GARRISON, hex=hex, bonus_strength=0)
+                success = city.civ.spawn_unit_on_hex(game_state=game_state, unit_template=UNITS.WALL, hex=hex, bonus_strength=0)
                 if success:
                     built_hexes.add(hex)
                     for n in hex.get_neighbors(game_state.hexes, include_self=True):
@@ -330,9 +330,9 @@ class GreatWallEffect(CityTargetEffect):
                             border_hexes.remove(n)
                 else:
                     if STRICT_MODE:
-                        raise ValueError(f"Failed to build garrison on {hex.q}, {hex.r}, {hex.s}")
-                    else: 
-                        logger.warning(f"Failed to build garrison on {hex.q}, {hex.r}, {hex.s}")
+                        raise ValueError(f"Failed to build wall on {hex.q}, {hex.r}, {hex.s}")
+                    else:
+                        logger.warning(f"Failed to build wall on {hex.q}, {hex.r}, {hex.s}")
             elif len(built_hexes) > 0:
                 hex = min(built_hexes, key=lambda h: (h.units[0].get_stack_size(), random.random()))
                 unit = hex.units[0]
@@ -341,9 +341,9 @@ class GreatWallEffect(CityTargetEffect):
                     built_hexes.remove(hex)
             else:
                 city = random.choice(my_cities)
-                city.build_unit(game_state=game_state, unit=UNITS.GARRISON)
+                city.build_unit(game_state=game_state, unit=UNITS.WALL)
         return
-    
+
 class GainSlotsEffect(CityTargetEffect):
     def __init__(self, num: int, type: BuildingType, free_building: BuildingTemplate | None = None) -> None:
         self.num = num
@@ -357,7 +357,7 @@ class GainSlotsEffect(CityTargetEffect):
             return f"Gain {self.num} free {self.type.value} {p.plural('slot', self.num)} with a free {self.free_building.name}."  # type: ignore
         else:
             return f"Gain {self.num} free {self.type.value} {p.plural('slot', self.num)}."  # type: ignore
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         for _ in range(self.num):
             # Need a rural slot no matter what
@@ -378,7 +378,7 @@ class UpgradeTerrainEffect(CityTargetEffect):
     @property
     def description(self) -> str:
         return f"Upgrade {self.num} adjacent tiles to {self.display_name} (yields {self.total_yields.pretty_print()})"
-    
+
     def apply(self, city: 'City', game_state: 'GameState'):
         neighbors = list(city.hex.get_neighbors(game_state.hexes, include_self=False))
         neighbors.sort(key=lambda h: (h.yields.total(), random.random()))

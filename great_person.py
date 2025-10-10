@@ -32,13 +32,13 @@ class GreatPerson(abc.ABC):
     @abc.abstractmethod
     def apply(self, game_state, city: City, civ: Civ):
         raise NotImplementedError()
-    
+
     def valid_for_city(self, city: City, civ: Civ) -> bool:
         return city.civ == civ
-    
+
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.name}>"
-    
+
     def to_json(self):
         return {
             "name": self.name,
@@ -46,7 +46,7 @@ class GreatPerson(abc.ABC):
             "hover_entity_type": self.hover_entity_type,
             "hover_entity_name": self.hover_entity_name,
             }
-    
+
     @staticmethod
     def from_json(json) -> "GreatPerson":
         return great_people_by_name[json["name"]]
@@ -91,7 +91,7 @@ class GreatMerchant(GreatPerson):
         if self.resource == "food":
             desc += " and city power"
         return desc + "."
-    
+
 
     def apply(self, game_state, city: City, civ: Civ):
         if self.resource == "metal":
@@ -113,15 +113,15 @@ class GreatMerchant(GreatPerson):
 class GreatScientist(GreatPerson):
     DEFENSE_UNITS: dict[int, tuple[UnitTemplate | None, int]] = {
         0: (None, 0),
-        1: (None, 0),
-        2: (UNITS.GARRISON, 1),
-        3: (UNITS.GARRISON, 2),
-        4: (UNITS.MILITIA, 1),
-        5: (UNITS.MILITIA, 2),
-        6: (UNITS.MILITIA, 4),
-        7: (UNITS.RAMPARTS, 1),
-        8: (UNITS.RAMPARTS, 2),
-        9: (UNITS.RAMPARTS, 4),
+        1: (UNITS.WALL, 1),
+        2: (UNITS.WALL, 1),
+        3: (UNITS.MUSKETMAN, 1),
+        4: (UNITS.RIFLEMAN, 1),
+        5: (UNITS.INFANTRY, 1),
+        6: (UNITS.INFANTRY, 2),
+        7: (UNITS.MACHINE_GUN, 1),
+        8: (UNITS.MACHINE_GUN, 2),
+        9: (UNITS.MACHINE_GUN, 4),
     }
 
     def __init__(self, name, advancement_level: int, tech_template: TechTemplate, extra_science: float):

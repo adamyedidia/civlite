@@ -66,7 +66,7 @@ class UnitTemplate:
         return any(t.value == tag_name for t in self.tags)
 
     def attack_type(self):
-        if self.name in ['Infantry', 'Ramparts']:
+        if self.name in ['Infantry']:
             return "infantry"
         elif self.name in ['Gatling Gun', 'Machine Gun']:
             return "machine_gun"
@@ -77,7 +77,7 @@ class UnitTemplate:
         elif self.name in ["Nanoswarm", "Giant Death Robot", "Ironman"]:
             return "laser"
         else:
-            return  (("melee" if not self.has_tag(UnitTag.RANGED) else "ranged") 
+            return  (("melee" if not self.has_tag(UnitTag.RANGED) else "ranged")
                             if not self.has_tag(UnitTag.GUNPOWDER)
                             else ("gunpowder_melee" if not self.has_tag(UnitTag.RANGED) else "gunpowder_ranged"))
 
@@ -96,7 +96,7 @@ class UnitTemplate:
             "advancement_level": self.advancement_level,
         }
 
-    
+
     @staticmethod
     def from_json(json: dict) -> "UnitTemplate":
         raise ValueError("Don't get Templates from json, just look them up by name in UNITS.")

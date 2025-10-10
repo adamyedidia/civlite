@@ -27,7 +27,7 @@ def find_civ_pool(n, advancement_level_target, target_regions: set[Region], civs
                     min_search_age = min_advancement_level + 1
                 # print(f"Searching for {n} civs at {min_search_age=}, {max_advancement_level=}, {search_regions=}")
                 decline_choice_big_civ_pool: list[CivTemplate] = [
-                    civ for civ in player_civs(min_advancement_level=min_search_age, max_advancement_level=max_advancement_level, regions=search_regions) 
+                    civ for civ in player_civs(min_advancement_level=min_search_age, max_advancement_level=max_advancement_level, regions=search_regions)
                     if civ not in civs_already_in_game]
 
                 if len(decline_choice_big_civ_pool) >= n:
@@ -288,7 +288,7 @@ class CIVS():
         advancement_level=0,
         region=Region.MEDITERRANEAN,
         colors=CIV_COLORS["Troy"]
-    )    
+    )
     NUBIANS = CivTemplate(
         name="Nubians",
         abilities=[{
@@ -536,7 +536,7 @@ class CIVS():
             "numbers": ["wood", 2],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Garrison", 3],
+            "numbers": ["Horseman"],
         }],
         advancement_level=1,
         region=Region.EAST_ASIA,
@@ -618,7 +618,7 @@ class CIVS():
         # 4th century AD
         name="Huns",
         abilities=[{
-            "name": "IncreaseFocusYields", 
+            "name": "IncreaseFocusYields",
             "numbers": ["metal", 3]
         }, {
             "name": "IncreasedStrengthForUnit",
@@ -707,7 +707,7 @@ class CIVS():
             "numbers": [BuildingType.RURAL, GainResourceEffect("wood", 20)],
         }, {
             "name": "IncreasedStrengthForUnit",
-            "numbers": ["Militia"],
+            "numbers": ["Swordsman"],
         }],
         advancement_level=3,
         region=Region.SOUTH_ASIA,
@@ -1498,7 +1498,7 @@ class CIVS():
     )
     NATO = CivTemplate(
         name="NATO",
-        abilities=[{ 
+        abilities=[{
             "name": "OnDevelop",
             "numbers": [BuildingType.URBAN, FreeRandomTechEffect(6)],
         }, {
@@ -1852,9 +1852,9 @@ if __name__ == "__main__":
     #             civs_in_check_orders.update(item)
     #         else:
     #             civs_in_check_orders.add(item)
-    
+
     # civs_not_in_check_orders = all_civs - civs_in_check_orders
-    
+
     # if civs_not_in_check_orders:
     #     print("\nCivs not in any CHECK_ORDERS:")
     #     for civ in sorted(civs_not_in_check_orders, key=lambda c: (c.advancement_level, c.name)):
@@ -1862,4 +1862,3 @@ if __name__ == "__main__":
     # else:
     #     print("\nAll civs are included in CHECK_ORDERS.")
 
-    

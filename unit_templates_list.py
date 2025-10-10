@@ -29,7 +29,7 @@ class UNITS():
         tags=[UnitTag.RANGED],
         prereq=None,
         abilities=[],
-    )    
+    )
     ARCHER = UnitTemplate(
         name="Archer",
         building_name="Bowyer",
@@ -88,24 +88,6 @@ class UNITS():
             "general_advanced": "Thutmose III",
             "general_normal": "Ramesses II",
             "general_horde": "Cyrus the Great",
-        },
-    )
-    GARRISON = UnitTemplate(
-        name="Garrison",
-        building_name="Walls",
-        metal_cost=8,
-        wood_cost=5,
-        strength=4,
-        movement=0,
-        range=1,
-        prereq=TECHS.MINING,
-        tags=[UnitTag.DEFENSIVE],
-        abilities=[],
-        great_people_names={
-            "engineer": "Bran the Builder",
-            "general_advanced": "Hector of Troy",
-            "general_normal": "Leonidas",
-            "general_horde": "King Theoden",
         },
     )
     CATAPULT = UnitTemplate(
@@ -309,24 +291,6 @@ class UNITS():
             "general_advanced": "Mehmet II",
         },
     )
-    MILITIA = UnitTemplate(
-        name="Militia",
-        building_name="Castle",
-        metal_cost=15,
-        wood_cost=6,
-        strength=10,
-        movement=0,
-        range=1,
-        tags=[UnitTag.DEFENSIVE],
-        prereq=TECHS.CHIVALRY,
-        abilities=[],
-        great_people_names={
-            "engineer": "Emperor Constantine",
-            "general_advanced": "Odo of France",
-            "general_normal": "William Wallace",
-            "general_horde": "Louis XIV",
-        },
-    )
     CAVALRY = UnitTemplate(
         name="Cavalry",
         building_name="Adv. Stable",
@@ -385,20 +349,6 @@ class UNITS():
             "general_advanced": "Suleiman I",
             "general_normal": "Ulysses S. Grant",
             "general_horde": "Theodore Roosevelt"
-        },
-    )
-    RAMPARTS = UnitTemplate(
-        name="Ramparts",
-        building_name="Bastion",
-        metal_cost=30,
-        wood_cost=10,
-        strength=30,
-        movement=0,
-        range=1,
-        tags=[UnitTag.DEFENSIVE],
-        prereq=TECHS.MASS_MARKETS,
-        abilities=[],
-        great_people_names={
         },
     )
     ARTILLERY = UnitTemplate(
@@ -658,6 +608,19 @@ class UNITS():
             "numbers": [0.6],
         }],
 
+        building_name=None,
+        prereq=None,
+        wood_cost=0,
+    )
+
+    WALL = UnitTemplate(
+        name="Wall",
+        metal_cost=8,
+        strength=4,
+        movement=0,
+        range=1,
+        tags=[UnitTag.DEFENSIVE],
+        abilities=[],
         building_name=None,
         prereq=None,
         wood_cost=0,
