@@ -43,9 +43,6 @@ from logging_setup import logger
 from yields import Yields
 
 
-
-SURVIVAL_SCORE_LABEL = f"Survival"
-
 def get_all_units(hexes: dict[str, Hex]) -> list[Unit]:
     units = []
     for hex in hexes.values():
@@ -101,7 +98,6 @@ def make_game_statistics_plots(sess, game_id: str):
     )
 
     scores_by_turn = defaultdict(list)
-    cum_scores_by_turn = defaultdict(list)
     actual_cum_scores_by_turn = defaultdict(list)
 
     civ_ids_by_player = None
@@ -119,7 +115,6 @@ def make_game_statistics_plots(sess, game_id: str):
     military_strength_by_turn = defaultdict(lambda: [0.0])
     civ_scores_by_turn = defaultdict(lambda: [0.0])
     civ_cumulative_scores_by_turn = defaultdict(list)
-    civ_cumulative_scores_wo_survival_by_turn = defaultdict(list)
     civ_ages = defaultdict(list)
     vitality = defaultdict(list)
     population = defaultdict(lambda: [0.0])
@@ -131,9 +126,7 @@ def make_game_statistics_plots(sess, game_id: str):
         game_state = GameState.from_json(frame.game_state)
         for player_num in game_state.game_player_by_player_num:
             player = game_state.game_player_by_player_num[player_num]
-            player_score_excluding_survival = player.score - player.score_dict.get(SURVIVAL_SCORE_LABEL, 0)
-            scores_by_turn[player.username].append(player_score_excluding_survival - (cum_scores_by_turn[player.username][-1] if cum_scores_by_turn[player.username] else 0))
-            cum_scores_by_turn[player.username].append(player_score_excluding_survival)
+            scores_by_turn[player.username].append(player.score - (actual_cum_scores_by_turn[player.username][-1] if actual_cum_scores_by_turn[player.username] else 0))
             actual_cum_scores_by_turn[player.username].append(player.score)
 
         assert game_state.turn_num == len(game_ages), f"Turn num {frame.turn_num} != game_ages length {len(game_ages)}"
@@ -171,10 +164,8 @@ def make_game_statistics_plots(sess, game_id: str):
                     # Add cum score for the previous turn when we appeared
                     if frame.turn_num > 2:
                         civ_cumulative_scores_by_turn[civ_id].append(actual_cum_scores_by_turn[civ.game_player.username][-2])
-                        civ_cumulative_scores_wo_survival_by_turn[civ_id].append(cum_scores_by_turn[civ.game_player.username][-2])
                     else:
                         civ_cumulative_scores_by_turn[civ_id].append(0)
-                        civ_cumulative_scores_wo_survival_by_turn[civ_id].append(0)
 
             vitality[civ_id].append(civ.vitality)
             civ_ages[civ_id].append(civ.get_advancement_level())
@@ -183,7 +174,6 @@ def make_game_statistics_plots(sess, game_id: str):
                 civs_that_have_ever_had_game_player[civ_id] = civ.game_player.player_num
                 civ_scores_by_turn[civ_id].append(scores_by_turn[civ.game_player.username][-1])
                 civ_cumulative_scores_by_turn[civ_id].append(actual_cum_scores_by_turn[civ.game_player.username][-1])
-                civ_cumulative_scores_wo_survival_by_turn[civ_id].append(cum_scores_by_turn[civ.game_player.username][-1])
 
         for city_id in game_state.cities_by_id:
             city = game_state.cities_by_id[city_id]
@@ -240,7 +230,6 @@ def make_game_statistics_plots(sess, game_id: str):
     stats = {
         'score_per_turn': civ_scores_by_turn,
         'cumulative_score': civ_cumulative_scores_by_turn,
-        'cumulative_score_wo_survival': civ_cumulative_scores_wo_survival_by_turn,
         'total_yields': total_yields_by_turn,
         'military_strength': military_strength_by_turn,
         'population': population,
@@ -408,10 +397,6 @@ class GameState:
         civ.in_decline = True
         game_player.civ_id = None
 
-        for other_civ in self.civs_by_id.values():
-            if other_civ.id != civ.id:
-                other_civ.gain_vps(min(BASE_SURVIVAL_BONUS + SURVIVAL_BONUS_PER_AGE * (self.advancement_level), 24), SURVIVAL_SCORE_LABEL)
-
     def choose_techs_for_new_civ(self, city: City) -> list[TechTemplate]:
         logger.info("Calculating starting techs!")
         # Make this function deterministic across staging and rolling
@@ -498,6 +483,8 @@ class GameState:
         for civ in self.civs_by_id.values():
             civ.fill_out_available_buildings(self)
 
+        civ.gain_vps(-self._decline_cost(), "New civilization starting points.")
+
         if civ.has_ability('ExtraCityPower'):
             civ.city_power += civ.numbers_of_ability('ExtraCityPower')[0]
         self.add_announcement(f'The <civ id={civ.id}>{civ.moniker()}</civ> have been founded in <city id={city.id}>{city.name}</city>!')
@@ -529,6 +516,9 @@ class GameState:
             game_player: GamePlayer = self.game_player_by_player_num[player_num]
             return (-game_player.score, game_player.civ_id)
         return priority(first_player_num) < priority(new_player_num)
+
+    def _decline_cost(self) -> float:
+        return min(BASE_SURVIVAL_BONUS + SURVIVAL_BONUS_PER_AGE * self.advancement_level, 24)
 
     def execute_decline(self, coords: str, game_player: GamePlayer) -> list[Civ]:
         """
@@ -1406,6 +1396,7 @@ class GameState:
             "special_mode_by_player_num": self.special_mode_by_player_num.copy(),
             "barbarians": self.barbarians.to_json(),
             "advancement_level": self.advancement_level,
+            "decline_cost": self._decline_cost(),
             "advancement_level_progress": self.advancement_level_progress,
             "game_over": self.game_over,
             "game_end_score": self.game_end_score(),

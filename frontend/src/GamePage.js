@@ -364,7 +364,11 @@ const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity,
             : myGamePlayer?.decline_this_turn ? "Already declined this turn"
             : (isOvertime && !myGamePlayer?.failed_to_decline_this_turn) ? "Can't decline in overtime"
             : null;
-    const content = disabledMsg ? disabledMsg : `Make ${selectedCity.name} my capital`;
+    const content = disabledMsg ? disabledMsg : <>
+        {nonDeclineViewGameState?.decline_cost > 0 ? <>Pay {nonDeclineViewGameState?.decline_cost} VPs to </> : null}
+        start a new civilization in:<br/>
+        {selectedCity.name}
+    </>;
     const disabled = engineState !== EngineStates.PLAYING || disabledMsg !== null;
     return <Button
         style={{
@@ -374,6 +378,7 @@ const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity,
             padding: '10px 20px', // Increase padding for larger button
             fontSize: '1.5em', // Increase font size for larger text
             marginBottom: '10px',
+            minWidth: '700px',
         }}
         variant="contained"
         onClick={() => handleFoundCapital()}

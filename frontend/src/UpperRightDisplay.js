@@ -249,9 +249,6 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
     const citiesRevoltingNextTurn = Object.values(mainGameState?.cities_by_id || {}).filter(city => (city.projected_on_decline_leaderboard && city.civ_id == myCiv?.id && !citiesReadyForRevolt.map(c => c.id).includes(city.id)));
     const unhappinessThreshold = mainGameState?.unhappiness_threshold
     const previousUnhappinessThreshold = mainGameState?.previous_unhappiness_threshold
-    // Max of all other players' scores
-    const maxPlayerScore = Math.max(...Object.values(mainGameState?.game_player_by_player_num || {}).map(player => player.player_num === playerNum ? 0 : player.score));
-    const distanceFromWin = mainGameState?.game_end_score - maxPlayerScore;
     const newUnhappinessThresholdHigher = unhappinessThreshold > previousUnhappinessThreshold;
     const unhappinesThresholdObject = <div className="unhappiness-threshold" style={{bottom: newUnhappinessThresholdHigher ? "" : "-10px", top: newUnhappinessThresholdHigher ? `${20 + Math.min(5, citiesReadyForRevolt.length) * 30}px` : ""}}>
             <Tooltip title={`Next turn's threshold: ${unhappinessThreshold?.toFixed(2)}`}>
@@ -262,11 +259,15 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
             </Tooltip>
         </div>
     let content = <>
-        {25 < distanceFromWin && distanceFromWin < 50 && <Tooltip title="Another player is within 50 points of winning. Declining may let them win.">
-            <div className="distance-from-win">
-                GAME WILL END SOON
-            </div>
-        </Tooltip>}
+        {mainGameState?.decline_cost !== undefined &&
+            <Tooltip title={`A new civilization in age ${romanNumeral(mainGameState.advancement_level)} starts with -${mainGameState.decline_cost} VPs`}>
+                <div style={{position: 'absolute', top: '-15px', right: '-5px', zIndex: 2}}>
+                    <TextOnIcon image={vpImg} offset="15px" style={{width: '50px', height: '50px'}}>
+                        <div style={{fontSize: '20px'}}>-{mainGameState.decline_cost}</div>
+                    </TextOnIcon>
+                </div>
+            </Tooltip>
+        }
         {turnNum > 1 && <Button className="toggle-decline-view"
             onClick={() => setDeclineOptionsView(!declineOptionsView)}
             variant="contained"
@@ -329,16 +330,6 @@ const CivVitalityDisplay = ({ playerNum, myCiv, turnNum, centerMap, myGamePlayer
             {turnNum > 1 && !newUnhappinessThresholdHigher && unhappinesThresholdObject}
         </div>
     </>
-    if (0 < distanceFromWin && distanceFromWin <= 25 && !declineOptionsView) {
-        content = <Tooltip title="Another player is within 25 points of winning. Declining now would let them win instantly.">
-        <div className="distance-from-win">
-            <div>GAME WILL END SOON</div>
-            <div className="distance-from-win-warning">
-                DECLINE IMPOSSIBLE
-            </div>
-        </div>
-        </Tooltip>
-    }
     const iconTooltip = <>
         Losing {(myCiv.vitality_decay_rate.value*100).toFixed(0)}% of our vitality per turn:
         <DetailedNumberTooltipContent detailedNumber={myCiv.vitality_decay_rate}/>
@@ -354,7 +345,15 @@ const ScoreDisplay = ({ myGamePlayer, gameEndScore, gameState }) => {
     const playerScoreDict = myGamePlayer?.score_dict;
     const myCivIds = myGamePlayer?.all_civ_ids;
     const activeScoreDict = civId === "Total" ? playerScoreDict : gameState.civs_by_id[civId].score_dict;
+    // Max of all other players' scores
+    const maxPlayerScore = Math.max(...Object.values(gameState?.game_player_by_player_num || {}).map(player => player === myGamePlayer ? 0 : player.score));
+    const distanceFromWin = gameState?.game_end_score - maxPlayerScore;
     return <CivDetailPanel icon={vpImg} title='score' bignum={score} iconTooltip={`${gameEndScore} points to win`}>
+        {distanceFromWin < 50 && <Tooltip title="Another player is within 50 points of winning.">
+            <div className="distance-from-win">
+                GAME WILL END SOON
+            </div>
+        </Tooltip>}
         {myCivIds.length > 1 && <FormControl style={{marginTop: '10px'}}>
             <InputLabel id="select-civ-label">Select Civilization</InputLabel>
             <Select
@@ -569,7 +568,7 @@ const UpperRightDisplay = ({ mainGameState, canFoundCity, isFoundingCity, disabl
                 setSelectedCity={setSelectedCity} setHoveredCiv={setHoveredCiv} setHoveredUnit={setHoveredUnit} setHoveredBuilding={setHoveredBuilding}
                 declineViewCivsById={declineViewCivsById}/>}
             {myCiv && <IdeologyDisplay myCiv={myCiv} myGamePlayer={myGamePlayer} gameState={mainGameState} templates={templates} setIdeologyTreeOpen={() => {setIdeologyTreeOpen(true); setDeclineOptionsView(false);}} setHoveredTenet={setHoveredTenet}/>}
-            {myGamePlayer?.score > 0 && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={mainGameState.game_end_score} gameState={mainGameState}/>}
+            {(myGamePlayer?.score > 0 || myGamePlayer?.score_dict["New civ cost"] < 0) && <ScoreDisplay myGamePlayer={myGamePlayer} gameEndScore={mainGameState.game_end_score} gameState={mainGameState}/>}
         </div>
     );
 };
