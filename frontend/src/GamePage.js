@@ -62,15 +62,15 @@ import City, { FogCity, DECLINE_RING_GRADIENT_ID } from './City';
 import { GlobalClockProvider } from './GlobalClockContext.js';
 
 const difficultyLevels = {
-    'Debug': 20,
+    'Debug': 10,
     'Settler': 2.0,
     'Chieftan': 1.5,
     'Warlord': 1.25,
-    'Prince': 1.0,
-    'King': 0.9,
-    'Emperor': 0.75,
-    'Immortal': 0.5,
-    'Diety': 0.3
+    'Prince': 1.1,
+    'King': 1.0,
+    'Emperor': 0.9,
+    'Immortal': 0.8,
+    'Diety': 0.6,
 };
 
 const coordsToObject = (coords) => {
@@ -364,11 +364,7 @@ const ChooseCapitalButton = ({playerNum, isOvertime, myGamePlayer, selectedCity,
             : myGamePlayer?.decline_this_turn ? "Already declined this turn"
             : (isOvertime && !myGamePlayer?.failed_to_decline_this_turn) ? "Can't decline in overtime"
             : null;
-    const content = disabledMsg ? disabledMsg : <>
-        {nonDeclineViewGameState?.decline_cost > 0 ? <>Pay {nonDeclineViewGameState?.decline_cost} VPs to </> : null}
-        start a new civilization in:<br/>
-        {selectedCity.name}
-    </>;
+    const content = disabledMsg ? disabledMsg : `${nonDeclineViewGameState?.decline_cost > 0 ? `Pay ${nonDeclineViewGameState?.decline_cost} VPs to ` : ""}start a new civilization in: ${selectedCity.name}`;
     const disabled = engineState !== EngineStates.PLAYING || disabledMsg !== null;
     return <Button
         style={{
