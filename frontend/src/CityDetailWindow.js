@@ -224,10 +224,10 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                     </h1>
                 </Tooltip>
                 <h1 style={{ margin: '0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '60%' }}>
-                    <Tooltip title="Previous City">
+                    <Tooltip title="Previous city">
                         <span
-                            role="img"
-                            aria-label="Previous City"
+                            role="button"
+                            aria-label="Previous city"
                             className="city-navigation-icon"
                             onClick={() => CycleCities(false)}
                             style={{color: myCivTemplate?.darkmode ? "white" : "black"}}
@@ -239,15 +239,15 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                     {selectedCity.name}
                     {declinePreviewMode ? " (preview)" : ""}
                     </span>
-                    <Tooltip title="Next City">
+                    <Tooltip title="Next city">
                         <span
-                            role="img"
-                            aria-label="Previous City"
+                            role="button"
+                            aria-label="Next city"
                             className="city-navigation-icon"
                             onClick={() => CycleCities(true)}
                             style={{color: myCivTemplate?.darkmode ? "white" : "black"}}
                         >
-                        {puppet ? "⇧" : "▶"}
+                        {puppet ? "⇩" : "▶"}
                         </span>
                     </Tooltip>
                 </h1>
@@ -345,7 +345,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
             <div className="city-detail-column">
                 <CityDetailPanel title='science' icon={scienceImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced by this city." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                 </CityDetailPanel>
-                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced this turn.z" handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
+                <CityDetailPanel title='food' icon={foodImg} selectedCity={selectedCity} hideStored='true' total_tooltip="produced this turn." handleClickFocus={handleClickFocus} noFocus={declinePreviewMode}>
                     <div className='growth-area'>
                         <TextOnIcon image={workerImg}>
                             +
@@ -380,7 +380,7 @@ const CityDetailWindow = ({ gameState, myCivTemplate, myCiv, myGamePlayer, myTer
                         <div className="unhappiness-income-area">
                             <Tooltip title={projectedIncome['food'] >= foodDemanded ?
                                 `income exceeds demand; city produces city power ${projectedIncome['city_power'].toFixed(2)}` :
-                                `demand exceds income; city is gaining unhappiness ${projectedIncome['unhappiness'].toFixed(2)}`}
+                                `demand exceeds income; city is gaining unhappiness ${projectedIncome['unhappiness'].toFixed(2)}`}
                             >
                                 <div className="unhappiness-income-value">
                                     +{projectedIncome['city_power'] !== 0 ? Math.floor(projectedIncome['city_power']) : Math.floor(projectedIncome['unhappiness'])}

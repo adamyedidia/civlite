@@ -45,7 +45,7 @@ const TenetLevelBox = ({ level, tenets, gameState, myGamePlayer, handleClickTene
     const myTenet = tenets.find(tenet => myGamePlayer.tenets[tenet.name] !== undefined);
     const future = myTenet === undefined && level > myGamePlayer.active_tenet_choice_level;
     const status = future ? "future" : level === myGamePlayer.active_tenet_choice_level ? "active-choice" : "";
-    const sortedTenets = tenets.sort((a, b) => a.sort_order.localeCompare(b.sort_order));
+    const sortedTenets = [...tenets].sort((a, b) => a.sort_order.localeCompare(b.sort_order));
     return <div className={`tenet-level-box ${status}`}>
         <div className="tenet-level-box-header">
             {romanNumeral(level)}. {IDEOLOGY_LEVEL_STRINGS[level].header}
@@ -106,13 +106,12 @@ const IdeologyTreeDialog = ({open, onClose, handleClickTenet, setHoveredTenet, t
                     Ideologies
                 </Typography>
                 <IconButton
-                    aria-label="close"
+                    aria-label="Close"
                     onClick={onClose}
                     style={{
                         position: 'absolute',
                         right: 8,
                         top: 8,
-                        color: (theme) => theme.palette.grey[500],
                     }}
                     color="primary"
                 >

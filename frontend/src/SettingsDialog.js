@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { 
     Dialog, 
     DialogTitle, 
     DialogContent, 
-    DialogContentText, 
-    createTheme, 
-    ThemeProvider, 
+    Box, 
     Slider, 
     Typography,
     DialogActions,
@@ -26,7 +24,7 @@ export default function SettingsDialog({
         <Dialog open={open} onClose={onClose}>
             <DialogTitle>Game Settings</DialogTitle>
             <DialogContent>
-                <DialogContentText>
+                <Box sx={{ minWidth: 240 }}>
                     <Typography id="volume-slider" gutterBottom>
                         Volume
                     </Typography>
@@ -36,11 +34,10 @@ export default function SettingsDialog({
                         aria-labelledby="volume-slider"
                         valueLabelDisplay="auto"
                         step={1}
-                        marks
                         min={0}
                         max={100}
                     />
-                </DialogContentText>
+                </Box>
             </DialogContent>
             <DialogActions>
                 <Button variant="contained" onClick={onClose}>Ok</Button>

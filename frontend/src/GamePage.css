@@ -101,6 +101,30 @@ body {
   background-color: #4488FF;
 }
 
+.map-mode-banner {
+  position: fixed;
+  top: 124px; /* sits just below the centered turn/age card */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2500;
+  padding: 8px 18px;
+  border-radius: 18px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.map-mode-banner.decline {
+  background-color: rgba(176, 32, 32, 0.92);
+}
+
+.map-mode-banner.founding {
+  background-color: rgba(34, 122, 52, 0.92);
+}
+
 .turn-num-card {
   margin: 5px;
   border-radius: 5px;

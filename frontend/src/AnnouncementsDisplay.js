@@ -38,7 +38,7 @@ const AnnouncementsDisplay = ({ announcements, turn_num }) => {
     return (
         <div className="announcements-display">
             <Grid container direction="column" spacing={0}>
-                {announcements.map((announcement, index) => (
+                {(announcements ?? []).map((announcement, index) => (
                     <Grid item key={index}>
                         <RenderAnnouncement text={announcement} turn_num={turn_num}/>
                     </Grid>

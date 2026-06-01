@@ -15,7 +15,7 @@ const AnimationControlBar = ({animationFrame, animationTotalFrames}) => {
             <div className="animation-bar-dot" style={{left: `${animationFrame / animationTotalFrames * 100}%`}}>
             </div>
         </div>
-        <div className="animation-control-bar-stop" >
+        <div className="animation-control-bar-stop" role="img" aria-label="Stop replay" title="Stop replay">
         </div>
     </div>
 }

@@ -1,16 +1,5 @@
 import { useState, useEffect } from 'react';
 
-import knightSpriteData from './MiniCavalierMan.js';
-// import garrisonSpriteData from './MiniSwordMan.js';
-import horsemanSpriteData from './MiniHorseMan.js';
-import swordsmanSpriteData from './MiniShieldMan.js';
-import archerSpriteData from './MiniArcherMan.js';
-import crossbowmanSpriteData from './MiniCrossBowMan.js';
-import spearmanSpriteData from './MiniSpearMan.js';
-import pikemanSpriteData from './MiniHalberdMan.js';
-import cannonSpriteData from './MiniCannon.js';
-import musketmanSpriteData from './MiniPirateGunner.js';
-
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores.js';
 import { civNameToShieldImgSrc } from './flag.js';
 import { useGlobalClockValue } from './GlobalClockContext.js';
@@ -58,95 +47,6 @@ const BasicUnit = ({ unit, small, templates, civsById }) => {
         </svg>
     );
 };
-
-export function UnitCorpse({ corpse, small, templates, civsById }) {
-    const clock = useGlobalClockValue();
-    const unitCivTemplate = templates.CIVS[civsById?.[corpse.unit_civ_id]?.name]
-    const primaryColor = unitCivTemplate?.primary_color;
-    const secondaryColor = unitCivTemplate?.secondary_color;
-
-    const [deathStartTime, setDeathStartTime] = useState(null);
-
-    useEffect(() => {
-        setDeathStartTime(clock);
-    }, []);
-
-    const spriteData = {
-        // "Garrison": garrisonSpriteData,
-        "Horseman": horsemanSpriteData,
-        "Knight": knightSpriteData,
-        "Swordsman": swordsmanSpriteData,
-        "Archer": archerSpriteData,
-        "Crossbowman": crossbowmanSpriteData,
-        "Spearman": spearmanSpriteData,
-        "Pikeman": pikemanSpriteData,
-        "Cannon": cannonSpriteData,
-        "Musketman": musketmanSpriteData,
-    }[corpse.unit_name];
-
-    if (spriteData) {
-        const scale = small ? 0.95 : 1.4;
-        const pixelSize = scale * 4/16; // 4 units total width / 16 pixels
-
-        const framesSinceAttackStart = clock - deathStartTime;
-        const currentFrame = framesSinceAttackStart;
-
-        if (currentFrame >= spriteData.die.length) {
-            return null;
-        }
-
-        const currentFrameData = spriteData.die[currentFrame];
-
-        const frameWidth = currentFrameData[0]?.length || 16;
-        const frameHeight = currentFrameData.length || 16;
-
-        // Calculate centering offsets
-        const horizontalOffset = (16 - frameWidth) / 2 * pixelSize;  // Assuming 16 is our target width
-        const verticalOffset = (16 - frameHeight) * pixelSize + scale;  // -scale for general adjustment
-
-        return (
-            <svg
-                width={`${4*scale}`}
-                height={`${4*scale}`}
-                viewBox={`0 0 ${4*scale} ${6*scale}`}
-                x={-2*scale}
-                y={-2*scale + (small ? 1 : 0)}
-                opacity={1.0}
-            >
-                <g transform={`translate(${horizontalOffset}, ${verticalOffset})`}>
-                    {spriteData.die[currentFrame].map((row, y) =>
-                        row.map((pixel, x) => {
-                            if (Array.isArray(pixel) && pixel[3] === 0) return null;
-
-                            let color;
-                            if (pixel === "team color 1") {
-                                color = primaryColor;
-                            } else if (pixel === "team color 2") {
-                                color = secondaryColor;
-                            } else {
-                                color = `rgba(${pixel[0]}, ${pixel[1]}, ${pixel[2]}, ${pixel[3]/255})`;
-                            }
-
-                            return (
-                                <rect
-                                    key={`${x}-${y}`}
-                                    x={Math.round(x * pixelSize * 100) / 100}
-                                    y={Math.round(y * pixelSize * 100) / 100}
-                                    width={Math.round(pixelSize * 100) / 100}
-                                    height={Math.round(pixelSize * 100) / 100}
-                                    fill={color}
-                                />
-                            );
-                        })
-                    )}
-                </g>
-            </svg>
-        );
-    }
-
-    return null;
-
-}
 
 export default function Unit({ unit, small, templates, civsById, attackingUnitCoords, attackedUnitCoords }) {
     const clock = useGlobalClockValue();

@@ -108,13 +108,12 @@ const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, 
                     All Technologies
                 </Typography>
                 <IconButton
-                    aria-label="close"
+                    aria-label="Close"
                     onClick={onClose}
                     style={{
                         position: 'absolute',
                         right: 8,
                         top: 8,
-                        color: (theme) => theme.palette.grey[500],
                     }}
                     color="primary"
                 >

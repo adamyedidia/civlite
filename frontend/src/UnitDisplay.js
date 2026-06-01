@@ -150,13 +150,12 @@ export const AllUnitsDialog = ({ units, open, onClose }) => {
                 <MenuItem value="strength">Strength</MenuItem>
             </Select>
             <IconButton
-                aria-label="close"
+                aria-label="Close"
                 onClick={onClose}
                 style={{
                     position: 'absolute',
                     right: 30,
                     top: 8,
-                    color: (theme) => theme.palette.grey[500],
                 }}
                 color="primary"
             >

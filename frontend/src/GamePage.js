@@ -56,7 +56,7 @@ import acornImg from './images/acorn.svg';
 import PostGameStats from './PostGameStats';
 import { lowercaseAndReplaceSpacesWithUnderscores } from './lowercaseAndReplaceSpacesWithUnderscores';
 import { terrainToColor } from './terrainToColor.js';
-import Unit, { UnitCorpse } from './Unit';
+import Unit from './Unit';
 import { civNameToFlagImgSrc } from './flag.js';
 import City, { FogCity, DECLINE_RING_GRADIENT_ID } from './City';
 import { GlobalClockProvider } from './GlobalClockContext.js';
@@ -191,7 +191,7 @@ function RulesDialog({open, onClose, gameConstants}) {
                     <b>Unit movement and combat</b>
                 </DialogContentText>
                 <DialogContentText>
-                    You don't have fine-grained control over your units in this game. Instead, you set two "targets" on the map, repesented by flags. Your units will attack-move to those flags, and choose whichever of the two
+                    You don't have fine-grained control over your units in this game. Instead, you set two "targets" on the map, represented by flags. Your units will attack-move to those flags, and choose whichever of the two
                     is closer. If a unit is adjacent to an enemy unit, it will attack that unit. When two units fight, they each deal damage to the other according to a complicated function of their respective strengths, meant to
                     approximately imitate what would happen in Civ 5 or other games with this system. Ranged units don't take damage back when they attack. If you occupy an enemy city or a camp, that city or camp is now "under siege"
                     (and will appear as on fire); if you then occupy it for a second turn in a row, you'll capture the city or clear the camp. Cities don't take any damage or population loss from being captured. Barbarian camps spawn a
@@ -481,12 +481,9 @@ export default function GamePage() {
 
     const [announcementsThisTurn, setAnnouncementsThisTurn] = useState([]);
     const [currentAnnouncementIndex, setCurrentAnnouncementIndex] = useState(0);
-    const [corpses, setCorpses] = useState([]);
 
     const gameStateExistsRef = React.useRef(false);
     const firstRenderRef = React.useRef(true);
-
-    console.log("render");
 
     const startAnnouncementFadeOut = () => {
         setIsAnnouncementFading(true);
@@ -805,7 +802,7 @@ export default function GamePage() {
 
         const handleKeyUp = (event) => {
             // Clear the interval when the key is released
-            if (['w', 'W', 's', 'S', 'a', 'S', 'd', 'D'].includes(event.key)) {
+            if (['w', 'W', 's', 'S', 'a', 'A', 'd', 'D'].includes(event.key)) {
                 clearInterval(scrollIntervalId);
                 scrollIntervalId = null;
             }
@@ -2782,8 +2779,6 @@ export default function GamePage() {
                     }
                     setAttackingUnitCoords(json.data.start_coords);
                     setAttackedUnitCoords(json.data.end_coords);
-                    const newCorpses = [...corpses, ...(json.data.attacker_corpse ? [json.data.attacker_corpse] : []), ...(json.data.defender_corpse ? [json.data.defender_corpse] : [])];
-                    setCorpses(newCorpses);
                     showSingleMovementArrow(json.data.start_coords, json.data.end_coords, 'attack');
                     json.data.support_coords.forEach(coords => {
                         showSingleMovementArrow(coords[0], coords[1], 'support');
@@ -2811,7 +2806,6 @@ export default function GamePage() {
         refreshSelectedCity(finalGameState);
         setAttackingUnitCoords(null);
         setAttackedUnitCoords(null);
-        setCorpses([]);
         const { myCiv, myGamePlayer } = getMyInfo(finalGameState);
         sciencePopupIfNeeded(myCiv);
         greatPersonPopupIfNeeded(myCiv);
@@ -3277,6 +3271,12 @@ export default function GamePage() {
 
         return (
             <>
+                {declineOptionsView && <div className="map-mode-banner decline">
+                    Decline view — choose a city to revolt into
+                </div>}
+                {!declineOptionsView && foundingCity && <div className="map-mode-banner founding">
+                    Founding mode — click a highlighted hex to found your city
+                </div>}
                 <div className="basic-example">
                     <HexGrid width={3000} height={3000} viewBox="-70 -70 140 140"
                     style={{backgroundColor: declineOptionsView ? '#FF6666' : foundingCity ? '#99FF99' : '#4488FF'}}>
@@ -3361,13 +3361,6 @@ export default function GamePage() {
                                             attackingUnitCoords={attackingUnitCoords}
                                             attackedUnitCoords={attackedUnitCoords}
                                         />}
-                                        {corpses.map((corpse, i) => corpse.coords === coordsString(hex) && <UnitCorpse
-                                            key={i}
-                                            corpse={corpse}
-                                            small={hex?.city || hex?.camp || foundingCity}
-                                            templates={templates}
-                                            civsById={civsById}
-                                        />)}
                                     </GlobalClockProvider>
                                     {hex.quest === 'El Dorado' && <ElDoradoMarker/>}
                                     {hex.quest === 'Yggdrasils Seeds' && <YggdrasilSeedsMarker/>}

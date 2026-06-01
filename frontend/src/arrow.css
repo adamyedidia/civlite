@@ -26,9 +26,11 @@
 }
 
 .arrow.support {
-    background-image: linear-gradient(to right, rgba(0, 0, 255, 0.5), white);
+    background-image: linear-gradient(to right, rgba(0, 200, 160, 0.4), #00c8a0);
     border-style: none;
-    height: 3px;
+    height: 4px;
+    /* Outline keeps the support line visible on light terrain */
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
 }
 
 .arrow.support:after {
