@@ -5,14 +5,11 @@ import woodImg from './images/wood.png';
 import metalImg from './images/metal.png';
 import shieldImg from './images/shield.png';
 import { TextOnIcon } from './TextOnIcon.js';
-import { 
-    Dialog, 
-    DialogTitle, 
-    Typography, 
-    IconButton,
+import {
     Select,
     MenuItem,
 } from '@mui/material';
+import GameDialog from './GameDialog.js';
 import { ShrinkFontText } from './ShrinkFontText.js';
 import { romanNumeral } from "./romanNumeral.js";
 
@@ -135,37 +132,22 @@ export const AllUnitsDialog = ({ units, open, onClose }) => {
         + (sortBy === "age") * (a.advancement_level + 0.01 * a.metal_cost)
         + (sortBy === "strength") * (a.strength)
     const sortedUnits = Object.values(units).sort((a, b) => sort_fn(a) - sort_fn(b) + 0.01 * (a.name.localeCompare(b.name)));
-    return <Dialog open={open} onClose={onClose} maxWidth="lg" fullWidth>
-        <DialogTitle>
-            <Typography variant="h5" component="div" style={{ textAlign: 'center' }}>
-                All Units
-            </Typography>
-            <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={{
-                    position: 'absolute',
-                    left: 30,
-                    top: 8,
-                }}>
-                <MenuItem value="name">A-Z</MenuItem>
-                <MenuItem value="age">Age</MenuItem>
-                <MenuItem value="strength">Strength</MenuItem>
-            </Select>
-            <IconButton
-                aria-label="Close"
-                onClick={onClose}
-                style={{
-                    position: 'absolute',
-                    right: 30,
-                    top: 8,
-                }}
-                color="primary"
-            >
-                Close
-            </IconButton>
-        </DialogTitle>
+    const sortControl = (
+        <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} style={{
+                position: 'absolute',
+                left: 30,
+                top: 8,
+            }}>
+            <MenuItem value="name">A-Z</MenuItem>
+            <MenuItem value="age">Age</MenuItem>
+            <MenuItem value="strength">Strength</MenuItem>
+        </Select>
+    );
+    return <GameDialog open={open} onClose={onClose} title="All Units" fullWidth leftContent={sortControl} disableContentWrapper>
         <div className="all-units-display">
             {sortedUnits.map((unit, i) => <UnitDisplay key={i} template={unit} width="100"/>)}
         </div>
-    </Dialog>
+    </GameDialog>
 };
 
 export default UnitDisplay;

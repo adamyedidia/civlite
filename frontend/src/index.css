@@ -1,3 +1,24 @@
+:root {
+  /* Saturated resource accent colors (panels, banners, icons). */
+  --color-wood: #e46c2b;
+  --color-food: #65ac37;
+  --color-food-light: #a4e079;
+  --color-metal: #888888;
+  --color-science: #5ca7b1;
+
+  /* Building category colors. */
+  --building-wonder: #b66dc0;
+  --building-military: #bbbbbb;
+  --building-rural: #eecab7;
+  --building-urban: #e08b5e;
+
+  /* Layering scale — keep these in sync with zLayers in tokens.js. */
+  --z-hud: 100;
+  --z-panel: 1000;
+  --z-banner: 2000;
+  --z-modal: 100000;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',

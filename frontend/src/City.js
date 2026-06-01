@@ -1,6 +1,7 @@
 import React from "react";
 
 import { lowercaseAndReplaceSpacesWithUnderscores } from "./lowercaseAndReplaceSpacesWithUnderscores";
+import { resourceFocusColors } from "./tokens";
 
 import workerIcon from './images/worker.png';
 import vpImage from './images/crown.png';
@@ -73,11 +74,7 @@ export default function City({
     const friendly = isFriendlyCity(city);
     const puppet = city.territory_parent_coords;
 
-    const colors =
-        {'wood': '#e0b096',
-        'food': '#ccffaa',
-        'metal': '#bbbbbb',
-        'science': '#b0e0e6'}
+    const colors = resourceFocusColors;
     const focusColor = friendly ? colors[city.focus] : primaryColor;
     let buildingText;
     let buildingIconUnit;

@@ -1,7 +1,8 @@
 import React from "react";
 import './IdeologyTree.css';
 
-import { Dialog, DialogTitle, DialogContent, Typography, IconButton, Tooltip } from "@mui/material";
+import { Typography, Tooltip } from "@mui/material";
+import GameDialog from "./GameDialog";
 import ideologyImg from "./images/ideology.png";
 import { romanNumeral } from "./romanNumeral";
 import { IDEOLOGY_LEVEL_STRINGS } from "./ideologyLevelStrings";
@@ -100,35 +101,9 @@ const IdeologyTreeDialog = ({open, onClose, handleClickTenet, setHoveredTenet, t
     }
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="lg">
-            <DialogTitle>
-                <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
-                    Ideologies
-                </Typography>
-                <IconButton
-                    aria-label="Close"
-                    onClick={onClose}
-                    style={{
-                        position: 'absolute',
-                        right: 8,
-                        top: 8,
-                    }}
-                    color="primary"
-                >
-                    Close
-                </IconButton>
-                <img src={ideologyImg} alt="" style={{
-                        height: 'auto', 
-                        width: '100px', 
-                        position: "absolute",
-                        left: "10px",
-                        top: "10px",
-                        }}/>
-            </DialogTitle>
-            <DialogContent className="tenet-dialog-content">
-                {Object.keys(advancementLevels).map(level => tenetLevelBox(parseInt(level)))}
-            </DialogContent>
-        </Dialog>
+        <GameDialog open={open} onClose={onClose} title="Ideologies" leftImage={ideologyImg} contentClassName="tenet-dialog-content">
+            {Object.keys(advancementLevels).map(level => tenetLevelBox(parseInt(level)))}
+        </GameDialog>
     )
 }
 

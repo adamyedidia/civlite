@@ -1,7 +1,8 @@
 import React from "react";
 import './TechListDialog.css';
 
-import { Dialog, DialogTitle, DialogContent, Typography, IconButton } from "@mui/material";
+import { Typography } from "@mui/material";
+import GameDialog from "./GameDialog";
 import { IconUnitDisplay } from "./UnitDisplay";
 import { BriefBuildingDisplay } from "./BuildingDisplay";
 import scienceImg from './images/science.png';
@@ -102,51 +103,25 @@ const TechListDialog = ({open, onClose, setHoveredTech, handleClickTech, myCiv, 
     }
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="lg">
-            <DialogTitle>
-                <Typography variant="h5" component="div" style={{ flexGrow: 1, textAlign: 'center' }}>
-                    All Technologies
-                </Typography>
-                <IconButton
-                    aria-label="Close"
-                    onClick={onClose}
-                    style={{
-                        position: 'absolute',
-                        right: 8,
-                        top: 8,
-                    }}
-                    color="primary"
-                >
-                    Close
-                </IconButton>
-                <img src={scienceImg} alt="" style={{
-                        height: 'auto', 
-                        width: '100px', 
-                        position: "absolute",
-                        left: "10px",
-                        top: "10px",
-                        }}/>
-            </DialogTitle>
-            <DialogContent className="tech-dialog-content">
-                <TechColumn>
-                    {techLevelBox(1)}
-                </TechColumn>
-                <TechColumn>
-                    {techLevelBox(2)}
-                    {techLevelBox(3)}
-                </TechColumn>
-                <TechColumn>
-                    {techLevelBox(4)}
-                    {techLevelBox(5)}
-                    {techLevelBox(6)}
-                </TechColumn>
-                <TechColumn>                 
-                    {techLevelBox(7)}
-                    {techLevelBox(8)}
-                    {techLevelBox(9)}
-                </TechColumn>
-            </DialogContent>
-        </Dialog>
+        <GameDialog open={open} onClose={onClose} title="All Technologies" leftImage={scienceImg} contentClassName="tech-dialog-content">
+            <TechColumn>
+                {techLevelBox(1)}
+            </TechColumn>
+            <TechColumn>
+                {techLevelBox(2)}
+                {techLevelBox(3)}
+            </TechColumn>
+            <TechColumn>
+                {techLevelBox(4)}
+                {techLevelBox(5)}
+                {techLevelBox(6)}
+            </TechColumn>
+            <TechColumn>                 
+                {techLevelBox(7)}
+                {techLevelBox(8)}
+                {techLevelBox(9)}
+            </TechColumn>
+        </GameDialog>
     )
 }
 
